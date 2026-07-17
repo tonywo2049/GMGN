@@ -1,0 +1,30 @@
+---
+name: write-goal
+description: ROADMAP 已批、负责人点名启动某个 Milestone(行状态=未立项)、需要立项并撰写该单元 Goal 时使用。
+---
+
+# 立项与 Goal(Milestone 目标拆解)
+
+<HARD-GATE>前置:ROADMAP 存在且已批准、该 Milestone 行存在且状态=未立项、有负责人启动指令;任一不满足,拒绝执行并指回 `roadmap`。对未立项单元派任何工=越范围,会话内口头授权不替代立项。</HARD-GATE>
+
+每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。
+
+## 动作(三步一批)
+
+1. **登记立项**:ROADMAP 该行状态 未立项→立项(同批刷新)。
+2. **建单元目录**:标准链文件名 `Goal.md → Requirement.md → Design.md → Task.md`;只建 Goal,其余未立项不建空文件(缺口记 Goal)。
+3. **写 Goal.md**——**核心是对该 Milestone 定性目标的拆解**,不是转抄:
+   - 定位一句话:本单元是什么、解决什么。
+   - 阶段目标:指针指 ROADMAP 行(不复述其目标与验收标准),然后**拆解为若干子目标**——每个子目标说清贡献哪条 Milestone 验收标准。
+   - 边界句:向上不改什么(不重开已冻结选型/契约),向下不越什么;产出或消费选型结论的,按「下游只消费、不支撑走显式回退升级」标注。
+   - 切片划分表:子目标落成切片(切片=立项与状态机最小单元),各自独立立项推进。
+   - 非目标:显式排除项+归属。
+   - 链路文档映射:R/D/T 三行指针,未建标「未立项」。
+   - 验收判据:单元级出口判据——承接 ROADMAP 行的定性验收标准,按拆解具体化到本单元(仍定性;区别于 Requirement 的 R-AC。关账对账要正向枚举它,不可省)。
+   - 缺口清单:想到但未立项的,一行一条+触发条件。
+
+Goal 兼单元入口/README,一个目录一个入口。文档契约见 [文档写作契约](../methodology/references/文档写作契约.md);性质=规范,上游=ROADMAP 对应行。
+
+## 出口
+
+Goal 不单独走 critic——其拆解质量由 `write-requirement` 的 critic 在「上下游一致」维一并受审(Requirement 须覆盖 Goal 的子目标,拆解错在那里会被抓住)。落盘 commit → **REQUIRED 下一环:`write-requirement`**。
