@@ -51,9 +51,11 @@ GMGN has one workflow, not separate English and Chinese plugins.
 - A project artifact chain normally uses one active locale. If a project requires two
   translated chains, validate each locale tree separately to avoid duplicate IDs.
 
-The shared contract and copy-ready templates are in
+The shared machine contract is in
 [`skills/gmgn/references/en/writing-contract.md`](skills/gmgn/references/en/writing-contract.md)
-and its [Chinese mirror](skills/gmgn/references/zh-CN/writing-contract.md).
+and its [Chinese mirror](skills/gmgn/references/zh-CN/writing-contract.md). GMGN does not
+ship document-layout templates. Each stage skill defines required content and self-checks;
+the Author chooses the structure.
 
 ## Supported surfaces
 
@@ -68,6 +70,9 @@ and its [Chinese mirror](skills/gmgn/references/zh-CN/writing-contract.md).
 Native review does not replace execution. GMGN still requires project tests and a
 replayable verification path. In Codex, a custom review prompt and scope flags are
 mutually exclusive; after review, check `git status --short` for generated side effects.
+Within a node, fixes return to the same Author/Coder and blocker rechecks to the same
+Critic/Reviewer. If a platform cannot resume that identity, GMGN records an explicit
+replacement and repeats a full review when the reviewer changes.
 
 ## Install
 
@@ -143,11 +148,12 @@ scope expansion, and closure still require their defined authorization.
 ```text
 skills/                         nine cross-platform skills
   */agents/openai.yaml          Codex display metadata and default prompts
-  gmgn/references/{en,zh-CN}/   mirrored contracts, briefs, and checklists
+  gmgn/references/{en,zh-CN}/   mirrored machine/dispatch contracts and checklists
+agents/                         Claude Code plugin subagent roles
 .docstar/conventions/           DocStar-compatible GMGN convention set
 .codex-plugin/plugin.json       Codex plugin manifest
 .claude-plugin/                 Claude Code plugin and marketplace manifests
-.codex/agents/                  repository-development roles
+.codex/agents/                  optional project-scoped Codex role profiles for this repository
 .agents/plugins/                Codex marketplace manifest
 tests/                          structure, language, platform, and package checks
 scripts/package_release.py      deterministic ZIP and SHA-256 builder

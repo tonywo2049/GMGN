@@ -9,20 +9,36 @@ description: "Use after milestone initiation and Goal.md to analyze, clarify, cr
 
 ## Language and contract
 
-Use the Goal locale and the matching
+Use the Goal locale and the matching layout-free
 [English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) Requirement template. Keep filename
+[中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename
 `Requirement.md`, `type: requirement`, and `nature: normative`.
 
-## Write
+## Author content and self-check
 
-- Translate every in-scope Goal slice into numbered requirements `R1`, `R2`, ...
+- Dispatch an Author to translate every in-scope Goal slice into numbered requirements
+  `R1`, `R2`, ...; the Author chooses the document structure.
 - Give each requirement decidable ACs `R1-AC1`, ... using observable precondition, action,
   and result. This is the qualitative-to-quantitative boundary.
 - Separate functional, non-functional, parameter/constraint, non-goal, and open-decision sections.
 - Parameterize changeable numbers; name the authority and verification method for values.
 - Maintain a Goal ↔ R/AC traceability table. No orphan Goal slice and no unowned AC.
 - For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
+
+Before return, the Author checks that every Goal slice is covered or explicitly excluded,
+every AC is decidable and owned, no requirement prescribes an implementation structure, and
+every number has an authority and verification method.
+
+## Author and critic loop
+
+At `ready-to-dispatch`, record the Goal anchor and dispatch one Author with the content and
+self-check above; retain `author_ref`. The orchestrator does not draft Requirement. At
+`author-returned`, send incomplete or out-of-scope work to the same Author as `author-rework`;
+otherwise enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`,
+adjudicate findings, resume the same Author in `author-revising`, and send blocker fixes to
+the same Critic in `critic-rechecking`. When no blocker remains, the primary orchestrator
+reviews the candidate and dispatches an Integrator for accepted mechanical links, mappings,
+state, and commit material. Finish at `node-complete`.
 
 ## Controlled revision
 
@@ -44,10 +60,10 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Reconcile scope coverage and scan every affected AC for decidability. For creation or a
-semantic revision, run one independent critic with the locale-matched `critic-brief.md`,
-emphasizing upstream consistency and acceptance quality. Resolve findings, obtain
-primary-orchestrator review, and commit. Creation then uses **REQUIRED next skill:
+Require the Author to reconcile scope coverage and scan every affected AC for decidability.
+For creation or a semantic revision, run the identity-preserving Author/Critic loop using the
+locale-matched dispatch contract; tell the Critic to emphasize upstream consistency and
+acceptance quality. Obtain primary-orchestrator review and integrate. Creation then uses **REQUIRED next skill:
 `write-design`**. A revision returns to the stage that raised it and continues through the
 affected path only.
 

@@ -12,7 +12,7 @@ nature: descriptive
 
 English: [README.md](README.md)
 
-GMGN 是同时适配 **Codex（CLI / Desktop）** 与 **Claude Code** 的 agent 研发工作流。它把一个想法沿着九件可组合 skill 推进到里程碑关账，用硬门禁阻止跳步，用独立评审减少同源盲区，用可重放命令把“完成”绑定到真实证据。V0.1 不把 ChatGPT 通用聊天插件目录列为已验证平台。
+GMGN 是同时适配 **Codex（CLI / Desktop）** 与 **Claude Code** 的 agent 研发工作流。它把一个想法沿着九件可组合 skill 推进到里程碑关账，用硬门禁阻止跳步，用独立评审减少同源盲区，用可重放命令把“完成”绑定到真实证据。
 
 ```text
 想法
@@ -35,8 +35,9 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 机器 token。公共仓库文档使用英文主文件和 `.zh-CN.md` 镜像；项目规格链通常只选一个活动语言，
 确需双语时分 locale 目录分别检查，避免相同 ID 重复定义。
 
-统一契约与可复制模板见[中文写作契约](skills/gmgn/references/zh-CN/writing-contract.md)和
-[English writing contract](skills/gmgn/references/en/writing-contract.md)。
+统一机器契约见[中文写作契约](skills/gmgn/references/zh-CN/writing-contract.md)和
+[English writing contract](skills/gmgn/references/en/writing-contract.md)。GMGN 不提供文档章节模板；
+每个阶段 Skill 规定必备内容和自检项，Author 自行组织章节。
 
 ## 支持范围
 
@@ -48,7 +49,7 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 | 运行验证 | 项目测试、启动与 E2E 命令 | 项目命令；可用 `/verify` |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。
+原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。同一节点内，修改回到原 Author / Coder，blocker 定向复核回到原 Critic / Reviewer；平台无法恢复身份时显式替换，审查角色变更后重做完整审查。
 
 ## 安装
 
@@ -130,11 +131,12 @@ claude plugin marketplace remove GMGN --scope user
 ```text
 skills/                     九件跨平台共享 skill
   */agents/openai.yaml      Codex 展示与默认提示元数据
-  gmgn/references/{en,zh-CN}/ 中英文镜像契约、任务书和核对单
+  gmgn/references/{en,zh-CN}/ 中英文镜像机器/派发契约和核对单
+agents/                     Claude Code 插件 subagent 角色
 .docstar/conventions/       与 DocStar gmgn-v1 一致的约定集
 .codex-plugin/plugin.json   Codex 插件清单
 .claude-plugin/             Claude Code 插件与市场清单
-.codex/agents/              仓库开发用 coder / critic / reviewer 角色
+.codex/agents/              本仓可选的 Codex 项目级角色配置
 .agents/plugins/            Codex marketplace 清单
 tests/                      结构、触发、双平台与发布包校验
 scripts/package_release.py  可复现发布包与 SHA-256 生成器

@@ -9,16 +9,17 @@ description: "Use when a WhitePaper does not exist, needs a major rethink, or an
 
 ## Language and contract
 
-Use the active project/user locale. Load the matching
+Use the active project/user locale. Load the matching layout-free
 [English](../gmgn/references/en/writing-contract.md) or
 [中文](../gmgn/references/zh-CN/writing-contract.md) contract. The WhitePaper uses
 `type: whitepaper`, `nature: normative`, and stable English frontmatter tokens.
 
 ## Working rhythm
 
-Act as a thinking partner, not a stenographer. Ask one question at a time. Explore the
-problem before solution details; challenge premature implementation, solutions disguised
-as requirements, and claims that need research.
+The primary orchestrator stays in the owner dialogue, asks one question at a time, records
+rulings, and challenges premature implementation or solutions disguised as requirements.
+Dispatch a Researcher for scoped evidence and an Author for the WhitePaper; the orchestrator
+does not write the artifact.
 
 Use as needed:
 
@@ -37,6 +38,22 @@ Use as needed:
 7. qualitative validation direction and weakest assumption.
 
 Do not introduce R-AC IDs or quantitative requirement criteria here.
+
+## Author and critic loop
+
+1. Enter `awaiting-owner-input` while a material problem, scope, or harm-order decision is
+   missing. Once inputs are sufficient, create the node record and enter `ready-to-dispatch`.
+2. `author-active`: dispatch one Author with the evidence, owner rulings, required content
+   above, allowed paths, baseline anchor, and self-check. Record `author_ref`.
+3. `author-returned`: check only return completeness, scope, and forbidden changes. Send an
+   incomplete return to the same Author as `author-rework`. Otherwise enter `candidate-anchored`.
+4. `critic-active`: dispatch an independent Critic against that anchor and minimum context.
+   The Critic reports to the orchestrator and does not edit the WhitePaper.
+5. At `critic-returned`, adjudicate findings. Resume the same `author_ref` in
+   `author-revising`; send blocker fixes to the same `critic_ref` in `critic-rechecking`.
+6. With no blocker, enter `acceptance-ready`, present the anchored candidate and weakest
+   assumption to the owner, then use an Integrator for accepted mechanical links, state, and
+   commit material. Finish at `node-complete` only after those representations agree.
 
 ## Revision mode
 
@@ -60,10 +77,10 @@ revision mode or seeking reapproval.
 
 ## Exit
 
-Self-check placeholders, contradictions, scope gaps, and ambiguity. Dispatch one independent
-critic with the locale-matched `critic-brief.md`; adjudicate findings without letting the
-critic expand scope. Present the weakest assumption to the owner and bind approval to a
-commit or hash. In creation mode, commit and use **REQUIRED next skill: `roadmap`**. In
+Require the Author to self-check placeholders, contradictions, scope gaps, and ambiguity.
+Run the identity-preserving loop above using the locale-matched dispatch contract; adjudicate
+findings without letting the Critic expand scope. Bind owner approval to a commit or hash. In
+creation mode, integrate and use **REQUIRED next skill: `roadmap`**. In
 revision mode, commit, propagate the approved delta through its impact cone, and return to
 the stage that raised the change rather than restarting the full chain.
 

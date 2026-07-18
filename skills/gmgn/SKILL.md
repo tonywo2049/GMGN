@@ -11,7 +11,7 @@ is [GMGN.md](../../GMGN.md); Chinese is [GMGN.zh-CN.md](../../GMGN.zh-CN.md).
 ## Language and contract
 
 Infer `en` or `zh-CN` from approved project documents, then the user's language. Keep the
-machine contract English. Load the matching writing contract only when writing documents:
+machine contract English. Load the matching layout-free writing contract when writing documents:
 [English](references/en/writing-contract.md) | [中文](references/zh-CN/writing-contract.md).
 
 ## Route by observable state
@@ -26,6 +26,29 @@ machine contract English. Load the matching writing contract only when writing d
 | Design reviewed; Task absent or changing | `write-task` |
 | Confirmed task card is ready | `run-task` |
 | All cards closed and traceability full | `close-milestone` |
+
+## Runtime and role routing
+
+Use the locale-matched [dispatch and agent-lifecycle contract](references/en/dispatch-and-handoff.md)
+or [中文契约](references/zh-CN/dispatch-and-handoff.md). Runtime state is not document or work-item
+state. Keep the node record and identity refs until `node-complete`.
+
+- `brainstorm`, `roadmap`, `write-goal`, `write-requirement`, `write-design`, and `write-task`
+  dispatch an Author, then an independent Critic. The primary orchestrator does not draft or
+  repair the artifact.
+- Accepted findings return to the same `author_ref`; blocker rechecks return to the same
+  `critic_ref`. Author and Critic communicate only through the orchestrator.
+- `run-task` uses the same Coder for fixes, the same Reviewer for targeted recheck, then an
+  independent Verifier and an Integrator for mechanical state propagation.
+- `close-milestone` dispatches independent verification, a closure Author, a combined
+  Critic/Reviewer, and an Integrator after owner acceptance.
+- A platform that cannot resume an identity enters `agent-unavailable`; replacement is
+  explicit, and replacing a Critic or Reviewer requires a full review.
+
+For document nodes, follow `ready-to-dispatch → author-active → author-returned →
+candidate-anchored → critic-active → critic-returned`. Accepted findings loop through
+`author-revising` with the same Author and, for blockers, `critic-rechecking` with the same
+Critic. Finish through `acceptance-ready → accepted → integrating → node-complete`.
 
 ## Controlled-change routing
 
@@ -54,7 +77,7 @@ the smallest authority/acceptance condition, implementation, test, independent r
 same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
 milestone initiation, scope expansion, or closure authority.
 
-<HARD-GATE>Never route past a missing prerequisite or redefine upstream meaning in a downstream document. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never route past a missing prerequisite or redefine upstream meaning in a downstream document. The primary orchestrator may decide, dispatch, adjudicate, accept, and gate, but must not silently perform work assigned to Author, Coder, Reviewer, Verifier, or Integrator. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

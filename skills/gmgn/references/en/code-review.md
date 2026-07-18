@@ -1,14 +1,14 @@
 ---
 locale: en
 purpose: Unify incremental code-review scope and finding format across Codex, Claude Code, and read-only reviewers.
-upstream: [coder brief](coder-brief.md), [dispatch and handoff](dispatch-and-handoff.md)
+upstream: [dispatch and handoff](dispatch-and-handoff.md)
 downstream: [pre-merge checklist](pre-merge-checklist.md)
 status: approved
 type: task
 nature: normative
 ---
 
-# Code review: native entry and shared checks
+# Code-review contract: native entry and shared checks
 
 中文版本：[../zh-CN/code-review.md](../zh-CN/code-review.md)
 

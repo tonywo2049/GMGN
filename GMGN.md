@@ -2,7 +2,7 @@
 locale: en
 purpose: Define GMGN roles, document chains, hard gates, independent review, and closure discipline.
 upstream: none
-downstream: [writing contract](skills/gmgn/references/en/writing-contract.md), [dispatch and handoff](skills/gmgn/references/en/dispatch-and-handoff.md), [decision log](skills/gmgn/references/en/decision-log.md), [preflight checklist](skills/gmgn/references/en/preflight-checklist.md), [trust-surface register](skills/gmgn/references/en/trust-surface-register.md), [pre-close checklist](skills/gmgn/references/en/pre-close-checklist.md)
+downstream: [writing contract](skills/gmgn/references/en/writing-contract.md), [dispatch and handoff](skills/gmgn/references/en/dispatch-and-handoff.md), [preflight checklist](skills/gmgn/references/en/preflight-checklist.md), [pre-merge checklist](skills/gmgn/references/en/pre-merge-checklist.md), [pre-close checklist](skills/gmgn/references/en/pre-close-checklist.md)
 status: approved
 type: whitepaper
 nature: normative
@@ -18,25 +18,57 @@ counter two risks created by high-speed agent output.
 中文版本：[GMGN.zh-CN.md](GMGN.zh-CN.md)
 
 This file is the normative method. Installation and quick use belong in
-[README.md](README.md); copy-ready operating contracts belong in
+[README.md](README.md); shared machine/dispatch contracts and checklists belong in
 [`skills/gmgn/references/en/`](skills/gmgn/references/en/).
 
 ## 0. Scope and roles
 
-GMGN defines four required roles and one optional role.
+GMGN defines seven execution-separated roles and one optional audit role.
 
 - **Owner** decides scope, approves project-level commitments, accepts closure, and is
   the only role that may waive completion criteria. Agent-to-agent instructions do not
   constitute owner authorization.
-- **Primary orchestrator** understands, decomposes, delegates, verifies, and integrates.
-  It retains decisions, interface freezes, merge control, and stage gates.
-- **Execution agent** receives one independently verifiable task and returns artifacts
-  plus replayable evidence.
-- **Critic/reviewer** tries to falsify the artifact and must be independent of its author.
+- **Primary orchestrator** understands, decomposes, dispatches, adjudicates, accepts, and
+  gates. It retains decisions, interface freezes, merge control, and stage transitions. It
+  does not author or repair artifacts assigned to an execution role.
+- **Author** creates or revises one document artifact against a content contract. It chooses
+  the document structure and self-checks before return.
+- **Coder** implements one approved task card and returns code, tests, and replayable evidence.
+- **Critic/reviewer** tries to falsify an anchored artifact and must be independent of its
+  Author/Coder. It reports findings and never edits the reviewed work.
+- **Verifier** independently executes tests, gates, and real product paths at an anchored
+  candidate without changing product meaning or source code.
+- **Integrator** performs only accepted mechanical propagation: links, mappings, state,
+  evidence pointers, and commit preparation. Semantic ambiguity returns to the orchestrator.
 - **External audit** is optional and introduces a frame from outside the working group.
 
 Stages close against explicit criteria, not dates. Dates may be planning constraints, but
 they never turn an unmet criterion into a completed one.
+
+### 0.1 Node runtime lifecycle and agent identity
+
+Runtime state is separate from document approval state and work-item state. Each active node
+records `node_id`, `state`, `baseline_anchor`, `candidate_anchor`, and the relevant
+`author_ref`, `critic_ref`, `coder_ref`, `reviewer_ref`, `verifier_ref`, or `integrator_ref`.
+
+A document node follows `ready-to-dispatch → author-active → author-returned →
+candidate-anchored → critic-active → critic-returned`. An incomplete return uses
+`author-rework` with the same Author. Accepted findings use `author-revising` with that same
+Author; blocker resolution uses `critic-rechecking` with the same Critic. Upstream correction
+uses `upstream-change-pending` while preserving the current Author. Successful review then
+uses `acceptance-ready → accepted → integrating → node-complete`.
+
+Implementation substitutes `coder-*` and `reviewer-*` states and adds `verifier-active →
+verifier-returned` before acceptance. The primary orchestrator is the hub: Author and Critic,
+or Coder and Reviewer, do not communicate directly. Within one node the same producing agent
+performs revisions and the same reviewing agent performs targeted rechecks. The next node
+starts a new pair by default.
+
+If a platform cannot resume the recorded agent, enter `agent-unavailable` and record why.
+Replacement is explicit and receives the complete node record. Replacing a Critic/Reviewer
+requires a full review; a new agent cannot claim the old agent's targeted recheck. The complete
+state meanings and dispatch requirements are in
+[`dispatch-and-handoff.md`](skills/gmgn/references/en/dispatch-and-handoff.md).
 
 ## 1. Two primary risks
 
@@ -167,8 +199,9 @@ without a current handoff is not operationally closed.
 3. **One authority per fact.** Other documents point to the authority instead of copying it.
 4. **Hard gates are procedures.** Missing prerequisites route backward; apparent simplicity
    is not a bypass.
-5. **Delegate independent units.** Each brief states scope, boundaries, inputs, outputs,
-   verification, and required return format.
+5. **Delegate independent units.** Each dispatch states node identity, scope, boundaries,
+   inputs, content contract, outputs, verification, agent identity, and return format. The
+   orchestrator resumes the same agent for in-node corrections.
 6. **Evidence before status.** A claim becomes complete only after the artifact, replayable
    evidence, and all representations agree.
 
@@ -183,6 +216,10 @@ Use one focused falsification round after the author self-check. Findings must i
 location, evidence, impact, a normative correction, and blocking level. Scope the review
 to the changed artifact plus the minimum upstream/downstream context.
 
+Accepted findings return to the same Author. Blocking fixes return to the same Critic for
+targeted recheck; a replacement Critic repeats the full review. This preserves accountability
+without turning recheck into another independent full round.
+
 Two guards prevent review from becoming another authority:
 
 - a critic may identify a problem but may not silently expand product scope;
@@ -194,8 +231,9 @@ Code review examines the incremental diff, untested branches, test discriminatio
 spec-anchor alignment, and unnecessary complexity. It does not replace document criticism
 or runtime execution. The reviewer reports findings and does not modify the reviewed work.
 
-Use the current platform's native read-only review surface where available. Otherwise use
-an independent read-only reviewer with
+Use the current platform's native read-only review surface where available. A native surface
+that does not expose a resumable reviewer identity performs a full review on every invocation;
+it cannot satisfy a targeted same-Reviewer recheck. Otherwise use an independent read-only reviewer with
 [`code-review.md`](skills/gmgn/references/en/code-review.md).
 
 ### 5.3 Orthogonal evidence
@@ -267,13 +305,11 @@ to reduce code.
 9. Use the pre-close checklist, obtain owner acceptance, refresh every state representation,
    write Handoff, and return to `roadmap`.
 
-Operational templates:
+Operational contracts and checklists:
 
 - [dispatch and handoff](skills/gmgn/references/en/dispatch-and-handoff.md)
-- [critic brief](skills/gmgn/references/en/critic-brief.md)
-- [coder brief](skills/gmgn/references/en/coder-brief.md)
-- [trust-surface register](skills/gmgn/references/en/trust-surface-register.md)
-- [decision log](skills/gmgn/references/en/decision-log.md)
+- [writing contract](skills/gmgn/references/en/writing-contract.md), which fixes machine
+  fields and parser surfaces but does not prescribe document layout
 - [preflight](skills/gmgn/references/en/preflight-checklist.md),
   [pre-merge](skills/gmgn/references/en/pre-merge-checklist.md), and
   [pre-close](skills/gmgn/references/en/pre-close-checklist.md) checklists

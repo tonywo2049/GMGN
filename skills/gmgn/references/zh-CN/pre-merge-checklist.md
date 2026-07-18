@@ -1,14 +1,14 @@
 ---
 locale: zh-CN
 purpose: 在并行产出进入共享基线前检查集成、验证强度、声明真实性、工具退化和复杂度。
-upstream: [代码审查](code-review.md)
+upstream: [GMGN §7](../../../../GMGN.zh-CN.md), [代码审查](code-review.md)
 downstream: none
 status: approved
 type: design
 nature: normative
 ---
 
-# 模板：合并前核对单
+# 合并前核对单
 
 English: [../en/pre-merge-checklist.md](../en/pre-merge-checklist.md)
 
@@ -19,4 +19,5 @@ English: [../en/pre-merge-checklist.md](../en/pre-merge-checklist.md)
 5. **命名与数字溯源**：机制专名和关键数字能指回 Requirement/Design/Decision 吗？
 6. **过度设计扫**：逐项检查 `delete | stdlib | native | empty abstraction | shrink`。
 
-最后重放相关命令，运行 `git diff --check` 与 `git status --short`，再由主编排者合并。
+最后由 Integrator 重放相关命令，运行 `git diff --check` 与 `git status --short` 并落盘证据；
+主编排者据此决定是否合并。

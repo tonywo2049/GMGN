@@ -10,25 +10,42 @@ description: "Use when an approved task card is explicitly confirmed: implement 
 Use the document locale for status updates and the user's language for conversation. Keep
 all machine tokens and IDs unchanged.
 
+The primary orchestrator keeps card state, agent refs, adjudication, acceptance, and merge
+control. It does not write implementation, repair review findings, run verification in place
+of the Verifier, or perform mechanical ledger edits in place of the Integrator.
+
 ## Six steps
 
 1. **Compile context** — use `docstar brief <task-id> --preset gmgn-v1 --json` when available;
    otherwise read the card, prerequisites, spec anchors, Design locations, and test path.
-2. **Dispatch coder** — fill the locale-matched `coder-brief.md`; the orchestrator delegates
-   implementation and retains acceptance/merge. Parallelize only dependency-free cards.
-3. **Accept return** — require artifacts/evidence, deviations/decisions, and Reflection.
-   Replay targeted commands and inspect the real path proportionally to risk.
-4. **Independent code review** — use the native review surface or a read-only reviewer with
-   the locale-matched `code-review.md`. Review only the card increment. Findings report; the
-   orchestrator decides and sends fixes back to the coder.
-5. **Verify** — run the targeted test, relevant integration/startup/E2E path, and any project
-   gate. A skipped or unavailable command is not a pass.
-6. **Card close** — refresh `Task.md`, traceability, and upstream state in one batch. Re-read
+2. **Dispatch coder** — at `ready-to-dispatch`, use the locale-matched dispatch contract;
+   record `coder_ref` and enter `coder-active`. Require one approved card, allowed paths,
+   failing-first discrimination, first-sufficient implementation, real call path, exact
+   verification, and no remote writes. Parallelize only dependency-free cards.
+3. **Accept return** — at `coder-returned`, require artifacts/evidence,
+   deviations/decisions, and Reflection. Return missing or out-of-scope work to the same
+   Coder; otherwise compare the returned paths and persisted evidence to the dispatch,
+   create `candidate-anchored`, and leave command execution to the Reviewer/Verifier.
+4. **Independent code review** — dispatch a read-only Reviewer and retain `reviewer_ref`.
+   Use the locale-matched `code-review.md` and review only the card increment. At
+   `reviewer-returned`, the orchestrator adjudicates findings and resumes the same Coder in
+   `coder-revising`; blocker fixes return to the same Reviewer in `reviewer-rechecking`.
+   A native review surface without a resumable identity performs a full review each time and
+   cannot be treated as a targeted same-Reviewer recheck.
+5. **Verify** — after review blockers clear, dispatch an independent Verifier as
+   `verifier-active`. It runs the targeted test, relevant integration/startup/E2E and
+   negative path, plus project gates at the candidate anchor, then returns exact commands,
+   environment, exit codes, and limitations as `verifier-returned`. A skipped or unavailable
+   command is not a pass. Verification failure returns to the same Coder and repeats affected
+   review and verification.
+6. **Card close** — after primary-orchestrator acceptance, dispatch an Integrator to refresh
+   `Task.md`, traceability, and upstream state in one batch. Re-read
    all of `Task.md` and scan stale assertions: `not-started`, `pending`, `not created`,
    `not run`, `awaiting confirmation`, plus `待执行`, `未创建`, `未运行`, `待确认`, old output,
    and old Reflection. Mechanically refresh them or explain why they remain true. Run
-   `git diff --check`, link checks, and `git status --short`; commit by topic. Do not push
-   unless explicitly authorized.
+   `git diff --check`, link checks, and `git status --short`; prepare or create the topic
+   commit under repository policy. The orchestrator verifies the integration and marks
+   `node-complete`. Do not push unless explicitly authorized.
 
 ## Upstream change during execution
 
@@ -40,8 +57,9 @@ When implementation evidence contradicts an approved premise:
    or R-AC meaning to `write-requirement`, Design intent to `write-design`, and Task execution
    authority to `write-task`.
 3. Resume only after the changed authority has the review or approval required for its new
-   anchor. Update only affected downstream documents, cards, code, tests, evidence, and state;
-   do not restart unrelated work.
+   anchor. Resume the same `coder_ref`; update only affected downstream documents, cards,
+   code, tests, evidence, and state; do not restart unrelated work. If that Coder is unavailable,
+   enter `agent-unavailable` and perform an explicit replacement handoff.
 4. For a meaning-preserving mechanical change, refresh affected representations in the same
    batch and run machine checks without reapproval.
 

@@ -17,6 +17,7 @@ PACKAGE_PATHS = (
     ".claude-plugin",
     ".codex-plugin",
     ".docstar",
+    "agents",
     "skills",
     "README.md",
     "README.zh-CN.md",

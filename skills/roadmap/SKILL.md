@@ -9,9 +9,9 @@ description: "Use after owner approval of the WhitePaper to create or maintain t
 
 ## Language and contract
 
-Use the active locale and the matching
+Use the active locale and the matching layout-free
 [English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) template. Use `ROADMAP.md`,
+[中文](../gmgn/references/zh-CN/writing-contract.md) contract. Use `ROADMAP.md`,
 `type: roadmap`, `nature: normative`, and `status: draft` until approved.
 
 ## Create
@@ -26,8 +26,26 @@ Use the active locale and the matching
 
 - Closure backfill updates the milestone state and links the closure/Handoff evidence.
 - New ideas enter TODO, then are assigned to a milestone before becoming requirements.
-- Existing pre-GMGN inventory may use the one-time locale-matched `allocation-ledger.md`;
-  it is not a permanent planning layer.
+- For existing pre-GMGN inventory, have the Author record each legacy ID, source, summary,
+  target milestone/requirement or pending decision, rationale, and allocation state. Reconcile
+  source total = allocated + explicitly rejected + pending, then archive the migration record.
+  Do not create this layer for new work.
+
+## Author and critic loop
+
+1. At `ready-to-dispatch`, record the WhitePaper anchor, mode, `node_id`, and content/checklist
+   above; dispatch an Author and retain `author_ref`. The orchestrator does not draft ROADMAP.
+2. At `author-returned`, check return completeness and boundaries. Use `author-rework` with
+   the same Author for missing inputs; otherwise create `candidate-anchored`.
+3. Dispatch an independent Critic. At `critic-returned`, adjudicate findings; resume the same
+   Author in `author-revising` and the same Critic in `critic-rechecking` for blockers.
+4. With no blocker, enter `acceptance-ready`; owner approval binds the candidate anchor. Use
+   an Integrator for reciprocal links, state, evidence pointers, and commit material, then
+   mark `node-complete`.
+
+Closure backfill and other meaning-preserving maintenance skip Author/Critic: dispatch an
+Integrator, run machine checks, and preserve the existing approval through an equivalence
+record. Any semantic ambiguity returns to the full Author/Critic loop.
 
 ## Controlled revision
 
@@ -46,9 +64,9 @@ Use the active locale and the matching
 
 ## Exit
 
-For creation or a semantic revision, run one independent critic using the locale-matched
-`critic-brief.md`, resolve findings, present the weakest assumption, obtain owner approval
-with a version anchor, and commit. A mechanical maintenance batch needs machine checks but no
+For creation or a semantic revision, run the identity-preserving Author/Critic loop using the
+locale-matched dispatch contract, present the weakest assumption, obtain owner approval with
+a version anchor, and integrate. A mechanical maintenance batch needs machine checks but no
 new approval. When the owner explicitly starts a milestone, **REQUIRED next skill:
 `write-goal`**. After a revision, return to the stage that raised it and continue only the
 affected path.

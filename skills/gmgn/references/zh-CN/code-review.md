@@ -1,14 +1,14 @@
 ---
 locale: zh-CN
 purpose: 统一 Codex、Claude Code 与只读 reviewer 的增量代码审查范围和 finding 格式。
-upstream: [Coder 任务书](coder-brief.md), [派发与回传](dispatch-and-handoff.md)
+upstream: [派发与回传](dispatch-and-handoff.md)
 downstream: [pre-merge checklist](pre-merge-checklist.md)
 status: approved
 type: task
 nature: normative
 ---
 
-# 代码审查：原生入口与统一补查
+# 代码审查契约：原生入口与统一补查
 
 English: [../en/code-review.md](../en/code-review.md)
 

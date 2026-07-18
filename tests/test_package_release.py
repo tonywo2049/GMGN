@@ -11,7 +11,9 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGER = ROOT / "scripts" / "package_release.py"
-ALLOWED_PREFIXES = (".agents/", ".claude-plugin/", ".codex-plugin/", ".docstar/", "skills/")
+ALLOWED_PREFIXES = (
+    ".agents/", ".claude-plugin/", ".codex-plugin/", ".docstar/", "agents/", "skills/",
+)
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md", "LICENSE"}
 
 
@@ -38,6 +40,9 @@ class PackageReleaseTests(unittest.TestCase):
             )
             self.assertIn(".agents/plugins/marketplace.json", names)
             self.assertIn(".docstar/conventions/conventions.json", names)
+            self.assertIn("agents/author.md", names)
+            self.assertIn("agents/critic.md", names)
+            self.assertIn("agents/verifier.md", names)
             self.assertIn("README.zh-CN.md", names)
             self.assertIn("GMGN.zh-CN.md", names)
             self.assertEqual(create_systems, {3})

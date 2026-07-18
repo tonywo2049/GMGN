@@ -60,6 +60,14 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertIn("字段类型无效", result.stdout)
         self.assertIn("sandbox_mode 无效", result.stdout)
 
+    def test_rejects_missing_claude_plugin_agent(self) -> None:
+        (self.root / "agents" / "author.md").unlink()
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agents/author.md", result.stdout)
+
     def test_rejects_missing_trigger(self) -> None:
         path = self.root / "skills" / "brainstorm" / "SKILL.md"
         text = path.read_text(encoding="utf-8").replace("可行性研究", "假设探索")
@@ -170,6 +178,39 @@ class ValidateSkillsTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-design 修订态: 受控变更规则缺失", result.stdout)
+
+    def test_rejects_new_author_for_review_fixes(self) -> None:
+        path = self.root / "skills" / "write-requirement" / "SKILL.md"
+        text = path.read_text(encoding="utf-8").replace("same Author", "replacement Author")
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-requirement: 缺 agent 生命周期约束", result.stdout)
+
+    def test_rejects_orchestrator_taking_over_execution(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = path.read_text(encoding="utf-8").replace(
+            "leave command execution to the Reviewer/Verifier",
+            "have the orchestrator replay targeted commands",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task: 缺 agent 生命周期约束", result.stdout)
+
+    def test_rejects_copy_ready_document_skeleton(self) -> None:
+        path = self.root / "skills" / "gmgn" / "references" / "en" / "writing-contract.md"
+        text = path.read_text(encoding="utf-8") + "\n## 5. G-R-D-T templates\n\n### Goal.md\n\n# M1 Goal\n"
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("残留可复制文档骨架", result.stdout)
 
 
 if __name__ == "__main__":

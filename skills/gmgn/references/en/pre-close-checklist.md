@@ -1,19 +1,19 @@
 ---
 locale: en
 purpose: Check real evidence, trust surfaces, orthogonal review, assumptions, invariants, and state consistency before irreversible closure.
-upstream: [GMGN §3](../../../../GMGN.md), [trust-surface register](trust-surface-register.md)
+upstream: [GMGN §3](../../../../GMGN.md)
 downstream: none
 status: approved
 type: design
 nature: normative
 ---
 
-# Template: pre-close checklist
+# Pre-close checklist
 
 中文版本：[../zh-CN/pre-close-checklist.md](../zh-CN/pre-close-checklist.md)
 
 1. **Reality coverage** — Does every closure criterion have a real test, startup, or E2E path and exact command?
-2. **Trust surfaces closed** — Was each register row's source, validation, failure behavior, and negative evidence replayed?
+2. **Trust surfaces closed** — Was each Design acceptance point's source, validation, failure behavior, owner, and negative evidence replayed?
 3. **Orthogonal challenge** — Did at least one critic, reviewer, or external source use a frame independent of the author?
 4. **Weakest assumption** — Which assumption most threatens the conclusion; was its counterexample tested or recorded as debt?
 5. **Invariant family** — Does each top-level invariant have positive and negative evidence, not only a happy path?

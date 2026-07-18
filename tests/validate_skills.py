@@ -15,16 +15,30 @@ CLAUDE_MANIFEST = ROOT / ".claude-plugin" / "plugin.json"
 CODEX_MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
 CODEX_MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 CODEX_AGENTS = ROOT / ".codex" / "agents"
+CLAUDE_AGENTS = ROOT / "agents"
 DOCSTAR_CONVENTIONS = ROOT / ".docstar" / "conventions" / "conventions.json"
 
 REQUIRED_OPENAI_INTERFACE_FIELDS = ("display_name", "short_description", "default_prompt")
-REQUIRED_ROLE_FILES = ("coder.toml", "critic.toml", "reviewer.toml")
+ROLE_NAMES = ("author", "coder", "critic", "reviewer", "verifier", "integrator")
+REQUIRED_CODEX_ROLE_FILES = tuple(f"{name}.toml" for name in ROLE_NAMES)
+REQUIRED_CLAUDE_ROLE_FILES = tuple(f"{name}.md" for name in ROLE_NAMES)
 CANONICAL_FRONTMATTER = {"locale", "purpose", "upstream", "downstream", "status", "type", "nature"}
 LEGACY_FRONTMATTER = {"语言", "目标", "上游", "下游", "状态", "类型", "性质"}
 MACHINE_TOKENS = (
     "locale", "purpose", "upstream", "downstream", "status", "type", "nature",
     "draft", "pending-approval", "approved", "closed", "normative", "descriptive",
     "not-started", "initiated", "in-progress", "spec anchor", "prerequisite", "failing test",
+)
+REFERENCE_NAMES = {
+    "writing-contract.md", "dispatch-and-handoff.md", "code-review.md",
+    "preflight-checklist.md", "pre-merge-checklist.md", "pre-close-checklist.md",
+}
+REMOVED_TEMPLATE_REFERENCES = {
+    "allocation-ledger.md", "coder-brief.md", "critic-brief.md",
+    "decision-log.md", "trust-surface-register.md",
+}
+DOCUMENT_NODE_SKILLS = (
+    "brainstorm", "roadmap", "write-goal", "write-requirement", "write-design", "write-task",
 )
 
 EXPECTED_TRIGGERS = {
@@ -151,7 +165,7 @@ def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
             if field in metadata and not has_ascii_and_cjk(metadata[field]):
                 errors.append(f"{path}: {field} 必须同时含英文和中文")
 
-    for filename in REQUIRED_ROLE_FILES:
+    for filename in REQUIRED_CODEX_ROLE_FILES:
         path = CODEX_AGENTS / filename
         try:
             role = tomllib.loads(path.read_text(encoding="utf-8"))
@@ -164,6 +178,24 @@ def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
                 errors.append(f"{path}: {field} 字段类型无效或为空")
         if role.get("sandbox_mode") not in {"read-only", "workspace-write", "danger-full-access"}:
             errors.append(f"{path}: sandbox_mode 无效")
+
+    for filename in REQUIRED_CLAUDE_ROLE_FILES:
+        path = CLAUDE_AGENTS / filename
+        try:
+            fields, body = parse_frontmatter(path)
+        except (AssertionError, FileNotFoundError) as exc:
+            errors.append(str(exc))
+            continue
+        if fields.get("name") != path.stem:
+            errors.append(f"{path}: name 必须与文件名一致")
+        if not has_ascii_and_cjk(fields.get("description", "")):
+            errors.append(f"{path}: description 必须同时含英文和中文")
+        if not body.strip():
+            errors.append(f"{path}: agent 指令为空")
+        if path.stem in {"critic", "reviewer", "verifier"}:
+            denied = fields.get("disallowedTools", "")
+            if "Write" not in denied or "Edit" not in denied:
+                errors.append(f"{path}: 只读角色必须禁用 Write/Edit")
 
 
 def validate_document_pairs(errors: list[str]) -> None:
@@ -200,7 +232,12 @@ def validate_document_pairs(errors: list[str]) -> None:
     if en_names != zh_names:
         errors.append(f"references 中英文文件名不一致: en-only={sorted(en_names-zh_names)}, zh-only={sorted(zh_names-en_names)}")
     if not en_names:
-        errors.append("references 双语模板为空")
+        errors.append("references 双语契约为空")
+    if en_names != REFERENCE_NAMES:
+        errors.append(
+            f"references 必须只保留契约与核对单: missing={sorted(REFERENCE_NAMES-en_names)}, "
+            f"extra={sorted(en_names-REFERENCE_NAMES)}"
+        )
 
     for name in sorted(en_names & zh_names):
         en_path, zh_path = en_dir / name, zh_dir / name
@@ -229,10 +266,25 @@ def validate_document_pairs(errors: list[str]) -> None:
             missing = [token for token in MACHINE_TOKENS if token not in text]
             if missing:
                 errors.append(f"{path}: 缺机器契约 token {missing}")
+            skeleton_markers = (
+                "## 5. G-R-D-T templates", "## 5. G-R-D-T 模板",
+                "### Goal.md", "# M1 Goal", "## Traceability matrix", "## 追踪矩阵",
+            )
+            hits = [marker for marker in skeleton_markers if marker in text]
+            if hits:
+                errors.append(f"{path}: 残留可复制文档骨架 {hits}")
 
     legacy_files = [path for path in REFERENCES.glob("*.md")]
     if legacy_files:
-        errors.append(f"references 根目录残留旧模板: {[p.name for p in legacy_files]}")
+        errors.append(f"references 根目录残留旧文件: {[p.name for p in legacy_files]}")
+
+    release_markdown = [ROOT / name for name in ("README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md")]
+    release_markdown.extend(path for path in SKILLS.rglob("*.md"))
+    for path in release_markdown:
+        text = path.read_text(encoding="utf-8")
+        stale = sorted(name for name in REMOVED_TEMPLATE_REFERENCES if name in text)
+        if stale:
+            errors.append(f"{path}: 引用了已删除模板 {stale}")
 
 
 def validate_docstar_adapter(errors: list[str]) -> None:
@@ -469,6 +521,106 @@ def validate_controlled_change_protocol(
         )
 
 
+def require_tokens(errors: list[str], text: str, tokens: tuple[str, ...], label: str) -> None:
+    missing = [token for token in tokens if token not in text]
+    if missing:
+        errors.append(f"{label}: 缺 agent 生命周期约束 {missing}")
+
+
+def validate_agent_lifecycle(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    dispatch_paths = (
+        REFERENCES / "en" / "dispatch-and-handoff.md",
+        REFERENCES / "zh-CN" / "dispatch-and-handoff.md",
+    )
+    runtime_states = (
+        "blocked-prerequisite", "awaiting-owner-input", "ready-to-dispatch",
+        "author-active", "author-returned", "author-rework", "candidate-anchored",
+        "critic-active", "critic-returned", "author-revising", "critic-rechecking",
+        "upstream-change-pending", "acceptance-ready", "accepted", "integrating",
+        "node-complete", "agent-unavailable", "coder-active", "coder-returned",
+        "coder-revising", "reviewer-active", "reviewer-returned", "reviewer-rechecking",
+        "verifier-active", "verifier-returned",
+    )
+    role_tokens = (
+        "author | coder | critic | reviewer | verifier | researcher | integrator",
+        "author_ref", "critic_ref", "coder_ref", "reviewer_ref", "verifier_ref",
+        "integrator_ref",
+    )
+    for path in dispatch_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+            continue
+        require_tokens(errors, text, runtime_states + role_tokens, str(path))
+        execution_boundary = (
+            "without taking over execution"
+            if path.parent.name == "en"
+            else "不接管执行"
+        )
+        if execution_boundary not in text:
+            errors.append(f"{path}: 缺主编排者不接管执行的边界")
+        if "```" in text:
+            errors.append(f"{path}: 派发契约不得退回填空模板")
+
+    require_tokens(
+        errors,
+        parsed.get("gmgn", ("", ""))[1],
+        (
+            "author-active", "author-returned", "candidate-anchored", "critic-active",
+            "critic-returned", "author-revising", "critic-rechecking", "author_ref",
+            "critic_ref", "agent-unavailable", "Integrator", "node-complete",
+        ),
+        "gmgn 路由",
+    )
+
+    for name in DOCUMENT_NODE_SKILLS:
+        require_tokens(
+            errors,
+            parsed.get(name, ("", ""))[1],
+            (
+                "author_ref", "author-returned", "candidate-anchored", "critic-returned",
+                "same Author", "critic-rechecking", "Integrator", "node-complete",
+            ),
+            name,
+        )
+
+    require_tokens(
+        errors,
+        parsed.get("run-task", ("", ""))[1],
+        (
+            "coder_ref", "coder-returned", "same Coder", "reviewer_ref", "same Reviewer",
+            "reviewer-rechecking", "verifier-active", "verifier-returned", "Integrator",
+            "leave command execution to the Reviewer/Verifier", "node-complete",
+        ),
+        "run-task",
+    )
+    require_tokens(
+        errors,
+        parsed.get("close-milestone", ("", ""))[1],
+        (
+            "verifier-active", "verifier-returned", "author_ref", "same closure Author",
+            "same Critic/Reviewer", "acceptance-ready", "Integrator", "owner acceptance",
+            "node-complete",
+        ),
+        "close-milestone",
+    )
+
+    for path, tokens in (
+        (
+            ROOT / "GMGN.md",
+            ("Node runtime lifecycle", "same Author", "same Critic", "agent-unavailable"),
+        ),
+        (
+            ROOT / "GMGN.zh-CN.md",
+            ("节点运行态与 agent 身份", "同一 Author", "同一 Critic", "agent-unavailable"),
+        ),
+    ):
+        require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
+
+
 def main() -> int:
     errors: list[str] = []
     parsed: dict[str, tuple[str, str]] = {}
@@ -492,6 +644,7 @@ def main() -> int:
     validate_document_pairs(errors)
     validate_docstar_adapter(errors)
     validate_controlled_change_protocol(errors, parsed)
+    validate_agent_lifecycle(errors, parsed)
 
     for name, triggers in EXPECTED_TRIGGERS.items():
         if name not in parsed:
@@ -548,7 +701,7 @@ def main() -> int:
 
     forbidden_branding = ("METHODOLOGY.md", "Methodology")
     release_files = [ROOT / name for name in ("README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md")]
-    for directory in (ROOT / ".claude-plugin", ROOT / ".codex-plugin", SKILLS):
+    for directory in (ROOT / ".claude-plugin", ROOT / ".codex-plugin", CLAUDE_AGENTS, SKILLS):
         release_files.extend(path for path in directory.rglob("*") if path.is_file())
     for path in release_files:
         if path.suffix not in {".md", ".json", ".yaml", ".toml"}:

@@ -9,21 +9,40 @@ description: "Use after Requirement review to create or change Design.md: system
 
 ## Language and contract
 
-Use the Requirement locale and the matching
+Use the Requirement locale and the matching layout-free
 [English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) Design template. Keep filename
+[中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename
 `Design.md`, `type: design`, and `nature: normative`.
 
-## Write
+## Author content and self-check
 
-- Inspect the existing repository and real call path before proposing structures.
+- Dispatch an Author to inspect the existing repository and real call path before proposing
+  structures. The Author chooses the document layout.
 - Map every R-AC to modules, interfaces, data, failure paths, and verification points.
 - Define trust boundaries, input validation, concurrency/ordering, migration, rollback,
   observability, security, accessibility, and performance only where the requirements demand them.
-- Record important choices and rejected alternatives; use the locale-matched `decision-log.md`
-  when a ruling must become an append-only authority.
-- Use the trust-surface register for state-changing input acceptance points.
+- Record important choices and rejected alternatives. An authoritative decision must include
+  a stable ID, trigger and old anchor, ruling, rationale, conditions, owner, propagation
+  targets, and new version anchor; superseding decisions cite the old ID instead of rewriting it.
+- For each external input, cache restore, migration import, permission boundary, human entry,
+  or model-output acceptance point, record the real source authority, validation, observable
+  failure behavior, negative evidence, and owner. “Validated upstream” is not a source.
 - Apply the first-sufficient anti-overdesign order from GMGN §7.
+
+Before return, check the mapping in both directions, trust boundaries and negative paths,
+existing-call-path feasibility, rollback or failure behavior where required, and whether any
+new structure lacks a current R-AC.
+
+## Author and critic loop
+
+At `ready-to-dispatch`, record the Requirement anchor and dispatch one Author with the content
+and self-check above; retain `author_ref`. The orchestrator does not draft Design. At
+`author-returned`, return missing or out-of-scope work to the same Author as `author-rework`;
+otherwise enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`,
+adjudicate findings, resume the same Author in `author-revising`, and send blocker fixes to
+the same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
+anchored candidate and dispatches an Integrator for accepted mechanical mappings, links,
+state, and commit material. Finish at `node-complete`.
 
 ## Controlled revision
 
@@ -46,10 +65,11 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Reconcile the affected mapping in both directions: no orphan design and no unmapped R-AC.
-For creation or a semantic revision, run one independent critic with `critic-brief.md`,
-emphasizing feasibility, upstream/downstream consistency, and overdesign. Resolve findings,
-obtain primary-orchestrator review, and commit. Creation then uses **REQUIRED next skill:
+Require the Author to reconcile the affected mapping in both directions: no orphan design and
+no unmapped R-AC. For creation or a semantic revision, run the identity-preserving
+Author/Critic loop using the locale-matched dispatch contract; tell the Critic to emphasize
+feasibility, upstream/downstream consistency, and overdesign. Obtain primary-orchestrator
+review and integrate. Creation then uses **REQUIRED next skill:
 `write-task`**. A revision returns to the stage that raised it and continues through the
 affected path only.
 

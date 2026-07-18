@@ -1,14 +1,14 @@
 ---
 locale: en
 purpose: Check integration, verification strength, claim truth, tool degradation, and complexity before parallel output enters a shared baseline.
-upstream: [code review](code-review.md)
+upstream: [GMGN §7](../../../../GMGN.md), [code review](code-review.md)
 downstream: none
 status: approved
 type: design
 nature: normative
 ---
 
-# Template: pre-merge checklist
+# Pre-merge checklist
 
 中文版本：[../zh-CN/pre-merge-checklist.md](../zh-CN/pre-merge-checklist.md)
 
@@ -19,5 +19,5 @@ nature: normative
 5. **Name and number provenance** — Do mechanism names and key numbers point to Requirement, Design, or Decision authorities?
 6. **Overdesign scan** — Check `delete | stdlib | native | empty abstraction | shrink` separately.
 
-Replay relevant commands, run `git diff --check` and `git status --short`, then let the
-primary orchestrator merge.
+The Integrator replays relevant commands, runs `git diff --check` and `git status --short`,
+and returns persisted evidence; the primary orchestrator then decides whether to merge.

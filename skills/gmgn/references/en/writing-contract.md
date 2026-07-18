@@ -1,6 +1,6 @@
 ---
 locale: en
-purpose: Define the machine fields, states, filenames, IDs, headers, and templates shared by English and Chinese GMGN documents.
+purpose: Define the machine fields, states, filenames, IDs, and parser surfaces shared by English and Chinese GMGN documents without prescribing document layout.
 upstream: [GMGN methodology](../../../../GMGN.md)
 downstream: [GMGN router](../../SKILL.md)
 status: approved
@@ -47,7 +47,7 @@ Fixed keys: `locale | purpose | upstream | downstream | status | type | nature`.
 
 `normative` means downstream work depends on the document and changes must propagate.
 `descriptive` records facts or process and does not establish a gate. Repository guides
-and template sources may use an extension `type`; project specification chains may not.
+may use an extension `type`; project specification chains may not.
 
 Use `upstream: none` for a chain root and `downstream: none` until the downstream file
 exists; replace it with a real link in the same batch that creates the file. Do not disguise
@@ -138,122 +138,17 @@ Task-table headers are fixed English tokens:
 
 This is the shared GMGN/DocStar parsing surface. Chinese documents use the same headers.
 
-## 5. G-R-D-T templates
+## 5. Content contract, not layout template
 
-### Goal.md
+GMGN does not prescribe section names, order, or prose shape. The active stage skill is the
+authority for what an artifact must answer and what its Author must self-check. A dispatch
+passes those requirements to the Author; a Critic reviews the result against the same
+requirements. Do not recreate a copy-ready skeleton in project or plugin references.
 
-```markdown
----
-locale: en
-purpose: Define M1 objectives, boundaries, slices, and completion picture.
-upstream: [ROADMAP](../../ROADMAP.md)
-downstream: [Requirement](Requirement.md)
-status: draft
-type: goal
-nature: normative
----
+The only fixed body surfaces are identifiers and parser-facing tables. For `Task.md`, keep
+the canonical task header from §4; surrounding headings and explanatory prose remain free.
 
-# M1 Goal
-
-## Objective
-## Boundary
-## Work slices
-## Non-goals
-## Qualitative completion picture
-## Known gaps
-```
-
-### Requirement.md
-
-```markdown
----
-locale: en
-purpose: Define the single M1 requirement authority and decidable acceptance criteria.
-upstream: [Goal](Goal.md)
-downstream: [Design](Design.md)
-status: draft
-type: requirement
-nature: normative
----
-
-# M1 Requirement
-
-## Functional requirements
-- **R1** — <what must hold, without prescribing implementation>
-  - **R1-AC1** — GIVEN <precondition> WHEN <action> THEN <observable result>
-
-## Non-functional requirements
-## Parameters and constraints
-## Non-goals
-## Traceability
-```
-
-### Design.md
-
-```markdown
----
-locale: en
-purpose: Map M1 requirements to implementation structures, interfaces, data, and verification paths.
-upstream: [Requirement](Requirement.md)
-downstream: [Task](Task.md)
-status: draft
-type: design
-nature: normative
----
-
-# M1 Design
-
-## Constraints and current state
-## System structure
-## Interfaces and data
-## Failure paths and rollback
-## Requirement mapping
-| requirement | design location | verification |
-|---|---|---|
-| R1-AC1 | §2.1 | <test or E2E path> |
-## Rejected alternatives
-```
-
-### Task.md
-
-```markdown
----
-locale: en
-purpose: Define M1 task cards, dependencies, tests, and rolling status.
-upstream: [Design](Design.md)
-downstream: none
-status: draft
-type: task
-nature: normative
----
-
-# M1 Task
-
-## Tasks
-| # | task | spec anchor | prerequisite | failing test | status |
-|---|---|---|---|---|---|
-| **M1-T1** | <smallest verifiable work unit> | R1-AC1 | none | `test_r1_ac1` | not-started |
-
-## Traceability matrix
-| acceptance criterion | task | test | evidence |
-|---|---|---|---|
-| R1-AC1 | M1-T1 | `test_r1_ac1` | <command and result pointer> |
-
-## Rolling record
-```
-
-## 6. Minimum content for other types
-
-| type | Must answer |
-|---|---|
-| `whitepaper` | problem, goals, non-goals, users/scenarios, harm ordering, invariants, validation direction |
-| `roadmap` | qualitative milestone goals and completion pictures, dependencies, state, unallocated TODOs |
-| `research` | question, evidence, options, counterexamples, inference boundary, recommendation; normally `descriptive` |
-| `decision` | ID, trigger, ruling, rationale, conditions, propagation list, version anchor |
-| `retrospective` | event, root cause, missed signals, generalized test/rule/checklist question |
-| `handoff` | one-line state, baseline, completed, remaining, risks, next command, authority pointers; `descriptive` |
-
-## 7. Writing discipline
+## 6. Writing discipline
 
 1. Read upstream, downstream, and definition locations before writing prose.
 2. Give each fact one authority; every other location uses real relative links and IDs.
@@ -261,7 +156,7 @@ nature: normative
 4. List affected downstream files and refresh status in the same change batch.
 5. Human language never changes the semantics of ACs, tasks, links, or state.
 
-## 8. DocStar verification
+## 7. DocStar verification
 
 ```bash
 python3 docstar.py check --preset gmgn-v1 --corpus <locale-root>

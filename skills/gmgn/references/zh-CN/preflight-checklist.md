@@ -8,7 +8,7 @@ type: design
 nature: normative
 ---
 
-# 模板：上机前核对单
+# 上机前核对单
 
 English: [../en/preflight-checklist.md](../en/preflight-checklist.md)
 

@@ -8,7 +8,7 @@ type: design
 nature: normative
 ---
 
-# Template: preflight checklist
+# Preflight checklist
 
 中文版本：[../zh-CN/preflight-checklist.md](../zh-CN/preflight-checklist.md)
 
