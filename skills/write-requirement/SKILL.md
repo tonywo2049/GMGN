@@ -1,6 +1,6 @@
 ---
 name: write-requirement
-description: 某 Milestone 已立项(Goal 已建)、要为它成文需求池 Requirement.md 时使用;需求受控变更时也使用。
+description: 某 Milestone 已立项(Goal 已建)、要写需求文档/需求池/验收标准(Requirement.md)时使用;既有需求受控变更时也使用;用户说「写需求」「定AC/验收标准」时触发。
 ---
 
 # Requirement(单元唯一需求权威)
@@ -25,8 +25,8 @@ description: 某 Milestone 已立项(Goal 已建)、要为它成文需求池 Req
 
 ## docstar 融入(本文档特有)
 
-本文档特有:需求写在 `## 功能需求` 类型化小节下、逐条粗体编号(`- **R1** — …`,AC 同理),使编号可被 `id` 全链检索;frontmatter 上游=Goal+ROADMAP 行。通用项(真实链接/术语表/verify)不复述,见 [文档写作契约](../methodology/references/文档写作契约.md);性质=规范。
+本文档特有:需求写在 `## 功能需求` 类型化小节下、逐条粗体编号(`- **R1** — …`,AC 同理),使编号可被 `id` 全链检索;frontmatter 上游=Goal+ROADMAP 行。通用项(真实链接/术语表/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
 
 ## 出口
 
-自检(覆盖对账+AC 可判定扫一遍)→ critic 一轮([critic-任务书](../methodology/references/critic-任务书.md),重点维:上下游一致+可判定性)→ 按任务书两护栏处置 → **编排者审核通过**(G-R-D-T 不设负责人逐件批准,负责人裁决 2026-07-18)→ 落盘 commit → **REQUIRED 下一环:`write-design`**。
+自检(覆盖对账+AC 可判定扫一遍)→ critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md),重点维:上下游一致+可判定性)→ 按任务书两护栏处置 → **编排者审核通过**(G-R-D-T 不设负责人逐件批准,负责人裁决 2026-07-18)→ 落盘 commit → **REQUIRED 下一环:`write-design`**。

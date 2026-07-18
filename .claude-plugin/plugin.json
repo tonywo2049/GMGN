@@ -1,0 +1,22 @@
+{
+  "name": "gmgn",
+  "description": "GMGN（早安晚安）— 从想法到关账的 agent 研发工作流：需求澄清（Brainstorm→白皮书→Roadmap）与需求实现（Goal→Requirement→Design→Task→编码→关账）九件 skill，全链硬门禁、独立评审、可机检文档链。",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tony",
+    "url": "https://github.com/tonywo2049"
+  },
+  "homepage": "https://github.com/tonywo2049/GMGN",
+  "repository": "https://github.com/tonywo2049/GMGN",
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "skills",
+    "methodology",
+    "requirements",
+    "roadmap",
+    "milestone",
+    "code-review",
+    "agent-collaboration"
+  ]
+}

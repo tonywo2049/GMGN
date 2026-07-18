@@ -1,6 +1,6 @@
 ---
 name: write-task
-description: 某 Milestone 的 Design 已获批、要拆执行任务卡并建滚动台账(Task.md)时使用。
+description: 某 Milestone 的 Design 已过审、要拆任务/排任务卡/建滚动台账(Task.md)时使用;用户说「拆卡」「排任务」「分解工作项」时触发。
 ---
 
 # Task(执行权威:任务卡+台账)
@@ -22,8 +22,8 @@ description: 某 Milestone 的 Design 已获批、要拆执行任务卡并建滚
 
 ## docstar 融入(本文档特有)
 
-本文档特有:卡写在 `## 任务` 类型化小节/表格下、粗体卡名;frontmatter 上游=Design;完稿抽一张卡跑 `docstar brief <卡> --json` 验证四列角色被正确识别。通用项(真实链接/verify)不复述,见 [文档写作契约](../methodology/references/文档写作契约.md);性质=规范。
+本文档特有:卡写在 `## 任务` 类型化小节/表格下、粗体卡名;frontmatter 上游=Design;完稿抽一张卡跑 `docstar brief <卡> --json` 验证四列角色被正确识别。通用项(真实链接/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
 
 ## 出口
 
-自检(追踪矩阵满格对账+每卡三锚齐)→ critic 一轮([critic-任务书](../methodology/references/critic-任务书.md),重点维:完整性+可判定性)→ 按任务书两护栏处置 → **编排者审核通过** → 落盘 commit → 逐卡确认要做后 **REQUIRED 下一环:`run-task`**。
+自检(追踪矩阵满格对账+每卡三锚齐)→ critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md),重点维:完整性+可判定性)→ 按任务书两护栏处置 → **编排者审核通过** → 落盘 commit → 逐卡确认要做后 **REQUIRED 下一环:`run-task`**。

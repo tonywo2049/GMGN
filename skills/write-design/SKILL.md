@@ -1,6 +1,6 @@
 ---
 name: write-design
-description: 某 Milestone 的 Requirement 已获批、要成文设计 Design.md(把需求映射到实现结构)时使用。
+description: 某 Milestone 的 Requirement 已过审、要写设计文档/技术方案(Design.md,把需求映射到实现结构)时使用;用户说「写设计」「出技术方案」「怎么实现这些需求」时触发。
 ---
 
 # Design(需求→结构映射)
@@ -21,8 +21,8 @@ description: 某 Milestone 的 Requirement 已获批、要成文设计 Design.md
 
 ## docstar 融入(本文档特有)
 
-本文档特有:映射表用 R/AC 编号(可被 `id` 检索);frontmatter 上游=Requirement;引用需求某节写 `Requirement §N`。通用项(真实链接/verify)不复述,见 [文档写作契约](../methodology/references/文档写作契约.md);性质=规范。
+本文档特有:映射表用 R/AC 编号(可被 `id` 检索);frontmatter 上游=Requirement;引用需求某节写 `Requirement §N`。通用项(真实链接/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
 
 ## 出口
 
-自检(映射表双向对账:无孤儿设计、无无主 R)→ critic 一轮([critic-任务书](../methodology/references/critic-任务书.md),重点维:上下游一致+过度设计)→ 按任务书两护栏处置 → **编排者审核通过** → 落盘 commit → **REQUIRED 下一环:`write-task`**。
+自检(映射表双向对账:无孤儿设计、无无主 R)→ critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md),重点维:上下游一致+过度设计)→ 按任务书两护栏处置 → **编排者审核通过** → 落盘 commit → **REQUIRED 下一环:`write-task`**。
