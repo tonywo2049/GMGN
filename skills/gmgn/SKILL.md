@@ -24,8 +24,8 @@ machine contract English. Load the matching layout-free writing contract when wr
 | Goal exists; Requirement absent or changing | `write-requirement` |
 | Requirement reviewed; Design absent or changing | `write-design` |
 | Design reviewed; Task absent or changing | `write-task` |
-| Confirmed task card is ready | `run-task` |
-| All cards closed and traceability full | `close-milestone` |
+| One or more confirmed cards are ready or any execution lane remains active | `run-task` |
+| All cards closed on one shared baseline, integration queue empty, traceability full | `close-milestone` |
 
 ## Runtime and role routing
 
@@ -38,8 +38,10 @@ state. Keep the node record and identity refs until `node-complete`.
   repair the artifact.
 - Accepted findings return to the same `author_ref`; blocker rechecks return to the same
   `critic_ref`. Author and Critic communicate only through the orchestrator.
-- `run-task` uses the same Coder for fixes, the same Reviewer for targeted recheck, then an
-  independent Verifier and an Integrator for mechanical state propagation.
+- `run-task` maintains a rolling ready set and one lane per card. Each lane has its own Coder,
+  Reviewer, and Verifier identities; fixes, affected review, and affected verification return
+  to those same agents. One Integrator serially owns the integration queue, shared baseline,
+  `Task.md`, and traceability.
 - `close-milestone` dispatches independent verification, a closure Author, a combined
   Critic/Reviewer, and an Integrator after owner acceptance.
 - A platform that cannot resume an identity enters `agent-unavailable`; replacement is
@@ -49,6 +51,23 @@ For document nodes, follow `ready-to-dispatch → author-active → author-retur
 candidate-anchored → critic-active → critic-returned`. Accepted findings loop through
 `author-revising` with the same Author and, for blockers, `critic-rechecking` with the same
 Critic. Finish through `acceptance-ready → accepted → integrating → node-complete`.
+
+For implementation, keep a map keyed by `run_id` and `card_id`, not one global card state.
+Every return, integration, conflict, or block recomputes the ready set and fills available
+capacity. Concurrency is the minimum of platform concurrency, ready cards, isolated
+workspaces, and exclusive-resource capacity; never hard-code it. A lane records
+`workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`, `candidate_anchor`,
+`write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`, and
+`shared_baseline_anchor`. Its normal tail is `accepted → integration-queued → integrating →
+post-integration-verifying → node-complete`; branch acceptance is not card closure.
+
+The Integrator first applies an accepted local-commit `candidate_anchor` to an isolated
+temporary combination based on the current shared baseline. A baseline advance alone does not
+force `rebase-required`; use it only when clean mechanical application fails, dependency/spec
+meaning is invalid, or Coder judgment is needed. Resume the same Verifier with the temporary
+workspace facts. Advance `shared_baseline_anchor` only after verification and mechanical
+ledger checks pass; otherwise abort/discard the temporary candidate, prove the original shared
+workspace clean, and continue unrelated lanes.
 
 ## Controlled-change routing
 

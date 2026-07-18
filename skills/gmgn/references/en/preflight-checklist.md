@@ -20,5 +20,9 @@ For each question record `answer | evidence | owner | unresolved`; a checkbox is
 4. **Measurement fidelity** — Were tests, sampling, clocks, mocks, logs, and judgment scripts calibrated or checked with known samples?
 5. **Complete criteria** — Can success, failure, timeout, missing data, and interruption be classified automatically?
 6. **Unattended resilience** — How are hangs, silent failures, and resource exhaustion alerted, recovered, and preserved as evidence?
+7. **Workspace and locks** — Does `git rev-parse --show-toplevel` equal the absolute
+   `worktree_path` from the current dispatch; are its `workspace_mode` and `branch_ref`
+   accurate; and are the lane's `write_set`, `conflict_domains`, and `runtime_locks`
+   compatible with every active lane?
 
 Do not start with an unresolved blocker. Every non-blocker has an owner and follow-up point.

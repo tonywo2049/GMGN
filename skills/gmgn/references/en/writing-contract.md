@@ -67,6 +67,21 @@ Milestone, slice, and task work state:
 not-started → initiated → in-progress → closed
 ```
 
+For a task card, `initiated` means its execution lane has been claimed, and `in-progress`
+covers coding through integration. Review or verification of an isolated branch may make the
+runtime candidate `accepted`, but never makes the task `closed`. `closed` requires integration
+into the recorded `shared_baseline_anchor`, successful post-integration verification, and
+same-batch refresh of `Task.md`, traceability, and evidence by the shared-baseline Integrator.
+The card Coder stages and commits only its `write_set` in the assigned detached-HEAD or
+unique-branch worktree and returns a resolvable local commit SHA as immutable
+`candidate_anchor`; local commits are allowed and remote writes are not.
+
+Integration first creates a temporary combined `candidate_anchor` from the clean current
+shared baseline. Verification failure or merge/cherry-pick conflict discards or aborts that
+candidate and leaves the preceding `shared_baseline_anchor` clean and unchanged. Only a
+verified combined candidate plus mechanical ledger refresh may atomically advance the shared
+anchor; an unverified combination is not a baseline.
+
 The owner approves WhitePaper and ROADMAP. The primary orchestrator reviews Goal,
 Requirement, Design, and Task after an independent critic. The owner accepts milestone
 closure. Every approval binds a commit, content hash, or equivalent version anchor.
@@ -137,6 +152,12 @@ Task-table headers are fixed English tokens:
 ```
 
 This is the shared GMGN/DocStar parsing surface. Chinese documents use the same headers.
+
+The fixed six columns do not carry the complete execution contract. Card content keyed by the
+same stable task ID also records `depends_on`, `write_set`, `conflict_domains`,
+`runtime_locks`, and the semantic owner. These facts do not change the DocStar table schema.
+If `workspace_mode: shared` cannot independently anchor each writer, parallel workers return
+proposals/patches and one recorded Coder or Author serially applies and anchors them.
 
 ## 5. Content contract, not layout template
 

@@ -18,5 +18,7 @@ English: [../en/pre-close-checklist.md](../en/pre-close-checklist.md)
 4. **最弱假设**：哪条假设最可能推翻结论；反例是否被测或明确留债？
 5. **不变量族**：顶级不变量是否逐条有正向与负向证据，而非只测 happy path？
 6. **文本与状态自洽**：Task、矩阵、ROADMAP、Decision、Handoff、版本锚是否同批刷新？
+7. **集成收敛**：集成队列是否为空，是否不存在 active、`rebase-required`、
+   `integration-conflict` lane 或未释放锁，所有任务卡是否关在同一个 `shared_baseline_anchor`？
 
 任一 blocker、非零 gate finding 或未分类规范文档都阻断关账。负责人验收后才把状态改为 `closed`。

@@ -28,9 +28,10 @@ GMGN defines seven execution-separated roles and one optional audit role.
 - **Owner** decides scope, approves project-level commitments, accepts closure, and is
   the only role that may waive completion criteria. Agent-to-agent instructions do not
   constitute owner authorization.
-- **Primary orchestrator** understands, decomposes, dispatches, adjudicates, accepts, and
-  gates. It retains decisions, interface freezes, merge control, and stage transitions. It
-  does not author or repair artifacts assigned to an execution role.
+- **Primary orchestrator** understands, decomposes, maintains the rolling ready set,
+  dispatches, adjudicates, accepts, and gates. It retains decisions, interface freezes,
+  merge control, and stage transitions. It does not author or repair artifacts assigned to
+  an execution role.
 - **Author** creates or revises one document artifact against a content contract. It chooses
   the document structure and self-checks before return.
 - **Coder** implements one approved task card and returns code, tests, and replayable evidence.
@@ -38,8 +39,9 @@ GMGN defines seven execution-separated roles and one optional audit role.
   Author/Coder. It reports findings and never edits the reviewed work.
 - **Verifier** independently executes tests, gates, and real product paths at an anchored
   candidate without changing product meaning or source code.
-- **Integrator** performs only accepted mechanical propagation: links, mappings, state,
-  evidence pointers, and commit preparation. Semantic ambiguity returns to the orchestrator.
+- **Integrator** is the single writer for the shared baseline, `Task.md`, and traceability
+  state. It serially integrates accepted lanes and performs only accepted mechanical
+  propagation. Semantic ambiguity or a merge conflict returns to the orchestrator.
 - **External audit** is optional and introduces a frame from outside the working group.
 
 Stages close against explicit criteria, not dates. Dates may be planning constraints, but
@@ -51,24 +53,80 @@ Runtime state is separate from document approval state and work-item state. Each
 records `node_id`, `state`, `baseline_anchor`, `candidate_anchor`, and the relevant
 `author_ref`, `critic_ref`, `coder_ref`, `reviewer_ref`, `verifier_ref`, or `integrator_ref`.
 
-A document node follows `ready-to-dispatch → author-active → author-returned →
+A document node follows `ready-to-dispatch → workspace-prepared → author-active → author-returned →
 candidate-anchored → critic-active → critic-returned`. An incomplete return uses
 `author-rework` with the same Author. Accepted findings use `author-revising` with that same
 Author; blocker resolution uses `critic-rechecking` with the same Critic. Upstream correction
 uses `upstream-change-pending` while preserving the current Author. Successful review then
 uses `acceptance-ready → accepted → integrating → node-complete`.
 
-Implementation substitutes `coder-*` and `reviewer-*` states and adds `verifier-active →
-verifier-returned` before acceptance. The primary orchestrator is the hub: Author and Critic,
-or Coder and Reviewer, do not communicate directly. Within one node the same producing agent
-performs revisions and the same reviewing agent performs targeted rechecks. The next node
-starts a new pair by default.
+Implementation keeps one independent lane per card. Each lane records `run_id`, `card_id`,
+`workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`, `candidate_anchor`,
+`write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`, and
+`shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`. The
+integration queue retains one `integrator_ref`.
+
+The normal card path is `ready-to-dispatch → workspace-prepared → coder-active →
+coder-returned → candidate-anchored → reviewer-active → reviewer-returned → verifier-active →
+verifier-returned → acceptance-ready → accepted → integration-queued → integrating →
+post-integration-verifying → node-complete`. `accepted` means only that the isolated card
+candidate may enter the integration queue. A card becomes `closed` only after it is integrated
+into `shared_baseline_anchor`, post-integration verification passes, and the Integrator
+refreshes `Task.md` and traceability.
+
+The primary orchestrator is the hub: Author and Critic, or Coder and Reviewer, do not
+communicate directly. Within one lane the same Coder repairs findings and
+`integration-conflict`, the same Reviewer rechecks affected diffs, and the same Verifier
+reruns affected verification. A shared-baseline advance first receives a mechanical
+application attempt in an isolated temporary combination; use `rebase-required` only when it
+cannot apply cleanly, dependency/specification meaning became invalid, or Coder judgment is
+required. An upstream semantic change uses `upstream-change-pending` only for its impact cone.
+Any return, integration, conflict, or block immediately recomputes the ready set and fills
+available capacity; unrelated lanes continue.
 
 If a platform cannot resume the recorded agent, enter `agent-unavailable` and record why.
 Replacement is explicit and receives the complete node record. Replacing a Critic/Reviewer
 requires a full review; a new agent cannot claim the old agent's targeted recheck. The complete
 state meanings and dispatch requirements are in
 [`dispatch-and-handoff.md`](skills/gmgn/references/en/dispatch-and-handoff.md).
+
+### 0.2 Parallel workspaces and ownership
+
+Concurrency is the minimum of platform concurrency, ready cards, isolated workspaces, and
+exclusive-resource capacity; no fixed number belongs in this method. A ready card has every
+dependency integrated into the shared baseline and no incompatible `conflict_domains` or
+`runtime_locks`. Scheduling is continuous: a wave is an observable snapshot, never a barrier
+that waits for the slowest card.
+
+Each parallel writing lane uses an explicitly provisioned worktree at an absolute
+`worktree_path`, with either detached `HEAD` or a unique `branch_ref`; the same branch must not
+be attached to multiple worktrees. Before writing, require `git rev-parse --show-toplevel` to
+equal the recorded absolute `worktree_path`, require `baseline_anchor` to resolve as a commit,
+and require `git rev-parse HEAD` to equal it. Map a content-hash authority anchor to its existing
+approved repository commit first; switch or rebuild and recheck on mismatch. At return, recheck
+the path and verify `candidate_anchor`, not the old baseline. A worktree isolates files and the index. It does not resolve Git merge
+conflicts, semantic conflicts, interface conflicts, or shared runtime resources.
+
+The Coder stages and commits only its card's `write_set` in that assigned worktree and returns
+a resolvable local commit SHA as immutable `candidate_anchor`. Local candidate commits are
+allowed; remote writes are not. When `workspace_mode: shared` cannot independently anchor each
+writer, parallel agents return proposals or patches instead of editing directly; one recorded
+Author or Coder serially applies, stages, commits, and anchors them.
+
+Integration is two-phase. From the clean current `shared_baseline_anchor`, the Integrator
+mechanically applies an accepted lane in an isolated temporary combination workspace. The
+same Verifier keeps its identity but receives that temporary workspace's current
+`workspace_mode`, `worktree_path`, and `branch_ref`. Only a verified combined candidate plus
+its mechanical ledger refresh may atomically advance the shared anchor. On merge/cherry-pick
+conflict or verification failure, abort the operation or discard the temporary workspace,
+leave the original shared anchor unchanged, confirm its index/worktree are clean, and continue
+unrelated queue entries. An unverified combination is never the shared baseline.
+
+One authoritative document version has one writer by default. Controlled parallel authoring
+is allowed only for stable, disjoint section or ID ownership with no shared meaning or
+interface, independent worktrees, and a combined candidate that receives a fresh Critic
+review. Frontmatter, tables of contents, shared tables, whole-file formatting, and the same
+decision, AC, or paragraph are single-writer surfaces.
 
 ## 1. Two primary risks
 
@@ -201,7 +259,9 @@ without a current handoff is not operationally closed.
    is not a bypass.
 5. **Delegate independent units.** Each dispatch states node identity, scope, boundaries,
    inputs, content contract, outputs, verification, agent identity, and return format. The
-   orchestrator resumes the same agent for in-node corrections.
+   orchestrator resumes the same agent for in-node corrections. During implementation it
+   continuously dispatches every ready card into an isolated lane and keeps shared-baseline
+   integration serial.
 6. **Evidence before status.** A claim becomes complete only after the artifact, replayable
    evidence, and all representations agree.
 
@@ -299,7 +359,9 @@ to reduce code.
 4. Initiate one milestone and create `Goal.md`.
 5. Write `Requirement.md`, `Design.md`, and `Task.md` in order, with an independent critic
    and orchestrator review at each transition.
-6. Execute one task card at a time; parallelize only dependency-free cards.
+6. Continuously execute every ready task card, one isolated Coder/Reviewer/Verifier lane per
+   card; serialize only dependencies, incompatible conflict domains or runtime locks, and
+   integration into the shared baseline.
 7. Review each code increment independently and replay task-level evidence.
 8. Run full regression and milestone E2E.
 9. Use the pre-close checklist, obtain owner acceptance, refresh every state representation,

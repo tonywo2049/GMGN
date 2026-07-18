@@ -63,6 +63,17 @@ Milestone、切片和任务卡的工作状态使用：
 not-started → initiated → in-progress → closed
 ```
 
+对任务卡而言，`initiated` 表示执行 lane 已被认领，`in-progress` 覆盖编码直到集成。隔离分支通过
+review 或 verification，只能让运行时候选进入 `accepted`，不能把任务标成 `closed`。只有候选合入
+记录的 `shared_baseline_anchor`、完成集成后验证，并由共享基线 Integrator 同批刷新 `Task.md`、
+追踪矩阵与证据后，任务卡才是 `closed`。
+卡片 Coder 只在 assigned detached-HEAD 或唯一分支 worktree stage/commit 本卡 `write_set`，回传
+可解析的本地 commit SHA 作为不可变 `candidate_anchor`；允许本地 commit，禁止远端写入。
+
+集成先从干净的当前共享基线生成临时组合 `candidate_anchor`。验证失败或 merge/cherry-pick 冲突时
+丢弃候选或中止操作，保持前一个 `shared_baseline_anchor` clean 且不变。只有验证通过的组合候选加
+机械台账刷新才能原子推进共享锚；未验证组合不是基线。
+
 白皮书与 ROADMAP 由负责人批准；Goal / Requirement / Design / Task 经独立 critic 后由主编排者审核；
 Milestone 关账由负责人验收。批准必须绑定 commit、内容 hash 或等价版本锚。
 
@@ -124,6 +135,11 @@ Milestone 关账由负责人验收。批准必须绑定 commit、内容 hash 或
 ```
 
 这是 GMGN 与 DocStar 的共同解析面；中文文档也不得翻译这些表头。
+
+固定六列不承载全部执行契约。围绕同一稳定任务 ID 的卡片内容还要记录 `depends_on`、`write_set`、
+`conflict_domains`、`runtime_locks` 和 semantic owner；这些内容不改变 DocStar 的表格 schema。
+`workspace_mode: shared` 无法为每个 writer 独立锚定时，并行 worker 只返回 proposal/patch，由一个
+已登记 Coder 或 Author 串行应用和锚定。
 
 ## 5. 内容契约，不提供版式模板
 

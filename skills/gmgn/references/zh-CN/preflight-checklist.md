@@ -20,5 +20,8 @@ English: [../en/preflight-checklist.md](../en/preflight-checklist.md)
 4. **装置忠实性**：测试、采样、时钟、mock、日志和判定脚本自身被校准或用已知样本验证了吗？
 5. **判据完备性**：成功、失败、超时、数据缺失和中途中断能自动判死吗？
 6. **无人值守韧性**：挂起、静默失败、资源耗尽时如何报警、恢复和保留证据？
+7. **工作区与锁**：`git rev-parse --show-toplevel` 是否等于当前派发的绝对 `worktree_path`；
+   `workspace_mode`、`branch_ref` 是否准确；本 lane 的 `write_set`、`conflict_domains`、
+   `runtime_locks` 是否与所有 active lane 兼容？
 
 未解决 blocker 不得启动；非 blocker 必须写 owner 和跟进点。

@@ -18,6 +18,9 @@ nature: normative
 4. **Weakest assumption** — Which assumption most threatens the conclusion; was its counterexample tested or recorded as debt?
 5. **Invariant family** — Does each top-level invariant have positive and negative evidence, not only a happy path?
 6. **Text and state consistency** — Were Task, matrix, ROADMAP, Decision, Handoff, and version anchors refreshed together?
+7. **Integration convergence** — Is the integration queue empty, are there no active,
+   `rebase-required`, or `integration-conflict` lanes or held locks, and are all cards closed on
+   one `shared_baseline_anchor`?
 
 Any blocker, non-zero gate finding, or unclassified normative document blocks closure.
 Only after owner acceptance may the state become `closed`.

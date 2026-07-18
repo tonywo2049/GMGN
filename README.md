@@ -74,6 +74,15 @@ Within a node, fixes return to the same Author/Coder and blocker rechecks to the
 Critic/Reviewer. If a platform cannot resume that identity, GMGN records an explicit
 replacement and repeats a full review when the reviewer changes.
 
+`run-task` continuously fills available capacity from a dependency-aware ready set; it does
+not wait for one card to close before starting another independent card. Each card keeps its
+own Coder, Reviewer, Verifier, and explicitly provisioned worktree. Worktrees prevent agents
+from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
+runtime-resource conflicts. One Integrator serially owns the shared baseline, `Task.md`, and
+traceability. Each Coder returns a local commit containing only its card write set. Integration
+first verifies an isolated temporary combination; only success atomically advances the shared
+baseline. A card closes only after post-integration verification and ledger refresh there.
+
 ## Install
 
 ### Codex
@@ -135,7 +144,7 @@ claude plugin marketplace remove GMGN --scope user
 | “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
 | “Produce the technical design.” | `write-design` | Design.md |
 | “Break the design into task cards.” | `write-task` | Task.md |
-| “Implement this card / fix this bug.” | `run-task` | Code, tests, review evidence |
+| “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review and verification evidence |
 | “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, closure record |
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 

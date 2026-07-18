@@ -196,6 +196,10 @@ def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
             denied = fields.get("disallowedTools", "")
             if "Write" not in denied or "Edit" not in denied:
                 errors.append(f"{path}: 只读角色必须禁用 Write/Edit")
+        if path.stem in {"author", "coder"} and fields.get("isolation") != "worktree":
+            errors.append(f"{path}: writer 必须显式 isolation: worktree")
+        if path.stem in {"reviewer", "verifier", "integrator"} and "isolation" in fields:
+            errors.append(f"{path}: 非 writer 不得盲目新建 worktree")
 
 
 def validate_document_pairs(errors: list[str]) -> None:
@@ -522,7 +526,11 @@ def validate_controlled_change_protocol(
 
 
 def require_tokens(errors: list[str], text: str, tokens: tuple[str, ...], label: str) -> None:
-    missing = [token for token in tokens if token not in text]
+    normalized_text = " ".join(text.split())
+    missing = [
+        token for token in tokens
+        if " ".join(token.split()) not in normalized_text
+    ]
     if missing:
         errors.append(f"{label}: 缺 agent 生命周期约束 {missing}")
 
@@ -536,9 +544,10 @@ def validate_agent_lifecycle(
     )
     runtime_states = (
         "blocked-prerequisite", "awaiting-owner-input", "ready-to-dispatch",
-        "author-active", "author-returned", "author-rework", "candidate-anchored",
+        "workspace-prepared", "author-active", "author-returned", "author-rework", "candidate-anchored",
         "critic-active", "critic-returned", "author-revising", "critic-rechecking",
-        "upstream-change-pending", "acceptance-ready", "accepted", "integrating",
+        "upstream-change-pending", "acceptance-ready", "accepted", "integration-queued", "integrating",
+        "integration-conflict", "rebase-required", "post-integration-verifying",
         "node-complete", "agent-unavailable", "coder-active", "coder-returned",
         "coder-revising", "reviewer-active", "reviewer-returned", "reviewer-rechecking",
         "verifier-active", "verifier-returned",
@@ -548,22 +557,60 @@ def validate_agent_lifecycle(
         "author_ref", "critic_ref", "coder_ref", "reviewer_ref", "verifier_ref",
         "integrator_ref",
     )
+    lane_fields = (
+        "run_id", "card_id", "workspace_mode", "worktree_path", "branch_ref",
+        "baseline_anchor", "candidate_anchor", "write_set", "conflict_domains",
+        "runtime_locks", "integration_queue_ref", "shared_baseline_anchor",
+    )
     for path in dispatch_paths:
         try:
             text = path.read_text(encoding="utf-8")
         except FileNotFoundError as exc:
             errors.append(str(exc))
             continue
-        require_tokens(errors, text, runtime_states + role_tokens, str(path))
-        execution_boundary = (
-            "without taking over execution"
+        require_tokens(errors, text, runtime_states + role_tokens + lane_fields, str(path))
+        isolation_tokens = (
+            ("git rev-parse --show-toplevel", "absolute", "does not resolve", "same branch", "proposal")
             if path.parent.name == "en"
-            else "不接管执行"
+            else ("git rev-parse --show-toplevel", "绝对", "不消除", "同一分支", "proposal")
         )
-        if execution_boundary not in text:
-            errors.append(f"{path}: 缺主编排者不接管执行的边界")
+        require_tokens(errors, text, isolation_tokens, str(path))
+        baseline_tokens = (
+            ("git rev-parse HEAD", "${baseline_anchor}^{commit}", "content hash",
+             "rebuild the worktree", "candidate_anchor", "old `baseline_anchor`")
+            if path.parent.name == "en"
+            else ("git rev-parse HEAD", "${baseline_anchor}^{commit}", "内容 hash",
+                  "重建 worktree", "candidate_anchor", "旧 `baseline_anchor`")
+        )
+        require_tokens(errors, text, baseline_tokens, f"{path} workspace-prepared 基线锁")
         if "```" in text:
             errors.append(f"{path}: 派发契约不得退回填空模板")
+
+    adapter_tokens = {
+        dispatch_paths[0]: (
+            "ordinary subagents share", "isolation: worktree", "Agent Teams",
+            "do not automatically create worktrees", "never relies on automatic merge",
+            "fresh/origin default", "baseline_anchor", "WorktreeCreate", "current dispatch path",
+            "scheduler DAG", "named `Agent`", "waits for any", "general-purpose",
+            "SendMessage", "Explore", "Plan", "experimental", "/resume",
+            "actual platform capacity", "environment-variable default",
+            "Author, Critic, Coder, Reviewer, Verifier, and Integrator",
+            "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "does not require adopting Agent Teams",
+            "agent-unavailable", "do not claim a targeted recheck", "same Verifier",
+            "same Integrator",
+        ),
+        dispatch_paths[1]: (
+            "普通 subagent 默认共享", "isolation: worktree", "Agent Teams", "不自动创建 worktree",
+            "不依赖自动 merge", "fresh/origin default", "baseline_anchor", "WorktreeCreate",
+            "当前派发", "调度 DAG", "具名 `Agent`", "任一 agent 完成", "general-purpose",
+            "SendMessage", "Explore", "Plan", "实验性", "/resume", "实际平台容量",
+            "环境变量默认值", "Author、Critic、Coder、Reviewer、Verifier、Integrator",
+            "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "不等于必须采用", "agent-unavailable",
+            "不能声称做原身份的定向复核", "同一 Verifier", "同一 Integrator",
+        ),
+    }
+    for path, tokens in adapter_tokens.items():
+        require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
 
     require_tokens(
         errors,
@@ -593,9 +640,67 @@ def validate_agent_lifecycle(
         (
             "coder_ref", "coder-returned", "same Coder", "reviewer_ref", "same Reviewer",
             "reviewer-rechecking", "verifier-active", "verifier-returned", "Integrator",
-            "leave command execution to the Reviewer/Verifier", "node-complete",
+            "run_id", "card_id", "workspace_mode", "worktree_path", "branch_ref",
+            "write_set", "conflict_domains", "runtime_locks", "integration_queue_ref",
+            "shared_baseline_anchor", "workspace-prepared", "integration-queued",
+            "integration-conflict", "rebase-required", "post-integration-verifying",
+            "git rev-parse --show-toplevel", "does not resolve", "same branch",
+            "Recompute the ready set", "instead of waiting for a card or wave to close",
+            "does not write implementation",
+            "node-complete",
         ),
         "run-task",
+    )
+
+    run_task = parsed.get("run-task", ("", ""))[1]
+    require_section_tokens(
+        errors,
+        run_task,
+        "## 2. Provision one isolated workspace per card",
+        (
+            "git rev-parse --show-toplevel", "${baseline_anchor}^{commit}",
+            "git rev-parse HEAD", "rebuild the worktree", "workspace-prepared",
+            "candidate_anchor", "old `baseline_anchor`",
+        ),
+        "run-task 工作区基线锁",
+    )
+    require_section_tokens(
+        errors,
+        run_task,
+        "## 1. Build and continuously refill the ready set",
+        (
+            "after every agent return, integration, conflict, or block",
+            "instead of waiting for a card or wave to close",
+            "does not stop unrelated lanes",
+        ),
+        "run-task 滚动补槽",
+    )
+    require_section_tokens(
+        errors,
+        run_task,
+        "## 3. Run each card lane independently",
+        (
+            "stages and commits only this card's `write_set`",
+            "detached `HEAD`", "unique `branch_ref`", "parseable local commit SHA",
+            "immutable `candidate_anchor`", "without any remote write",
+        ),
+        "run-task 候选锚责任",
+    )
+    require_section_tokens(
+        errors,
+        run_task,
+        "## 4. Serialize integration, then close the card",
+        (
+            "Integration is two-phase", "isolated temporary combination workspace",
+            "without advancing the shared anchor", "does not by itself require a rebase",
+            "dependency or specification meaning", "current `workspace_mode`",
+            "current `worktree_path`", "current `branch_ref`", "same `verifier_ref`",
+            "abort the Git operation", "discard the temporary combination workspace",
+            "leave the original `shared_baseline_anchor` unchanged", "git status --short",
+            "atomically advance `shared_baseline_anchor`",
+            "Never expose an unverified temporary combination as the shared baseline",
+        ),
+        "run-task 两阶段集成",
     )
     require_tokens(
         errors,
@@ -603,10 +708,96 @@ def validate_agent_lifecycle(
         (
             "verifier-active", "verifier-returned", "author_ref", "same closure Author",
             "same Critic/Reviewer", "acceptance-ready", "Integrator", "owner acceptance",
-            "node-complete",
+            "node-complete", "shared_baseline_anchor", "integration queue must be empty",
+            "rebase-required", "integration-conflict",
         ),
         "close-milestone",
     )
+
+    write_task = parsed.get("write-task", ("", ""))[1]
+    require_tokens(
+        errors,
+        write_task,
+        ("depends_on", "write_set", "conflict_domains", "runtime_locks", "semantic owner",
+         "six parser-facing columns unchanged", "rolling ready set"),
+        "write-task",
+    )
+
+    forbidden_serial = (
+        "Execute one task card at a time",
+        "continue `run-task` only after the next card is confirmed",
+        "Implement one task card",
+        "单卡收卡后再进入下一卡",
+    )
+    serial_files = (ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md", SKILLS / "run-task" / "SKILL.md")
+    for path in serial_files:
+        text = path.read_text(encoding="utf-8")
+        found = [phrase for phrase in forbidden_serial if phrase in text]
+        if found:
+            errors.append(f"{path}: 残留 milestone-wide 单卡串行屏障 {found}")
+
+    false_worktree_claims = (
+        "worktree resolves merge conflicts", "worktree eliminates merge conflicts",
+        "Worktree 解决冲突", "worktree 消除冲突",
+    )
+    for path in (ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md", *dispatch_paths):
+        text = path.read_text(encoding="utf-8")
+        found = [claim for claim in false_worktree_claims if claim in text]
+        if found:
+            errors.append(f"{path}: 把 worktree 误写成冲突解决机制 {found}")
+
+    unconditional_rebase = (
+        "baseline advanced, enter `rebase-required`",
+        "shared_baseline_anchor` advanced; the same Coder",
+        "shared_baseline_anchor 前移时标 rebase-required",
+        "共享基线前移用 `rebase-required`",
+    )
+    protocol_files = (
+        ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md", SKILLS / "run-task" / "SKILL.md",
+        *dispatch_paths, CLAUDE_AGENTS / "integrator.md", CODEX_AGENTS / "integrator.toml",
+    )
+    for path in protocol_files:
+        text = path.read_text(encoding="utf-8")
+        found = [claim for claim in unconditional_rebase if claim in text]
+        if found:
+            errors.append(f"{path}: 基线前移被错误升级为无条件 rebase {found}")
+
+    general_role_tokens = {
+        "author": (("write-*", "close-milestone", "current dispatch"),
+                   ("write-*", "close-milestone", "当前派发")),
+        "reviewer": (("run-task", "close-milestone", "current dispatch"),
+                     ("run-task", "close-milestone", "当前派发")),
+        "verifier": (("run-task", "close-milestone", "current dispatch", "same `verifier_ref`"),
+                     ("run-task", "close-milestone", "当前派发", "同一 verifier_ref")),
+        "integrator": (("write-*", "close-milestone", "run-task", "temporary"),
+                       ("write-*", "close-milestone", "run-task", "临时")),
+    }
+    for name, (claude_tokens, codex_tokens) in general_role_tokens.items():
+        for path, tokens in (
+            (CLAUDE_AGENTS / f"{name}.md", claude_tokens),
+            (CODEX_AGENTS / f"{name}.toml", codex_tokens),
+        ):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                continue
+            require_tokens(errors, text, tokens, str(path))
+
+    for path in (
+        CLAUDE_AGENTS / "author.md", CLAUDE_AGENTS / "coder.md",
+        CODEX_AGENTS / "author.toml", CODEX_AGENTS / "coder.toml",
+    ):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+            continue
+        require_tokens(
+            errors,
+            text,
+            ("git rev-parse HEAD", "baseline_anchor", "candidate_anchor"),
+            f"{path} writer 基线锁",
+        )
 
     for path, tokens in (
         (
@@ -679,11 +870,36 @@ def main() -> int:
 
     if "run-task" in parsed:
         body = parsed["run-task"][1]
-        close_step = re.search(r"^6\. \*\*Card close\*\*(.*?)(?=^## |\Z)", body, re.M | re.S)
-        required = ("Task.md", "stale assertions", "not-started", "not created", "not run",
-                    "awaiting confirmation", "Mechanically refresh", "git diff --check")
+        close_step = re.search(
+            r"^## 4\. Serialize integration, then close the card\n(.*?)(?=^## |\Z)",
+            body,
+            re.M | re.S,
+        )
+        required = (
+            "Move an accepted lane", "integration-queued", "post-integration-verifying",
+            "node-complete",
+            "same Integrator", "same Verifier", "shared_baseline_anchor", "Task.md",
+            "stale assertions", "not-started", "not created", "not run",
+            "awaiting confirmation", "Mechanically refresh", "git diff --check",
+            "Only now set the card work status to `closed`",
+        )
         if not close_step or any(token not in close_step.group(1) for token in required):
             errors.append("run-task: 卡关账前缺少过期断言扫描")
+
+    for path in (
+        REFERENCES / "en" / "writing-contract.md",
+        REFERENCES / "zh-CN" / "writing-contract.md",
+    ):
+        text = path.read_text(encoding="utf-8")
+        required = (
+            ("runtime candidate `accepted`", "never makes the task `closed`",
+             "shared_baseline_anchor", "post-integration verification")
+            if path.parent.name == "en"
+            else ("运行时候选进入 `accepted`", "不能把任务标成 `closed`",
+                  "shared_baseline_anchor", "集成后验证")
+        )
+        if any(token not in text for token in required):
+            errors.append(f"{path}: 缺分支接受与任务关账边界")
 
     if "close-milestone" in parsed:
         body = parsed["close-milestone"][1]

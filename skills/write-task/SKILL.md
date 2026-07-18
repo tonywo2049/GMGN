@@ -23,15 +23,25 @@ Use the Design locale and the matching layout-free
 - Dispatch an Author to split the Design into cards; the Author chooses the surrounding
   document structure while preserving the fixed parser-facing table header.
 - Each card is the smallest independently reviewable and verifiable unit.
-- Every card has a stable ID, R-AC spec anchor, explicit prerequisites, failing-first test,
-  completion criterion, allowed paths, and work state `not-started`.
-- Order interface/schema changes before consumers. Parallelize only dependency-free cards.
+- Every card has a stable ID, R-AC spec anchor, explicit `depends_on`, failing-first test,
+  completion criterion, allowed paths, `write_set`, `conflict_domains`, `runtime_locks`, a
+  semantic owner, and work state `not-started`. Keep the six parser-facing columns unchanged;
+  record the additional execution facts in card content keyed by the same stable ID.
+- `depends_on` forms an acyclic DAG. A card becomes ready only when every predecessor is
+  `node-complete` on the current shared baseline. Order interface/schema changes before their
+  consumers, but do not add artificial ordering between independent cards.
+- `write_set` names intended files and, where useful, stable sections or symbols.
+  `conflict_domains` names shared semantic/interface/schema/migration/generated-artifact
+  surfaces; `runtime_locks` names exclusive databases, ports, hardware, accounts, or other
+  mutable resources. File overlap alone is not proof of safety or conflict.
 - Maintain an AC → task → test → evidence traceability matrix; every in-scope AC is covered.
 - Do not use task prose to redefine Requirement or Design.
 
 Before return, the Author checks that every in-scope AC has at least one card, test, and
-evidence destination; every card has all required fields; prerequisites form no cycle; and
-parallel cards share no unfrozen interface or file ownership.
+evidence destination; every card has all required facts; prerequisites form no cycle; and
+cards eligible together have compatible `conflict_domains`, `runtime_locks`, and semantic
+ownership. The Author does not freeze waves in `Task.md`; the orchestrator derives a
+rolling ready set from the current shared baseline.
 
 ## Author and critic loop
 
@@ -70,9 +80,9 @@ card; otherwise inspect all fixed table columns manually.
 Require the Author to reconcile the affected matrix and three anchors per changed card. For
 creation or a semantic revision, run the identity-preserving Author/Critic loop using the
 locale-matched dispatch contract, obtain primary-orchestrator review, and integrate. After a
-new card is explicitly confirmed, use
-**REQUIRED next skill: `run-task`**. A revision returns to the stage that raised it and
-continues through the affected path only.
+card or execution set is explicitly confirmed, use **REQUIRED next skill: `run-task`** to
+dispatch every ready card and keep refilling capacity. A revision returns to the stage that
+raised it and continues through the affected path only.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

@@ -5,12 +5,17 @@ description: "Use when every milestone card is closed and traceability is full t
 
 # Close a milestone
 
-<HARD-GATE>Every card must be `closed`, and every in-scope AC must have a task, test, and evidence row. Otherwise return to `run-task`. If closure review exposes a changed upstream premise, withhold closure and route to its authority. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
+<HARD-GATE>Every card must be `closed` on the same `shared_baseline_anchor`; the integration queue must be empty; no lane may be active, `rebase-required`, or `integration-conflict`; and every in-scope AC must have a task, test, and evidence row. Otherwise return to `run-task`. If closure review exposes a changed upstream premise, withhold closure and route to its authority. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
 
 ## Establish evidence first
 
-The primary orchestrator records the closing anchor and dispatches an independent Verifier as
+The primary orchestrator proves the queue is empty, reconciles every lane to the same
+`shared_baseline_anchor`, records that value as the closing anchor, and dispatches an
+independent Verifier as
 `verifier-active`; it does not run closure evidence in place of that agent. The Verifier must:
+
+- receive and verify the current dispatch's `workspace_mode`, absolute `worktree_path`, and
+  `branch_ref`; these workspace facts are not permanently bound to its identity;
 
 - run the complete project regression at the closing revision;
 - run milestone-level startup/E2E through the real product path, including required negative
@@ -28,6 +33,8 @@ structure and must not mark anything closed before owner acceptance.
 1. Scope: every AC is implemented, explicitly deferred, or removed by owner decision.
 2. Evidence: every closure criterion has a replayable real verification path.
 3. State: Task, matrix, ROADMAP, Decision, version anchors, and Handoff refresh together.
+4. Integration: no accepted branch remains outside the shared baseline and no lane or lock
+   remains active.
 
 ## Author and combined-review loop
 

@@ -34,6 +34,7 @@ class PackageReleaseTests(unittest.TestCase):
             with zipfile.ZipFile(archive) as release:
                 names = release.namelist()
                 create_systems = {info.create_system for info in release.infolist()}
+                run_task_skill = release.read("skills/run-task/SKILL.md").decode("utf-8")
             self.assertTrue(names)
             self.assertTrue(
                 all(name in ALLOWED_FILES or name.startswith(ALLOWED_PREFIXES) for name in names), names
@@ -46,6 +47,8 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("README.zh-CN.md", names)
             self.assertIn("GMGN.zh-CN.md", names)
             self.assertEqual(create_systems, {3})
+            self.assertIn("integration_queue_ref", run_task_skill)
+            self.assertIn("post-integration-verifying", run_task_skill)
 
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()
             checksum = (output_dir / f"gmgn-{version}.zip.sha256").read_text(encoding="utf-8")

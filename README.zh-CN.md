@@ -51,6 +51,12 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 
 原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。同一节点内，修改回到原 Author / Coder，blocker 定向复核回到原 Critic / Reviewer；平台无法恢复身份时显式替换，审查角色变更后重做完整审查。
 
+`run-task` 按依赖 ready set 持续补满可用槽位，不等上一卡关账才启动下一张独立卡。每卡保留独立
+Coder、Reviewer、Verifier 和显式 provision 的 worktree。Worktree 能防止 agent 互相覆盖文件与
+index，但不能解决 merge、语义、接口或共享运行资源冲突。同一 Integrator 串行拥有共享基线、
+`Task.md` 和追踪矩阵。每个 Coder 回传只包含本卡写集的本地 commit；集成先验证隔离临时组合，
+只有成功才原子推进共享基线。任务卡完成集成后验证和台账刷新才关账。
+
 ## 安装
 
 ### Codex
@@ -120,7 +126,7 @@ claude plugin marketplace remove GMGN --scope user
 | “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
 | “出技术设计和系统方案” | `write-design` | Design.md |
 | “拆实施计划和任务卡” | `write-task` | Task.md |
-| “实现这张卡 / 修这个 bug” | `run-task` | 代码、测试、审查证据 |
+| “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查与验证证据 |
 | “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、关账记录 |
 | “下一步做什么？” | `gmgn` | 状态判断与工序路由 |
 
