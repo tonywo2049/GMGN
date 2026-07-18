@@ -1,0 +1,4 @@
+interface:
+  display_name: "GMGN 工作流"
+  short_description: "根据项目现状路由九件技能，守住文档、实现、审查和关账门禁"
+  default_prompt: "请用 $gmgn 判断当前项目状态，并执行正确的下一步。"

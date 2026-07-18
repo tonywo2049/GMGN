@@ -1,0 +1,4 @@
+interface:
+  display_name: "编写里程碑目标"
+  short_description: "为已批准的里程碑立项，明确目标、范围边界与工作切片"
+  default_prompt: "请用 $write-goal 为指定里程碑立项并编写 Goal。"

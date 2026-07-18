@@ -1,6 +1,6 @@
 ---
 name: write-design
-description: 某 Milestone 的 Requirement 已过审、要写设计文档/技术方案(Design.md,把需求映射到实现结构)时使用;用户说「写设计」「出技术方案」「怎么实现这些需求」时触发。
+description: 某 Milestone 的 Requirement 已过审、要做系统设计、架构设计、接口设计、数据设计,或写设计文档/系统方案/技术设计/技术方案/实现方案(Design.md,把需求映射到实现结构)时使用;用户说「写设计」「出技术方案」「怎么实现这些需求」时触发。
 ---
 
 # Design(需求→结构映射)
@@ -19,7 +19,7 @@ description: 某 Milestone 的 Requirement 已过审、要写设计文档/技术
 - 开放问题与决策点:给推荐不给定论,逐条标「待裁/已裁」,不把待裁写成已定。
 - 设计裁决(为什么这样不那样)记要点与被否选项,重要的进决议记录。
 
-## docstar 融入(本文档特有)
+## 文档链写法(DocStar 可选增强)
 
 本文档特有:映射表用 R/AC 编号(可被 `id` 检索);frontmatter 上游=Requirement;引用需求某节写 `Requirement §N`。通用项(真实链接/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
 

@@ -1,6 +1,6 @@
 ---
 name: write-goal
-description: ROADMAP 已批、负责人点名启动/开工某个 Milestone(行状态=未立项)时使用——立项登记并撰写该单元 Goal(目标拆解);用户说「启动M2」「开做某里程碑」「立项」时触发。
+description: ROADMAP 已批、负责人点名启动/开工某个 Milestone、版本或阶段(行状态=未立项)时使用——完成项目立项或阶段立项并撰写该单元 Goal(目标拆解/范围边界/切片);用户说「启动M2」「开做某里程碑」「立项」「拆一下这个阶段目标」时触发。
 ---
 
 # 立项与 Goal(Milestone 目标拆解)

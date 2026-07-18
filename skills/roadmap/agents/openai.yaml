@@ -1,0 +1,4 @@
+interface:
+  display_name: "项目路线图"
+  short_description: "把已批准白皮书拆成可维护的版本、阶段与里程碑路线图"
+  default_prompt: "请用 $roadmap 把已批准白皮书拆成项目路线图。"

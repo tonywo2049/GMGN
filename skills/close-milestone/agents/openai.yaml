@@ -1,0 +1,4 @@
+interface:
+  display_name: "里程碑关账"
+  short_description: "用全量回归、端到端验证和独立组合审查完成里程碑正式关账"
+  default_prompt: "请用 $close-milestone 验证并关账当前里程碑。"

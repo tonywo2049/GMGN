@@ -1,0 +1,4 @@
+interface:
+  display_name: "编写技术设计"
+  short_description: "把已审需求映射为可实施、可验证且边界清晰的技术设计"
+  default_prompt: "请用 $write-design 把已审需求整理为可实施的技术设计。"
