@@ -210,6 +210,49 @@ def main() -> int:
     if "close-milestone" in parsed and "roadmap" not in parsed["close-milestone"][1]:
         errors.append("close-milestone 后未回到 roadmap 维护态")
 
+    if "run-task" in parsed:
+        _, run_task_body = parsed["run-task"]
+        close_step = re.search(
+            r"^6\. \*\*卡关账\*\*:(.*?)(?=^## |\Z)",
+            run_task_body,
+            re.M | re.S,
+        )
+        stale_assertion_requirements = (
+            "Task.md",
+            "过期断言",
+            "待执行",
+            "未创建",
+            "未运行",
+            "待确认",
+            "机械刷新",
+            "git diff --check",
+        )
+        if not close_step or any(
+            requirement not in close_step.group(1)
+            for requirement in stale_assertion_requirements
+        ):
+            errors.append("run-task: 卡关账前缺少过期断言扫描")
+
+    if "close-milestone" in parsed:
+        _, close_body = parsed["close-milestone"]
+        machine_gate = re.search(
+            r"^## 机检与核对\n(.*?)(?=^## |\Z)", close_body, re.M | re.S
+        )
+        handoff_gate = re.search(
+            r"^## 呈报与收尾\n(.*?)(?=^## |\Z)", close_body, re.M | re.S
+        )
+        if (
+            not machine_gate
+            or "classification_complete" not in machine_gate.group(1)
+            or "退出码" not in machine_gate.group(1)
+            or "非零 finding 就是红灯" not in machine_gate.group(1)
+            or not handoff_gate
+            or "Handoff" not in handoff_gate.group(1)
+            or "性质=记述" not in handoff_gate.group(1)
+            or "类型必须复用或登记到项目分类映射" not in handoff_gate.group(1)
+        ):
+            errors.append("close-milestone: DocStar 或 Handoff 关账门禁缺失")
+
     if errors:
         print("GMGN skill 校验失败:")
         for error in errors:

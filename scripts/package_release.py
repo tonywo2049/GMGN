@@ -13,6 +13,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
 PACKAGE_PATHS = (
+    ".agents",
     ".claude-plugin",
     ".codex-plugin",
     "skills",

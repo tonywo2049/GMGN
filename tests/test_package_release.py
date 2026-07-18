@@ -11,7 +11,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGER = ROOT / "scripts" / "package_release.py"
-ALLOWED_PREFIXES = (".claude-plugin/", ".codex-plugin/", "skills/")
+ALLOWED_PREFIXES = (".agents/", ".claude-plugin/", ".codex-plugin/", "skills/")
 ALLOWED_FILES = {"README.md", "GMGN.md", "LICENSE"}
 
 
@@ -36,6 +36,7 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertTrue(
                 all(name in ALLOWED_FILES or name.startswith(ALLOWED_PREFIXES) for name in names), names
             )
+            self.assertIn(".agents/plugins/marketplace.json", names)
             self.assertEqual(create_systems, {3})
 
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()
