@@ -71,6 +71,51 @@ The owner approves WhitePaper and ROADMAP. The primary orchestrator reviews Goal
 Requirement, Design, and Task after an independent critic. The owner accepts milestone
 closure. Every approval binds a commit, content hash, or equivalent version anchor.
 
+### 3.1 Controlled changes after approval
+
+Workflow nodes are not one-way. If downstream work exposes an upstream defect or changed
+premise, return to the document that is the single authority for that meaning:
+
+| Meaning owned by | Revision route |
+|---|---|
+| WhitePaper | `brainstorm` revision mode |
+| ROADMAP | `roadmap` maintenance mode |
+| Goal | `write-goal` revision mode |
+| Requirement or R-AC | `write-requirement` revision mode |
+| Design | `write-design` revision mode |
+| Task | `write-task` revision mode |
+
+A **semantic change** can alter a decision or a reasonable reader's understanding of scope,
+obligation, acceptance meaning, design intent, or execution authority. It receives the review
+or approval appropriate to that authority at a new version anchor. The old approval remains
+attached to the old anchor; it never moves implicitly to the edited file.
+
+A **mechanical change** preserves meaning: for example, a rename, move, link, formatting,
+hash, or mirrored status update. File-content change alone does not require reapproval.
+Refresh every affected representation in the same batch and run machine checks. If the
+checks pass and the change record explicitly establishes semantic equivalence, the new anchor
+may retain the document's approval state by citing the old approved anchor; this is not a new
+approval. If the classification is uncertain, treat the change as semantic.
+
+After either kind, propagate only through the impact cone: affected upstream/downstream
+links, IDs, mappings, documents, tasks, tests, evidence, and state. Review, approve, and
+verify only affected content. Returning to an authority does not rerun unrelated stages.
+
+For a semantic revision, add or update a change record in the authority or its linked decision
+log. A mechanical batch may keep one batch-level equivalence record; do not edit every
+affected document solely to add history. Do not add an empty record to a newly created
+document:
+
+| item | required content |
+|---|---|
+| trigger | why the approved baseline is insufficient |
+| old anchor | the version to which existing approval still applies |
+| classification | `semantic` or `mechanical`, with rationale |
+| authority and delta | the single authority and exact meaning changed |
+| impact cone | affected IDs, documents, work, tests, evidence, and state |
+| review or approval | who must review or approve this version, or why none is needed |
+| new anchor and checks | the resulting version plus propagation and verification evidence |
+
 ## 4. Stable names and identifiers
 
 - Project level: `WhitePaper.md`, `ROADMAP.md`

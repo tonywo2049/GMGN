@@ -1,11 +1,11 @@
 ---
 name: brainstorm
-description: "Use when a WhitePaper does not exist or needs a major rethink and the user brings a new idea, product concept, problem, opportunity, vague requirement, research request, feasibility study, brainstorm, or wants to start a direction. 需求澄清入口：新想法、产品构思、待解决问题、新机会、模糊需求、调研、可行性研究、脑暴/头脑风暴；白皮书仅小修或纯闲聊不触发。"
+description: "Use when a WhitePaper does not exist, needs a major rethink, or an approved WhitePaper needs a controlled semantic revision to its problem, goals, scope, harm order, invariants, or interpretation. Also covers a new idea, product concept, problem, opportunity, vague requirement, research request, feasibility study, brainstorm, or starting a direction. 需求澄清入口：新想法、产品构思、待解决问题、新机会、模糊需求、调研、可行性研究、脑暴/头脑风暴，以及已批准白皮书的问题、目标、范围、损害排序、不变量或理解需要受控语义修订；不改变语义的机械小修或纯闲聊不触发。"
 ---
 
 # Brainstorm → WhitePaper
 
-<HARD-GATE>Before an independent critic reviews the WhitePaper and the owner approves a version anchor, do not enter `roadmap`, create execution documents, or write implementation code. “The project is simple” is not a bypass. The only terminal route is `roadmap`.</HARD-GATE>
+<HARD-GATE>In creation mode, do not enter `roadmap`, create execution documents, or write implementation code before an independent critic reviews the WhitePaper and the owner approves a version anchor. In revision mode, pause only dependent work whose premise changed until the owner approves the semantic delta at a new anchor. “The project is simple” is not a bypass.</HARD-GATE>
 
 ## Language and contract
 
@@ -38,12 +38,34 @@ Use as needed:
 
 Do not introduce R-AC IDs or quantitative requirement criteria here.
 
+## Revision mode
+
+An approved WhitePaper revision handles the change delta; it is not a new brainstorm for the
+whole project.
+
+1. Start from the approved old anchor and state the trigger, proposed semantic delta, and
+   impact cone.
+2. Edit only the WhitePaper sections that are authoritative for the changed meaning. Preserve
+   unaffected conclusions and prior decision history.
+3. Scope research and independent criticism to the delta plus the minimum context needed to
+   falsify it.
+4. Have the owner approve the semantic delta at a new version anchor. The old approval remains
+   attached to the old anchor.
+5. Propagate only to affected ROADMAP or G-R-D-T content, then return to the stage that raised
+   the change. Do not rerun unaffected stages.
+
+Meaning-preserving renames, moves, links, formatting, hashes, and status mirrors are
+mechanical changes: refresh them in the same batch and run machine checks without entering
+revision mode or seeking reapproval.
+
 ## Exit
 
 Self-check placeholders, contradictions, scope gaps, and ambiguity. Dispatch one independent
 critic with the locale-matched `critic-brief.md`; adjudicate findings without letting the
-critic expand scope. Present the weakest assumption to the owner, bind approval to a commit
-or hash, commit the document, then **REQUIRED next skill: `roadmap`**.
+critic expand scope. Present the weakest assumption to the owner and bind approval to a
+commit or hash. In creation mode, commit and use **REQUIRED next skill: `roadmap`**. In
+revision mode, commit, propagate the approved delta through its impact cone, and return to
+the stage that raised the change rather than restarting the full chain.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

@@ -27,12 +27,34 @@ machine contract English. Load the matching writing contract only when writing d
 | Confirmed task card is ready | `run-task` |
 | All cards closed and traceability full | `close-milestone` |
 
+## Controlled-change routing
+
+Workflow nodes are not one-way. Route a change to the single authority for the content:
+
+| Approved authority that needs a semantic change | Route |
+|---|---|
+| WhitePaper problem, goal, scope, harm order, invariant, or interpretation | `brainstorm` revision mode |
+| ROADMAP sequencing, milestone allocation, dependency, or qualitative completion picture | `roadmap` maintenance mode |
+| Goal objective, boundary, slice, non-goal, or completion picture | `write-goal` revision mode |
+| Requirement, constraint, parameter authority, or acceptance criterion | `write-requirement` revision mode |
+| Design structure, interface, data, failure path, or R-AC mapping | `write-design` revision mode |
+| Task card, dependency, execution order, test anchor, or traceability mapping | `write-task` revision mode |
+
+Start from the approved old anchor, record the semantic delta and impact cone, update the
+authority, then propagate only through affected upstream/downstream representations and
+dependent work. Review, approve, and verify only affected content; do not rerun unrelated
+stages. Old approval remains attached to the old anchor. The new anchor needs the approval
+appropriate to that authority only when the change alters a decision or reasonable
+understanding. Meaning-preserving mechanical changes use same-batch refresh and machine
+checks without reapproval. An explicit equivalence record may let the new anchor retain the
+document approval state by citing the old approved anchor; this is not a new approval.
+
 For a narrow bug or mechanical one-step change, use the controlled bypass: identify scope,
 the smallest authority/acceptance condition, implementation, test, independent review, and
 same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
 milestone initiation, scope expansion, or closure authority.
 
-<HARD-GATE>Never route past a missing prerequisite. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never route past a missing prerequisite or redefine upstream meaning in a downstream document. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

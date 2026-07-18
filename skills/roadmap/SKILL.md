@@ -5,7 +5,7 @@ description: "Use after owner approval of the WhitePaper to create or maintain t
 
 # ROADMAP: single sequencing authority
 
-<HARD-GATE>An approved, version-anchored WhitePaper must exist; otherwise return to `brainstorm`. ROADMAP must not contain R-AC IDs or quantitative requirement metrics. It precedes milestone requirements, so goals and completion pictures stay qualitative.</HARD-GATE>
+<HARD-GATE>An approved, version-anchored WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs or quantitative requirement metrics. It precedes milestone requirements, so goals and completion pictures stay qualitative.</HARD-GATE>
 
 ## Language and contract
 
@@ -29,11 +29,29 @@ Use the active locale and the matching
 - Existing pre-GMGN inventory may use the one-time locale-matched `allocation-ledger.md`;
   it is not a permanent planning layer.
 
+## Controlled revision
+
+- Start from the approved old anchor. Record the trigger, semantic delta, affected milestone
+  rows and documents, required reviewer or approver, and proposed new anchor.
+- If the changed meaning belongs to the WhitePaper, initiate `brainstorm` revision mode and
+  resume ROADMAP maintenance only after the required new upstream approval.
+- Revise only ROADMAP-owned sequencing, milestone allocation, dependencies, qualitative
+  completion pictures, or TODO placement. Do not reopen unaffected milestones.
+- A change that alters a decision or reasonable understanding receives independent criticism
+  and owner approval at a new anchor. Old approval remains attached to the old anchor.
+- Meaning-preserving mechanical changes use same-batch link, hash, and status refresh plus
+  machine checks without reapproval.
+- Propagate the approved delta only to affected Goal, Requirement, Design, Task, execution,
+  test, evidence, and state representations; review and verify that impact cone only.
+
 ## Exit
 
-Run one independent critic using the locale-matched `critic-brief.md`, resolve findings,
-present the weakest assumption, obtain owner approval with a version anchor, and commit.
-When the owner explicitly starts a milestone, **REQUIRED next skill: `write-goal`**.
+For creation or a semantic revision, run one independent critic using the locale-matched
+`critic-brief.md`, resolve findings, present the weakest assumption, obtain owner approval
+with a version anchor, and commit. A mechanical maintenance batch needs machine checks but no
+new approval. When the owner explicitly starts a milestone, **REQUIRED next skill:
+`write-goal`**. After a revision, return to the stage that raised it and continue only the
+affected path.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

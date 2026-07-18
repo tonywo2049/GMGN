@@ -5,7 +5,7 @@ description: "Use after milestone initiation and Goal.md to analyze, clarify, cr
 
 # Requirement.md: single milestone requirement authority
 
-<HARD-GATE>`Goal.md` must exist for an initiated milestone; otherwise return to `write-goal`. Do not prescribe implementation structures in requirements.</HARD-GATE>
+<HARD-GATE>`Goal.md` must exist for an initiated milestone; otherwise return to `write-goal`. If requirement work exposes a changed WhitePaper, ROADMAP, or Goal premise, route to its authority before editing Requirement. Do not prescribe implementation structures in requirements or redefine upstream meaning here.</HARD-GATE>
 
 ## Language and contract
 
@@ -24,12 +24,32 @@ Use the Goal locale and the matching
 - Maintain a Goal ↔ R/AC traceability table. No orphan Goal slice and no unowned AC.
 - For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
 
+## Controlled revision
+
+1. Classify where the changed meaning belongs. Route WhitePaper to `brainstorm`, ROADMAP to
+   `roadmap`, and Goal to `write-goal`; resume Requirement work after any required new
+   upstream review or approval.
+2. For Requirement-owned meaning, start from the old anchor and record the trigger, semantic
+   delta, affected R/AC IDs, documents, tests, evidence, and proposed new anchor.
+3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
+   Do not re-analyze unaffected Goal slices.
+4. A delta that changes a decision or reasonable understanding receives independent
+   criticism and primary-orchestrator review at a new anchor. Old review remains attached to
+   the old anchor.
+5. Propagate only to affected Design, Task, implementation, tests, evidence, and state
+   representations; review and verify that impact cone only.
+
+Meaning-preserving mechanical changes use same-batch link, hash, ID reference, and status
+refresh plus machine checks without reapproval.
+
 ## Exit
 
-Reconcile scope coverage and scan every AC for decidability. Run one independent critic
-with the locale-matched `critic-brief.md`, emphasizing upstream consistency and acceptance
-quality. Resolve findings, obtain primary-orchestrator review, commit, then
-**REQUIRED next skill: `write-design`**.
+Reconcile scope coverage and scan every affected AC for decidability. For creation or a
+semantic revision, run one independent critic with the locale-matched `critic-brief.md`,
+emphasizing upstream consistency and acceptance quality. Resolve findings, obtain
+primary-orchestrator review, and commit. Creation then uses **REQUIRED next skill:
+`write-design`**. A revision returns to the stage that raised it and continues through the
+affected path only.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

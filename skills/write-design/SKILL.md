@@ -5,7 +5,7 @@ description: "Use after Requirement review to create or change Design.md: system
 
 # Design.md: requirements → implementation structures
 
-<HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-requirement`.</HARD-GATE>
+<HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-requirement`. If design work exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, or Requirement authority instead of redefining it in Design.</HARD-GATE>
 
 ## Language and contract
 
@@ -25,12 +25,33 @@ Use the Requirement locale and the matching
 - Use the trust-surface register for state-changing input acceptance points.
 - Apply the first-sufficient anti-overdesign order from GMGN §7.
 
+## Controlled revision
+
+1. Classify the authority before editing. Route WhitePaper to `brainstorm`, ROADMAP to
+   `roadmap`, Goal to `write-goal`, and Requirement or R-AC meaning to `write-requirement`.
+   Resume after any required new upstream review or approval.
+2. For Design-owned meaning, start from the old anchor and record the trigger, semantic delta,
+   affected R-AC mappings, structures, interfaces, data, documents, tests, evidence, and
+   proposed new anchor.
+3. Revise only the affected design and bidirectional mapping; do not redesign unrelated
+   structures.
+4. A delta that changes a decision or reasonable understanding receives independent
+   criticism and primary-orchestrator review at a new anchor. Old review remains attached to
+   the old anchor.
+5. Propagate only to affected Task cards, implementation, tests, evidence, and state
+   representations; review and verify that impact cone only.
+
+Meaning-preserving mechanical changes use same-batch link, hash, mapping pointer, and status
+refresh plus machine checks without reapproval.
+
 ## Exit
 
-Reconcile the mapping in both directions: no orphan design and no unmapped R-AC. Run one
-independent critic with `critic-brief.md`, emphasizing feasibility, upstream/downstream
-consistency, and overdesign. Resolve findings, obtain primary-orchestrator review, commit,
-then **REQUIRED next skill: `write-task`**.
+Reconcile the affected mapping in both directions: no orphan design and no unmapped R-AC.
+For creation or a semantic revision, run one independent critic with `critic-brief.md`,
+emphasizing feasibility, upstream/downstream consistency, and overdesign. Resolve findings,
+obtain primary-orchestrator review, and commit. Creation then uses **REQUIRED next skill:
+`write-task`**. A revision returns to the stage that raised it and continues through the
+affected path only.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

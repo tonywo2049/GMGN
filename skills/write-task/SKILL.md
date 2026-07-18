@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: implementatio
 
 # Task.md: execution authority
 
-<HARD-GATE>`Design.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-design`.</HARD-GATE>
+<HARD-GATE>`Design.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-design`. If task planning exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
 
 ## Language and contract
 
@@ -27,14 +27,34 @@ Use the Design locale and the matching
 - Maintain an AC → task → test → evidence traceability matrix; every in-scope AC is covered.
 - Do not use task prose to redefine Requirement or Design.
 
+## Controlled revision
+
+1. Classify the authority before editing. Route WhitePaper to `brainstorm`, ROADMAP to
+   `roadmap`, Goal to `write-goal`, Requirement or R-AC meaning to `write-requirement`, and
+   design intent to `write-design`. Resume after any required new upstream review or approval.
+2. For Task-owned meaning, start from the old anchor and record the trigger, semantic delta,
+   affected cards, dependencies, tests, mappings, evidence, and proposed new anchor.
+3. Revise only affected cards and traceability rows. Pause active cards whose premise changed;
+   do not re-split or reopen unrelated work.
+4. A delta that changes execution authority or reasonable understanding receives independent
+   criticism and primary-orchestrator review at a new anchor. Old review remains attached to
+   the old anchor.
+5. Propagate only to affected implementation, tests, evidence, rolling records, and state
+   representations; review and verify that impact cone only.
+
+Meaning-preserving mechanical changes use same-batch link, hash, task reference, and status
+refresh plus machine checks without reapproval.
+
 If DocStar is available, run `brief <task-id> --preset gmgn-v1 --json` on a representative
 card; otherwise inspect all fixed table columns manually.
 
 ## Exit
 
-Reconcile the full matrix and three anchors per card. Run one independent critic with
-`critic-brief.md`, resolve findings, obtain primary-orchestrator review, commit, and after a
-card is explicitly confirmed **REQUIRED next skill: `run-task`**.
+Reconcile the affected matrix and three anchors per changed card. For creation or a semantic
+revision, run one independent critic with `critic-brief.md`, resolve findings, obtain
+primary-orchestrator review, and commit. After a new card is explicitly confirmed, use
+**REQUIRED next skill: `run-task`**. A revision returns to the stage that raised it and
+continues through the affected path only.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

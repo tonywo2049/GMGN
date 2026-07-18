@@ -132,6 +132,45 @@ class ValidateSkillsTests(unittest.TestCase):
                     result.stdout,
                 )
 
+    def test_rejects_missing_controlled_change_route(self) -> None:
+        path = self.root / "skills" / "gmgn" / "SKILL.md"
+        text = path.read_text(encoding="utf-8").replace(
+            "| Goal objective, boundary, slice, non-goal, or completion picture | `write-goal` revision mode |",
+            "| Goal objective, boundary, slice, non-goal, or completion picture | `roadmap` maintenance mode |",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("gmgn 路由: 受控变更规则缺失", result.stdout)
+
+    def test_rejects_approval_following_file_instead_of_version(self) -> None:
+        path = self.root / "skills" / "gmgn" / "references" / "en" / "writing-contract.md"
+        text = path.read_text(encoding="utf-8").replace(
+            "File-content change alone does not require reapproval.",
+            "Every file-content change requires reapproval.",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("writing-contract.md: 受控变更规则缺失", result.stdout)
+
+    def test_rejects_missing_stage_revision_protocol(self) -> None:
+        path = self.root / "skills" / "write-design" / "SKILL.md"
+        text = path.read_text(encoding="utf-8").replace(
+            "## Controlled revision",
+            "## Design notes",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-design 修订态: 受控变更规则缺失", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

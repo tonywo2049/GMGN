@@ -5,7 +5,7 @@ description: "Use when every milestone card is closed and traceability is full t
 
 # Close a milestone
 
-<HARD-GATE>Every card must be `closed`, and every in-scope AC must have a task, test, and evidence row. Otherwise return to `run-task`. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
+<HARD-GATE>Every card must be `closed`, and every in-scope AC must have a task, test, and evidence row. Otherwise return to `run-task`. If closure review exposes a changed upstream premise, withhold closure and route to its authority. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
 
 ## Establish evidence first
 
@@ -20,6 +20,16 @@ description: "Use when every milestone card is closed and traceability is full t
 1. Scope: every AC is implemented, explicitly deferred, or removed by owner decision.
 2. Evidence: every closure criterion has a replayable real verification path.
 3. State: Task, matrix, ROADMAP, Decision, version anchors, and Handoff refresh together.
+
+## Upstream change during closure
+
+If closing evidence reveals that approved WhitePaper, ROADMAP, Goal, Requirement, Design, or
+Task meaning must change, record the old anchor, semantic delta, and impact cone, then use the
+router's controlled-change route. Reopen or pause only affected criteria, cards, documents,
+tests, and evidence. After the new authority anchor receives its required review or approval,
+rerun affected verification plus any full-regression or E2E gate independently required for
+closure. Do not repeat unrelated authoring stages. Meaning-preserving mechanical changes need
+same-batch refresh and machine checks without reapproval.
 
 ## Machine checks and checklist
 

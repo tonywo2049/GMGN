@@ -5,7 +5,7 @@ description: "Use when an approved task card is explicitly confirmed: implement 
 
 # Implement one task card
 
-<HARD-GATE>The card must exist in a critic-reviewed and orchestrator-reviewed `Task.md`, and the owner/orchestrator must have confirmed it for execution. Otherwise return to `write-task`.</HARD-GATE>
+<HARD-GATE>The card must exist in a critic-reviewed and orchestrator-reviewed `Task.md`, and the owner/orchestrator must have confirmed it for execution. Otherwise return to `write-task`. If implementation exposes a changed upstream premise, pause the affected card and route to its authority; do not make code or Task prose silently redefine the specification.</HARD-GATE>
 
 Use the document locale for status updates and the user's language for conversation. Keep
 all machine tokens and IDs unchanged.
@@ -29,6 +29,21 @@ all machine tokens and IDs unchanged.
    and old Reflection. Mechanically refresh them or explain why they remain true. Run
    `git diff --check`, link checks, and `git status --short`; commit by topic. Do not push
    unless explicitly authorized.
+
+## Upstream change during execution
+
+When implementation evidence contradicts an approved premise:
+
+1. Stop the affected card at the current anchor and record the observation, old authority
+   anchor, proposed semantic delta, and impact cone.
+2. Route WhitePaper to `brainstorm`, ROADMAP to `roadmap`, Goal to `write-goal`, Requirement
+   or R-AC meaning to `write-requirement`, Design intent to `write-design`, and Task execution
+   authority to `write-task`.
+3. Resume only after the changed authority has the review or approval required for its new
+   anchor. Update only affected downstream documents, cards, code, tests, evidence, and state;
+   do not restart unrelated work.
+4. For a meaning-preserving mechanical change, refresh affected representations in the same
+   batch and run machine checks without reapproval.
 
 ## Exit
 

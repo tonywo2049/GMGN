@@ -260,6 +260,215 @@ def validate_docstar_adapter(errors: list[str]) -> None:
         errors.append("DocStar conventions 不得把普通 Requirements 小节整体当成需求 AC")
 
 
+def extract_section(text: str, heading: str) -> str | None:
+    match = re.search(
+        rf"^{re.escape(heading)}\n(.*?)(?=^## |\Z)",
+        text,
+        re.M | re.S,
+    )
+    return match.group(1) if match else None
+
+
+def require_section_tokens(
+    errors: list[str], text: str, heading: str, tokens: tuple[str, ...], label: str
+) -> None:
+    section = extract_section(text, heading)
+    normalized = "" if section is None else re.sub(r"\s+", " ", section)
+    compact = re.sub(r"\s+", "", normalized)
+    missing = [
+        token for token in tokens
+        if re.sub(r"\s+", " ", token) not in normalized
+        and re.sub(r"\s+", "", token) not in compact
+    ]
+    if missing:
+        errors.append(f"{label}: 受控变更规则缺失 {missing}")
+
+
+def validate_controlled_change_protocol(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    try:
+        method_en = (ROOT / "GMGN.md").read_text(encoding="utf-8")
+        method_zh = (ROOT / "GMGN.zh-CN.md").read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        errors.append(str(exc))
+    else:
+        require_section_tokens(
+            errors,
+            method_en,
+            "## 3. Approval and change semantics",
+            (
+                "Place changes by authority; review them by impact",
+                "impact cone",
+                "does not restart the complete workflow",
+                "old approval remains attached to the old version anchor",
+                "file-content change does not by itself require approval",
+                "Mechanical renames",
+                "explicit equivalence record",
+                "this is not a new approval",
+            ),
+            "GMGN.md",
+        )
+        require_section_tokens(
+            errors,
+            method_zh,
+            "## 第 3 章 确认语义",
+            (
+                "变更按归属落位、按影响复核",
+                "影响范围",
+                "不等于重走完整流程",
+                "旧批准继续指向旧版本锚",
+                "不能只看文件内容是否变化",
+                "机械变更",
+                "语义等价",
+                "不构成一次新批准",
+            ),
+            "GMGN.zh-CN.md",
+        )
+
+    router = parsed.get("gmgn", ("", ""))[1]
+    require_section_tokens(
+        errors,
+        router,
+        "## Controlled-change routing",
+        (
+            "| WhitePaper problem, goal, scope, harm order, invariant, or interpretation | `brainstorm` revision mode |",
+            "| ROADMAP sequencing, milestone allocation, dependency, or qualitative completion picture | `roadmap` maintenance mode |",
+            "| Goal objective, boundary, slice, non-goal, or completion picture | `write-goal` revision mode |",
+            "| Requirement, constraint, parameter authority, or acceptance criterion | `write-requirement` revision mode |",
+            "| Design structure, interface, data, failure path, or R-AC mapping | `write-design` revision mode |",
+            "| Task card, dependency, execution order, test anchor, or traceability mapping | `write-task` revision mode |",
+            "Old approval remains attached to the old anchor",
+            "do not rerun unrelated stages",
+            "mechanical changes use same-batch refresh and machine checks without reapproval",
+            "equivalence record",
+            "this is not a new approval",
+        ),
+        "gmgn 路由",
+    )
+
+    brainstorm = parsed.get("brainstorm", ("", ""))[1]
+    require_section_tokens(
+        errors,
+        brainstorm,
+        "## Revision mode",
+        (
+            "handles the change delta; it is not a new brainstorm",
+            "approved old anchor",
+            "impact cone",
+            "owner approve the semantic delta at a new version anchor",
+            "Do not rerun unaffected stages",
+            "without entering revision mode or seeking reapproval",
+        ),
+        "brainstorm 修订态",
+    )
+
+    stage_tokens = {
+        "write-goal": ("`brainstorm` revision mode", "`roadmap` maintenance mode"),
+        "write-requirement": ("WhitePaper to `brainstorm`", "Goal to `write-goal`"),
+        "write-design": (
+            "WhitePaper to `brainstorm`",
+            "Requirement or R-AC meaning to `write-requirement`",
+        ),
+        "write-task": ("WhitePaper to `brainstorm`", "design intent to `write-design`"),
+    }
+    common = (
+        "old anchor",
+        "affected",
+        "new anchor",
+        "Old review remains attached to the old anchor",
+        "impact cone only",
+        "mechanical changes",
+        "without reapproval",
+    )
+    for name, routes in stage_tokens.items():
+        body = parsed.get(name, ("", ""))[1]
+        require_section_tokens(
+            errors,
+            body,
+            "## Controlled revision",
+            common + routes,
+            f"{name} 修订态",
+        )
+
+    contract_rules = (
+        (
+            REFERENCES / "en" / "writing-contract.md",
+            "### 3.1 Controlled changes after approval",
+            (
+                "single authority",
+                "semantic change",
+                "mechanical change",
+                "File-content change alone does not require reapproval",
+                "semantic equivalence",
+                "this is not a new approval",
+                "impact cone",
+                "change record",
+                "old anchor",
+                "new anchor and checks",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "writing-contract.md",
+            "### 3.1 已批准文档的受控变更",
+            (
+                "唯一权威文档",
+                "语义变更",
+                "机械变更",
+                "不能只因文件内容变化就要求重新批准",
+                "语义等价",
+                "不构成一次新批准",
+                "影响范围",
+                "变更记录",
+                "旧版本锚",
+                "新版本锚与检查",
+            ),
+        ),
+    )
+    for path, heading, tokens in contract_rules:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+            continue
+        require_section_tokens(errors, text, heading, tokens, str(path))
+
+    execution_sections = (
+        (
+            "run-task",
+            "## Upstream change during execution",
+            (
+                "old authority anchor",
+                "impact cone",
+                "Route WhitePaper",
+                "new anchor",
+                "do not restart unrelated work",
+                "without reapproval",
+            ),
+        ),
+        (
+            "close-milestone",
+            "## Upstream change during closure",
+            (
+                "old anchor",
+                "impact cone",
+                "controlled-change route",
+                "full-regression",
+                "Do not repeat unrelated authoring stages",
+                "without reapproval",
+            ),
+        ),
+    )
+    for name, heading, tokens in execution_sections:
+        require_section_tokens(
+            errors,
+            parsed.get(name, ("", ""))[1],
+            heading,
+            tokens,
+            f"{name} 上游变更处理",
+        )
+
+
 def main() -> int:
     errors: list[str] = []
     parsed: dict[str, tuple[str, str]] = {}
@@ -282,6 +491,7 @@ def main() -> int:
     validate_release_metadata(errors, set(parsed))
     validate_document_pairs(errors)
     validate_docstar_adapter(errors)
+    validate_controlled_change_protocol(errors, parsed)
 
     for name, triggers in EXPECTED_TRIGGERS.items():
         if name not in parsed:

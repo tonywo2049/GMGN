@@ -125,6 +125,28 @@ Freezing establishes a controlled-change baseline; it does not mean immutable fo
 After approval, a change must state trigger, impact, affected downstream documents,
 required signers, and the new anchor.
 
+### 3.1 Place changes by authority; review them by impact
+
+Workflow nodes are not one-way. When current work exposes an upstream defect or changed
+premise, return to the document that is the single authority for that content. Record the
+trigger, old anchor, proposed delta, impact cone, required reviewers or approvers, and new
+anchor. Do not redefine upstream meaning in a downstream document.
+
+After the authority changes, propagate the result through affected upstream and downstream
+links, mappings, status representations, tasks, tests, and evidence. Re-review, re-approve,
+and re-verify only the impact cone. Returning to an authority does not restart the complete
+workflow, and unaffected work may continue.
+
+An old approval remains attached to the old version anchor; it never moves implicitly to an
+edited file. A new version needs the approval appropriate to that authority only when the
+change can alter a decision or a reasonable reader's understanding, including scope,
+obligation, acceptance meaning, design intent, or execution authority. A file-content change
+does not by itself require approval. Mechanical renames, moves, links, formatting, hashes, or
+mirrored status updates that preserve meaning need only same-batch refresh and machine checks.
+After an explicit equivalence record and successful checks, the new anchor may retain the
+document's approval state by citing the old approved anchor; this is not a new approval. When
+meaning is uncertain, classify the change as semantic.
+
 Closure has three disciplines:
 
 1. **scope closure** — every in-scope requirement is implemented, deferred explicitly, or
