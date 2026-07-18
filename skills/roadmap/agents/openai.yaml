@@ -1,4 +1,4 @@
 interface:
-  display_name: "项目路线图"
-  short_description: "把已批准白皮书拆成可维护的版本、阶段与里程碑路线图"
-  default_prompt: "请用 $roadmap 把已批准白皮书拆成项目路线图。"
+  display_name: "Roadmap / 项目路线图"
+  short_description: "Split an approved WhitePaper into qualitative milestones / 把已批白皮书拆成定性里程碑"
+  default_prompt: "Use $roadmap to turn the approved WhitePaper into a project roadmap. / 请用 $roadmap 编排项目路线图。"

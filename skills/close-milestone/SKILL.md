@@ -1,40 +1,48 @@
 ---
 name: close-milestone
-description: 某 Milestone 全部任务卡已关账、追踪矩阵满格,要做发布前验收、全量回归/E2E、组合审查、工作单元关账或回填 ROADMAP 时使用;用户说「里程碑/阶段/版本完成了」「里程碑内所有任务卡都已关账」「收尾/关账/验收M2」「跑回归」「准备上线」「可以发版/发布了吗」时触发;普通单卡收尾不触发。
+description: "Use when every milestone card is closed and traceability is full to perform release acceptance, full regression/E2E, combined review, milestone/stage/version closure, launch readiness, or ROADMAP backfill. 所有任务卡已关账后用于里程碑/阶段/版本完成、收尾/关账/验收、跑回归/E2E、准备上线、发版/发布；普通单卡收尾不触发。"
 ---
 
-# Milestone 关账
+# Close a milestone
 
-<HARD-GATE>前置:该单元全部卡状态=关账,追踪矩阵满格(每条 AC 有对应测试行);任一不满足,拒绝执行并指回 `run-task`。关账是不可逆宣告,宁慢勿假。</HARD-GATE>
+<HARD-GATE>Every card must be `closed`, and every in-scope AC must have a task, test, and evidence row. Otherwise return to `run-task`. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
 
-每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。
+## Establish evidence first
 
-## 先实证 · 全量回归与 Milestone 级 E2E(生产证据,后面对账消费)
+- Run the complete project regression at the closing revision.
+- Run milestone-level startup/E2E through the real product path, including negative and
+  recovery cases required by the specification.
+- Record exact commands, environment, revision, exit codes, and result summaries.
+- Run an independent combined review across Requirement, Design, Task, code, and evidence.
 
-防的是表征-实体脱节的经典症状:追踪矩阵满格,而产品路径从未真正跑过。卡级测试全绿不能替代本步。
+## Three closure disciplines
 
-- **全量回归**:跑完整测试套件(非本 Milestone 增量),并重跑**历史回归集**——此前各 Milestone 关账时沉淀的 E2E 路径集(测试套件之外的部分,存放处由使用项目钉死)。本 Milestone 的改动不得击破以往验收;本次 E2E 路径关账后并入回归集累积。
-- **Milestone 级 E2E**:ROADMAP 行的每条定性验收标准、Goal 的每条工作单元判据,至少对应一条**真实产品路径实跑**(用项目现成运行命令或当前平台可用的验证入口),实跑记录按纪律 2 的四要素与证据分级标注——目标为产品路径级;涉故障恢复/长时运行的判据按性质上恢复级/长稳态级。
-- **组合级读面审**:对本 Milestone 的跨卡合并 diff,由编排者用当前平台的原生审查入口或独立只读 reviewer 审一次;卡级审不看跨卡组合,runtime 回归不看读面,此步补两者之间的空档。findings 处置完才进对账。
-- **红灯处置**:任一失败→中止关账,缺陷按受控变更重开卡回 `run-task`;修复后**本步整体重跑**,不许局部补跑充当全量(判定对象零改动)。
-- 实跑记录落关账记录,供下方纪律 1 对账与 handoff 引用。
+1. Scope: every AC is implemented, explicitly deferred, or removed by owner decision.
+2. Evidence: every closure criterion has a replayable real verification path.
+3. State: Task, matrix, ROADMAP, Decision, version anchors, and Handoff refresh together.
 
-## 关账三纪律(逐条执行,不是备忘)
+## Machine checks and checklist
 
-1. **判据源头正向对账**:枚举完成判据的**所有出处**——ROADMAP 行的定性验收标准、Goal 的工作单元判据与子目标、每张卡的完成判据——逐条对到证据或豁免记录。从证据反查会漏(被静默移出的判据查不出来),必须从判据源头正向清点。
-2. **完成态声明挂实体验证路径**:每条「已完成/已通过」写清谁、在哪个真实产物上、跑了什么、看到了什么;按证据分级(单元/组件/产品路径/恢复/长稳态)标注,**低级绿灯不点亮高级声明**(测试全过≠产品端到端跑通);给不出实体路径的显式标「纸面态」。
-3. **同批刷新**:关账触发的所有表征处一批改——ROADMAP 行状态回填、台账、追踪矩阵、Goal 切片表;做不到的显式标「此处滞后」。
+When DocStar is available, run `check --preset gmgn-v1 --json` and relevant gates. Verify
+`classification_complete`; a non-zero gate finding or command exit code is a red light, not
+an informational note. When DocStar is absent, run equivalent repository link/table checks
+and disclose that substitution. Complete the locale-matched `pre-close-checklist.md`.
 
-## 机检与核对
+## Presentation and close
 
-- DocStar 已安装时用 `docstar check --gate <键清单>` 和 `docstar verify` 作门禁;键名由使用项目钉死,**裸 `--gate` 不设防**。必须读判定对象,不能只看退出码:`classification_complete` 等已启用门禁出现非零 finding 就是红灯。未安装时运行项目现有链接检查器;也没有等价工具时,按 WhitePaper→ROADMAP→G-R-D-T 的真实 Markdown 链接和追踪矩阵逐项人工对账,并在关账记录注明「DocStar 未运行」。任一路径红灯都不关账。
-- 过一遍[关账前核对单](../gmgn/references/核对单-关账前.md)(使用项目可自备等价物)。
+Present scope, evidence, known debt, weakest assumption, and the version anchor to the
+owner. Only after explicit acceptance:
 
-## 呈报与收尾
+- set the milestone and normative chain to `closed` where appropriate;
+- create/update Handoff with `type: handoff`, `nature: descriptive`, one-line state,
+  baseline, completed work, remaining work, risks, authority pointers, and next command;
+- if DocStar uses a project classification mapping, reuse a registered type/token;
+- commit the same batch. Do not push, publish, deploy, or release unless separately authorized.
 
-- 附**最薄弱假设三行**(最弱假设|若塌会怎样|证据强度与最便宜的证伪动作)呈负责人裁决;负责人是唯一能宣告关账/豁免判据的人。
-- 关账后立即:写 Handoff 接手横幅(一句话状态/基线/剩余/指针,遵循项目文档契约,`性质=记述`;DocStar 已启用时类型必须复用或登记到项目分类映射)→ commit;只有负责人或项目规则已明确授权远端写入时才 push。复盘可选(有教训先问「哪张核对单本应逼出它」,有就加实例,没有才新增条目)。
+## Exit
 
-## 出口
+Update ROADMAP with closure evidence and the receiving state. **REQUIRED next skill:
+`roadmap`** for maintenance or the next milestone.
 
-**REQUIRED 下一环:`roadmap`(维护态)**——回填后由负责人定下一 Milestone 或收官。
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

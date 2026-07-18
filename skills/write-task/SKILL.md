@@ -1,29 +1,40 @@
 ---
 name: write-task
-description: 某 Milestone 的 Design 已过审、要把设计拆成实现步骤、实施计划、开发计划、任务/子任务/任务卡/工作项/待办/TODO,或建立滚动台账(Task.md)时使用;用户说「拆任务」「拆卡」「排任务」「分解工作项」「列待办」时触发。
+description: "Use after Design review to create or change Task.md: implementation/development plan, steps, tasks/subtasks, task cards, work items, TODOs, dependencies, traceability, and rolling ledger. Design 已过审后拆任务/拆卡/排任务、实施计划/开发计划、任务卡/工作项/待办/TODO，并建立 Task.md 滚动台账。"
 ---
 
-# Task(执行权威:任务卡+台账)
+# Task.md: execution authority
 
-<HARD-GATE>前置:该单元 `Design.md` 存在且已过 critic+编排者审核;缺则拒绝执行并指回 `write-design`。</HARD-GATE>
+<HARD-GATE>`Design.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-design`.</HARD-GATE>
 
-每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。
+## Language and contract
 
-## 写作要求
+Use the Design locale and the matching
+[English](../gmgn/references/en/writing-contract.md) or
+[中文](../gmgn/references/zh-CN/writing-contract.md) Task template. Keep filename `Task.md`,
+`type: task`, `nature: normative`, and these exact headers:
 
-- 卡粒度=**可独立验证的最小交付**:一张卡做完能单独验、单独关;削去不必要的顺序依赖,能并行的卡不排先后。
-- 每张卡挂**三锚**,缺一不立卡:
-  1. **规格锚**——对应哪条 `R<n>-AC<m>`(指针回链);
-  2. **失败先行测试**——先写一个会失败的测试(复现问题/覆盖无效输入)的说明,实现让它通过;
-  3. **完成判据**——可验状态,能机检的给命令。
-- **任务表四列角色**(docstar task_columns 契约,使 `brief <卡>` 能自动组装派发上下文):规格锚(spec)|前置依赖(prereq)|失败先行测试(red)|状态(status)。注:四列是机检角色,与三锚是两条轴——「完成判据」不在四列内,以卡文本承载,`brief` 不必然结构化带出,执行 agent 需要时用 `doc`/`id` 自拉。
-- 滚动台账:卡状态实时刷,高频滚动归本层;上层文档只留指针。
-- 追踪矩阵:AC ↔ 卡 ↔ 测试;**未覆盖的 AC=未实现**,立卡前先对账。
+```markdown
+| # | task | spec anchor | prerequisite | failing test | status |
+```
 
-## 文档链写法(DocStar 可选增强)
+## Split work
 
-本文档特有:卡写在 `## 任务` 类型化小节/表格下、粗体卡名;frontmatter 上游=Design。DocStar 已安装时抽一张卡跑 `docstar brief <卡> --json` 验证四列角色;未安装时人工逐列核对。通用项(真实链接/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
+- Each card is the smallest independently reviewable and verifiable unit.
+- Every card has a stable ID, R-AC spec anchor, explicit prerequisites, failing-first test,
+  completion criterion, allowed paths, and work state `not-started`.
+- Order interface/schema changes before consumers. Parallelize only dependency-free cards.
+- Maintain an AC → task → test → evidence traceability matrix; every in-scope AC is covered.
+- Do not use task prose to redefine Requirement or Design.
 
-## 出口
+If DocStar is available, run `brief <task-id> --preset gmgn-v1 --json` on a representative
+card; otherwise inspect all fixed table columns manually.
 
-自检(追踪矩阵满格对账+每卡三锚齐)→ critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md),重点维:完整性+可判定性)→ 按任务书两护栏处置 → **编排者审核通过** → 落盘 commit → 逐卡确认要做后 **REQUIRED 下一环:`run-task`**。
+## Exit
+
+Reconcile the full matrix and three anchors per card. Run one independent critic with
+`critic-brief.md`, resolve findings, obtain primary-orchestrator review, commit, and after a
+card is explicitly confirmed **REQUIRED next skill: `run-task`**.
+
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

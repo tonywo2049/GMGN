@@ -1,4 +1,4 @@
 interface:
-  display_name: "GMGN 工作流"
-  short_description: "根据项目现状路由九件技能，守住文档、实现、审查和关账门禁"
-  default_prompt: "请用 $gmgn 判断当前项目状态，并执行正确的下一步。"
+  display_name: "GMGN Router / GMGN 路由"
+  short_description: "Route project state through nine gated workflow skills / 按项目状态路由九件门禁技能"
+  default_prompt: "Use $gmgn to determine and execute the correct next step. / 请用 $gmgn 判断并执行正确的下一步。"

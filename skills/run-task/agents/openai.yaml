@@ -1,4 +1,4 @@
 interface:
-  display_name: "执行任务卡"
-  short_description: "按任务卡实现最小正确改动，并完成测试、审查与证据回传"
-  default_prompt: "请用 $run-task 实现这张任务卡并完成收卡审查。"
+  display_name: "Run Task / 执行任务卡"
+  short_description: "Implement one card with tests, review, and replayable evidence / 逐卡实现、测试、审查并回传证据"
+  default_prompt: "Use $run-task to implement and close this task card. / 请用 $run-task 实现并关账这张任务卡。"

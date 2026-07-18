@@ -1,7 +1,7 @@
 {
   "name": "gmgn",
   "version": "0.1.0",
-  "description": "GMGN（早安晚安）— 从想法到关账的 agent 研发工作流：需求澄清与需求实现九件 skill，全链硬门禁、独立评审、可机检文档链。",
+  "description": "GMGN — bilingual agentic delivery from idea to milestone closure / 从想法到关账的中英双语 agent 研发工作流。",
   "author": {
     "name": "Tony",
     "url": "https://github.com/tonywo2049"
@@ -22,8 +22,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "GMGN",
-    "shortDescription": "从想法到关账的 agent 研发工作流",
-    "longDescription": "用九件可组合 skill 管理需求澄清、规格链、逐卡实现、独立评审和里程碑关账。",
+    "shortDescription": "Bilingual agent workflow from idea to closure / 从想法到关账的双语 agent 工作流",
+    "longDescription": "Nine composable skills manage discovery, G-R-D-T documents, task execution, independent review, and milestone closure in English or Chinese. / 九件技能用中英文管理需求澄清、规格链、逐卡实现、独立评审和关账。",
     "developerName": "Tony",
     "category": "Productivity",
     "capabilities": [
@@ -32,7 +32,8 @@
     ],
     "websiteURL": "https://github.com/tonywo2049/GMGN",
     "defaultPrompt": [
-      "用 GMGN 把我的想法梳理成可执行项目。",
+      "Use GMGN to turn my idea into an executable project.",
+      "Use GMGN to determine the correct next step.",
       "用 GMGN 判断这个项目下一步该做什么。",
       "用 GMGN 按任务卡实现并完成审查。"
     ]

@@ -1,32 +1,39 @@
 ---
 name: roadmap
-description: 白皮书已获负责人批准、要把项目拆成阶段、版本或 Milestone(排路线图/产品路线图/里程碑规划/版本规划/发布规划、确定优先级)时使用;ROADMAP 已存在而需维护——关账回填、新想法登记分配、依赖调整、里程碑重排——时也使用。
+description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, product roadmap, milestones, phases, release/version plan, priority, dependency order, closure backfill, or TODO allocation. 白皮书已批后排路线图/产品路线图/里程碑规划/版本规划/发布规划、优先级；也用于 ROADMAP 关账回填、新想法登记分配、依赖调整和里程碑重排。"
 ---
 
-# Roadmap(唯一节奏权威)
+# ROADMAP: single sequencing authority
 
-<HARD-GATE>前置:WhitePaper 存在且状态=已批准;缺则拒绝执行并指回 `brainstorm`。ROADMAP 正文**不得引用或包含 R-AC 编号与量化指标**(初建时它们尚不存在,维护时也不回流)——全文只用定性语言:目标与验收标准都是语言描述的完成景象,可判但不量化、无编号;量化与编号发生在各 Milestone 的 `write-requirement`。</HARD-GATE>
+<HARD-GATE>An approved, version-anchored WhitePaper must exist; otherwise return to `brainstorm`. ROADMAP must not contain R-AC IDs or quantitative requirement metrics. It precedes milestone requirements, so goals and completion pictures stay qualitative.</HARD-GATE>
 
-每次回答末尾带 Reflection 三问。文档契约见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范,上游=WhitePaper,下游=各单元 Goal(立项后同批补链)。
+## Language and contract
 
-## 初建态
+Use the active locale and the matching
+[English](../gmgn/references/en/writing-contract.md) or
+[中文](../gmgn/references/zh-CN/writing-contract.md) template. Use `ROADMAP.md`,
+`type: roadmap`, `nature: normative`, and `status: draft` until approved.
 
-把白皮书「范围全景」切成 Milestone,产出四部分:
+## Create
 
-1. **Milestone 总表**——每行四要素:**阶段**(该 Milestone 的序位:编号+在依赖图中的位置;此「阶段」指 Milestone 序位,与流程环节的「阶段」两义不混用)·**目标**(一句话,定性)·**验收标准**(定性描述该 Milestone 完成的景象,逐条可判「过/不过」)·**状态**(状态机四词)+入口指针。M0 惯例=基座/选型与架构(跨 Milestone 不变量是它的交付物)。
-2. **依赖图**——标出哪些 Milestone 可并行、在哪合流。
-3. **TODO 待分配**——有想法未规划的事项,每条三要素:一句话+来源+既有裁决约束;分配由负责人裁,分配后在该 Milestone 内成文,不空降执行套件。
-4. **编号沿革表**(仅重排过才有)——旧→新映射,唯一换算权威。
+- Restate only the WhitePaper boundary and invariants needed for sequencing.
+- Define ordered milestones with one qualitative objective, qualitative completion picture,
+  dependencies, and work state `not-started`.
+- Maintain one TODO list for ideas not yet allocated to a milestone.
+- Do not pre-create empty G-R-D-T files for unstarted milestones.
 
-反模式:写量化指标或 R-AC 编号;把切片台账搬进总表(实时状态归各执行套件,本文只留指针);设日历死线(一切以完成判据关账)。
+## Maintain
 
-## 维护态
+- Closure backfill updates the milestone state and links the closure/Handoff evidence.
+- New ideas enter TODO, then are assigned to a milestone before becoming requirements.
+- Existing pre-GMGN inventory may use the one-time locale-matched `allocation-ledger.md`;
+  it is not a permanent planning layer.
 
-- Milestone 关账→回填行状态(同批刷新义务)。
-- 新想法→TODO 登记→负责人分配→该 Milestone 内成文。
-- 存量项目的历史需求划入→走分配账本(一次性存量映射,见 [分配账本](../gmgn/references/分配账本.md)),不占 TODO 轨。
-- 重排→编号沿革表登记。
+## Exit
 
-## 出口
+Run one independent critic using the locale-matched `critic-brief.md`, resolve findings,
+present the weakest assumption, obtain owner approval with a version anchor, and commit.
+When the owner explicitly starts a milestone, **REQUIRED next skill: `write-goal`**.
 
-产出/修订后:critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md))→ 按任务书两护栏处置 → 附最薄弱假设呈负责人批准 → 落盘 commit → 负责人点名启动某 Milestone 时 **REQUIRED 下一环:`write-goal`**。
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

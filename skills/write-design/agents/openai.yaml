@@ -1,4 +1,4 @@
 interface:
-  display_name: "编写技术设计"
-  short_description: "把已审需求映射为可实施、可验证且边界清晰的技术设计"
-  default_prompt: "请用 $write-design 把已审需求整理为可实施的技术设计。"
+  display_name: "Write Design / 编写设计"
+  short_description: "Map reviewed requirements to verifiable implementation structures / 把已审需求映射为可验证结构"
+  default_prompt: "Use $write-design to turn the reviewed requirements into Design.md. / 请用 $write-design 编写 Design.md。"

@@ -1,4 +1,4 @@
 interface:
-  display_name: "编写需求"
-  short_description: "把里程碑目标整理为编号需求、验收标准和可追踪需求池"
-  default_prompt: "请用 $write-requirement 编写该里程碑的需求与验收标准。"
+  display_name: "Write Requirement / 编写需求"
+  short_description: "Create numbered requirements and decidable ACs / 编写编号需求与可判定 AC"
+  default_prompt: "Use $write-requirement to write this milestone's requirements and ACs. / 请用 $write-requirement 编写需求与验收标准。"

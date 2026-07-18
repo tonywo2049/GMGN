@@ -1,6 +1,6 @@
 {
   "name": "GMGN",
-  "description": "GMGN marketplace — agent 研发工作流 skill 集",
+  "description": "GMGN marketplace — bilingual agentic workflow skills / 中英双语 agent 研发工作流",
   "owner": {
     "name": "Tony",
     "url": "https://github.com/tonywo2049"
@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "gmgn",
-      "description": "GMGN（早安晚安）— 从想法到关账的 agent 研发工作流：需求澄清与需求实现两段九件 skill，全链硬门禁、独立评审、可机检文档链。",
+      "description": "GMGN — nine bilingual skills from idea to closure / 从想法到关账的九件中英双语 skill。",
       "version": "0.1.0",
       "source": "./",
       "author": {

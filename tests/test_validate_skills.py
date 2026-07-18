@@ -70,15 +70,19 @@ class ValidateSkillsTests(unittest.TestCase):
 
     def test_rejects_run_task_stale_scan_moved_out_of_close_step(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"
-        lines = path.read_text(encoding="utf-8").splitlines()
-        close_step = next(
-            index for index, line in enumerate(lines) if line.startswith("6. **卡关账**:")
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r"^6\. \*\*Card close\*\*.*?(?=\n\n## Exit)",
+            "6. **Card close** — refresh the ledger and matrix.",
+            text,
+            count=1,
+            flags=re.M | re.S,
         )
-        lines[close_step] = "6. **卡关账**:台账与追踪矩阵同批刷新。"
-        lines.append(
-            "Task.md 过期断言 待执行 未创建 未运行 待确认 机械刷新 git diff --check"
+        text += (
+            "Task.md stale assertions not-started not created not run awaiting confirmation "
+            "Mechanically refresh git diff --check\n"
         )
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        path.write_text(text, encoding="utf-8")
 
         result = self.run_validator()
 
@@ -89,20 +93,20 @@ class ValidateSkillsTests(unittest.TestCase):
         path = self.root / "skills" / "close-milestone" / "SKILL.md"
         text = path.read_text(encoding="utf-8")
         text = re.sub(
-            r"## 机检与核对\n.*?(?=\n## )",
-            "## 机检与核对\n\n只运行项目现有检查。\n",
+            r"## Machine checks and checklist\n.*?(?=\n## )",
+            "## Machine checks and checklist\n\nRun existing checks only.\n",
             text,
             count=1,
             flags=re.S,
         )
         text = re.sub(
-            r"## 呈报与收尾\n.*?(?=\n## )",
-            "## 呈报与收尾\n\n负责人批准后写接手信息。\n",
+            r"## Presentation and close\n.*?(?=\n## )",
+            "## Presentation and close\n\nWrite receiving state after owner approval.\n",
             text,
             count=1,
             flags=re.S,
         )
-        text += "\nclassification_complete 退出码 Handoff 性质=记述\n"
+        text += "\nclassification_complete non-zero gate finding Handoff type: handoff nature: descriptive\n"
         path.write_text(text, encoding="utf-8")
 
         result = self.run_validator()
@@ -114,8 +118,8 @@ class ValidateSkillsTests(unittest.TestCase):
         path = self.root / "skills" / "close-milestone" / "SKILL.md"
         original = path.read_text(encoding="utf-8")
         mutations = (
-            ("非零 finding 就是红灯", "classification_complete 仅作展示"),
-            ("类型必须复用或登记到项目分类映射", "类型可自由填写"),
+            ("a non-zero gate finding", "classification_complete is display only"),
+            ("reuse a registered type/token", "invent any type token"),
         )
 
         for removed, replacement in mutations:

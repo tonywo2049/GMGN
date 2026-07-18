@@ -1,4 +1,4 @@
 interface:
-  display_name: "拆分任务卡"
-  short_description: "把已审技术设计拆成带三锚、依赖关系和验收门禁的可执行任务卡"
-  default_prompt: "请用 $write-task 把已审设计拆成可执行任务卡。"
+  display_name: "Write Tasks / 拆分任务"
+  short_description: "Split reviewed design into anchored executable task cards / 把已审设计拆成带锚任务卡"
+  default_prompt: "Use $write-task to split the reviewed design into Task.md cards. / 请用 $write-task 拆分 Task.md 任务卡。"

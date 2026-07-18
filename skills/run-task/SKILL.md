@@ -1,23 +1,39 @@
 ---
 name: run-task
-description: 任务卡已确认要做、要开发功能、修复缺陷、重构、写测试、写代码、实现任务或完成任务卡(派 coding agent)并经收卡审查关卡时使用;用户说「开做这张卡」「实现这个任务」「修这个 bug」「开始编码」「把任务做完」时触发。
+description: "Use when an approved task card is explicitly confirmed: implement a task, feature, bug fix, refactor, test, or code change through a coding agent and close the card after review. 任务卡已确认要做时开发功能、修复缺陷/修 bug、重构、写测试/写代码、实现任务、完成任务卡；用户说开做这张卡、开始编码、把任务做完时触发。"
 ---
 
-# 逐卡实现(coding agent + 编排者收卡审查)
+# Implement one task card
 
-<HARD-GATE>前置:卡存在于已过 critic+编排者审核的 `Task.md` 且被确认要做;缺则拒绝执行并指回 `write-task`。</HARD-GATE>
+<HARD-GATE>The card must exist in a critic-reviewed and orchestrator-reviewed `Task.md`, and the owner/orchestrator must have confirmed it for execution. Otherwise return to `write-task`.</HARD-GATE>
 
-每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。主会话在本环是编排者:派发、验收、合并,不亲自写实现;一次一卡,无依赖的多卡可并行派发。
+Use the document locale for status updates and the user's language for conversation. Keep
+all machine tokens and IDs unchanged.
 
-## 流程(六步)
+## Six steps
 
-1. **取上下文**:DocStar 已安装时用 `docstar brief <卡> --json`;未安装时直接读取 `Task.md` 的卡文本、前置、规格锚和测试闭包。两种路径都以卡原文的完成判据为准,把自包含上下文贴进任务书。
-2. **派 coding agent**:按 [coder-任务书](../gmgn/references/coder-任务书.md) 填槽(含代码写作准则块与失败先行测试要求);机械=低档/常规=中档/判断密集=高档,本机工具支持 model / effort 时显式指定,不支持时用预定义角色与任务书约束。多张无依赖卡并行派发。
-3. **收回传**:三段缺段打回(成果与实证/偏离与待裁/Reflection);agent 自述不作数,相关测试与真实改动路径的可重放清单按命令抽验,不无故重跑整套。
-4. **收卡审查**(编排者发起,审查方独立于实现者;详见 [code-review-任务书](../gmgn/references/code-review-任务书.md)):用当前平台的原生审查入口限定本卡增量 diff;再补未测面、测试判别力、规格锚对齐和五类复杂度扫描。findings 只报不改,由编排者裁决。平台原生入口不可用时,派只读 reviewer 使用同一任务书,不得取消审查。
-5. **处置**:阻塞项修复后定向复核;判定对象零改动(review 发现缺陷→停、上报、重开卡,不许修完算到原版本头上)。
-6. **卡关账**:台账+追踪矩阵+上游状态同批刷新;回读 `Task.md` 全文并扫描与完成态冲突的**过期断言**——至少核对「待执行 / 未创建 / 未运行 / 待确认」、旧状态、旧命令输出和旧 Reflection,机械刷新或写明仍成立的理由。完成 `git diff --check` 和链路检查后按主题 commit;只有负责人或项目规则已明确授权远端写入时才 push。
+1. **Compile context** — use `docstar brief <task-id> --preset gmgn-v1 --json` when available;
+   otherwise read the card, prerequisites, spec anchors, Design locations, and test path.
+2. **Dispatch coder** — fill the locale-matched `coder-brief.md`; the orchestrator delegates
+   implementation and retains acceptance/merge. Parallelize only dependency-free cards.
+3. **Accept return** — require artifacts/evidence, deviations/decisions, and Reflection.
+   Replay targeted commands and inspect the real path proportionally to risk.
+4. **Independent code review** — use the native review surface or a read-only reviewer with
+   the locale-matched `code-review.md`. Review only the card increment. Findings report; the
+   orchestrator decides and sends fixes back to the coder.
+5. **Verify** — run the targeted test, relevant integration/startup/E2E path, and any project
+   gate. A skipped or unavailable command is not a pass.
+6. **Card close** — refresh `Task.md`, traceability, and upstream state in one batch. Re-read
+   all of `Task.md` and scan stale assertions: `not-started`, `pending`, `not created`,
+   `not run`, `awaiting confirmation`, plus `待执行`, `未创建`, `未运行`, `待确认`, old output,
+   and old Reflection. Mechanically refresh them or explain why they remain true. Run
+   `git diff --check`, link checks, and `git status --short`; commit by topic. Do not push
+   unless explicitly authorized.
 
-## 出口
+## Exit
 
-单卡完→回台账领下一卡;**全卡关账且追踪矩阵满格→REQUIRED 下一环:`close-milestone`**。中途新冒的需求/架构问题不就地扩:需求走 Requirement 受控变更,架构回选型与架构线,新想法进 ROADMAP TODO。
+If cards remain, continue `run-task` only after the next card is confirmed. When all cards
+are `closed` and traceability is full, **REQUIRED next skill: `close-milestone`**.
+
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

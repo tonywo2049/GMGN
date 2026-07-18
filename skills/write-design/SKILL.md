@@ -1,28 +1,36 @@
 ---
 name: write-design
-description: 某 Milestone 的 Requirement 已过审、要做系统设计、架构设计、接口设计、数据设计,或写设计文档/系统方案/技术设计/技术方案/实现方案(Design.md,把需求映射到实现结构)时使用;用户说「写设计」「出技术方案」「怎么实现这些需求」时触发。
+description: "Use after Requirement review to create or change Design.md: system design, architecture, interface design, data design, technical/system/implementation solution, and the mapping from requirements to implementation structures. Requirement 已过审后写系统设计、架构设计、接口/数据设计、技术设计/技术方案/实现方案，回答这些需求怎么实现。"
 ---
 
-# Design(需求→结构映射)
+# Design.md: requirements → implementation structures
 
-<HARD-GATE>前置:该单元 `Requirement.md` 存在且已过 critic+编排者审核;缺则拒绝执行并指回 `write-requirement`。</HARD-GATE>
+<HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-requirement`.</HARD-GATE>
 
-每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。
+## Language and contract
 
-## 写作要求
+Use the Requirement locale and the matching
+[English](../gmgn/references/en/writing-contract.md) or
+[中文](../gmgn/references/zh-CN/writing-contract.md) Design template. Keep filename
+`Design.md`, `type: design`, and `nature: normative`.
 
-- 只答「用什么结构满足需求」:模块/数据/流程如何承载每条 R。核心交付是**需求→实现对象映射表**——每个设计元素回链它满足的 `R<n>`/`R<n>-AC<m>` 编号;映射表上无主的设计元素=过度设计嫌疑,无设计承载的 R=缺口。
-- 不复述需求文本,一律指针+编号(唯一叙述点)。
-- **消费选型与架构线的结论,不就地另选**:发现结论不支撑需求时走显式回退升级(回选型线复议),不得在本文换件;按下游需求对已选组件做验证测试属正常执行(复测≠重选)。
-- 接口契约:本期至多产出参考草稿,最终确认压在实现它的过程中(冻结是受控变更基线,不是不可变)。
-- **触碰跨方或上游已冻结契约**:只列改动清单,不就地改上游文件,交主编排者走会签——接缝冻结不可外包,本文不解锁冻结门禁。
-- 开放问题与决策点:给推荐不给定论,逐条标「待裁/已裁」,不把待裁写成已定。
-- 设计裁决(为什么这样不那样)记要点与被否选项,重要的进决议记录。
+## Write
 
-## 文档链写法(DocStar 可选增强)
+- Inspect the existing repository and real call path before proposing structures.
+- Map every R-AC to modules, interfaces, data, failure paths, and verification points.
+- Define trust boundaries, input validation, concurrency/ordering, migration, rollback,
+  observability, security, accessibility, and performance only where the requirements demand them.
+- Record important choices and rejected alternatives; use the locale-matched `decision-log.md`
+  when a ruling must become an append-only authority.
+- Use the trust-surface register for state-changing input acceptance points.
+- Apply the first-sufficient anti-overdesign order from GMGN §7.
 
-本文档特有:映射表用 R/AC 编号(可被 `id` 检索);frontmatter 上游=Requirement;引用需求某节写 `Requirement §N`。通用项(真实链接/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
+## Exit
 
-## 出口
+Reconcile the mapping in both directions: no orphan design and no unmapped R-AC. Run one
+independent critic with `critic-brief.md`, emphasizing feasibility, upstream/downstream
+consistency, and overdesign. Resolve findings, obtain primary-orchestrator review, commit,
+then **REQUIRED next skill: `write-task`**.
 
-自检(映射表双向对账:无孤儿设计、无无主 R)→ critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md),重点维:上下游一致+过度设计)→ 按任务书两护栏处置 → **编排者审核通过** → 落盘 commit → **REQUIRED 下一环:`write-task`**。
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

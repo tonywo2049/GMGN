@@ -1,40 +1,49 @@
 ---
 name: brainstorm
-description: 需求澄清的入口。用户带着新想法、产品构思、待解决问题、新机会或模糊需求来,要做调研、可行性研究、脑暴/头脑风暴并开启项目或方向(「我想做个X」「需求还不清楚」「帮我想想Y可不可行」),而白皮书(WhitePaper)尚不存在或需要大改时使用;有白皮书只小修、或纯闲聊探讨不落项目的,不触发。
+description: "Use when a WhitePaper does not exist or needs a major rethink and the user brings a new idea, product concept, problem, opportunity, vague requirement, research request, feasibility study, brainstorm, or wants to start a direction. 需求澄清入口：新想法、产品构思、待解决问题、新机会、模糊需求、调研、可行性研究、脑暴/头脑风暴；白皮书仅小修或纯闲聊不触发。"
 ---
 
-# Brainstorm → 白皮书(WhitePaper)
+# Brainstorm → WhitePaper
 
-<HARD-GATE>白皮书未经独立 critic 审查并获负责人批准前:不得进入 roadmap 或任何实现类 skill,不写代码,不建执行文档。「项目简单」不是绕过理由。本 skill 的终态=引导进入 `roadmap`,别无其他终态。</HARD-GATE>
+<HARD-GATE>Before an independent critic reviews the WhitePaper and the owner approves a version anchor, do not enter `roadmap`, create execution documents, or write implementation code. “The project is simple” is not a bypass. The only terminal route is `roadmap`.</HARD-GATE>
 
-## 角色与节奏
+## Language and contract
 
-你是思考伙伴,不是速记员:有主张、敢反驳、点破常见陷阱(过早方案化/伪装成需求的方案/该调研的不该脑暴)。**一次只问一个问题**;先探问题域,后聊解法方向;用户跑向实现细节时拉回来。每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。
+Use the active project/user locale. Load the matching
+[English](../gmgn/references/en/writing-contract.md) or
+[中文](../gmgn/references/zh-CN/writing-contract.md) contract. The WhitePaper uses
+`type: whitepaper`, `nature: normative`, and stable English frontmatter tokens.
 
-## 三件工具(按需用,不逐一过)
+## Working rhythm
 
-- **问题探索**:谁的问题?现在怎么凑合的?不解决的代价?连问为什么直到结构性根因;问题在不同人群上如何分布。
-- **假设检验**:列出想法依赖的全部假设(含未言明的)→ 标出最危险的一条 → 找最便宜的证伪动作。
-- **收敛与捕获**:分组、取舍、明确记下「有意不做的」;脑暴解决不了的问题转调研,不硬聊。
+Act as a thinking partner, not a stenographer. Ask one question at a time. Explore the
+problem before solution details; challenge premature implementation, solutions disguised
+as requirements, and claims that need research.
 
-## 显式非目标
+Use as needed:
 
-**不讨论界面/交互/UI,不做技术选型,不写实现方案**;可行性只到假设检验层。这些属于下游阶段(选型归选型与架构线)。
+- repository and user evidence;
+- primary-source research for unstable or specialized claims;
+- small experiments where argument cannot resolve feasibility.
 
-## 白皮书成文要求(七项必答;全文定性语言,不写量化指标与 AC 编号——那是 Requirement 层的事)
+## Required WhitePaper content
 
-白皮书即 GMGN.md 2.A 目标层顶层文档的具名化;七项内容是本流程规定的最小成文要求。
+1. problem and why now;
+2. users, actors, and real scenarios;
+3. goals and explicitly ordered harms;
+4. top-level invariants;
+5. non-goals and scope boundary;
+6. major options, evidence, unknowns, and rejected directions;
+7. qualitative validation direction and weakest assumption.
 
-1. 问题与动机——为什么做,不做谁疼。
-2. 目标与非目标——达成什么、明确不做什么。
-3. 顶级不变量与损害排序——任何时刻不可破的约束;坏结果从最不可接受到可容忍排序。
-4. 范围全景——可切成 Milestone 的功能面清单(roadmap 拆分的直接输入)。
-5. 项目级成功判据——定性描述「成了是什么景象」,可判不量化。
-6. 已知约束与依赖。
-7. 开放问题——留给下游的、当前无法回答的。
+Do not introduce R-AC IDs or quantitative requirement criteria here.
 
-文档契约(元信息块/文档链写法)见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范,下游=ROADMAP(建成后同批补链)。
+## Exit
 
-## 出口
+Self-check placeholders, contradictions, scope gaps, and ambiguity. Dispatch one independent
+critic with the locale-matched `critic-brief.md`; adjudicate findings without letting the
+critic expand scope. Present the weakest assumption to the owner, bind approval to a commit
+or hash, commit the document, then **REQUIRED next skill: `roadmap`**.
 
-自检四问(有无占位符/内部矛盾/范围缺口/歧义)→ 按 [critic-任务书](../gmgn/references/critic-任务书.md) 派独立 critic 一轮 → 按任务书两护栏处置 → 附最薄弱假设三行呈负责人批准 → 落盘 commit → **REQUIRED 下一环:`roadmap`**。
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

@@ -1,32 +1,35 @@
 ---
 name: write-requirement
-description: 某 Milestone 已立项(Goal 已建)、要做需求分析,澄清或编写功能需求、非功能需求、PRD/产品需求文档、需求池、用户故事、验收标准(Requirement.md)时使用;既有需求新增、修改或受控变更时也使用;用户说「写需求」「补需求」「定AC/验收标准」时触发。
+description: "Use after milestone initiation and Goal.md to analyze, clarify, create, or change functional/non-functional requirements, PRD/product requirements, requirement pool, user stories, acceptance criteria, or ACs in Requirement.md. Milestone 已立项后写/补需求分析、PRD/产品需求文档、需求池、用户故事、验收标准/AC，或做受控需求变更。"
 ---
 
-# Requirement(单元唯一需求权威)
+# Requirement.md: single milestone requirement authority
 
-<HARD-GATE>前置:该单元 `Goal.md` 存在;缺则拒绝执行并指回 `write-goal`。</HARD-GATE>
+<HARD-GATE>`Goal.md` must exist for an initiated milestone; otherwise return to `write-goal`. Do not prescribe implementation structures in requirements.</HARD-GATE>
 
-每次回答末尾带 Reflection 三问(最弱假设/被忽略的反例/哪些实测哪些推断)。本文是**定性→定量的转换点**:上游(ROADMAP/Goal)全是定性语言,从这里开始出现可判定的编号验收标准。
+## Language and contract
 
-## 交接规则(上游)
+Use the Goal locale and the matching
+[English](../gmgn/references/en/writing-contract.md) or
+[中文](../gmgn/references/zh-CN/writing-contract.md) Requirement template. Keep filename
+`Requirement.md`, `type: requirement`, and `nature: normative`.
 
-- ROADMAP 该行的**每条定性验收标准**、Goal 的**每个子目标**,须被 ≥1 条 R 覆盖并显式回链;写完做一次覆盖对账,漏的补需求或在 Goal 缺口清单记明。
-- 本文是所在单元**唯一需求权威**:切片级文档只做子集划定、具体化、追踪,不得二次定义需求;别的 Milestone 的需求用指针引用,不复制条文。
+## Write
 
-## 写作要求
+- Translate every in-scope Goal slice into numbered requirements `R1`, `R2`, ...
+- Give each requirement decidable ACs `R1-AC1`, ... using observable precondition, action,
+  and result. This is the qualitative-to-quantitative boundary.
+- Separate functional, non-functional, parameter/constraint, non-goal, and open-decision sections.
+- Parameterize changeable numbers; name the authority and verification method for values.
+- Maintain a Goal ↔ R/AC traceability table. No orphan Goal slice and no unowned AC.
+- For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
 
-- 只答「要什么」,不答「怎么做」(结构/算法/数据格式留给 Design)。
-- 每条功能需求:`R<n>` 粗体编号 + 描述,配可判定验收标准 `R<n>-AC<m>`(WHEN/THEN 句式,结果可观测可判);**负向 AC 不可省**(该拒的输入显式立「WHEN 坏构造 THEN 不可达成」)。
-- **数值一律参数化**:需求层只钉参数间约束关系(如 `X ≤ Y ≤ Z`),具体数值 TBD 留验收阶段论证;参数分常量/可调两类,未论证默认常量。
-- 非功能约束逐条编号(`NFR<k>`),第一条承接白皮书的损害排序;非目标显式列出防蔓延。
-- 编号唯一、稳定、不复用;追踪矩阵未覆盖的 AC=未实现。
-- 前提与公共定义集中一处,各条不重复;变更走受控演进账(变更记录表)。
+## Exit
 
-## 文档链写法(DocStar 可选增强)
+Reconcile scope coverage and scan every AC for decidability. Run one independent critic
+with the locale-matched `critic-brief.md`, emphasizing upstream consistency and acceptance
+quality. Resolve findings, obtain primary-orchestrator review, commit, then
+**REQUIRED next skill: `write-design`**.
 
-本文档特有:需求写在 `## 功能需求` 类型化小节下、逐条粗体编号(`- **R1** — …`,AC 同理),使编号可被 `id` 全链检索;frontmatter 上游=Goal+ROADMAP 行。通用项(真实链接/术语表/verify)不复述,见 [文档写作契约](../gmgn/references/文档写作契约.md);性质=规范。
-
-## 出口
-
-自检(覆盖对账+AC 可判定扫一遍)→ critic 一轮([critic-任务书](../gmgn/references/critic-任务书.md),重点维:上下游一致+可判定性)→ 按任务书两护栏处置 → **编排者审核通过**(G-R-D-T 不设负责人逐件批准)→ 落盘 commit → **REQUIRED 下一环:`write-design`**。
+End every substantive response with **Reflection**: weakest assumption; neglected
+counterexample; measured versus inferred.

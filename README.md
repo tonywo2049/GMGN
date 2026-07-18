@@ -1,36 +1,75 @@
+---
+locale: en
+purpose: Introduce GMGN installation, quick use, platform support, and development entry points.
+status: approved
+type: guide
+nature: descriptive
+---
+
 # GMGN
 
-**GM, GN.** 早安，晚安。
+**GM, GN.** Good morning, good night.
 
-GMGN 是同时适配 **Codex（CLI / Desktop）** 与 **Claude Code** 的 agent 研发工作流。它把一个想法沿着九件可组合 skill 推进到里程碑关账，用硬门禁阻止跳步，用独立评审减少同源盲区，用可重放命令把“完成”绑定到真实证据。V0.1 不把 ChatGPT 通用聊天插件目录列为已验证平台。
+GMGN is an agentic software-delivery workflow for **Codex (CLI/Desktop)** and
+**Claude Code**. Nine composable skills move work from an idea to a closed milestone.
+Hard gates prevent skipped stages, independent review reduces shared blind spots, and
+replayable commands bind completion claims to evidence.
+
+中文版本：[README.zh-CN.md](README.zh-CN.md)
 
 ```text
-想法
- └─ brainstorm → 白皮书 → roadmap
+idea
+ └─ brainstorm → WhitePaper → roadmap
                          └─ write-goal
                             → write-requirement
                             → write-design
                             → write-task
                             → run-task
                             → close-milestone
-                            → roadmap（下一里程碑）
+                            → roadmap (next milestone)
 ```
 
-`gmgn` 是总线：当你不知道当前该走哪一步时，它根据仓库状态路由到正确工序。
+`gmgn` is the router: use it when you do not know which stage matches the repository's
+current state.
 
-## 支持范围
+## README and methodology
 
-| 能力 | Codex | Claude Code |
+This README is deliberately short: installation, first use, repository layout, and
+development commands. [GMGN.md](GMGN.md) is the normative methodology: roles, document
+chains, approval semantics, review rules, and closing discipline. They are linked, not
+merged, because they serve different readers and change at different rates.
+
+## Language model
+
+GMGN has one workflow, not separate English and Chinese plugins.
+
+- Skills detect the language from the active project and the user's request.
+- Human prose and headings use `en` or `zh-CN`.
+- Filenames, IDs, commands, frontmatter keys, enum values, and task-table headers stay
+  stable English machine tokens.
+- Public repository documents use English-primary files plus `.zh-CN.md` mirrors.
+- A project artifact chain normally uses one active locale. If a project requires two
+  translated chains, validate each locale tree separately to avoid duplicate IDs.
+
+The shared contract and copy-ready templates are in
+[`skills/gmgn/references/en/writing-contract.md`](skills/gmgn/references/en/writing-contract.md)
+and its [Chinese mirror](skills/gmgn/references/zh-CN/writing-contract.md).
+
+## Supported surfaces
+
+| Capability | Codex | Claude Code |
 |---|---|---|
-| 九件共享 skill | 支持 | 支持 |
-| 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
-| 代码审查 | `/review`；CLI 用 `codex review --uncommitted/--commit/--base` | 独立只读 reviewer；`/code-review` 仅用于已授权评论的 GitHub PR |
-| 运行验证 | 项目测试、启动与 E2E 命令 | 项目命令；可用 `/verify` |
-| 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
+| Nine shared skills | Supported | Supported |
+| Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
+| Code review | `/review`; CLI: `codex review --uncommitted/--commit/--base` | Independent read-only reviewer; `/code-review` only for an authorized GitHub PR |
+| Runtime verification | Project tests, startup, and E2E commands | Project commands; `/verify` where available |
+| Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。
+Native review does not replace execution. GMGN still requires project tests and a
+replayable verification path. In Codex, a custom review prompt and scope flags are
+mutually exclusive; after review, check `git status --short` for generated side effects.
 
-## 安装
+## Install
 
 ### Codex
 
@@ -39,16 +78,16 @@ codex plugin marketplace add tonywo2049/GMGN
 codex plugin add gmgn@GMGN
 ```
 
-新建一个 Codex 任务使插件生效。验证安装：
+Start a new Codex task, then verify:
 
 ```bash
 codex plugin list
 ```
 
-然后输入：
+Try:
 
 ```text
-$gmgn 判断这个项目下一步该做什么
+$gmgn Determine the correct next step for this project.
 ```
 
 ### Claude Code
@@ -58,83 +97,90 @@ claude plugin marketplace add tonywo2049/GMGN
 claude plugin install gmgn@GMGN --scope user
 ```
 
-新建会话后输入 `/gmgn:gmgn`，或直接描述要做的事。
+Start a new session and invoke `/gmgn:gmgn`, or describe the work directly.
 
-### 本地开发版
+### Local development copy
 
-把上面 marketplace 的来源换成本仓绝对路径：
+Replace the marketplace source with the repository's absolute path:
 
 ```bash
 codex plugin marketplace add /absolute/path/to/GMGN
 claude plugin marketplace add /absolute/path/to/GMGN
 ```
 
-再执行对应平台的安装命令。不要同时安装同一 skill 的手动副本，以免出现重复触发。
+Do not install a manual copy of the same skills at the same time; duplicate installations
+produce duplicate triggers.
 
-## 卸载
-
-Codex：
+## Uninstall
 
 ```bash
 codex plugin remove gmgn@GMGN
 codex plugin marketplace remove GMGN
-```
-
-Claude Code：
-
-```bash
 claude plugin uninstall gmgn@GMGN --scope user
 claude plugin marketplace remove GMGN --scope user
 ```
 
-## 使用
+## Use
 
-安装后直接说事；描述越接近当前状态，路由越准确。
-
-| 你的说法 | 接管的 skill | 主要产物 |
+| Request | Skill | Main output |
 |---|---|---|
-| “我有个想法，先调研一下可不可行” | `brainstorm` | WhitePaper |
-| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP |
-| “启动 M1，明确范围” | `write-goal` | Goal.md |
-| “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
-| “出技术设计和系统方案” | `write-design` | Design.md |
-| “拆实施计划和任务卡” | `write-task` | Task.md |
-| “实现这张卡 / 修这个 bug” | `run-task` | 代码、测试、审查证据 |
-| “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、关账记录 |
-| “下一步做什么？” | `gmgn` | 状态判断与工序路由 |
+| “I have an idea; research whether it is viable.” | `brainstorm` | WhitePaper |
+| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP |
+| “Start M1 and define its boundary.” | `write-goal` | Goal.md |
+| “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
+| “Produce the technical design.” | `write-design` | Design.md |
+| “Break the design into task cards.” | `write-task` | Task.md |
+| “Implement this card / fix this bug.” | `run-task` | Code, tests, review evidence |
+| “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, closure record |
+| “What should happen next?” | `gmgn` | State diagnosis and routing |
 
-缺陷修复和琐碎单步改动可以走受控旁路，不强迫补齐整条规格链；白皮书、ROADMAP、立项与关账等停点仍需对应授权。
+Small bug fixes and narrow one-step changes may use the controlled bypass; they do not
+need a fabricated full specification chain. WhitePaper, ROADMAP, milestone initiation,
+scope expansion, and closure still require their defined authorization.
 
-## 仓库结构
+## Repository layout
 
 ```text
-skills/                     九件跨平台共享 skill
-  */agents/openai.yaml      Codex 展示与默认提示元数据
-  gmgn/references/          共享契约、任务书和核对单
-.codex-plugin/plugin.json   Codex 插件清单
-.claude-plugin/             Claude Code 插件与市场清单
-.codex/agents/              仓库开发用 coder / critic / reviewer 角色
-.agents/plugins/            Codex marketplace 清单
-tests/                      结构、触发、双平台与发布包校验
-scripts/package_release.py  可复现发布包与 SHA-256 生成器
-GMGN.md                     工作流原理与条款权威
+skills/                         nine cross-platform skills
+  */agents/openai.yaml          Codex display metadata and default prompts
+  gmgn/references/{en,zh-CN}/   mirrored contracts, briefs, and checklists
+.docstar/conventions/           DocStar-compatible GMGN convention set
+.codex-plugin/plugin.json       Codex plugin manifest
+.claude-plugin/                 Claude Code plugin and marketplace manifests
+.codex/agents/                  repository-development roles
+.agents/plugins/                Codex marketplace manifest
+tests/                          structure, language, platform, and package checks
+scripts/package_release.py      deterministic ZIP and SHA-256 builder
+GMGN.md                         normative methodology
 ```
 
-共享规则只写在 `skills/` 与 [GMGN.md](GMGN.md)；平台目录只承载发现、安装和原生能力适配，避免两套工作流漂移。
+Shared workflow rules live in `skills/` and [GMGN.md](GMGN.md). Platform directories
+contain discovery, installation, and native-surface adapters only.
 
-## 开发与发布
+## Develop and package
 
 ```bash
 ./tests/validate.sh
 python3 -m unittest discover -s tests
-python3 scripts/package_release.py
+python3 scripts/package_release.py --allow-dirty
 ```
 
-打包器默认拒绝脏工作树，从 Codex manifest 读取版本，只收录运行所需白名单，并生成确定性 ZIP 与 SHA-256。开发中验证可显式使用 `--allow-dirty`。
+The packager reads the version from the Codex manifest, includes only the release
+allowlist, and produces a deterministic ZIP and SHA-256 checksum. Without
+`--allow-dirty`, it rejects a dirty worktree.
 
-## 可选增强
+## DocStar compatibility
 
-[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包。GMGN 不依赖 DocStar 才能安装；项目未安装时，用文件检查和项目现成命令完成同等门禁。
+[DocStar](https://github.com/tonywo2049/DocStar) is optional. It can check links, graph
+semantics, task closure, and bilingual parity using the same machine contract.
+
+```bash
+python3 docstar.py check --preset gmgn-v1 --corpus /path/to/gmgn-project
+python3 docstar.py dump --preset gmgn-v1 --json --corpus /path/to/gmgn-project
+```
+
+When the corpus contains `.docstar/conventions/conventions.json`, the explicit preset is
+not required. GMGN remains installable and usable without DocStar.
 
 ## License
 

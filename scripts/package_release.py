@@ -16,9 +16,12 @@ PACKAGE_PATHS = (
     ".agents",
     ".claude-plugin",
     ".codex-plugin",
+    ".docstar",
     "skills",
     "README.md",
+    "README.zh-CN.md",
     "GMGN.md",
+    "GMGN.zh-CN.md",
     "LICENSE",
 )
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
@@ -40,7 +43,13 @@ def release_files() -> list[Path]:
         capture_output=True,
         check=True,
     )
-    relative_files = [Path(value.decode("utf-8")) for value in result.stdout.split(b"\0") if value]
+    # `git ls-files --cached` also reports tracked paths deleted in a dirty development
+    # worktree. They are not release artifacts; filter them before checking the allowlist.
+    relative_files = [
+        Path(value.decode("utf-8"))
+        for value in result.stdout.split(b"\0")
+        if value and (ROOT / Path(value.decode("utf-8"))).exists()
+    ]
     for relative in PACKAGE_PATHS:
         if not any(path == Path(relative) or Path(relative) in path.parents for path in relative_files):
             raise ValueError(f"发布白名单路径不存在: {relative}")
