@@ -562,15 +562,6 @@ def validate_controlled_change_protocol(
         )
 
 
-def classify_milestone_dependency(owning_order: int, predecessor_order: int) -> str:
-    """Classify one dependency relative to the owning Milestone's ROADMAP order."""
-    if predecessor_order == owning_order:
-        return "same-milestone"
-    if predecessor_order < owning_order:
-        return "upstream-external"
-    return "downstream-reverse"
-
-
 def validate_milestone_scope_protocol(
     errors: list[str], parsed: dict[str, tuple[str, str]]
 ) -> None:
@@ -668,6 +659,7 @@ def validate_milestone_scope_protocol(
         "## Author content and self-check",
         (
             "exactly one owning Milestone", "already planned upstream Milestone",
+            "ROADMAP dependency relationship, not by Milestone ID or numeric order",
             "must not depend on downstream", "spike or verification card owned by that target Milestone",
             "non-blocking TODO or Handoff", "no reverse dependency points to a downstream Milestone",
         ),
@@ -788,20 +780,6 @@ def validate_milestone_scope_protocol(
     ]
     if deferred_hits:
         errors.append(f"关账语义仍允许仅 deferred 的 target AC {deferred_hits}")
-
-    examples = (
-        (3, 1, "upstream-external"),
-        (3, 2, "upstream-external"),
-        (2, 2, "same-milestone"),
-        (0, 1, "downstream-reverse"),
-    )
-    bad_examples = [
-        (owner, predecessor, expected)
-        for owner, predecessor, expected in examples
-        if classify_milestone_dependency(owner, predecessor) != expected
-    ]
-    if bad_examples:
-        errors.append(f"Milestone 依赖方向判别器失败: {bad_examples}")
 
     for locale, tokens in (
         (

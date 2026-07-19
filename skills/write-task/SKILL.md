@@ -29,7 +29,8 @@ Use the Design locale and the matching layout-free
   parser-facing columns unchanged; record the additional execution facts in card content
   keyed by the same stable ID.
 - `depends_on` forms an acyclic DAG. It may name cards in the same Milestone; an external hard
-  prerequisite may only point to an already planned upstream Milestone and never authorizes
+  prerequisite may only point to an already planned upstream Milestone as established by the
+  ROADMAP dependency relationship, not by Milestone ID or numeric order, and never authorizes
   executing that external card. A current or upstream Milestone must not depend on downstream
   implementation, confirmation, evidence, or document completion. Such a reverse dependency
   returns to `write-task` revision mode, and to an upstream authority when its meaning is wrong,

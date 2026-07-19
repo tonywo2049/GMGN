@@ -245,6 +245,29 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 跨 Milestone 依赖方向", result.stdout)
 
+    def test_rejects_missing_or_reversed_planned_upstream_dependency_contract(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        original = path.read_text(encoding="utf-8")
+        mutations = (
+            (
+                "an already planned upstream Milestone",
+                "an external Milestone with no ROADMAP relationship",
+            ),
+            (
+                "an already planned upstream Milestone",
+                "a planned downstream Milestone",
+            ),
+        )
+
+        for removed, replacement in mutations:
+            with self.subTest(replacement=replacement):
+                path.write_text(
+                    self.replace_required(original, removed, replacement), encoding="utf-8"
+                )
+                result = self.run_validator()
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("write-task 跨 Milestone 依赖方向", result.stdout)
+
     def test_rejects_reopening_closed_m0_for_later_revision(self) -> None:
         path = self.root / "skills" / "gmgn" / "SKILL.md"
         text = self.replace_required(
@@ -313,39 +336,6 @@ class ValidateSkillsTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 1)
         self.assertIn("残留重开 M0/续开选型线语义", result.stdout)
-
-    def test_allows_m3_to_depend_on_m1_and_m2(self) -> None:
-        code = (
-            "import sys; sys.path.insert(0, 'tests'); "
-            "from validate_skills import classify_milestone_dependency as classify; "
-            "assert classify(3, 1) == 'upstream-external'; "
-            "assert classify(3, 2) == 'upstream-external'; "
-            "assert classify(2, 2) == 'same-milestone'; "
-            "assert classify(0, 1) == 'downstream-reverse'"
-        )
-        result = subprocess.run(
-            ["python3", "-c", code],
-            cwd=self.root,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-
-    def test_rejects_reversed_milestone_dependency_classifier(self) -> None:
-        path = self.root / "tests" / "validate_skills.py"
-        text = self.replace_required(
-            path.read_text(encoding="utf-8"),
-            "if predecessor_order < owning_order:",
-            "if predecessor_order > owning_order:",
-        )
-        path.write_text(text, encoding="utf-8")
-
-        result = self.run_validator()
-
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("Milestone 依赖方向判别器失败", result.stdout)
 
     def test_rejects_missing_controlled_change_route(self) -> None:
         path = self.root / "skills" / "gmgn" / "SKILL.md"
