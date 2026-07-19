@@ -215,7 +215,7 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("close-milestone: target Milestone 关账范围契约缺失", result.stdout)
+        self.assertIn("close-milestone target Milestone 关账范围", result.stdout)
 
     def test_rejects_run_task_automatic_downstream_expansion(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"
@@ -229,7 +229,7 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("run-task: target Milestone 执行集契约缺失", result.stdout)
+        self.assertIn("run-task target Milestone 执行集", result.stdout)
 
     def test_rejects_write_task_downstream_reverse_dependency(self) -> None:
         path = self.root / "skills" / "write-task" / "SKILL.md"
@@ -243,28 +243,27 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("write-task: 跨 Milestone 依赖方向契约缺失", result.stdout)
+        self.assertIn("write-task 跨 Milestone 依赖方向", result.stdout)
 
     def test_rejects_reopening_closed_m0_for_later_revision(self) -> None:
         path = self.root / "skills" / "gmgn" / "SKILL.md"
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
-            "do not reopen M0 or rerun its complete workflow",
-            "reopen M0 and rerun its complete workflow",
+            "do not reopen M0",
+            "reopen M0",
         )
         path.write_text(text, encoding="utf-8")
 
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("M0 历史关账与后续修订契约缺失", result.stdout)
+        self.assertIn("gmgn 路由 M0 历史关账", result.stdout)
 
     def test_rejects_docstar_global_finding_as_closure_blocker(self) -> None:
         path = self.root / "skills" / "close-milestone" / "SKILL.md"
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
-            "A non-zero gate finding blocks only when it is inside the target Milestone\n"
-            "scope or the closing candidate introduced or polluted it",
+            "A non-zero gate finding in either of the first two classes blocks",
             "Any non-zero gate finding anywhere in the corpus blocks closure",
         )
         path.write_text(text, encoding="utf-8")
@@ -272,7 +271,81 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("close-milestone: DocStar finding 范围契约缺失", result.stdout)
+        self.assertIn("close-milestone DocStar finding 范围", result.stdout)
+
+    def test_rejects_docstar_unclassified_finding_as_debt(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "If evidence cannot prove\n"
+            "`external-pre-existing`, scope classification is incomplete and closure is blocked",
+            "If evidence cannot prove `external-pre-existing`, record the finding as debt",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("close-milestone DocStar finding 范围", result.stdout)
+
+    def test_rejects_target_ac_closed_by_deferred_label_only(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "every target-Milestone AC is completed with evidence",
+            "every target-Milestone AC is implemented, explicitly deferred",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("target AC 完成语义", result.stdout)
+        self.assertIn("仍允许仅 deferred", result.stdout)
+
+    def test_rejects_chinese_reopen_selection_line_wording(self) -> None:
+        path = self.root / "GMGN.zh-CN.md"
+        text = path.read_text(encoding="utf-8")
+        text += "\n下游发现问题时一律回归选型与架构线续开。\n"
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("残留重开 M0/续开选型线语义", result.stdout)
+
+    def test_allows_m3_to_depend_on_m1_and_m2(self) -> None:
+        code = (
+            "import sys; sys.path.insert(0, 'tests'); "
+            "from validate_skills import classify_milestone_dependency as classify; "
+            "assert classify(3, 1) == 'upstream-external'; "
+            "assert classify(3, 2) == 'upstream-external'; "
+            "assert classify(2, 2) == 'same-milestone'; "
+            "assert classify(0, 1) == 'downstream-reverse'"
+        )
+        result = subprocess.run(
+            ["python3", "-c", code],
+            cwd=self.root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_rejects_reversed_milestone_dependency_classifier(self) -> None:
+        path = self.root / "tests" / "validate_skills.py"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "if predecessor_order < owning_order:",
+            "if predecessor_order > owning_order:",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Milestone 依赖方向判别器失败", result.stdout)
 
     def test_rejects_missing_controlled_change_route(self) -> None:
         path = self.root / "skills" / "gmgn" / "SKILL.md"

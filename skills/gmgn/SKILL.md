@@ -27,11 +27,12 @@ machine contract English. Load the matching layout-free writing contract when wr
 | One or more confirmed cards in the target Milestone execution set are ready or one of its lanes remains active | `run-task` |
 | All target Milestone cards closed on one shared baseline, its integration entries empty, its traceability full | `close-milestone` |
 
-Before `write-task`, `run-task`, or `close-milestone`, record `target_milestone_id` and the
-exact Goal, Requirement, Design, and Task authority anchors for that Milestone. A downstream
-reference or DocStar edge is context, not authorization: it never expands the execution set or
-the closure gate. If the owner explicitly authorizes multiple Milestones, keep one separately
-owned execution set and closing decision per Milestone.
+Before `write-goal` and throughout every later Milestone skill, record `target_milestone_id`
+and every available Goal, Requirement, Design, and Task authority anchor for that Milestone.
+Do not invent this ID for `brainstorm` or ROADMAP work without a selected Milestone. A
+downstream reference or DocStar edge is context, not authorization: it never expands the
+execution set or the closure gate. If the owner explicitly authorizes multiple Milestones,
+keep one separately owned execution set and closing decision per Milestone.
 
 ## Runtime and role routing
 
@@ -127,11 +128,12 @@ checks without reapproval. An explicit equivalence record may let the new anchor
 document approval state by citing the old approved anchor; this is not a new approval.
 
 A closed foundation or M0 Milestone is a historical declaration about its closing anchor, not
-a promise that its technical selection can never change. Later evidence may revise an
-M0-originated Design, Decision, or index under the current owning Milestone: record the trigger,
-old and new anchors, `supersedes`, and impact cone. Keep the M0 state and its old closure anchor
-closed; do not reopen M0 or rerun its complete workflow. The current owning Milestone carries
-the affected implementation and verification.
+a promise that its technical selection can never change. An M0-originated Design, Decision, or
+index remains the semantic authority. Later evidence uses a change card owned by the current
+Milestone to revise that authority: record the trigger, old and new anchors, `supersedes`, and
+impact cone. Keep the M0 state and its old closure anchor closed; do not reopen M0 or rerun its
+complete workflow. The current Milestone owns the change, implementation, and verification
+work, not the M0-originated meaning.
 
 For a narrow bug or mechanical one-step change, use the controlled bypass: identify scope,
 the smallest authority/acceptance condition, implementation, test, independent review, and

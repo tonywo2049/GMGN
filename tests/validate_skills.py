@@ -562,6 +562,15 @@ def validate_controlled_change_protocol(
         )
 
 
+def classify_milestone_dependency(owning_order: int, predecessor_order: int) -> str:
+    """Classify one dependency relative to the owning Milestone's ROADMAP order."""
+    if predecessor_order == owning_order:
+        return "same-milestone"
+    if predecessor_order < owning_order:
+        return "upstream-external"
+    return "downstream-reverse"
+
+
 def validate_milestone_scope_protocol(
     errors: list[str], parsed: dict[str, tuple[str, str]]
 ) -> None:
@@ -575,116 +584,237 @@ def validate_milestone_scope_protocol(
         ):
             errors.append(error)
 
+    def hard_gate(text: str, tokens: tuple[str, ...], error: str) -> None:
+        match = re.search(r"<HARD-GATE>(.*?)</HARD-GATE>", text, re.S)
+        contract("" if match is None else match.group(1), tokens, error)
+
     method_en = (ROOT / "GMGN.md").read_text(encoding="utf-8")
     method_zh = (ROOT / "GMGN.zh-CN.md").read_text(encoding="utf-8")
-    contract(
-        method_en,
-        (
-            "target_milestone_id", "exactly one owning Milestone",
-            "never expands the set automatically", "already planned upstream Milestone",
-            "non-blocking TODO/Handoff", "Milestone closure is scoped to the target",
-            "Do not reopen M0 or rerun its complete workflow", "supersedes",
-        ),
-        "GMGN.md: target Milestone 边界契约缺失",
-    )
-    contract(
-        method_zh,
-        (
-            "target_milestone_id", "每张任务卡只有一个 owning Milestone",
-            "不能自动扩张执行集", "外部强前置只能指向已经规划的上游 Milestone",
-            "非阻塞 TODO/Handoff", "关账门禁只看目标 Milestone",
-            "不重开 M0", "supersedes",
-        ),
-        "GMGN.zh-CN.md: target Milestone 边界契约缺失",
-    )
-
     router = parsed.get("gmgn", ("", ""))[1]
-    contract(
-        router,
-        (
-            "record `target_milestone_id`", "never expands the execution set",
-            "keep one separately owned execution set", "do not reopen M0",
-            "The current owning Milestone carries the affected implementation and verification",
-        ),
-        "gmgn 路由: target Milestone 边界契约缺失",
-    )
-
     roadmap = parsed.get("roadmap", ("", ""))[1]
-    contract(
+    write_task = parsed.get("write-task", ("", ""))[1]
+    run_task = parsed.get("run-task", ("", ""))[1]
+    close = parsed.get("close-milestone", ("", ""))[1]
+
+    require_section_tokens(
+        errors,
+        method_en,
+        "### 2.4 Milestone ownership and closure boundary",
+        (
+            "from `write-goal` through `close-milestone`", "do not invent this ID",
+            "exactly one owning Milestone", "never expands the set automatically",
+            "already planned upstream Milestone", "non-blocking TODO/Handoff",
+            "Milestone closure is scoped to the target", "remains the semantic authority",
+            "Do not reopen M0", "current Milestone owns the change", "supersedes",
+        ),
+        "GMGN.md target Milestone 边界",
+    )
+    require_section_tokens(
+        errors,
+        method_zh,
+        "### 2.C 结构与规则",
+        (
+            "从 `write-goal` 到 `close-milestone`", "不虚构该 ID",
+            "每张任务卡只有一个 owning Milestone", "不能自动扩张执行集",
+            "外部强前置只能指向已经规划的上游 Milestone", "非阻塞 TODO/Handoff",
+            "关账门禁只看目标 Milestone", "继续拥有该内容的语义", "不重开 M0",
+            "当前 Milestone 的自有卡承担变更、实现与验证", "supersedes",
+        ),
+        "GMGN.zh-CN.md target Milestone 边界",
+    )
+    require_section_tokens(
+        errors,
+        router,
+        "## Route by observable state",
+        (
+            "Before `write-goal`", "Do not invent this ID", "never expands the execution set",
+            "keep one separately owned execution set",
+        ),
+        "gmgn 路由 target Milestone 边界",
+    )
+    require_section_tokens(
+        errors,
+        router,
+        "## Controlled-change routing",
+        (
+            "remains the semantic authority", "change card owned by the current Milestone",
+            "do not reopen M0", "current Milestone owns the change, implementation, and verification work",
+        ),
+        "gmgn 路由 M0 历史关账",
+    )
+    require_section_tokens(
+        errors,
         roadmap,
+        "## Create",
         (
             "independently decidable from work owned by that Milestone",
             "must not be an earlier Milestone's completion criterion",
-            "non-blocking TODO or Handoff", "old closure anchor closed", "supersedes",
         ),
-        "roadmap: Milestone 独立完成景象契约缺失",
+        "roadmap Milestone 独立完成景象",
     )
-
-    write_task = parsed.get("write-task", ("", ""))[1]
-    contract(
+    require_section_tokens(
+        errors,
+        roadmap,
+        "## Controlled revision",
+        (
+            "remains semantic authority", "old closure anchor closed",
+            "current Milestone's change card", "supersedes", "reopening or rerunning M0",
+        ),
+        "roadmap M0 历史关账",
+    )
+    require_section_tokens(
+        errors,
         write_task,
+        "## Author content and self-check",
         (
             "exactly one owning Milestone", "already planned upstream Milestone",
-            "A current or upstream Milestone must not depend on downstream",
-            "spike or verification card owned by that target Milestone",
-            "non-blocking TODO or Handoff", "does not decide Milestone ownership",
+            "must not depend on downstream", "spike or verification card owned by that target Milestone",
+            "non-blocking TODO or Handoff", "no reverse dependency points to a downstream Milestone",
         ),
-        "write-task: 跨 Milestone 依赖方向契约缺失",
+        "write-task 跨 Milestone 依赖方向",
     )
-
-    run_task = parsed.get("run-task", ("", ""))[1]
-    contract(
+    hard_gate(
         run_task,
         (
             "recorded `target_milestone_id`",
             "Cross-milestone references never expand this set automatically",
-            "only from confirmed cards owned by that target Milestone's Task authority",
-            "create separate execution sets", "does not start downstream work",
-            "Downstream execution sets and lanes have separate lifecycle decisions",
         ),
-        "run-task: target Milestone 执行集契约缺失",
+        "run-task target Milestone 执行集",
     )
-
-    close = parsed.get("close-milestone", ("", ""))[1]
-    contract(
+    require_section_tokens(
+        errors,
+        run_task,
+        "## 1. Build and continuously refill the ready set",
+        (
+            "only from confirmed cards owned by that target Milestone's Task authority",
+            "create separate execution sets", "upstream prerequisite may gate readiness",
+            "downstream reverse dependency", "does not start downstream work",
+        ),
+        "run-task target Milestone 执行集",
+    )
+    require_section_tokens(
+        errors,
+        run_task,
+        "## Exit",
+        ("owned by `target_milestone_id`", "Downstream execution sets and lanes have separate lifecycle decisions"),
+        "run-task target Milestone Exit",
+    )
+    hard_gate(
         close,
         (
             "Every hard gate is scoped to the recorded `target_milestone_id`",
             "no lane owned by it may be active", "Downstream work, lanes, documents",
-            "do not block unless they prove", "resource conflict may",
+            "do not block unless they prove",
+        ),
+        "close-milestone target Milestone 关账范围",
+    )
+    require_section_tokens(
+        errors,
+        close,
+        "## Three closure disciplines",
+        (
+            "completed with evidence", "removed or reassigned by a controlled semantic change",
+            "new authority anchor", "Requirement, Task, and matrix synchronized",
+            "A `deferred` label, TODO, or Handoff alone never waives an AC",
             "does not alter semantic closure eligibility",
         ),
-        "close-milestone: target Milestone 关账范围契约缺失",
+        "close-milestone target AC 完成语义",
     )
-    contract(
+    require_section_tokens(
+        errors,
         close,
+        "## Machine checks and checklist",
         (
-            "DocStar IDs, edges, `brief`, `check`, and `verify` are structural measurements",
-            "do not decide Milestone ownership, dependency legality, or closure eligibility",
-            "A non-zero gate finding blocks only when it is inside the target Milestone scope",
-            "closing candidate introduced or polluted it", "pre-existing external finding as debt",
+            "do not treat it as proof that GMGN semantic scope classification is complete",
+            "every finding with evidence and exactly one GMGN classification",
+            "target-scoped | candidate-introduced-or-polluted | external-pre-existing",
+            "first two classes blocks", "predates the closing candidate",
+            "If evidence cannot prove `external-pre-existing`, scope classification is incomplete and closure is blocked",
         ),
-        "close-milestone: DocStar finding 范围契约缺失",
+        "close-milestone DocStar finding 范围",
+    )
+    require_section_tokens(
+        errors,
+        method_en,
+        "## 3. Approval and change semantics",
+        (
+            "completed with evidence", "controlled semantic change at a new authority anchor",
+            "Requirement, Task, and matrix synchronized", "`deferred` label or TODO alone never waives",
+        ),
+        "GMGN.md target AC 完成语义",
+    )
+    require_section_tokens(
+        errors,
+        method_en,
+        "## 6. Tool and automation boundaries",
+        (
+            "does not establish GMGN semantic scope classification",
+            "Record every finding, its evidence, and exactly one classification",
+            "target-scoped | candidate-introduced-or-polluted | external-pre-existing",
+            "If that proof is missing, scope classification is incomplete and closure is blocked",
+        ),
+        "GMGN.md DocStar finding 范围",
+    )
+    require_section_tokens(
+        errors,
+        method_zh,
+        "## 第 3 章 确认语义",
+        (
+            "完成证据", "新权威锚生效的受控删除/重新分配记录",
+            "同步 Requirement、Task 与矩阵", "不能豁免仍在目标范围内的 AC",
+        ),
+        "GMGN.zh-CN.md target AC 完成语义",
+    )
+    require_section_tokens(
+        errors,
+        method_zh,
+        "## 第 6 章 工具与自动化边界",
+        (
+            "classification_complete` 也不等于 GMGN 已完成语义归属",
+            "每条 finding 都要连同证据归入且只能归入",
+            "target-scoped | candidate-introduced-or-polluted | external-pre-existing",
+            "不能证明时，scope classification incomplete，阻断关账",
+        ),
+        "GMGN.zh-CN.md DocStar finding 范围",
     )
 
-    contract(
-        router + roadmap + method_en,
-        (
-            "historical declaration", "old closure anchor closed", "do not reopen M0",
-            "old anchor", "new anchor", "supersedes", "impact cone",
-        ),
-        "M0 历史关账与后续修订契约缺失",
+    forbidden_zh = ("回选型与架构线复议", "一律回归选型与架构线续开")
+    found_zh = [phrase for phrase in forbidden_zh if phrase in method_zh]
+    if found_zh:
+        errors.append(f"GMGN.zh-CN.md: 残留重开 M0/续开选型线语义 {found_zh}")
+    forbidden_deferred = ("implemented, explicitly deferred", "deferred explicitly")
+    deferred_hits = [
+        phrase for phrase in forbidden_deferred if phrase in method_en or phrase in close
+    ]
+    if deferred_hits:
+        errors.append(f"关账语义仍允许仅 deferred 的 target AC {deferred_hits}")
+
+    examples = (
+        (3, 1, "upstream-external"),
+        (3, 2, "upstream-external"),
+        (2, 2, "same-milestone"),
+        (0, 1, "downstream-reverse"),
     )
+    bad_examples = [
+        (owner, predecessor, expected)
+        for owner, predecessor, expected in examples
+        if classify_milestone_dependency(owner, predecessor) != expected
+    ]
+    if bad_examples:
+        errors.append(f"Milestone 依赖方向判别器失败: {bad_examples}")
 
     for locale, tokens in (
         (
             "en",
-            ("Target boundary", "target_milestone_id", "Downstream debt",
-             "Structural measurement boundary", "unrelated pre-existing findings do not"),
+            ("Target boundary", "target_milestone_id", "still-in-scope AC mislabeled `deferred`",
+             "exactly one GMGN classification", "scope classification incomplete and closure blocked",
+             "classification_complete` alone does not"),
         ),
         (
             "zh-CN",
-            ("目标边界", "target_milestone_id", "下游留债", "结构测量边界", "无关既存 finding 不阻断"),
+            ("目标边界", "target_milestone_id", "仍在目标范围内的 AC 是否被错误标成 `deferred`",
+             "归入且只归入", "scope classification incomplete 并阻断",
+             "classification_complete` 本身不能"),
         ),
     ):
         text = (REFERENCES / locale / "pre-close-checklist.md").read_text(encoding="utf-8")

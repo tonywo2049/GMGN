@@ -25,8 +25,9 @@ This file is the normative method. Installation and quick use belong in
 
 GMGN defines seven execution-separated roles and one optional audit role.
 
-- **Owner** decides scope, approves project-level commitments, accepts closure, and is
-  the only role that may waive completion criteria. Agent-to-agent instructions do not
+- **Owner** decides scope, approves project-level commitments, accepts closure, and is the only
+  role that may authorize removing or reassigning a completion criterion through a controlled
+  semantic change. A bare waiver does not close an AC. Agent-to-agent instructions do not
   constitute owner authorization.
 - **Primary orchestrator** understands, decomposes, maintains the rolling ready set,
   dispatches, adjudicates, accepts, and gates. It retains decisions, interface freezes,
@@ -243,12 +244,13 @@ and task-table headers are language-independent. The full contract is in
 
 ### 2.4 Milestone ownership and closure boundary
 
-Every workflow run records one `target_milestone_id` and that Milestone's G-R-D-T authority
-anchors. Each card has exactly one owning Milestone. Its execution set contains only cards in
-that Milestone's Task authority which the owner or orchestrator confirmed. A cross-Milestone
-reference does not authorize work and never expands the set automatically. If several
-Milestones are explicitly authorized, they retain separate execution sets, state, and closing
-decisions.
+Every Milestone-scoped run, from `write-goal` through `close-milestone`, records one
+`target_milestone_id` and that Milestone's G-R-D-T authority anchors. `brainstorm` and ROADMAP
+work without a selected Milestone do not invent this ID. Each card has exactly one owning
+Milestone. Its execution set contains only cards in that Milestone's Task authority which the
+owner or orchestrator confirmed. A cross-Milestone reference does not authorize work and never
+expands the set automatically. If several Milestones are explicitly authorized, they retain
+separate execution sets, state, and closing decisions.
 
 `depends_on` may link cards inside one Milestone. An external hard prerequisite may point only
 to an already planned upstream Milestone and may gate readiness without authorizing its
@@ -270,10 +272,11 @@ semantic closure eligibility.
 A foundation or M0 closure preserves the technical selection and architecture that were
 accepted at its historical closing anchor. It does not make those choices immutable. Later
 Milestone evidence may trigger a controlled revision of an M0-originated Design, Decision, or
-index: record the trigger, old anchor, new anchor, `supersedes`, and impact cone, while the old
-approval and closure remain attached to the old anchor. Do not reopen M0 or rerun its complete
-workflow. The current owning Milestone carries affected implementation and verification, and
-only the impact cone is reviewed, propagated, and tested.
+index, which remains the semantic authority: record the trigger, old anchor, new anchor,
+`supersedes`, and impact cone, while the old approval and closure remain attached to the old
+anchor. Do not reopen M0 or rerun its complete workflow. The current Milestone owns the change,
+implementation, and verification cards, not the M0-originated meaning; only the impact cone is
+reviewed, propagated, and tested.
 
 ## 3. Approval and change semantics
 
@@ -308,8 +311,10 @@ meaning is uncertain, classify the change as semantic.
 
 Closure has three disciplines:
 
-1. **scope closure** — every in-scope requirement is implemented, deferred explicitly, or
-   removed by an authorized decision;
+1. **scope closure** — every in-scope requirement is completed with evidence, or is first
+   removed or reassigned by a controlled semantic change at a new authority anchor with
+   Requirement, Task, and matrix synchronized; a `deferred` label or TODO alone never waives
+   an AC that remains in target scope;
 2. **evidence closure** — each criterion has a replayable test or real execution path;
 3. **state closure** — task ledger, matrix, ROADMAP, decisions, and handoff are refreshed in
    the same batch.
@@ -394,11 +399,14 @@ DocStar is optional and deterministic. With the GMGN convention set it can check
 extract the G-R-D-T graph, compile a task brief, and compare English/Chinese locale trees.
 Its JSON uses the stable English `eg-3` contract regardless of display language. These IDs,
 edges, briefs, checks, and verification results are structural measurements. They do not decide
-Milestone ownership, dependency legality, execution authorization, or closure eligibility.
+Milestone ownership, dependency legality, execution authorization, or closure eligibility, and
+DocStar `classification_complete` does not establish GMGN semantic scope classification.
 GMGN must validate a cross-Milestone edge against ROADMAP, Goal, and the owning Task before
-using it as a gate. For target closure, only target-scoped findings and structural pollution
-introduced by the closing candidate block; unrelated downstream and pre-existing external
-findings are recorded as debt.
+using it as a gate. Record every finding, its evidence, and exactly one classification:
+`target-scoped | candidate-introduced-or-polluted | external-pre-existing`. The first two block
+target closure. The last is recorded as debt only when evidence proves both its external scope
+and pre-existing anchor. If that proof is missing, scope classification is incomplete and
+closure is blocked.
 
 ```bash
 python3 docstar.py check --preset gmgn-v1 --corpus <corpus>

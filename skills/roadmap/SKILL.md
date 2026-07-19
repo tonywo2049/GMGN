@@ -63,9 +63,10 @@ record. Any semantic ambiguity returns to the full Author/Critic loop.
 - Revise only ROADMAP-owned sequencing, milestone allocation, dependencies, qualitative
   completion pictures, or TODO placement. Do not reopen unaffected milestones.
 - A later Milestone may supersede a technical selection originating in a closed foundation or
-  M0 Milestone. Keep the historical Milestone and old closure anchor closed; record the current
-  owning Milestone, trigger, old anchor, new anchor, `supersedes`, and impact cone instead of
-  reopening or rerunning M0.
+  M0 Milestone. The M0-originated Design, Decision, or index remains semantic authority. Keep
+  the historical Milestone and old closure anchor closed; record the current Milestone's change
+  card, trigger, old anchor, new anchor, `supersedes`, and impact cone instead of reopening or
+  rerunning M0. That current card owns change, implementation, and verification work.
 - A change that alters a decision or reasonable understanding receives independent criticism
   and owner approval at a new anchor. Old approval remains attached to the old anchor.
 - Meaning-preserving mechanical changes use same-batch link, hash, and status refresh plus

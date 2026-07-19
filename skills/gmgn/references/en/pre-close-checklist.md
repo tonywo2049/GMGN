@@ -29,9 +29,16 @@ nature: normative
    and are all its cards closed on one `shared_baseline_anchor`?
 9. **Downstream debt** — Is every downstream-only question a non-blocking TODO/Handoff with
    receiving Milestone/owner, trigger, possible impact, and default assumption where useful?
-10. **Structural measurement boundary** — Are DocStar findings scoped to the target or closing
-    candidate, with unrelated downstream and pre-existing external findings recorded as debt?
+   Was any still-in-scope AC mislabeled `deferred` instead of being completed or removed/
+   reassigned through a controlled semantic change at a new authority anchor?
+10. **Structural measurement boundary** — Is every DocStar finding recorded with evidence and
+    exactly one GMGN classification: `target-scoped | candidate-introduced-or-polluted |
+    external-pre-existing`? Was `external-pre-existing` used only when both external scope and
+    a pre-candidate anchor were proved? If not, is scope classification incomplete and closure
+    blocked rather than the finding recorded as debt? DocStar `classification_complete` alone
+    does not answer these questions.
 
-Any unresolved target blocker, target-scoped gate finding, or candidate-introduced structural
-pollution blocks closure. Downstream-only TODOs and unrelated pre-existing findings do not.
+Any unresolved target blocker, `target-scoped` finding, `candidate-introduced-or-polluted`
+finding, or incomplete scope classification blocks closure. A proved `external-pre-existing`
+finding does not.
 Only after owner acceptance may the target state become `closed`.

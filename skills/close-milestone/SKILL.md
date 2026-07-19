@@ -31,8 +31,11 @@ structure and must not mark anything closed before owner acceptance.
 
 ## Three closure disciplines
 
-1. Scope: every target-Milestone AC is implemented, explicitly deferred, or removed by owner
-   decision; downstream-only items are non-blocking TODOs or Handoffs.
+1. Scope: every target-Milestone AC is completed with evidence, or is first removed or
+   reassigned by a controlled semantic change at a new authority anchor with Requirement,
+   Task, and matrix synchronized. A `deferred` label, TODO, or Handoff alone never waives an AC
+   that remains in target scope; downstream-only items may be non-blocking only after that
+   ownership check.
 2. Evidence: every target-Milestone closure criterion has a replayable real verification path.
 3. State: the target Task, matrix, ROADMAP row, Decision, version anchors, and Handoff refresh
    together.
@@ -69,12 +72,15 @@ same-batch refresh and machine checks without reapproval.
 Have the Verifier run `check --preset gmgn-v1 --json` and relevant gates when DocStar is
 available. DocStar IDs, edges, `brief`, `check`, and `verify` are structural measurements; they
 do not decide Milestone ownership, dependency legality, or closure eligibility. Verify
-`classification_complete`, then classify each result against the target authority anchors and
-closing candidate. A non-zero gate finding blocks only when it is inside the target Milestone
-scope or the closing candidate introduced or polluted it. Record an unrelated downstream or
-pre-existing external finding as debt; it does not block this closure. A tool execution failure
-or unparseable result still blocks because measurement did not complete. When DocStar is absent,
-run equivalent repository link/table checks and disclose that substitution. The closure Author completes the locale-matched
+DocStar `classification_complete` as a structural result, but do not treat it as proof that
+GMGN semantic scope classification is complete. Record every finding with evidence and exactly
+one GMGN classification: `target-scoped | candidate-introduced-or-polluted |
+external-pre-existing`. A non-zero gate finding in either of the first two classes blocks. Use
+`external-pre-existing` as debt only when evidence proves both that it is outside the target
+scope and that it predates the closing candidate. If evidence cannot prove
+`external-pre-existing`, scope classification is incomplete and closure is blocked. A tool
+execution failure or unparseable result also blocks because measurement did not complete. When
+DocStar is absent, run equivalent repository link/table checks and disclose that substitution. The closure Author completes the locale-matched
 `pre-close-checklist.md` against the Verifier's evidence; the combined reviewer challenges it.
 
 ## Presentation and close
