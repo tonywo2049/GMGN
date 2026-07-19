@@ -24,8 +24,14 @@ machine contract English. Load the matching layout-free writing contract when wr
 | Goal exists; Requirement absent or changing | `write-requirement` |
 | Requirement reviewed; Design absent or changing | `write-design` |
 | Design reviewed; Task absent or changing | `write-task` |
-| One or more confirmed cards are ready or any execution lane remains active | `run-task` |
-| All cards closed on one shared baseline, integration queue empty, traceability full | `close-milestone` |
+| One or more confirmed cards in the target Milestone execution set are ready or one of its lanes remains active | `run-task` |
+| All target Milestone cards closed on one shared baseline, its integration entries empty, its traceability full | `close-milestone` |
+
+Before `write-task`, `run-task`, or `close-milestone`, record `target_milestone_id` and the
+exact Goal, Requirement, Design, and Task authority anchors for that Milestone. A downstream
+reference or DocStar edge is context, not authorization: it never expands the execution set or
+the closure gate. If the owner explicitly authorizes multiple Milestones, keep one separately
+owned execution set and closing decision per Milestone.
 
 ## Runtime and role routing
 
@@ -38,12 +44,13 @@ state. Keep the node record and identity refs until `node-complete`.
   repair the artifact.
 - Accepted findings return to the same `author_ref`; blocker rechecks return to the same
   `critic_ref`. Author and Critic communicate only through the orchestrator.
-- `run-task` maintains a rolling ready set and one lane per card. Each lane has its own Coder,
+- `run-task` maintains a rolling ready set for the recorded target Milestone and one lane per
+  owned card. Each lane has its own Coder,
   Reviewer, and Verifier identities; fixes, affected review, and affected verification return
   to those same agents. One Integrator serially owns the integration queue, shared baseline,
   `Task.md`, and traceability.
-- `close-milestone` dispatches independent verification, a closure Author, a combined
-  Critic/Reviewer, and an Integrator after owner acceptance.
+- `close-milestone` dispatches target-scoped independent verification, a closure Author, a
+  combined Critic/Reviewer, and an Integrator after owner acceptance.
 - A platform that cannot resume an identity enters `agent-unavailable`; replacement is
   explicit, and replacing a Critic or Reviewer requires a full review.
 
@@ -119,12 +126,19 @@ understanding. Meaning-preserving mechanical changes use same-batch refresh and 
 checks without reapproval. An explicit equivalence record may let the new anchor retain the
 document approval state by citing the old approved anchor; this is not a new approval.
 
+A closed foundation or M0 Milestone is a historical declaration about its closing anchor, not
+a promise that its technical selection can never change. Later evidence may revise an
+M0-originated Design, Decision, or index under the current owning Milestone: record the trigger,
+old and new anchors, `supersedes`, and impact cone. Keep the M0 state and its old closure anchor
+closed; do not reopen M0 or rerun its complete workflow. The current owning Milestone carries
+the affected implementation and verification.
+
 For a narrow bug or mechanical one-step change, use the controlled bypass: identify scope,
 the smallest authority/acceptance condition, implementation, test, independent review, and
 same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
 milestone initiation, scope expansion, or closure authority.
 
-<HARD-GATE>Never route past a missing prerequisite or redefine upstream meaning in a downstream document. The primary orchestrator may decide, dispatch, adjudicate, accept, and gate, but must not silently perform work assigned to Author, Coder, Reviewer, Verifier, or Integrator. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may decide, dispatch, adjudicate, accept, and gate, but must not silently perform work assigned to Author, Coder, Reviewer, Verifier, or Integrator. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

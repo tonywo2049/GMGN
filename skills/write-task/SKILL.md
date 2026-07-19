@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: implementatio
 
 # Task.md: execution authority
 
-<HARD-GATE>`Design.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-design`. If task planning exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
+<HARD-GATE>`Design.md` must exist and have independent-critic plus primary-orchestrator review. Record `target_milestone_id`; every card must be owned by that Milestone's Task authority. Otherwise return to `write-design`. If task planning exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
 
 ## Language and contract
 
@@ -25,11 +25,22 @@ Use the Design locale and the matching layout-free
 - Each card is the smallest independently reviewable and verifiable unit.
 - Every card has a stable ID, R-AC spec anchor, explicit `depends_on`, failing-first test,
   completion criterion, allowed paths, `write_set`, `conflict_domains`, `runtime_locks`, a
-  semantic owner, and work state `not-started`. Keep the six parser-facing columns unchanged;
-  record the additional execution facts in card content keyed by the same stable ID.
-- `depends_on` forms an acyclic DAG. A card becomes ready only when every predecessor is
-  `node-complete` on the current shared baseline. Order interface/schema changes before their
-  consumers, but do not add artificial ordering between independent cards.
+  semantic owner, exactly one owning Milestone, and work state `not-started`. Keep the six
+  parser-facing columns unchanged; record the additional execution facts in card content
+  keyed by the same stable ID.
+- `depends_on` forms an acyclic DAG. It may name cards in the same Milestone; an external hard
+  prerequisite may only point to an already planned upstream Milestone and never authorizes
+  executing that external card. A current or upstream Milestone must not depend on downstream
+  implementation, confirmation, evidence, or document completion. Such a reverse dependency
+  returns to `write-task` revision mode, and to an upstream authority when its meaning is wrong,
+  before any downstream work starts.
+- If the target Milestone must itself prove technical-selection or architecture feasibility,
+  create a spike or verification card owned by that target Milestone. If responsibility belongs
+  downstream, record a non-blocking TODO or Handoff with receiving Milestone/owner, question,
+  trigger, possible impact or default assumption; do not turn it into the target's prerequisite.
+- A card becomes ready only when every valid predecessor is `node-complete` on the current
+  shared baseline. Order interface/schema changes before their consumers, but do not add
+  artificial ordering between independent cards.
 - `write_set` names intended files and, where useful, stable sections or symbols.
   `conflict_domains` names shared semantic/interface/schema/migration/generated-artifact
   surfaces; `runtime_locks` names exclusive databases, ports, hardware, accounts, or other
@@ -37,11 +48,12 @@ Use the Design locale and the matching layout-free
 - Maintain an AC → task → test → evidence traceability matrix; every in-scope AC is covered.
 - Do not use task prose to redefine Requirement or Design.
 
-Before return, the Author checks that every in-scope AC has at least one card, test, and
+Before return, the Author checks that every target-Milestone AC has at least one card, test, and
 evidence destination; every card has all required facts; prerequisites form no cycle; and
-cards eligible together have compatible `conflict_domains`, `runtime_locks`, and semantic
-ownership. The Author does not freeze waves in `Task.md`; the orchestrator derives a
-rolling ready set from the current shared baseline.
+no reverse dependency points to a downstream Milestone. Cards eligible together have
+compatible `conflict_domains`, `runtime_locks`, and semantic ownership. The Author does not
+freeze waves in `Task.md`; the orchestrator derives a rolling ready set from the current shared
+baseline.
 
 ## Author and critic loop
 
@@ -73,16 +85,17 @@ Meaning-preserving mechanical changes use same-batch link, hash, task reference,
 refresh plus machine checks without reapproval.
 
 If DocStar is available, run `brief <task-id> --preset gmgn-v1 --json` on a representative
-card; otherwise inspect all fixed table columns manually.
+card; otherwise inspect all fixed table columns manually. DocStar reports structural IDs and
+edges; it does not decide Milestone ownership, dependency legality, or closure eligibility.
 
 ## Exit
 
 Require the Author to reconcile the affected matrix and three anchors per changed card. For
 creation or a semantic revision, run the identity-preserving Author/Critic loop using the
 locale-matched dispatch contract, obtain primary-orchestrator review, and integrate. After a
-card or execution set is explicitly confirmed, use **REQUIRED next skill: `run-task`** to
-dispatch every ready card and keep refilling capacity. A revision returns to the stage that
-raised it and continues through the affected path only.
+target-Milestone execution set is explicitly confirmed, use **REQUIRED next skill:
+`run-task`** to dispatch every ready owned card and keep refilling capacity. A revision returns
+to the stage that raised it and continues through the affected path only.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.

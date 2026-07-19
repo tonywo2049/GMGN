@@ -562,6 +562,135 @@ def validate_controlled_change_protocol(
         )
 
 
+def validate_milestone_scope_protocol(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    def contract(text: str, tokens: tuple[str, ...], error: str) -> None:
+        normalized = " ".join(text.split())
+        compact = re.sub(r"\s+", "", text)
+        if any(
+            " ".join(token.split()) not in normalized
+            and re.sub(r"\s+", "", token) not in compact
+            for token in tokens
+        ):
+            errors.append(error)
+
+    method_en = (ROOT / "GMGN.md").read_text(encoding="utf-8")
+    method_zh = (ROOT / "GMGN.zh-CN.md").read_text(encoding="utf-8")
+    contract(
+        method_en,
+        (
+            "target_milestone_id", "exactly one owning Milestone",
+            "never expands the set automatically", "already planned upstream Milestone",
+            "non-blocking TODO/Handoff", "Milestone closure is scoped to the target",
+            "Do not reopen M0 or rerun its complete workflow", "supersedes",
+        ),
+        "GMGN.md: target Milestone 边界契约缺失",
+    )
+    contract(
+        method_zh,
+        (
+            "target_milestone_id", "每张任务卡只有一个 owning Milestone",
+            "不能自动扩张执行集", "外部强前置只能指向已经规划的上游 Milestone",
+            "非阻塞 TODO/Handoff", "关账门禁只看目标 Milestone",
+            "不重开 M0", "supersedes",
+        ),
+        "GMGN.zh-CN.md: target Milestone 边界契约缺失",
+    )
+
+    router = parsed.get("gmgn", ("", ""))[1]
+    contract(
+        router,
+        (
+            "record `target_milestone_id`", "never expands the execution set",
+            "keep one separately owned execution set", "do not reopen M0",
+            "The current owning Milestone carries the affected implementation and verification",
+        ),
+        "gmgn 路由: target Milestone 边界契约缺失",
+    )
+
+    roadmap = parsed.get("roadmap", ("", ""))[1]
+    contract(
+        roadmap,
+        (
+            "independently decidable from work owned by that Milestone",
+            "must not be an earlier Milestone's completion criterion",
+            "non-blocking TODO or Handoff", "old closure anchor closed", "supersedes",
+        ),
+        "roadmap: Milestone 独立完成景象契约缺失",
+    )
+
+    write_task = parsed.get("write-task", ("", ""))[1]
+    contract(
+        write_task,
+        (
+            "exactly one owning Milestone", "already planned upstream Milestone",
+            "A current or upstream Milestone must not depend on downstream",
+            "spike or verification card owned by that target Milestone",
+            "non-blocking TODO or Handoff", "does not decide Milestone ownership",
+        ),
+        "write-task: 跨 Milestone 依赖方向契约缺失",
+    )
+
+    run_task = parsed.get("run-task", ("", ""))[1]
+    contract(
+        run_task,
+        (
+            "recorded `target_milestone_id`",
+            "Cross-milestone references never expand this set automatically",
+            "only from confirmed cards owned by that target Milestone's Task authority",
+            "create separate execution sets", "does not start downstream work",
+            "Downstream execution sets and lanes have separate lifecycle decisions",
+        ),
+        "run-task: target Milestone 执行集契约缺失",
+    )
+
+    close = parsed.get("close-milestone", ("", ""))[1]
+    contract(
+        close,
+        (
+            "Every hard gate is scoped to the recorded `target_milestone_id`",
+            "no lane owned by it may be active", "Downstream work, lanes, documents",
+            "do not block unless they prove", "resource conflict may",
+            "does not alter semantic closure eligibility",
+        ),
+        "close-milestone: target Milestone 关账范围契约缺失",
+    )
+    contract(
+        close,
+        (
+            "DocStar IDs, edges, `brief`, `check`, and `verify` are structural measurements",
+            "do not decide Milestone ownership, dependency legality, or closure eligibility",
+            "A non-zero gate finding blocks only when it is inside the target Milestone scope",
+            "closing candidate introduced or polluted it", "pre-existing external finding as debt",
+        ),
+        "close-milestone: DocStar finding 范围契约缺失",
+    )
+
+    contract(
+        router + roadmap + method_en,
+        (
+            "historical declaration", "old closure anchor closed", "do not reopen M0",
+            "old anchor", "new anchor", "supersedes", "impact cone",
+        ),
+        "M0 历史关账与后续修订契约缺失",
+    )
+
+    for locale, tokens in (
+        (
+            "en",
+            ("Target boundary", "target_milestone_id", "Downstream debt",
+             "Structural measurement boundary", "unrelated pre-existing findings do not"),
+        ),
+        (
+            "zh-CN",
+            ("目标边界", "target_milestone_id", "下游留债", "结构测量边界", "无关既存 finding 不阻断"),
+        ),
+    ):
+        text = (REFERENCES / locale / "pre-close-checklist.md").read_text(encoding="utf-8")
+        contract(text, tokens, f"pre-close-checklist({locale}): target Milestone 契约缺失")
+
+
 def require_tokens(errors: list[str], text: str, tokens: tuple[str, ...], label: str) -> None:
     normalized_text = " ".join(text.split())
     missing = [
@@ -983,6 +1112,7 @@ def main() -> int:
     validate_docstar_adapter(errors)
     validate_lane_registry(errors)
     validate_controlled_change_protocol(errors, parsed)
+    validate_milestone_scope_protocol(errors, parsed)
     validate_agent_lifecycle(errors, parsed)
 
     for name, triggers in EXPECTED_TRIGGERS.items():

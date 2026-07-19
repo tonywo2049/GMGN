@@ -19,6 +19,10 @@ Use the active locale and the matching layout-free
 - Restate only the WhitePaper boundary and invariants needed for sequencing.
 - Define ordered milestones with one qualitative objective, qualitative completion picture,
   dependencies, and work state `not-started`.
+- Make each completion picture independently decidable from work owned by that Milestone.
+  Sequence strong dependencies from earlier Milestones to later consumers; a downstream
+  implementation, confirmation, document, or evidence item must not be an earlier Milestone's
+  completion criterion.
 - Maintain one TODO list for ideas not yet allocated to a milestone.
 - Do not pre-create empty G-R-D-T files for unstarted milestones.
 
@@ -26,6 +30,9 @@ Use the active locale and the matching layout-free
 
 - Closure backfill updates the milestone state and links the closure/Handoff evidence.
 - New ideas enter TODO, then are assigned to a milestone before becoming requirements.
+- Record downstream-only confirmations as a non-blocking TODO or Handoff with receiving
+  Milestone/owner, question, trigger, possible impact, and any safe default assumption. Closure
+  of the producing Milestone does not wait for the consumer to resolve it.
 - For existing pre-GMGN inventory, have the Author record each legacy ID, source, summary,
   target milestone/requirement or pending decision, rationale, and allocation state. Reconcile
   source total = allocated + explicitly rejected + pending, then archive the migration record.
@@ -55,6 +62,10 @@ record. Any semantic ambiguity returns to the full Author/Critic loop.
   resume ROADMAP maintenance only after the required new upstream approval.
 - Revise only ROADMAP-owned sequencing, milestone allocation, dependencies, qualitative
   completion pictures, or TODO placement. Do not reopen unaffected milestones.
+- A later Milestone may supersede a technical selection originating in a closed foundation or
+  M0 Milestone. Keep the historical Milestone and old closure anchor closed; record the current
+  owning Milestone, trigger, old anchor, new anchor, `supersedes`, and impact cone instead of
+  reopening or rerunning M0.
 - A change that alters a decision or reasonable understanding receives independent criticism
   and owner approval at a new anchor. Old approval remains attached to the old anchor.
 - Meaning-preserving mechanical changes use same-batch link, hash, and status refresh plus
@@ -67,7 +78,7 @@ record. Any semantic ambiguity returns to the full Author/Critic loop.
 For creation or a semantic revision, run the identity-preserving Author/Critic loop using the
 locale-matched dispatch contract, present the weakest assumption, obtain owner approval with
 a version anchor, and integrate. A mechanical maintenance batch needs machine checks but no
-new approval. When the owner explicitly starts a milestone, **REQUIRED next skill:
+new approval. When the owner explicitly starts a target Milestone, **REQUIRED next skill:
 `write-goal`**. After a revision, return to the stage that raised it and continue only the
 affected path.
 

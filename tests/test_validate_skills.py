@@ -187,7 +187,7 @@ class ValidateSkillsTests(unittest.TestCase):
         path = self.root / "skills" / "close-milestone" / "SKILL.md"
         original = path.read_text(encoding="utf-8")
         mutations = (
-            ("a non-zero gate finding", "classification_complete is display only"),
+            ("A non-zero gate finding", "classification_complete is display only"),
             ("reuse a registered type/token", "invent any type token"),
         )
 
@@ -202,6 +202,77 @@ class ValidateSkillsTests(unittest.TestCase):
                     "close-milestone: DocStar 或 Handoff 关账门禁缺失",
                     result.stdout,
                 )
+
+    def test_rejects_close_hard_gate_without_target_milestone_scope(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Every hard gate is scoped to the recorded `target_milestone_id`",
+            "Every hard gate is global across the project",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("close-milestone: target Milestone 关账范围契约缺失", result.stdout)
+
+    def test_rejects_run_task_automatic_downstream_expansion(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Cross-milestone references never expand this set automatically",
+            "Cross-milestone references automatically expand this set",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task: target Milestone 执行集契约缺失", result.stdout)
+
+    def test_rejects_write_task_downstream_reverse_dependency(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "A current or upstream Milestone must not depend on downstream",
+            "A current or upstream Milestone may depend on downstream",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task: 跨 Milestone 依赖方向契约缺失", result.stdout)
+
+    def test_rejects_reopening_closed_m0_for_later_revision(self) -> None:
+        path = self.root / "skills" / "gmgn" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "do not reopen M0 or rerun its complete workflow",
+            "reopen M0 and rerun its complete workflow",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("M0 历史关账与后续修订契约缺失", result.stdout)
+
+    def test_rejects_docstar_global_finding_as_closure_blocker(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "A non-zero gate finding blocks only when it is inside the target Milestone\n"
+            "scope or the closing candidate introduced or polluted it",
+            "Any non-zero gate finding anywhere in the corpus blocks closure",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("close-milestone: DocStar finding 范围契约缺失", result.stdout)
 
     def test_rejects_missing_controlled_change_route(self) -> None:
         path = self.root / "skills" / "gmgn" / "SKILL.md"

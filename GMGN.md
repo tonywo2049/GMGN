@@ -241,6 +241,40 @@ Work rows use `not-started | initiated | in-progress | closed`. IDs, filenames, 
 and task-table headers are language-independent. The full contract is in
 [`writing-contract.md`](skills/gmgn/references/en/writing-contract.md).
 
+### 2.4 Milestone ownership and closure boundary
+
+Every workflow run records one `target_milestone_id` and that Milestone's G-R-D-T authority
+anchors. Each card has exactly one owning Milestone. Its execution set contains only cards in
+that Milestone's Task authority which the owner or orchestrator confirmed. A cross-Milestone
+reference does not authorize work and never expands the set automatically. If several
+Milestones are explicitly authorized, they retain separate execution sets, state, and closing
+decisions.
+
+`depends_on` may link cards inside one Milestone. An external hard prerequisite may point only
+to an already planned upstream Milestone and may gate readiness without authorizing its
+execution. A current or upstream Milestone must not depend on downstream implementation,
+confirmation, document completion, or evidence. If a technical-selection or architecture
+feasibility proof is required to satisfy the current Milestone, create a current-Milestone
+spike or verification card. If the responsibility belongs downstream, create a non-blocking
+TODO/Handoff with receiving Milestone/owner, question, trigger, possible impact, and a default
+assumption where useful. Repair a reverse dependency through controlled `write-task` and any
+affected authority before dispatch; do not start the downstream work to satisfy the bad edge.
+
+Milestone closure is scoped to the target: its own cards, ACs, evidence, lanes, locks,
+integration entries, and closing anchor. Downstream work or documents that have not started,
+downstream active lanes, and downstream confirmations or TODOs do not block closure unless
+they show that the target still has an undecided or unproved in-scope criterion. A shared
+resource conflict may delay a mechanical integration or state refresh, but it does not change
+semantic closure eligibility.
+
+A foundation or M0 closure preserves the technical selection and architecture that were
+accepted at its historical closing anchor. It does not make those choices immutable. Later
+Milestone evidence may trigger a controlled revision of an M0-originated Design, Decision, or
+index: record the trigger, old anchor, new anchor, `supersedes`, and impact cone, while the old
+approval and closure remain attached to the old anchor. Do not reopen M0 or rerun its complete
+workflow. The current owning Milestone carries affected implementation and verification, and
+only the impact cone is reviewed, propagated, and tested.
+
 ## 3. Approval and change semantics
 
 Approval attaches to a version anchor: commit, content hash, or equally immutable
@@ -358,7 +392,13 @@ meaning, approve scope, or infer that silence means success.
 
 DocStar is optional and deterministic. With the GMGN convention set it can check links,
 extract the G-R-D-T graph, compile a task brief, and compare English/Chinese locale trees.
-Its JSON uses the stable English `eg-3` contract regardless of display language.
+Its JSON uses the stable English `eg-3` contract regardless of display language. These IDs,
+edges, briefs, checks, and verification results are structural measurements. They do not decide
+Milestone ownership, dependency legality, execution authorization, or closure eligibility.
+GMGN must validate a cross-Milestone edge against ROADMAP, Goal, and the owning Task before
+using it as a gate. For target closure, only target-scoped findings and structural pollution
+introduced by the closing candidate block; unrelated downstream and pre-existing external
+findings are recorded as debt.
 
 ```bash
 python3 docstar.py check --preset gmgn-v1 --corpus <corpus>
@@ -394,13 +434,15 @@ to reduce code.
 4. Initiate one milestone and create `Goal.md`.
 5. Write `Requirement.md`, `Design.md`, and `Task.md` in order, with an independent critic
    and orchestrator review at each transition.
-6. Continuously execute every ready task card, one isolated Coder/Reviewer/Verifier lane per
-   card; serialize only dependencies, incompatible conflict domains or runtime locks, and
-   integration into the shared baseline.
+6. Record the target Milestone and its G-R-D-T anchors, then continuously execute every ready
+   card it owns, one isolated Coder/Reviewer/Verifier lane per card; serialize only valid
+   dependencies, incompatible conflict domains or runtime locks, and integration into the
+   shared baseline.
 7. Review each code increment independently and replay task-level evidence.
-8. Run full regression and milestone E2E.
-9. Use the pre-close checklist, obtain owner acceptance, refresh every state representation,
-   write Handoff, and return to `roadmap`.
+8. Run the regression and E2E required by the target Milestone.
+9. Use the target-scoped pre-close checklist, obtain owner acceptance, refresh its state
+   representations, write Handoff (including non-blocking downstream TODOs), and return to
+   `roadmap`.
 
 Operational contracts and checklists:
 

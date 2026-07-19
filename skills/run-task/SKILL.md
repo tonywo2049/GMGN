@@ -5,7 +5,7 @@ description: "Use when one or more approved task cards are confirmed: continuous
 
 # Run ready task cards continuously
 
-<HARD-GATE>Every dispatched card must exist in a critic-reviewed and orchestrator-reviewed `Task.md`, include the execution facts required by `write-task`, and belong to an owner/orchestrator-confirmed execution set. Otherwise return to `write-task`. A card is ready only after its dependencies are integrated into the shared baseline and its conflict domains and runtime locks are available. If implementation exposes changed upstream meaning, pause only the impact cone and route to its authority; code or Task prose must not silently redefine the specification.</HARD-GATE>
+<HARD-GATE>Every dispatched card must exist in a critic-reviewed and orchestrator-reviewed `Task.md`, include the execution facts required by `write-task`, and belong to an owner/orchestrator-confirmed execution set for a recorded `target_milestone_id`. Cross-milestone references never expand this set automatically. Otherwise return to `write-task`. A card is ready only after its valid upstream dependencies are integrated into the shared baseline and its conflict domains and runtime locks are available. If implementation exposes changed upstream meaning, pause only the impact cone and route to its authority; code or Task prose must not silently redefine the specification.</HARD-GATE>
 
 Use the document locale for status updates and the user's language for conversation. Keep
 all machine tokens and IDs unchanged.
@@ -16,10 +16,19 @@ verification in place of a Verifier, or edit the shared ledger in place of the I
 
 ## 1. Build and continuously refill the ready set
 
-Record one `run_id`, `integration_queue_ref`, and current `shared_baseline_anchor`. For every
-confirmed card, read its `depends_on`, spec/Design anchors, failing test, `write_set`,
+Record one `run_id`, `target_milestone_id`, that Milestone's Goal/Requirement/Design/Task
+anchors, `integration_queue_ref`, and current `shared_baseline_anchor`. Build the execution set
+only from confirmed cards owned by that target Milestone's Task authority. A reference to a
+downstream Milestone, its cards, documents, confirmation, implementation, or evidence is not a
+dispatch instruction. If the owner explicitly authorizes multiple Milestones, create separate
+execution sets and preserve each card's single owning Milestone.
+
+For every in-set card, read its `depends_on`, spec/Design anchors, failing test, `write_set`,
 `conflict_domains`, and `runtime_locks`. Use `docstar brief <card_id> --preset gmgn-v1 --json`
-when available; otherwise read those sources directly.
+when available; otherwise read those sources directly. Treat DocStar IDs and edges as structural
+measurements only. Validate cross-Milestone edges against ROADMAP, Goal, and the owning Task:
+an already planned upstream prerequisite may gate readiness but is never executed implicitly;
+a downstream reverse dependency returns to `write-task` and does not start downstream work.
 
 Recompute the ready set after every agent return, integration, conflict, or block. Fill capacity
 immediately instead of waiting for a card or wave to close. Concurrency is
@@ -239,10 +248,12 @@ When implementation evidence contradicts an approved premise:
 
 ## Exit
 
-Remain in `run-task` while any confirmed card can become ready, any lane is active, or the
-integration queue is non-empty. When all cards are `closed` on one `shared_baseline_anchor`,
-the queue is empty, no lane is active, `rebase-required`, or `integration-conflict`, and
-traceability is full, **REQUIRED next skill: `close-milestone`**.
+Remain in `run-task` while any confirmed target-Milestone card can become ready, any lane owned
+by that Milestone is active, or one of its integration queue entries is pending. When all cards
+owned by `target_milestone_id` are `closed` on one `shared_baseline_anchor`, that Milestone's
+queue entries are empty, none of its lanes is active, `rebase-required`, or
+`integration-conflict`, and its traceability is full, **REQUIRED next skill:
+`close-milestone`**. Downstream execution sets and lanes have separate lifecycle decisions.
 
 End every substantive response with **Reflection**: weakest assumption; neglected
 counterexample; measured versus inferred.
