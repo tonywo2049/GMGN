@@ -2,6 +2,7 @@
 """Validate GMGN skills, bilingual contracts, platform metadata, and DocStar adapter."""
 
 from pathlib import Path
+import ast
 import json
 import re
 import sys
@@ -9,14 +10,16 @@ import tomllib
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from package_release import release_metadata
+
+
 SKILLS = ROOT / "skills"
 REFERENCES = SKILLS / "gmgn" / "references"
-CLAUDE_MANIFEST = ROOT / ".claude-plugin" / "plugin.json"
-CODEX_MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
-CODEX_MARKETPLACE = ROOT / ".agents" / "plugins" / "marketplace.json"
 CODEX_AGENTS = ROOT / ".codex" / "agents"
 CLAUDE_AGENTS = ROOT / "agents"
 DOCSTAR_CONVENTIONS = ROOT / ".docstar" / "conventions" / "conventions.json"
+LANE_REGISTRY = SKILLS / "run-task" / "scripts" / "lane_registry.py"
 
 REQUIRED_OPENAI_INTERFACE_FIELDS = ("display_name", "short_description", "default_prompt")
 ROLE_NAMES = ("author", "coder", "critic", "reviewer", "verifier", "integrator")
@@ -124,30 +127,21 @@ def has_ascii_and_cjk(value: str) -> bool:
 
 def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
     try:
-        claude_manifest = load_json(CLAUDE_MANIFEST)
-        codex_manifest = load_json(CODEX_MANIFEST)
-        marketplace = load_json(CODEX_MARKETPLACE)
-    except AssertionError as exc:
-        errors.append(str(exc))
+        metadata = release_metadata(ROOT)
+    except ValueError as exc:
+        errors.append(f"发布版本门禁失败: {exc}")
         return
+    claude_manifest = metadata["claude_manifest"]
+    codex_manifest = metadata["codex_manifest"]
 
-    for field in ("name", "version"):
-        if claude_manifest.get(field) != codex_manifest.get(field):
-            errors.append(f"双 manifest {field} 不一致")
+    if claude_manifest.get("name") != codex_manifest.get("name"):
+        errors.append("双 manifest name 不一致")
     if codex_manifest.get("skills") not in ("./skills", "./skills/"):
         errors.append("Codex manifest skills 必须指向 ./skills/")
     if not has_ascii_and_cjk(codex_manifest.get("description", "")):
         errors.append("Codex manifest description 必须同时提供英文和中文")
     if not has_ascii_and_cjk(claude_manifest.get("description", "")):
         errors.append("Claude manifest description 必须同时提供英文和中文")
-
-    entries = marketplace.get("plugins", [])
-    if not any(
-        entry.get("name") == codex_manifest.get("name")
-        and entry.get("version") == codex_manifest.get("version")
-        for entry in entries
-    ):
-        errors.append("Codex marketplace 缺少与 manifest 一致的插件条目")
 
     for name in skill_names:
         path = SKILLS / name / "agents" / "openai.yaml"
@@ -314,6 +308,49 @@ def validate_docstar_adapter(errors: list[str]) -> None:
         errors.append("DocStar conventions 未正确排除 GMGN 辅助 kind")
     if any(row and row[0] == "需求AC" for row in conv.get("type_sections", [])):
         errors.append("DocStar conventions 不得把普通 Requirements 小节整体当成需求 AC")
+
+
+def validate_lane_registry(errors: list[str]) -> None:
+    try:
+        text = LANE_REGISTRY.read_text(encoding="utf-8")
+        tree = ast.parse(text, filename=str(LANE_REGISTRY))
+    except (FileNotFoundError, SyntaxError) as exc:
+        errors.append(f"{LANE_REGISTRY}: 缺失或语法无效 ({exc})")
+        return
+
+    allowed_imports = {
+        "__future__", "argparse", "hashlib", "json", "subprocess", "sys",
+        "copy", "datetime", "pathlib", "typing",
+    }
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.update(alias.name.split(".", 1)[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".", 1)[0])
+    unexpected = sorted(imported - allowed_imports)
+    if unexpected:
+        errors.append(f"{LANE_REGISTRY}: lane registry 只能依赖 Python stdlib，发现 {unexpected}")
+
+    require_tokens(
+        errors,
+        text,
+        (
+            'REGISTRY_REF = "refs/gmgn/lane-registry"',
+            '"hash-object", "-w", "--stdin"',
+            '"update-ref", REGISTRY_REF, new_object_id, expected',
+            "project_scope_id", "lane_key", "run_id", "owner_thread_id", "owner_run_id",
+            "ownership_epoch", "coder_ref", "worktree_path", "repository_identity",
+            "git_common_dir", "git_dir", "device", "inode", "object_format",
+            "baseline_missing", "candidate_anchor", "assert_bound_identity",
+            '"claim": claim', '"bind-coder": bind_coder', '"status": status',
+            '"verify": verify', '"anchor": anchor', '"release": release',
+            '"cancel-unbound": cancel_unbound', 'lane["state"] = "released"',
+            'lane["state"] = "cancelled-unbound"',
+            'parser.add_argument("--coder-ref", required=True)', "canonical_directory",
+        ),
+        str(LANE_REGISTRY),
+    )
 
 
 def extract_section(text: str, heading: str) -> str | None:
@@ -550,7 +587,9 @@ def validate_agent_lifecycle(
         "integration-conflict", "rebase-required", "post-integration-verifying",
         "node-complete", "agent-unavailable", "coder-active", "coder-returned",
         "coder-revising", "reviewer-active", "reviewer-returned", "reviewer-rechecking",
-        "verifier-active", "verifier-returned",
+        "verifier-active", "verifier-returned", "owner-unreachable",
+        "candidate-awaiting-anchor", "review-authorized", "worker-create-requested",
+        "worker-queued", "worker-resolved", "worker-bootstrap-returned", "worker-activated",
     )
     role_tokens = (
         "author | coder | critic | reviewer | verifier | researcher | integrator",
@@ -558,9 +597,11 @@ def validate_agent_lifecycle(
         "integrator_ref",
     )
     lane_fields = (
-        "run_id", "card_id", "workspace_mode", "worktree_path", "branch_ref",
-        "baseline_anchor", "candidate_anchor", "write_set", "conflict_domains",
-        "runtime_locks", "integration_queue_ref", "shared_baseline_anchor",
+        "project_scope_id", "lane_key", "owner_thread_id", "owner_run_id",
+        "ownership_epoch", "run_id", "card_id", "workspace_mode", "worktree_path",
+        "branch_ref", "baseline_anchor", "candidate_anchor", "write_set",
+        "conflict_domains", "runtime_locks", "integration_queue_ref",
+        "shared_baseline_anchor", "repository_identity",
     )
     for path in dispatch_paths:
         try:
@@ -597,7 +638,10 @@ def validate_agent_lifecycle(
             "Author, Critic, Coder, Reviewer, Verifier, and Integrator",
             "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "does not require adopting Agent Teams",
             "agent-unavailable", "do not claim a targeted recheck", "same Verifier",
-            "same Integrator",
+            "same Integrator", "cross-task fan-out", "create_thread", "list_threads",
+            "read_thread", "wait_threads", "send_message_to_thread", "read-only",
+            "exactly one card", "recursively create main tasks", "run-scoped authorization",
+            "clientThreadId", "threadId", "hostId", "first blocking wait", "timeoutMs: 0",
         ),
         dispatch_paths[1]: (
             "普通 subagent 默认共享", "isolation: worktree", "Agent Teams", "不自动创建 worktree",
@@ -607,6 +651,10 @@ def validate_agent_lifecycle(
             "环境变量默认值", "Author、Critic、Coder、Reviewer、Verifier、Integrator",
             "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "不等于必须采用", "agent-unavailable",
             "不能声称做原身份的定向复核", "同一 Verifier", "同一 Integrator",
+            "跨任务", "create_thread", "list_threads", "read_thread", "wait_threads",
+            "send_message_to_thread", "只读", "一张卡", "递归创建主任务",
+            "本轮授权", "clientThreadId", "threadId", "hostId", "第一次阻塞等待",
+            "timeoutMs: 0",
         ),
     }
     for path, tokens in adapter_tokens.items():
@@ -619,6 +667,11 @@ def validate_agent_lifecycle(
             "author-active", "author-returned", "candidate-anchored", "critic-active",
             "critic-returned", "author-revising", "critic-rechecking", "author_ref",
             "critic_ref", "agent-unavailable", "Integrator", "node-complete",
+            "lane_key = project_scope_id + card_id", "owner_thread_id", "owner_run_id",
+            "ownership_epoch", "owner-unreachable", "claim/bind/verify",
+            "cross-task fan-out", "worker main task", "read-only bootstrap",
+            "recursively create main tasks", "clientThreadId", "threadId + hostId",
+            "candidate-awaiting-anchor", "review-authorized",
         ),
         "gmgn 路由",
     )
@@ -640,14 +693,17 @@ def validate_agent_lifecycle(
         (
             "coder_ref", "coder-returned", "same Coder", "reviewer_ref", "same Reviewer",
             "reviewer-rechecking", "verifier-active", "verifier-returned", "Integrator",
-            "run_id", "card_id", "workspace_mode", "worktree_path", "branch_ref",
+            "project_scope_id", "lane_key", "owner_thread_id", "owner_run_id",
+            "ownership_epoch", "owner-unreachable", "run_id", "card_id", "workspace_mode",
+            "worktree_path", "branch_ref",
             "write_set", "conflict_domains", "runtime_locks", "integration_queue_ref",
-            "shared_baseline_anchor", "workspace-prepared", "integration-queued",
+            "shared_baseline_anchor", "repository_identity", "workspace-prepared", "integration-queued",
             "integration-conflict", "rebase-required", "post-integration-verifying",
             "git rev-parse --show-toplevel", "does not resolve", "same branch",
             "Recompute the ready set", "instead of waiting for a card or wave to close",
-            "does not write implementation",
-            "node-complete",
+            "does not write implementation", "scripts/lane_registry.py", "update-ref",
+            "node-complete", "cancel-unbound", "candidate-awaiting-anchor",
+            "review-authorized", "clientThreadId", "threadId", "hostId", "timeoutMs: 0",
         ),
         "run-task",
     )
@@ -672,8 +728,31 @@ def validate_agent_lifecycle(
             "after every agent return, integration, conflict, or block",
             "instead of waiting for a card or wave to close",
             "does not stop unrelated lanes",
+            "actual subagent capacity", "explicitly authorized it for this run",
+            "create_thread", "list_threads", "read_thread", "wait_threads",
+            "send_message_to_thread", "create_thread` request before the scheduler's first blocking wait",
+            "read-only", "independent Codex worktree", "claim → bind-coder → verify",
+            "sole owner of the global ready set", "recursively create main tasks",
+            "clientThreadId", "threadId", "hostId", "timeoutMs: 0",
+            "do not infer or hard-code a subagent or wait-target limit",
         ),
         "run-task 滚动补槽",
+    )
+    require_section_tokens(
+        errors,
+        run_task,
+        "## 2. Provision one isolated workspace per card",
+        (
+            "lane_key", "project_scope_id + card_id", "run_id", "owner_thread_id",
+            "owner_run_id", "ownership_epoch", "scripts/lane_registry.py",
+            "refs/gmgn/lane-registry", "Git common metadata", "different Git repository",
+            "update-ref", "compare-and-swap", "atomically `claim`", "canonical `worktree_path`",
+            "Thread-local agent absence", "never prove vacancy", "owner-unreachable",
+            "do not expire, steal, or recreate it automatically", "tombstone",
+            "claim` never accepts `coder_ref", "cancel-unbound", "repository identity",
+            "Git object format", "baseline_anchor` still exists",
+        ),
+        "run-task 全局 lane claim",
     )
     require_section_tokens(
         errors,
@@ -683,6 +762,10 @@ def validate_agent_lifecycle(
             "stages and commits only this card's `write_set`",
             "detached `HEAD`", "unique `branch_ref`", "parseable local commit SHA",
             "immutable `candidate_anchor`", "without any remote write",
+            "registry `anchor`", "registry `verify`", "stale `ownership_epoch`",
+            "rejected before review or integration", "read-only agents",
+            "second writer lane", "candidate-awaiting-anchor", "review-authorized",
+            "missing/wrong `coder_ref`", "write_set",
         ),
         "run-task 候选锚责任",
     )
@@ -722,6 +805,70 @@ def validate_agent_lifecycle(
          "six parser-facing columns unchanged", "rolling ready set"),
         "write-task",
     )
+
+    for path, tokens in (
+        (
+            ROOT / "GMGN.md",
+            (
+                "lane_key", "project_scope_id", "card_id", "run_id", "owner_thread_id",
+                "owner_run_id", "ownership_epoch", "atomic compare-and-swap claim",
+                "canonical `worktree_path`", "Cross-task thread scans", "owner-unreachable",
+                "read-only agents", "cross-task fan-out for this run", "worker",
+                "only owner of the global ready set", "create more main tasks",
+                "clientThreadId", "threadId + hostId", "first blocking wait",
+                "never hard-code", "candidate-awaiting-anchor", "review-authorized",
+            ),
+        ),
+        (
+            ROOT / "GMGN.zh-CN.md",
+            (
+                "lane_key", "project_scope_id", "card_id", "run_id", "owner_thread_id",
+                "owner_run_id", "ownership_epoch", "原子 compare-and-swap claim",
+                "canonical `worktree_path`", "跨任务扫描", "owner-unreachable",
+                "只读共存", "本轮跨任务", "worker", "全局 ready set",
+                "创建主任务", "clientThreadId", "threadId + hostId",
+                "第一次阻塞等待", "不得写死", "candidate-awaiting-anchor",
+                "review-authorized",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "preflight-checklist.md",
+            (
+                "Global writer claim", "lane_key = project_scope_id + card_id",
+                "owner_thread_id", "owner_run_id", "ownership_epoch", "coder_ref",
+                "canonical `worktree_path`", "claim → bind-coder → verify", "only diagnostic",
+                "owner-unreachable", "repository_identity", "baseline_anchor",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "preflight-checklist.md",
+            (
+                "全局 writer claim", "lane_key = project_scope_id + card_id",
+                "owner_thread_id", "owner_run_id", "ownership_epoch", "coder_ref",
+                "canonical `worktree_path`", "claim → bind-coder → verify", "只是一项诊断",
+                "owner-unreachable", "repository_identity", "baseline_anchor",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "pre-merge-checklist.md",
+            (
+                "Ownership freshness", "project_scope_id", "lane_key", "owner_thread_id",
+                "owner_run_id", "ownership_epoch", "coder_ref", "atomic `anchor`",
+                "candidate-awaiting-anchor", "review-authorized", "missing/wrong Coder",
+                "replaced repository rejected before review and integration",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "pre-merge-checklist.md",
+            (
+                "所有权新鲜度", "project_scope_id", "lane_key", "owner_thread_id",
+                "owner_run_id", "ownership_epoch", "coder_ref", "原子 `anchor`",
+                "candidate-awaiting-anchor", "review-authorized", "缺失/错误 Coder",
+                "被替换仓库是否在审查、集成前被拒绝",
+            ),
+        ),
+    ):
+        require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
 
     forbidden_serial = (
         "Execute one task card at a time",
@@ -834,6 +981,7 @@ def main() -> int:
     validate_release_metadata(errors, set(parsed))
     validate_document_pairs(errors)
     validate_docstar_adapter(errors)
+    validate_lane_registry(errors)
     validate_controlled_change_protocol(errors, parsed)
     validate_agent_lifecycle(errors, parsed)
 

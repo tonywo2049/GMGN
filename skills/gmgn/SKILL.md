@@ -52,14 +52,42 @@ candidate-anchored → critic-active → critic-returned`. Accepted findings loo
 `author-revising` with the same Author and, for blockers, `critic-rechecking` with the same
 Critic. Finish through `acceptance-ready → accepted → integrating → node-complete`.
 
-For implementation, keep a map keyed by `run_id` and `card_id`, not one global card state.
+For implementation, keep one project-wide lane. Use
+`lane_key = project_scope_id + card_id` as its identity; `run_id` records an execution attempt
+and does not define uniqueness. Before any writer dispatch, atomically claim and verify the
+card and canonical `worktree_path` in the
+authority project's shared lane registry. Record `owner_thread_id`, `owner_run_id`,
+`ownership_epoch`, and `coder_ref`; a thread-local agent list or cross-task scan is diagnostic,
+not proof that the lane is free. Claim first without Coder identity, then explicitly bind one
+`coder_ref`; every later verify, anchor, or normal release requires that exact ref. Bind the
+implementation repository's Git metadata/stat identity and object format too. Reject returns
+from another owner, a stale epoch, missing/wrong Coder, or a recreated repository path. If the
+owner cannot be confirmed, enter `owner-unreachable` and do not reclaim automatically. Reviewer
+and Verifier may coexist only as read-only agents.
+
 Every return, integration, conflict, or block recomputes the ready set and fills available
 capacity. Concurrency is the minimum of platform concurrency, ready cards, isolated
-workspaces, and exclusive-resource capacity; never hard-code it. A lane records
-`workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`, `candidate_anchor`,
-`write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`, and
-`shared_baseline_anchor`. Its normal tail is `accepted → integration-queued → integrating →
-post-integration-verifying → node-complete`; branch acceptance is not card closure.
+workspaces, and exclusive-resource capacity; never hard-code it. On Codex, fill the current
+task's actual subagent capacity first. If ready cards remain, the owner explicitly authorized
+cross-task fan-out for this run, and create/list/read/wait/send task capabilities exist, create
+one worker main task per remaining lane without waiting for a local slot. Issue all currently
+allowed creates before the first blocking wait. Resolve queued `clientThreadId` to actual
+`threadId + hostId` before wait/claim/activation; preserve all opaque IDs and cursors. Each
+read-only bootstrap owns one prospective lane/worktree and may create one read-only Coder to
+report `coder_ref`. The scheduler alone performs claim/bind/verify and owns the ready set, lane
+registry, integration queue, and shared baseline. A worker cannot mutate registry state,
+recursively create main tasks, adjudicate, accept, integrate, edit `Task.md`, push, or publish.
+Group waits dynamically by runtime capacity, wake on any completion, and refill immediately.
+Without authorization or capabilities, use rolling dispatch in the current task.
+
+A lane also records `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
+`candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
+and `shared_baseline_anchor`. Its normal tail is `accepted → integration-queued → integrating
+→ post-integration-verifying → node-complete`; branch acceptance is not card closure.
+
+Every worker Coder return stops at `candidate-awaiting-anchor`. Only after scheduler verify,
+candidate/path/`write_set` checks, atomic anchor, and an explicit candidate-scoped
+`review-authorized` message may that worker dispatch Reviewer. Revisions repeat the same gate.
 
 The Integrator first applies an accepted local-commit `candidate_anchor` to an isolated
 temporary combination based on the current shared baseline. A baseline advance alone does not

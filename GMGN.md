@@ -60,16 +60,20 @@ Author; blocker resolution uses `critic-rechecking` with the same Critic. Upstre
 uses `upstream-change-pending` while preserving the current Author. Successful review then
 uses `acceptance-ready → accepted → integrating → node-complete`.
 
-Implementation keeps one independent lane per card. Each lane records `run_id`, `card_id`,
-`workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`, `candidate_anchor`,
-`write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`, and
-`shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`. The
+Implementation keeps one independent lane per card across the whole authority project, not
+per conversation. Its `lane_key` is the combination of `project_scope_id` and `card_id`;
+`run_id` records an execution attempt and does not define lane uniqueness. Each lane records
+`project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`, `run_id`,
+`card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
+`candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
+and `shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`. The
 integration queue retains one `integrator_ref`.
 
 The normal card path is `ready-to-dispatch → workspace-prepared → coder-active →
-coder-returned → candidate-anchored → reviewer-active → reviewer-returned → verifier-active →
-verifier-returned → acceptance-ready → accepted → integration-queued → integrating →
-post-integration-verifying → node-complete`. `accepted` means only that the isolated card
+coder-returned → candidate-awaiting-anchor → candidate-anchored → review-authorized →
+reviewer-active → reviewer-returned → verifier-active → verifier-returned → acceptance-ready →
+accepted → integration-queued → integrating → post-integration-verifying → node-complete`.
+`accepted` means only that the isolated card
 candidate may enter the integration queue. A card becomes `closed` only after it is integrated
 into `shared_baseline_anchor`, post-integration verification passes, and the Integrator
 refreshes `Task.md` and traceability.
@@ -98,6 +102,32 @@ dependency integrated into the shared baseline and no incompatible `conflict_dom
 `runtime_locks`. Scheduling is continuous: a wave is an observable snapshot, never a barrier
 that waits for the slowest card.
 
+The authority project's shared lane registry is the machine source of truth across Codex main
+tasks and worktrees. An atomic compare-and-swap claim must succeed before any Coder can write.
+At most one active writer may own a `card_id`, and one canonical `worktree_path` may belong to
+at most one active writer lane. Cross-task thread scans are useful collision diagnostics but
+cannot replace the atomic claim. A return from a different `owner_thread_id` or stale
+`ownership_epoch`, or without the exact bound `coder_ref`, cannot enter review or integration.
+Claim records the worktree's Git metadata/stat identity and object format; every later machine
+operation must match it and prove the original baseline commit still exists. If ownership cannot be confirmed, mark
+`owner-unreachable`; never infer vacancy or reclaim automatically. Reviewer and Verifier may
+coexist as read-only agents against the recorded anchor, but neither becomes a second writer.
+
+On Codex, first fill the current task's actual subagent capacity. If ready cards remain and the
+owner explicitly authorized cross-task fan-out for this run, a scheduler with create/list/read/
+wait/send task capabilities issues every currently allowed worker-main-task creation before its
+first blocking wait. A queued `clientThreadId` is not an active target: resolve it to actual
+`threadId + hostId` and exact worktree facts before waiting on it, claiming its lane, or
+activating writes. Each read-only bootstrap owns exactly one prospective lane and one
+independent Codex worktree, and may create one read-only Coder to report `coder_ref`. The
+scheduler performs `claim → bind-coder → verify`, then activates that same Coder through the
+worker. It remains the only owner of the global ready set, lane registry, integration queue,
+and shared baseline. Workers cannot mutate the registry, create more main tasks, adjudicate,
+accept, integrate, edit `Task.md`, push, or publish. Dynamically group waits by runtime tool
+capacity, wait for any completion, and refill immediately. Without the capabilities or
+run-scoped authorization, keep rolling within the current task; never hard-code a platform
+slot or wait-target count.
+
 Each parallel writing lane uses an explicitly provisioned worktree at an absolute
 `worktree_path`, with either detached `HEAD` or a unique `branch_ref`; the same branch must not
 be attached to multiple worktrees. Before writing, require `git rev-parse --show-toplevel` to
@@ -112,6 +142,11 @@ a resolvable local commit SHA as immutable `candidate_anchor`. Local candidate c
 allowed; remote writes are not. When `workspace_mode: shared` cannot independently anchor each
 writer, parallel agents return proposals or patches instead of editing directly; one recorded
 Author or Coder serially applies, stages, commits, and anchors them.
+
+A worker stops at `candidate-awaiting-anchor` after every initial or revised Coder return. The
+scheduler verifies lane/repository identity, path, candidate commit, and `write_set`, then
+atomically anchors it. Only an explicit `review-authorized` message for that exact candidate and
+epoch lets the worker dispatch Reviewer; old authorization never carries to a revision.
 
 Integration is two-phase. From the clean current `shared_baseline_anchor`, the Integrator
 mechanically applies an accepted lane in an isolated temporary combination workspace. The

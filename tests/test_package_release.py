@@ -15,9 +15,65 @@ ALLOWED_PREFIXES = (
     ".agents/", ".claude-plugin/", ".codex-plugin/", ".docstar/", "agents/", "skills/",
 )
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md", "LICENSE"}
+VERSION_PATHS = (
+    Path(".codex-plugin/plugin.json"),
+    Path(".claude-plugin/plugin.json"),
+    Path(".agents/plugins/marketplace.json"),
+    Path(".claude-plugin/marketplace.json"),
+)
 
 
 class PackageReleaseTests(unittest.TestCase):
+    def copied_repository(self, temporary: str) -> Path:
+        copied_root = Path(temporary) / "repo"
+        shutil.copytree(
+            ROOT,
+            copied_root,
+            ignore=shutil.ignore_patterns(".git", "__pycache__", "dist"),
+        )
+        subprocess.run(["git", "init", "-q"], cwd=copied_root, check=True)
+        return copied_root
+
+    def set_version(self, root: Path, relative_path: Path, version: str) -> None:
+        path = root / relative_path
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if "plugins" in document:
+            plugin_name = json.loads(
+                (root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+            )["name"]
+            matches = [
+                entry
+                for entry in document["plugins"]
+                if entry.get("name", "").casefold() == plugin_name.casefold()
+            ]
+            self.assertEqual(len(matches), 1)
+            matches[0]["version"] = version
+        else:
+            document["version"] = version
+        path.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    def run_copied_packager(
+        self, copied_root: Path, output_dir: Path
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                "python3",
+                str(copied_root / "scripts" / "package_release.py"),
+                "--allow-dirty",
+                "--output-dir",
+                str(output_dir),
+            ],
+            cwd=copied_root,
+            text=True,
+            capture_output=True,
+        )
+
+    def assert_no_release_artifacts(self, output_dir: Path) -> None:
+        self.assertFalse(output_dir.exists() and any(output_dir.iterdir()))
+
     def test_archive_is_deterministic_and_whitelisted(self) -> None:
         version = json.loads((ROOT / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))["version"]
         with tempfile.TemporaryDirectory() as temporary:
@@ -121,40 +177,59 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertEqual(dirty.returncode, 1)
             self.assertIn("工作树不干净", dirty.stderr)
 
-    def test_archive_version_comes_from_codex_manifest(self) -> None:
+    def test_rejects_claude_manifest_version_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            copied_root = Path(temporary) / "repo"
-            shutil.copytree(
-                ROOT,
-                copied_root,
-                ignore=shutil.ignore_patterns(".git", "__pycache__", "dist"),
-            )
-            subprocess.run(["git", "init", "-q"], cwd=copied_root, check=True)
-            codex_manifest_path = copied_root / ".codex-plugin" / "plugin.json"
-            claude_manifest_path = copied_root / ".claude-plugin" / "plugin.json"
-            codex_manifest = json.loads(codex_manifest_path.read_text(encoding="utf-8"))
-            claude_manifest = json.loads(claude_manifest_path.read_text(encoding="utf-8"))
-            claude_manifest["version"] = "99.0.0-test"
-            claude_manifest_path.write_text(
-                json.dumps(claude_manifest, ensure_ascii=False, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            copied_root = self.copied_repository(temporary)
+            self.set_version(copied_root, VERSION_PATHS[1], "0.2.2")
             output_dir = Path(temporary) / "dist"
-            result = subprocess.run(
-                [
-                    "python3",
-                    str(copied_root / "scripts" / "package_release.py"),
-                    "--allow-dirty",
-                    "--output-dir",
-                    str(output_dir),
-                ],
-                cwd=copied_root,
-                text=True,
-                capture_output=True,
-            )
+            result = self.run_copied_packager(copied_root, output_dir)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("四处发布版本不一致", result.stderr)
+            self.assert_no_release_artifacts(output_dir)
+
+    def test_rejects_claude_marketplace_version_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            self.set_version(copied_root, VERSION_PATHS[3], "0.2.2")
+            output_dir = Path(temporary) / "dist"
+            result = self.run_copied_packager(copied_root, output_dir)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("四处发布版本不一致", result.stderr)
+            self.assert_no_release_artifacts(output_dir)
+
+    def test_rejects_codex_marketplace_version_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            self.set_version(copied_root, VERSION_PATHS[2], "0.2.2")
+            output_dir = Path(temporary) / "dist"
+            result = self.run_copied_packager(copied_root, output_dir)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("四处发布版本不一致", result.stderr)
+            self.assert_no_release_artifacts(output_dir)
+
+    def test_rejects_invalid_semver_without_artifacts(self) -> None:
+        for invalid_version in ("01.2.3", "1.2.3-01", "v1.2.3", "1.2"):
+            with self.subTest(version=invalid_version), tempfile.TemporaryDirectory() as temporary:
+                copied_root = self.copied_repository(temporary)
+                for relative_path in VERSION_PATHS:
+                    self.set_version(copied_root, relative_path, invalid_version)
+                output_dir = Path(temporary) / "dist"
+                result = self.run_copied_packager(copied_root, output_dir)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("SemVer 2.0", result.stderr)
+                self.assert_no_release_artifacts(output_dir)
+
+    def test_accepts_semver_prerelease_and_build_metadata(self) -> None:
+        version = "1.2.3-rc.1+build.20260719"
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            for relative_path in VERSION_PATHS:
+                self.set_version(copied_root, relative_path, version)
+            output_dir = Path(temporary) / "dist"
+            result = self.run_copied_packager(copied_root, output_dir)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((output_dir / f"gmgn-{codex_manifest['version']}.zip").is_file())
-            self.assertFalse((output_dir / "gmgn-99.0.0-test.zip").exists())
+            self.assertTrue((output_dir / f"gmgn-{version}.zip").is_file())
+            self.assertTrue((output_dir / f"gmgn-{version}.zip.sha256").is_file())
 
 
 if __name__ == "__main__":

@@ -5,13 +5,28 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
+from typing import Any
 import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = ROOT / ".codex-plugin" / "plugin.json"
+RELEASE_METADATA_PATHS = {
+    "codex_manifest": Path(".codex-plugin/plugin.json"),
+    "claude_manifest": Path(".claude-plugin/plugin.json"),
+    "codex_marketplace": Path(".agents/plugins/marketplace.json"),
+    "claude_marketplace": Path(".claude-plugin/marketplace.json"),
+}
+SEMVER_2_PATTERN = re.compile(
+    r"^(0|[1-9][0-9]*)\."
+    r"(0|[1-9][0-9]*)\."
+    r"(0|[1-9][0-9]*)"
+    r"(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)"
+    r"(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+)
 PACKAGE_PATHS = (
     ".agents",
     ".claude-plugin",
@@ -72,16 +87,104 @@ def worktree_is_dirty() -> bool:
     return bool(result.stdout.strip())
 
 
-def manifest_version() -> str:
+def load_release_json(root: Path, key: str) -> dict[str, Any]:
+    relative_path = RELEASE_METADATA_PATHS[key]
     try:
-        version = json.loads(MANIFEST.read_text(encoding="utf-8"))["version"]
-    except (FileNotFoundError, json.JSONDecodeError, KeyError) as exc:
-        raise ValueError(f"无法从 {MANIFEST.relative_to(ROOT)} 读取版本") from exc
-    if not isinstance(version, str) or not version:
-        raise ValueError("Codex manifest version 必须是非空字符串")
-    if any(character in version for character in "/\\\\"):
-        raise ValueError("Codex manifest version 不能包含路径分隔符")
+        document = json.loads((root / relative_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"发布元数据 JSON 无效或缺失: {relative_path}") from exc
+    if not isinstance(document, dict):
+        raise ValueError(f"发布元数据根必须是对象: {relative_path}")
+    return document
+
+
+def manifest_identity(document: dict[str, Any], path: Path) -> tuple[str, str]:
+    name = document.get("name")
+    version = document.get("version")
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError(f"插件 manifest name 无效: {path}")
+    if not isinstance(version, str):
+        raise ValueError(f"插件 manifest version 无效: {path}")
+    return name, version
+
+
+def unique_marketplace_entry(
+    document: dict[str, Any], path: Path, plugin_name: str
+) -> dict[str, Any]:
+    entries = document.get("plugins")
+    if not isinstance(entries, list):
+        raise ValueError(f"marketplace plugins 必须是数组: {path}")
+    matches = [
+        entry
+        for entry in entries
+        if isinstance(entry, dict)
+        and isinstance(entry.get("name"), str)
+        and entry["name"].casefold() == plugin_name.casefold()
+    ]
+    if len(matches) != 1:
+        raise ValueError(
+            f"marketplace 必须有且只有一个 {plugin_name} 条目: {path}，实际 {len(matches)} 个"
+        )
+    return matches[0]
+
+
+def validate_semver_2(version: Any, source: Path) -> str:
+    if not isinstance(version, str) or SEMVER_2_PATTERN.fullmatch(version) is None:
+        raise ValueError(f"版本不是合法 SemVer 2.0: {source}={version!r}")
     return version
+
+
+def release_metadata(root: Path = ROOT) -> dict[str, Any]:
+    documents = {
+        key: load_release_json(root, key)
+        for key in RELEASE_METADATA_PATHS
+    }
+    codex_name, codex_version = manifest_identity(
+        documents["codex_manifest"], RELEASE_METADATA_PATHS["codex_manifest"]
+    )
+    claude_name, claude_version = manifest_identity(
+        documents["claude_manifest"], RELEASE_METADATA_PATHS["claude_manifest"]
+    )
+    if claude_name != codex_name:
+        raise ValueError(
+            f"双 manifest name 不一致: {codex_name!r} != {claude_name!r}"
+        )
+
+    codex_entry = unique_marketplace_entry(
+        documents["codex_marketplace"],
+        RELEASE_METADATA_PATHS["codex_marketplace"],
+        codex_name,
+    )
+    claude_entry = unique_marketplace_entry(
+        documents["claude_marketplace"],
+        RELEASE_METADATA_PATHS["claude_marketplace"],
+        codex_name,
+    )
+    versions = {
+        RELEASE_METADATA_PATHS["codex_manifest"]: codex_version,
+        RELEASE_METADATA_PATHS["claude_manifest"]: claude_version,
+        RELEASE_METADATA_PATHS["codex_marketplace"]: codex_entry.get("version"),
+        RELEASE_METADATA_PATHS["claude_marketplace"]: claude_entry.get("version"),
+    }
+    validated = {
+        path: validate_semver_2(version, path)
+        for path, version in versions.items()
+    }
+    if len(set(validated.values())) != 1:
+        detail = ", ".join(f"{path}={version}" for path, version in validated.items())
+        raise ValueError(f"四处发布版本不一致: {detail}")
+
+    return {
+        **documents,
+        "codex_marketplace_entry": codex_entry,
+        "claude_marketplace_entry": claude_entry,
+        "plugin_name": codex_name,
+        "version": codex_version,
+    }
+
+
+def manifest_version(root: Path = ROOT) -> str:
+    return release_metadata(root)["version"]
 
 
 def write_archive(destination: Path, files: list[Path]) -> None:

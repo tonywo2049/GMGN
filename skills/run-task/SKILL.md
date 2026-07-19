@@ -27,11 +27,49 @@ immediately instead of waiting for a card or wave to close. Concurrency is
 never hard-code a number. A slow or blocked lane does not stop unrelated lanes. When capacity
 is lower than the ready set, choose by dependency topology and then stable `card_id` order.
 
+On Codex, first fill the current task's actual subagent capacity. If ready cards remain, use
+cross-task fan-out only when the owner explicitly authorized it for this run and the surface
+provides `create_thread`, `list_threads`, `read_thread`, `wait_threads`, and
+`send_message_to_thread`. For every additional lane allowed by current workspace, resource, and
+task-creation capacity, issue its `create_thread` request before the scheduler's first blocking
+wait. A creation-capacity rejection leaves the ready card queued; retry it after any worker or
+local lane completion instead of waiting for all current work to close.
+
+Each creation request enters `worker-create-requested` with an initial prompt that is read-only,
+names exactly one card, forbids a second lane and recursive main-task creation, and requests one
+independent Codex worktree. The bootstrap may create exactly one read-only Coder for that lane,
+but neither may edit. It returns exact repository/worktree facts and `coder_ref`. If
+`create_thread` first returns only queued `clientThreadId`, enter `worker-queued` and preserve
+that opaque ID. Resolve it through non-blocking `list_threads`/`read_thread` observations to an
+actual `threadId` plus `hostId`; before that resolution, do not put it in `wait_threads`, claim a
+lane, or activate writing. Record `clientThreadId`, `threadId`, `hostId`, and every wait cursor
+verbatim; never derive one opaque ID from another.
+
+After the actual task/worktree and bootstrap `coder_ref` are known, move through
+`worker-resolved → worker-bootstrap-returned → lane-claimed → coder-bound → worker-activated`.
+The scheduler alone performs registry `claim → bind-coder → verify`, then uses
+`send_message_to_thread` to activate that worker, which resumes the same Coder with the write
+instruction. The originating scheduler remains the sole owner of the global ready set, lane
+registry, `integration_queue_ref`, `shared_baseline_anchor`, and Integrator. A worker must not
+mutate the registry, recursively create main tasks, adjudicate findings, accept a candidate,
+integrate, edit shared `Task.md` or traceability, push, publish, or accept a second lane.
+
+Only after all currently allowed creation requests have been issued may the scheduler block in
+`wait_threads`. When active workers exceed one call's runtime target limit, partition them by
+that observed capability rather than a method constant. If parallel waits are supported, wait
+on all groups concurrently. Otherwise take a `timeoutMs: 0` snapshot of every group, then rotate
+bounded short waits across groups so none starves. Wake on any completion, update global state,
+and immediately refill local or worker capacity. `list_threads` and `read_thread` are collision
+diagnostics, not a lock. Without the required capability or run-scoped authorization, keep
+rolling within the current task; do not infer or hard-code a subagent or wait-target limit.
+
 ## 2. Provision one isolated workspace per card
 
-Create one lane per `card_id` and record only these workspace/integration facts:
+Create one lane per card across the authority project. Its `lane_key` is
+`project_scope_id + card_id`; `run_id` is execution provenance, not a uniqueness boundary.
+Record `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`,
 `run_id`, `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
+`repository_identity`, `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
 `integration_queue_ref`, and `shared_baseline_anchor`. Add the lane's own `coder_ref`,
 `reviewer_ref`, and `verifier_ref`; retain one `integrator_ref` for the shared integration
 queue.
@@ -47,6 +85,33 @@ switch to the approved commit or rebuild the worktree and recheck. Enter `worksp
 only after both path and baseline checks pass. On return, recheck the current path and verify
 the returned commit through `candidate_anchor`; do not require `HEAD` to remain at the old
 `baseline_anchor`.
+
+Before any Coder receives write permission, run `scripts/lane_registry.py` against the
+authority project's coordination root. That root owns the registry and may be a different Git
+repository from the implementation `worktree_path`. The helper stores JSON runtime state behind
+`refs/gmgn/lane-registry` in the authority repository's Git common metadata; linked worktrees
+and Codex tasks therefore share it, while normal branch commits, status, and pushes do not.
+Its `claim`, `bind-coder`, `status`, `verify`, `anchor`, `release`, and `cancel-unbound`
+operations use Git `update-ref` compare-and-swap and stable English JSON keys. `claim` never
+accepts `coder_ref`; bind it only with the separate `bind-coder` operation. An unbound claim may
+be cancelled only with `cancel-unbound`; normal `release` is reserved for a bound lane and
+requires its exact `coder_ref`.
+
+The global dispatch gate is: provision and validate the worktree; inspect cross-task state for
+diagnostics; atomically `claim` the `card_id` and canonical `worktree_path`; bind the one
+`coder_ref`; then `verify` the exact `owner_thread_id`, `owner_run_id`, `ownership_epoch`,
+`coder_ref`, and path before activation. Reject a claim if either the card or canonical path has
+another active writer. Thread-local agent absence and a clear cross-task scan never prove
+vacancy. If the registered owner cannot be confirmed, enter `owner-unreachable` and stop this
+lane; do not expire, steal, or recreate it automatically. A released lane keeps its tombstone,
+and its next claim increments `ownership_epoch`.
+
+At claim, bind the implementation repository identity as well as the path: canonical Git
+common-dir and git-dir paths, both directories' local stat identities, and Git object format.
+Every `bind-coder`, `verify`, `anchor`, `release`, or `cancel-unbound` recomputes and matches that
+identity and confirms the original `baseline_anchor` still exists. Deleting the path and
+recreating another clone at the same absolute name is a mismatch even when that clone contains
+the same baseline commit.
 
 A worktree isolates files and the Git index. It does not resolve merge conflicts, semantic or
 interface conflicts, or shared runtime resources. With `workspace_mode: shared`, agents must
@@ -64,15 +129,28 @@ implementation, real-call-path evidence, and no edits to shared `Task.md`, trace
 the shared baseline. At `coder-returned`, reject incomplete or out-of-scope work to the same
 Coder. Otherwise the Coder stages and commits only this card's `write_set` in its assigned
 worktree on detached `HEAD` or its unique `branch_ref`, without any remote write. The return
-includes a parseable local commit SHA as immutable `candidate_anchor`; verify it resolves as a
-commit before entering `candidate-anchored`. Uncommitted files, a symbolic branch name, or a
-commit containing unrelated paths is not a candidate anchor.
+includes a parseable local commit SHA as immutable `candidate_anchor`. The worker enters
+`candidate-awaiting-anchor`, stops, and returns the scheduler its exact path, candidate, and
+`write_set` evidence; it must not dispatch Reviewer yet. The scheduler re-runs registry
+`verify` with the exact bound `coder_ref`, confirms repository/path identity, resolves the
+candidate commit, and checks that its diff contains only the card `write_set`. A return from
+another owner, a stale `ownership_epoch`, a missing/wrong `coder_ref`, a changed repository, or
+a different path is rejected before review or integration. Uncommitted files, a symbolic
+branch name, or a commit containing unrelated paths is not a candidate anchor.
 
-Dispatch one independent read-only Reviewer for that lane and retain `reviewer_ref`. Review
-the exact `baseline_anchor..candidate_anchor` card diff. Accepted findings return to the same
-Coder in `coder-revising`; blocker fixes return to the same Reviewer in
-`reviewer-rechecking`. A native surface without resumable identity repeats the full card
-review.
+Only the scheduler may run the atomic registry `anchor`. After it succeeds, enter
+`candidate-anchored`, then send an explicit `review-authorized` message tied to that exact
+`candidate_anchor` and `ownership_epoch`. A worker may dispatch one independent read-only
+Reviewer and retain `reviewer_ref` only after receiving that authorization. Review the exact
+`baseline_anchor..candidate_anchor` card diff. Accepted findings return to the same Coder in
+`coder-revising`; blocker fixes return to the same Reviewer in `reviewer-rechecking`. Every
+revised candidate repeats `candidate-awaiting-anchor → candidate-anchored → review-authorized`;
+authorization for an older candidate cannot authorize review of the new one. A native surface
+without resumable identity repeats the full card review.
+
+Reviewer and Verifier may coexist with the lane only as read-only agents at its recorded
+anchor. They do not claim writer ownership, change `coder_ref`, or make a second worktree into
+a second writer lane.
 
 After review blockers clear, dispatch one independent Verifier as `verifier-active` and
 retain `verifier_ref`. For candidate verification, the dispatch gives that Verifier the card
@@ -135,8 +213,9 @@ candidate. Never expose an unverified temporary combination as the shared baseli
 
 Only now set the card work status to `closed` and the lane to `node-complete`. Update
 `shared_baseline_anchor`, release its locks, delete no worktree until the integrated anchor and
-evidence are recorded, then immediately recompute and refill the ready set. Do not push unless
-explicitly authorized.
+evidence are recorded, then call the registry `release` operation with the exact owner and
+epoch so the tombstone remains while writer ownership and path occupancy are freed. Immediately
+recompute and refill the ready set. Do not push unless explicitly authorized.
 
 ## Upstream change during execution
 

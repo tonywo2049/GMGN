@@ -24,5 +24,12 @@ For each question record `answer | evidence | owner | unresolved`; a checkbox is
    `worktree_path` from the current dispatch; are its `workspace_mode` and `branch_ref`
    accurate; and are the lane's `write_set`, `conflict_domains`, and `runtime_locks`
    compatible with every active lane?
+8. **Global writer claim** — Does the authority-project registry show one active
+   `lane_key = project_scope_id + card_id`, with this exact `owner_thread_id`, `owner_run_id`,
+   `ownership_epoch`, bound `coder_ref`, canonical `worktree_path`, and `repository_identity`;
+   did separate atomic `claim → bind-coder → verify` succeed, and does the original
+   `baseline_anchor` still resolve? A clear thread scan is only diagnostic.
+   `owner-unreachable` is an unresolved blocker, never permission to reclaim. A queued Codex
+   `clientThreadId` must resolve to actual `threadId + hostId` before claim or activation.
 
 Do not start with an unresolved blocker. Every non-blocker has an owner and follow-up point.

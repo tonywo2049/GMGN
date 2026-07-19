@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 from pathlib import Path
 import re
 import shutil
@@ -42,6 +43,45 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(count, 1, f"mutation pattern did not match: {pattern!r}")
         self.assertNotEqual(mutated, text, "mutation did not change fixture")
         return mutated
+
+    def set_release_version(self, relative_path: str, version: str) -> None:
+        path = self.root / relative_path
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if "plugins" in document:
+            plugin_name = json.loads(
+                (self.root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+            )["name"]
+            matches = [
+                entry
+                for entry in document["plugins"]
+                if entry.get("name", "").casefold() == plugin_name.casefold()
+            ]
+            self.assertEqual(len(matches), 1)
+            matches[0]["version"] = version
+        else:
+            document["version"] = version
+        path.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    def test_rejects_claude_marketplace_version_drift(self) -> None:
+        self.set_release_version(".claude-plugin/marketplace.json", "0.2.2")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("四处发布版本不一致", result.stdout)
+
+    def test_rejects_consistent_non_semver_release_version(self) -> None:
+        for relative_path in (
+            ".codex-plugin/plugin.json",
+            ".claude-plugin/plugin.json",
+            ".agents/plugins/marketplace.json",
+            ".claude-plugin/marketplace.json",
+        ):
+            self.set_release_version(relative_path, "01.2.3")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("SemVer 2.0", result.stdout)
 
     def test_rejects_malformed_openai_yaml(self) -> None:
         path = self.root / "skills" / "gmgn" / "agents" / "openai.yaml"
@@ -378,6 +418,64 @@ class ValidateSkillsTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 1)
         self.assertIn("integration_queue_ref", result.stdout)
+
+    def test_rejects_missing_global_lane_claim_gate(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "atomically `claim` the `card_id` and canonical `worktree_path`",
+            "record the card and worktree in local notes",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 全局 lane claim", result.stdout)
+
+    def test_rejects_waiting_for_local_slot_instead_of_codex_fan_out(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "issue its `create_thread` request before the scheduler's first blocking\n"
+            "wait.",
+            "The scheduler waits for every local subagent before creating more work.",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 滚动补槽", result.stdout)
+
+    def test_rejects_stale_lane_epoch_entering_review(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "a stale `ownership_epoch`, a missing/wrong `coder_ref`, a changed repository, or\n"
+            "a different path is rejected before review or integration.",
+            "a stale ownership record may continue into review.",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 候选锚责任", result.stdout)
+
+    def test_rejects_lane_registry_without_git_compare_and_swap(self) -> None:
+        path = self.root / "skills" / "run-task" / "scripts" / "lane_registry.py"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            '"update-ref", REGISTRY_REF, new_object_id, expected',
+            '"symbolic-ref", REGISTRY_REF, new_object_id, expected',
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("lane_registry.py", result.stdout)
 
     def test_rejects_copy_ready_document_skeleton(self) -> None:
         path = self.root / "skills" / "gmgn" / "references" / "en" / "writing-contract.md"

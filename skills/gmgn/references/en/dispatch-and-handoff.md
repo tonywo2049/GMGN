@@ -33,11 +33,15 @@ queue—records and verifies the existing workspace facts `workspace_mode`, `wor
 `branch_ref`. These facts describe the current dispatch, not an agent's permanent identity. A
 document node additionally records `node_id`, `baseline_anchor`, `candidate_anchor`, and the
 needed `author_ref`, `critic_ref`, or `integrator_ref`. An implementation lane records exactly
-`run_id`, `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
+`project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`, `run_id`,
+`card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
+`repository_identity`, `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
 `integration_queue_ref`, and `shared_baseline_anchor`, plus its own `coder_ref`,
 `reviewer_ref`, and `verifier_ref`. The shared integration queue retains one
 `integrator_ref`. Task planning also states `depends_on` and the semantic owner.
+`owner_thread_id` is the main task that owns the writer lane, `owner_run_id` is the scheduler
+run holding the claim, and `coder_ref` is that lane's writer agent; these identities are not
+interchangeable. `run_id` remains execution provenance and is not a uniqueness key.
 
 Every return contains artifacts or findings and replayable evidence; deviations and needed
 decisions; Reflection. Before any repository-writing dispatch enters `workspace-prepared`, run
@@ -70,6 +74,10 @@ Runtime state is separate from document `status` and task work status.
   returned findings, or the same Critic is rechecking accepted blockers.
 - `coder-active`, `coder-returned`, `coder-revising`: the lane's recorded Coder is implementing,
   returned, or revising the card.
+- `candidate-awaiting-anchor`: a Coder returned an initial or revised candidate, but the
+  scheduler has not yet completed identity/diff checks and atomic anchor; Reviewer is forbidden.
+- `review-authorized`: the scheduler anchored the exact candidate and explicitly authorized
+  review for that candidate and ownership epoch.
 - `reviewer-active`, `reviewer-returned`, `reviewer-rechecking`: the lane's independent
   Reviewer is reviewing, returned, or rechecking affected diff.
 - `verifier-active`, `verifier-returned`: the lane's Verifier is executing or returned.
@@ -87,6 +95,11 @@ Runtime state is separate from document `status` and task work status.
 - `node-complete`: artifact, shared baseline, evidence, and representations agree; only now may
   an implementation card become `closed`.
 - `agent-unavailable`: a recorded agent cannot be resumed; replacement rules apply.
+- `owner-unreachable`: an active writer lane's registered owner cannot be confirmed; no new
+  writer may claim, reuse, expire, or steal the lane automatically.
+- `worker-create-requested`, `worker-queued`, `worker-resolved`, `worker-bootstrap-returned`,
+  `lane-claimed`, `coder-bound`, `worker-activated`: Codex cross-main-task startup states; a
+  queued client ID is not an active worker target.
 
 The normal implementation tail is `accepted → integration-queued → integrating →
 post-integration-verifying → node-complete`.
@@ -98,6 +111,23 @@ then fills capacity immediately. Concurrency is the minimum of platform concurre
 cards, isolated workspaces, and exclusive-resource capacity; never hard-code it. Queue order
 is dependency topology and then stable `card_id`. A blocked lane and its descendants wait;
 unrelated lanes continue.
+
+Implementation lane identity is project-wide across main tasks: `lane_key` is
+`project_scope_id + card_id`, while `run_id` is only execution provenance. Before any Coder may
+write, the scheduler must atomically claim both the card and canonical `worktree_path` in the
+authority project's shared lane registry, then verify `owner_thread_id`, `owner_run_id`,
+`ownership_epoch`, `coder_ref`, and path. At most one active writer owns a card or canonical
+path. `claim` has no Coder identity; `bind-coder` explicitly binds one. Every verify, anchor,
+and normal release requires the exact bound `coder_ref`. Only `cancel-unbound` may cancel a
+claim before binding. Cross-task scans are collision diagnostics, not a lock. Reject stale-owner,
+stale-epoch, missing/wrong-Coder, or recreated-repository returns before review or integration.
+Reviewer and Verifier may coexist only as read-only agents against the recorded anchor.
+
+The claim also records canonical Git common-dir and git-dir paths, both directories' local stat
+identities, and object format as `repository_identity`. Every bind, verify, anchor, release, or
+unbound cancellation recomputes that identity and confirms the original `baseline_anchor`
+still exists. Replacing the same absolute path with another clone is not the same repository,
+even if it contains that baseline commit.
 
 For `workspace_mode: worktree`, explicitly provision an absolute `worktree_path` and use
 detached `HEAD` or a unique `branch_ref`. Never attach the same branch to multiple worktrees. A
@@ -119,6 +149,12 @@ document findings return to the same `author_ref`; blockers return to the same `
 Card findings and `integration-conflict` or `rebase-required` return to the same `coder_ref`;
 every affected diff returns to the same `reviewer_ref`; affected verification returns to the
 same `verifier_ref`.
+
+Every initial or revised worker candidate stops at `candidate-awaiting-anchor` and returns to
+the scheduler. The worker cannot mutate the registry or dispatch Reviewer. The scheduler
+verifies the bound lane/repository/path, candidate commit, and `write_set`, performs atomic
+anchor, and then sends candidate-and-epoch-scoped `review-authorized`. Only then may the worker
+dispatch Reviewer. Revision invalidates the preceding authorization and repeats the gate.
 
 One `integrator_ref` serially owns the integration workspace, `integration_queue_ref`, shared
 baseline, `Task.md`, and traceability. Integration is two-phase: from the current clean
@@ -152,7 +188,8 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   unrelated paths are forbidden.
 - **Reviewer** is a general read-only reviewer for an anchored document, code, or milestone
   closure increment. When the active dispatch is a run-task card, it reviews
-  `baseline_anchor..candidate_anchor` and applies the card conflict/recheck rules.
+  `baseline_anchor..candidate_anchor` only after exact `review-authorized`, and applies the card
+  conflict/recheck rules.
 - **Verifier** independently runs the active stage's tests, real paths, negative cases, and
   gates. For a run-task card, the same `verifier_ref` receives the card workspace during
   candidate verification and the Integrator's temporary combination workspace during
@@ -169,6 +206,32 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   send revision or recheck follow-ups to it. Plugin installation does not make bundled
   `.codex/agents` project-scoped, and subagents do not imply workspace isolation; provision
   and pass the absolute worktree explicitly.
+
+  Fill the current task's actual subagent capacity first. If ready cards remain, create worker
+  main tasks only when the owner explicitly authorized cross-task fan-out for this run and
+  `create_thread`, `list_threads`, `read_thread`, `wait_threads`, and
+  `send_message_to_thread` are available. Issue every currently allowed creation request before
+  the first blocking wait. A creation-capacity rejection leaves the lane ready for refill after
+  any completion.
+
+  Each initial worker prompt is read-only, names exactly one card/worktree, forbids recursive
+  main-task creation, and may create one read-only Coder. It returns exact worktree/repository
+  facts and `coder_ref`. Preserve opaque `clientThreadId`, `threadId`, `hostId`, and wait cursor
+  values verbatim. When creation first returns only queued `clientThreadId`, resolve it through
+  non-blocking task observations to actual `threadId + hostId`; before resolution, never put it
+  in `wait_threads`, claim its lane, or activate it. Once resolved and bootstrapped, the scheduler
+  performs `claim → bind-coder → verify`, then sends activation so the worker resumes that same
+  Coder.
+
+  The originating scheduler is the sole global ready-set, lane-registry, integration-queue,
+  shared-baseline, and Integrator owner. Workers cannot mutate the registry, recursively create
+  main tasks, adjudicate, accept, integrate, edit shared `Task.md` or traceability, push, or
+  publish. When workers exceed one `wait_threads` call's runtime target limit, group them by the
+  observed capability. Wait on groups concurrently when supported; otherwise take
+  `timeoutMs: 0` snapshots of every group and rotate bounded waits. Wake on any completion and
+  refill immediately. Without capability or run-scoped authorization, degrade to rolling
+  dispatch in the current task. Never encode a current/default subagent or wait-target count as
+  a method constant.
 - **Claude Code:** ordinary subagents share the primary session's current working directory and
   do not share a scheduler DAG or automatic ready set. The main session issues named `Agent`
   calls for every ready item up to the actual platform capacity before waiting, waits for any
