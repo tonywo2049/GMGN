@@ -55,6 +55,13 @@ class PackageReleaseTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def release_drift_version(self, root: Path) -> str:
+        current = json.loads(
+            (root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )["version"]
+        separator = "." if "+" in current else "+"
+        return f"{current}{separator}test.drift"
+
     def run_copied_packager(
         self, copied_root: Path, output_dir: Path
     ) -> subprocess.CompletedProcess[str]:
@@ -180,7 +187,9 @@ class PackageReleaseTests(unittest.TestCase):
     def test_rejects_claude_manifest_version_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = self.copied_repository(temporary)
-            self.set_version(copied_root, VERSION_PATHS[1], "0.2.2")
+            self.set_version(
+                copied_root, VERSION_PATHS[1], self.release_drift_version(copied_root)
+            )
             output_dir = Path(temporary) / "dist"
             result = self.run_copied_packager(copied_root, output_dir)
             self.assertEqual(result.returncode, 1)
@@ -190,7 +199,9 @@ class PackageReleaseTests(unittest.TestCase):
     def test_rejects_claude_marketplace_version_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = self.copied_repository(temporary)
-            self.set_version(copied_root, VERSION_PATHS[3], "0.2.2")
+            self.set_version(
+                copied_root, VERSION_PATHS[3], self.release_drift_version(copied_root)
+            )
             output_dir = Path(temporary) / "dist"
             result = self.run_copied_packager(copied_root, output_dir)
             self.assertEqual(result.returncode, 1)
@@ -200,7 +211,9 @@ class PackageReleaseTests(unittest.TestCase):
     def test_rejects_codex_marketplace_version_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = self.copied_repository(temporary)
-            self.set_version(copied_root, VERSION_PATHS[2], "0.2.2")
+            self.set_version(
+                copied_root, VERSION_PATHS[2], self.release_drift_version(copied_root)
+            )
             output_dir = Path(temporary) / "dist"
             result = self.run_copied_packager(copied_root, output_dir)
             self.assertEqual(result.returncode, 1)

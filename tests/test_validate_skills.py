@@ -65,8 +65,17 @@ class ValidateSkillsTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def release_drift_version(self) -> str:
+        current = json.loads(
+            (self.root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+        )["version"]
+        separator = "." if "+" in current else "+"
+        return f"{current}{separator}test.drift"
+
     def test_rejects_claude_marketplace_version_drift(self) -> None:
-        self.set_release_version(".claude-plugin/marketplace.json", "0.2.2")
+        self.set_release_version(
+            ".claude-plugin/marketplace.json", self.release_drift_version()
+        )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
         self.assertIn("四处发布版本不一致", result.stdout)
