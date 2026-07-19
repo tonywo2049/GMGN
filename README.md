@@ -125,6 +125,64 @@ claude plugin marketplace add /absolute/path/to/GMGN
 Do not install a manual copy of the same skills at the same time; duplicate installations
 produce duplicate triggers.
 
+## Upgrade
+
+### GitHub marketplace installation
+
+For Codex, refresh the marketplace and check the installed version:
+
+```bash
+codex plugin marketplace upgrade GMGN
+codex plugin list
+```
+
+If the old version is still listed, reinstall the plugin from the refreshed marketplace:
+
+```bash
+codex plugin remove gmgn@GMGN
+codex plugin add gmgn@GMGN
+codex plugin list
+```
+
+For Claude Code, refresh the marketplace and update the plugin:
+
+```bash
+claude plugin marketplace update GMGN
+claude plugin update gmgn@GMGN --scope user
+claude plugin list --json
+```
+
+Replace `user` with the same `user`, `project`, or `local` scope that was used for installation.
+The administrator controls a `managed`-scope installation; an end user cannot update it.
+
+### Local development marketplace
+
+Pull the source repository first, then refresh the installed copies explicitly:
+
+```bash
+git -C /absolute/path/to/GMGN pull --ff-only
+codex plugin remove gmgn@GMGN
+codex plugin add gmgn@GMGN
+codex plugin list
+claude plugin marketplace update GMGN
+claude plugin update gmgn@GMGN --scope user
+claude plugin list --json
+```
+
+For Claude Code, replace `user` with the original installation scope; `managed` scope still
+requires the administrator. Do not run `codex plugin marketplace upgrade GMGN` for a local-path
+marketplace: removing and adding the plugin refreshes its installed copy.
+
+### Release ZIP or manual copy
+
+Marketplace commands do not update a directory unpacked from a release ZIP or copied manually.
+Replace the entire old directory with a freshly unpacked complete release, or migrate to the
+marketplace installation above. Do not overlay files, keep a manual and marketplace copy at the
+same time, or edit platform cache directories.
+
+After any upgrade, start a new Codex task or Claude Code session. An active Claude Code session
+may use `/reload-plugins` when that command is supported.
+
 ## Uninstall
 
 ```bash

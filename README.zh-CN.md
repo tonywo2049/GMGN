@@ -98,6 +98,63 @@ claude plugin marketplace add /absolute/path/to/GMGN
 
 再执行对应平台的安装命令。不要同时安装同一 skill 的手动副本，以免出现重复触发。
 
+## 升级
+
+### 通过 GitHub marketplace 安装
+
+Codex 先刷新 marketplace，再检查已安装版本：
+
+```bash
+codex plugin marketplace upgrade GMGN
+codex plugin list
+```
+
+如果仍显示旧版本，从刷新后的 marketplace 重新安装插件：
+
+```bash
+codex plugin remove gmgn@GMGN
+codex plugin add gmgn@GMGN
+codex plugin list
+```
+
+Claude Code 先刷新 marketplace，再更新插件：
+
+```bash
+claude plugin marketplace update GMGN
+claude plugin update gmgn@GMGN --scope user
+claude plugin list --json
+```
+
+把命令中的 `user` 替换为安装时使用的 `user`、`project` 或 `local` scope。`managed`
+scope 由管理员控制，普通用户不能自行更新。
+
+### 本地开发 marketplace
+
+先更新源仓库，再明确刷新已安装副本：
+
+```bash
+git -C /absolute/path/to/GMGN pull --ff-only
+codex plugin remove gmgn@GMGN
+codex plugin add gmgn@GMGN
+codex plugin list
+claude plugin marketplace update GMGN
+claude plugin update gmgn@GMGN --scope user
+claude plugin list --json
+```
+
+Claude Code 仍须把 `user` 换成原安装 scope；`managed` scope 仍由管理员处理。本地路径
+marketplace 不要执行 `codex plugin marketplace upgrade GMGN`；删除并重新添加插件才能刷新
+已安装副本。
+
+### Release ZIP 或手工副本
+
+上述 marketplace 命令不会更新从 Release ZIP 解压或手工复制的目录。应使用新版本完整包
+整体替换旧目录，或迁移到上面的 marketplace 安装方式。不要叠加覆盖文件、同时保留手工副本
+和 marketplace 副本，也不要修改平台缓存目录。
+
+任何方式升级后都要新建 Codex 任务或 Claude Code 会话；Claude Code 的活动会话可在命令
+受支持时执行 `/reload-plugins`。
+
 ## 卸载
 
 Codex：
