@@ -40,8 +40,8 @@ REMOVED_TEMPLATE_REFERENCES = {
     "allocation-ledger.md", "coder-brief.md", "critic-brief.md",
     "decision-log.md", "trust-surface-register.md",
 }
-DOCUMENT_NODE_SKILLS = (
-    "brainstorm", "roadmap", "write-goal", "write-requirement", "write-design", "write-task",
+SPEC_DOCUMENT_NODE_SKILLS = (
+    "roadmap", "write-goal", "write-requirement", "write-design", "write-task",
 )
 
 EXPECTED_TRIGGERS = {
@@ -859,7 +859,7 @@ def validate_milestone_scope_protocol(
     require_section_tokens(
         errors,
         write_task,
-        "## Author content and self-check",
+        "## Writer content and self-check",
         (
             "exactly one owning Milestone", "already planned upstream Milestone",
             "ROADMAP dependency relationship, not by Milestone ID or numeric order",
@@ -1075,7 +1075,7 @@ def validate_agent_lifecycle(
             "scheduler DAG", "named `Agent`", "waits for any", "general-purpose",
             "SendMessage", "Explore", "Plan", "experimental", "/resume",
             "actual platform capacity", "environment-variable default",
-            "Author, Critic, Coder, Reviewer, Verifier, and Integrator",
+            "Author, Critic, Coder, Reviewer, Verifier, or Integrator",
             "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "does not require adopting Agent Teams",
             "agent-unavailable", "do not claim a targeted recheck", "same Verifier",
             "same Integrator", "cross-task fan-out", "create_thread", "list_threads",
@@ -1103,7 +1103,6 @@ def validate_agent_lifecycle(
     }
     for path, tokens in adapter_tokens.items():
         require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
-
     require_tokens(
         errors,
         parsed.get("gmgn", ("", ""))[1],
@@ -1120,16 +1119,233 @@ def validate_agent_lifecycle(
         "gmgn 路由",
     )
 
-    for name in DOCUMENT_NODE_SKILLS:
+    for name in SPEC_DOCUMENT_NODE_SKILLS:
         require_tokens(
             errors,
             parsed.get(name, ("", ""))[1],
             (
                 "author_ref", "author-returned", "candidate-anchored", "critic-returned",
-                "same Author", "critic-rechecking", "Integrator", "node-complete",
+                "actual writer", "primary session may write directly",
+                "Author may be delegated", "same recorded writer", "independent Critic",
+                "critic-rechecking", "integration boundary", "node-complete",
             ),
             name,
         )
+
+    brainstorm = parsed.get("brainstorm", ("", ""))[1]
+    require_tokens(
+        errors,
+        brainstorm,
+        (
+            "selects and records the actual WhitePaper writer", "Prefer the primary session",
+            "delegate to an Author only when", "author_ref", "primary session",
+            "author-active", "author-returned", "author-rework",
+            "candidate-anchored", "critic-returned", "author-revising",
+            "same recorded writer", "critic-rechecking", "independent Critic",
+            "integration boundary", "recorded writer", "node-complete",
+        ),
+        "brainstorm writer 选择",
+    )
+
+    writer_selection_contracts = (
+        (
+            parsed.get("gmgn", ("", ""))[1],
+            (
+                "For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
+                "selects the actual writer", "Bind `author_ref` to that actual writer",
+                "WhitePaper normally favors the primary session", "independent Critic",
+                "not a required ceremony",
+            ),
+            "gmgn 路由 writer 选择",
+        ),
+        (
+            (ROOT / "GMGN.md").read_text(encoding="utf-8"),
+            (
+                "For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
+                "may write or revise the artifact directly", "optional delegated writer",
+                "actual writer in `author_ref`", "primary session or a delegated Author agent",
+                "no separate Integrator is required", "Critic always remains independent",
+            ),
+            "GMGN.md writer 选择",
+        ),
+        (
+            (ROOT / "GMGN.zh-CN.md").read_text(encoding="utf-8"),
+            (
+                "WhitePaper、ROADMAP、Goal、Requirement、Design、Task",
+                "可由主编排者直接完成", "也可把边界清楚的写作单元委派给 Author",
+                "`author_ref` 绑定到实际 writer", "主 session 或受委派 Author agent",
+                "不必另派 Integrator", "Critic 始终必须独立于实际 writer",
+            ),
+            "GMGN.zh-CN.md writer 选择",
+        ),
+        (
+            (REFERENCES / "en" / "writing-contract.md").read_text(encoding="utf-8"),
+            (
+                "WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
+                "selects the actual writer", "direct authorship",
+                "delegated Author", "Bind `author_ref`", "independent Critic",
+            ),
+            "英文写作契约 writer 选择",
+        ),
+        (
+            (REFERENCES / "zh-CN" / "writing-contract.md").read_text(encoding="utf-8"),
+            (
+                "WhitePaper、ROADMAP、Goal、Requirement、Design、Task",
+                "由主编排者选择", "由主编排者自己写", "才委派 Author",
+                "`author_ref` 绑定实际 writer", "独立 Critic",
+            ),
+            "中文写作契约 writer 选择",
+        ),
+        (
+            dispatch_paths[0].read_text(encoding="utf-8"),
+            (
+                "For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
+                "record the writer choice", "primary session or a delegated Author agent",
+                "not an Author-agent dispatch", "Critic remains independent",
+                "bind `integrator_ref` only when",
+            ),
+            "英文生命周期契约 writer 选择",
+        ),
+        (
+            dispatch_paths[1].read_text(encoding="utf-8"),
+            (
+                "WhitePaper、ROADMAP、Goal、Requirement、Design、Task",
+                "记录 writer 选择", "主 session", "受委派 Author agent",
+                "不是 Author-agent 派发", "Critic 必须独立于实际 writer",
+                "才绑定 `integrator_ref`",
+            ),
+            "中文生命周期契约 writer 选择",
+        ),
+    )
+    for text, tokens, label in writer_selection_contracts:
+        require_tokens(errors, text, tokens, label)
+
+    legacy_fixed_role_separation = (
+        "WhitePaper is the only primary-authored document node",
+        "All downstream document nodes keep an Author agent",
+        "does not extend to ROADMAP or G-R-D-T documents",
+        "白皮书是唯一由主 session 直接写的文档节点",
+        "所有下游文档节点仍使用 Author agent",
+        "这个例外不延伸到 ROADMAP",
+    )
+    mandatory_writer_patterns = (
+        re.compile(
+            r"\b(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task)\b"
+            r"[^.\n]{0,35}\b(?:(?:must|shall)(?:\s+always)?|"
+            r"is\s+(?:always\s+)?required\s+to)\s+be\s+"
+            r"(?:written|authored|edited|revised|repaired)\s+by\s+"
+            r"(?:an?\s+)?Author(?: agent)?\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(?:Every|All|Each)\s+(?:downstream\s+|specification\s+)?document"
+            r"(?:\s+(?:candidate|node|artifact))?s?\b[^.\n]{0,40}"
+            r"\b(?:must|shall|requires?|uses?|keeps?)\b[^.\n]{0,25}"
+            r"\bAuthor(?: agent)?\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task)\b"
+            r"[^.\n]{0,35}\balways\b[^.\n]{0,25}"
+            r"\b(?:requires?|uses?|dispatches?)\b[^.\n]{0,20}"
+            r"\bAuthor(?: agent)?\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(?:Always|Must\s+always|Shall\s+always)\b[^.\n]{0,20}"
+            r"(?:dispatch|use|delegate to)[^.\n]{0,15}\bAuthor(?: agent)?\b"
+            r"[^.\n]{0,70}\b(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task|"
+            r"specification document|document artifact)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\bprimary orchestrator\b"
+            r"(?![^.\n]*\b(?:while|when|if|until|during|only when)\b)"
+            r"[^.\n]{0,30}\b(?:must not|cannot|does not|may not)\b"
+            r"[^.\n]{0,25}(?:draft|write|author|edit|revise|repair)[^.\n]{0,35}"
+            r"\b(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task|"
+            r"specification document|downstream document artifact)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\bAuthor(?: agent)?\b[^.\n]{0,50}\b(?:must|shall|always|required)\b"
+            r"[^.\n]{0,50}\b(?:every|all|each)\s+(?:specification\s+)?document"
+            r"(?:\s+(?:candidate|node|artifact))?s?\b",
+            re.I,
+        ),
+        re.compile(
+            r"(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task|规格文档|下游文档)"
+            r"[^。\n]{0,30}(?:必须|一律|始终)\s*由\s*Author(?: agent)?\s*"
+            r"(?:编写|撰写|修订|编辑|修改)",
+        ),
+        re.compile(
+            r"(?:一律|始终)[^。\n]{0,25}(?:派发|使用|委派)[^。\n]{0,12}Author"
+            r"[^。\n]{0,60}(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task|规格文档|下游文档)",
+        ),
+        re.compile(
+            r"主编排者(?![^。\n]*(?:在[^。\n]*(?:委派|分配|活动|审查)|当|如果|直到|期间))"
+            r"[^。\n]{0,25}(?:不得|不能|不允许|不代做)[^。\n]{0,30}"
+            r"(?:WhitePaper|ROADMAP|Goal|Requirement|Design|Task|规格文档|下游文档|文档写作|文档修订)",
+        ),
+        re.compile(
+            r"Author[^。\n]{0,50}(?:每个|所有)[^。\n]{0,15}(?:规格)?文档"
+            r"(?:候选|节点|产物)?[^。\n]{0,25}(?:必须|一律|始终)",
+        ),
+    )
+    unconditional_integrator_patterns = (
+        re.compile(
+            r"\b(?:Every|All|Each)\s+(?:specification\s+)?document"
+            r"(?:\s+(?:candidate|node|artifact))?s?\b[^.\n]{0,30}"
+            r"\b(?:must|shall|requires?|required)\b[^.\n]{0,20}\bIntegrator\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(?:Always|Must\s+always|Shall\s+always)\b[^.\n]{0,20}(?:dispatch|use)"
+            r"[^.\n]{0,15}\bIntegrator\b[^.\n]{0,60}"
+            r"\b(?:document|specification artifact|WhitePaper|ROADMAP|Goal|Requirement|Design|Task)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\bIntegrator\b[^.\n]{0,50}\b(?:must|shall|always|required)\b"
+            r"[^.\n]{0,50}\b(?:every|all|each)\s+(?:specification\s+)?document"
+            r"(?:\s+(?:candidate|node|artifact))?s?\b",
+            re.I,
+        ),
+        re.compile(
+            r"(?:每个|所有)[^。\n]{0,15}(?:规格)?文档(?:候选|节点|产物)?"
+            r"[^。\n]{0,25}(?:必须|都要|一律)[^。\n]{0,15}Integrator",
+        ),
+        re.compile(
+            r"(?:一律|始终)[^。\n]{0,20}(?:派发|使用)[^。\n]{0,12}Integrator"
+            r"[^。\n]{0,50}(?:文档候选|规格文档|WhitePaper|ROADMAP|Goal|Requirement|Design|Task)",
+        ),
+        re.compile(
+            r"Integrator[^。\n]{0,50}(?:每个|所有)[^。\n]{0,15}(?:规格)?文档"
+            r"(?:候选|节点|产物)?[^。\n]{0,25}(?:必须|一律|始终)",
+        ),
+    )
+    role_policy_paths = (
+        ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md", *dispatch_paths,
+        REFERENCES / "en" / "writing-contract.md",
+        REFERENCES / "zh-CN" / "writing-contract.md",
+        SKILLS / "gmgn" / "SKILL.md", SKILLS / "brainstorm" / "SKILL.md",
+        *(SKILLS / name / "SKILL.md" for name in SPEC_DOCUMENT_NODE_SKILLS),
+        CLAUDE_AGENTS / "author.md", CLAUDE_AGENTS / "integrator.md",
+        CODEX_AGENTS / "author.toml", CODEX_AGENTS / "integrator.toml",
+    )
+    for path in role_policy_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+            continue
+        found = [phrase for phrase in legacy_fixed_role_separation if phrase in text]
+        for pattern in (*mandatory_writer_patterns, *unconditional_integrator_patterns):
+            match = pattern.search(text)
+            if match:
+                found.append(match.group(0))
+        if found:
+            errors.append(f"{path}: 文档 writer 不得退回固定角色分离 {found}")
 
     require_tokens(
         errors,
@@ -1371,14 +1587,18 @@ def validate_agent_lifecycle(
             errors.append(f"{path}: 基线前移被错误升级为无条件 rebase {found}")
 
     general_role_tokens = {
-        "author": (("write-*", "close-milestone", "current dispatch"),
-                   ("write-*", "close-milestone", "当前派发")),
+        "author": (("optional Author", "delegates the writer role", "brainstorm", "write-*",
+                    "close-milestone", "current dispatch"),
+                   ("只有主编排者明确委派 writer 角色时才使用", "brainstorm", "write-*",
+                    "close-milestone", "当前派发")),
         "reviewer": (("run-task", "close-milestone", "current dispatch"),
                      ("run-task", "close-milestone", "当前派发")),
         "verifier": (("run-task", "close-milestone", "current dispatch", "same `verifier_ref`"),
                      ("run-task", "close-milestone", "当前派发", "同一 verifier_ref")),
-        "integrator": (("write-*", "close-milestone", "run-task", "temporary"),
-                       ("write-*", "close-milestone", "run-task", "临时")),
+        "integrator": (("only when the dispatch identifies", "integration boundary",
+                         "write-*", "close-milestone", "run-task", "temporary"),
+                       ("只有 brainstorm 或 write-* 文档候选需要跨", "close-milestone",
+                        "run-task", "临时")),
     }
     for name, (claude_tokens, codex_tokens) in general_role_tokens.items():
         for path, tokens in (
@@ -1410,14 +1630,148 @@ def validate_agent_lifecycle(
     for path, tokens in (
         (
             ROOT / "GMGN.md",
-            ("Node runtime lifecycle", "same Author", "same Critic", "agent-unavailable"),
+            ("Node runtime lifecycle", "same writer", "same Critic", "agent-unavailable"),
         ),
         (
             ROOT / "GMGN.zh-CN.md",
-            ("节点运行态与 agent 身份", "同一 Author", "同一 Critic", "agent-unavailable"),
+            ("节点运行态与 agent 身份", "同一 writer", "同一 Critic", "agent-unavailable"),
         ),
     ):
         require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
+
+
+def validate_self_check_and_risk_disclosure(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    skill_tokens = (
+        "perform a task-specific self-check and correct defects",
+        "Do not output a fixed `Reflection` section",
+        "material unresolved risks",
+        "otherwise omit the disclosure",
+        "Approval, acceptance, and closure always state remaining material risks",
+    )
+    for name, (_, body) in parsed.items():
+        require_tokens(errors, body, skill_tokens, f"{name} 自检与风险披露")
+
+    contracts = (
+        (
+            ROOT / "GMGN.md",
+            (
+                "task's most likely failure modes", "correct every in-scope defect",
+                "self-check is an action, not a report",
+                "three fixed questions are neither required nor exhaustive",
+                "Do not output a fixed `Reflection` section", "never invent uncertainty",
+                "Approval, acceptance, and closure presentations always state",
+                "remaining material risks—or that none are known",
+                "Report residual risk at decisions and closure",
+            ),
+        ),
+        (
+            ROOT / "GMGN.zh-CN.md",
+            (
+                "任务特定自检与风险披露", "当前任务最可能失败的方式", "先直接修正",
+                "固定三问既不是必答项，也不构成完整检查清单", "默认不输出固定 `Reflection` 段",
+                "不得为了填模板编造不确定性", "批准、验收和关账必须说明剩余实质风险",
+                "没有已知风险时引用支持该判断的证据", "裁决与关账呈报剩余风险",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "dispatch-and-handoff.md",
+            (
+                "task-specific failure modes", "corrects every in-scope defect",
+                "does not use a fixed `Reflection` section", "only material unresolved risks",
+                "Omit that disclosure", "approval, acceptance, and closure candidates",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "dispatch-and-handoff.md",
+            (
+                "任务特定失败方式自检", "先修正范围内缺陷", "不输出固定 `Reflection` 段",
+                "只有未解决风险", "没有就省略", "批准、验收和关账候选必须说明剩余实质风险",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "pre-close-checklist.md",
+            ("Residual risk", "cheapest next falsification step", "If none is known"),
+        ),
+        (
+            REFERENCES / "zh-CN" / "pre-close-checklist.md",
+            ("剩余风险", "最便宜的下一步证伪动作", "没有已知风险"),
+        ),
+    )
+    for path, tokens in contracts:
+        require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
+
+    for path in sorted(CLAUDE_AGENTS.glob("*.md")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            continue
+        require_tokens(
+            errors,
+            text,
+            (
+                "task-specific self-check", "fixed `Reflection` section",
+                "material unresolved risks",
+                "change a conclusion, decision, acceptance, or downstream work",
+            ),
+            f"{path} 自检与风险披露",
+        )
+    for path in sorted(CODEX_AGENTS.glob("*.toml")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            continue
+        require_tokens(
+            errors,
+            text,
+            (
+                "任务特定失败方式自检", "不输出固定 Reflection 段",
+                "未解决实质风险足以改变结论、裁决、验收或下游工作",
+            ),
+            f"{path} 自检与风险披露",
+        )
+
+    for name in ("author", "critic", "integrator", "reviewer", "verifier"):
+        for path, tokens in (
+            (
+                CLAUDE_AGENTS / f"{name}.md",
+                ("Closure", "always state", "remaining material risks", "none are known"),
+            ),
+            (
+                CODEX_AGENTS / f"{name}.toml",
+                ("关账", "必须说明剩余实质风险", "没有已知风险"),
+            ),
+        ):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except FileNotFoundError:
+                continue
+            require_tokens(
+                errors,
+                text,
+                tokens,
+                f"{path} 关账风险披露",
+            )
+
+    active_paths = [ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md"]
+    active_paths.extend(SKILLS.rglob("*.md"))
+    active_paths.extend(CLAUDE_AGENTS.glob("*.md"))
+    active_paths.extend(CODEX_AGENTS.glob("*.toml"))
+    legacy_patterns = (
+        r"End every substantive response with \*\*Reflection\*\*",
+        r"(?:\brequire\b|\bmust\s+(?:include|report|answer)\b)[^.\n]{0,80}\bweakest assumption\b",
+        r"known debt,\s+weakest assumption",
+        r"必须(?:回答|包含|呈报)[^。\n]{0,20}最弱假设",
+        r"回传前做 Reflection：",
+        r"old Reflection",
+        r"(?:and|与) Reflection",
+    )
+    for path in active_paths:
+        text = path.read_text(encoding="utf-8")
+        found = [pattern for pattern in legacy_patterns if re.search(pattern, text, re.I)]
+        if found:
+            errors.append(f"{path}: 固定 Reflection 规则回退 {found}")
 
 
 def main() -> int:
@@ -1447,6 +1801,7 @@ def main() -> int:
     validate_controlled_change_protocol(errors, parsed)
     validate_milestone_scope_protocol(errors, parsed)
     validate_agent_lifecycle(errors, parsed)
+    validate_self_check_and_risk_disclosure(errors, parsed)
 
     for name, triggers in EXPECTED_TRIGGERS.items():
         if name not in parsed:
@@ -1458,8 +1813,6 @@ def main() -> int:
             errors.append(f"{name}: description 缺触发词 {missing}")
         if "HARD-GATE" not in body:
             errors.append(f"{name}: 缺 HARD-GATE")
-        if "Reflection" not in body:
-            errors.append(f"{name}: 缺 Reflection")
 
     for name, forbidden in FORBIDDEN_TRIGGER_OVERLAPS.items():
         if name in parsed:

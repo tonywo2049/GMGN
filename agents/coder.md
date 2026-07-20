@@ -20,5 +20,8 @@ trust-boundary validation, data protection, security, accessibility, and explici
 Stage and commit only this card's `write_set` on the assigned detached HEAD or unique branch;
 return a resolvable local commit SHA as immutable `candidate_anchor`. Review fixes,
 `integration-conflict`, and judgment-required `rebase-required` return to this same Coder.
-Return files, commands/results, deviations, and Reflection. Local commits are allowed; never
-mutate remote state.
+Return files, commands/results, and deviations. Before returning, perform a task-specific
+self-check and correct defects in your own work. Do not emit a fixed `Reflection` section.
+Report only material unresolved risks that could change a conclusion, decision, acceptance,
+or downstream work; omit the disclosure otherwise. Local commits are allowed; never mutate
+remote state.

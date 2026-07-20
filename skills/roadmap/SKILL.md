@@ -33,26 +33,29 @@ Use the active locale and the matching layout-free
 - Record downstream-only confirmations as a non-blocking TODO or Handoff with receiving
   Milestone/owner, question, trigger, possible impact, and any safe default assumption. Closure
   of the producing Milestone does not wait for the consumer to resolve it.
-- For existing pre-GMGN inventory, have the Author record each legacy ID, source, summary,
-  target milestone/requirement or pending decision, rationale, and allocation state. Reconcile
-  source total = allocated + explicitly rejected + pending, then archive the migration record.
-  Do not create this layer for new work.
+- For existing pre-GMGN inventory, have the recorded writer capture each legacy ID, source,
+  summary, target milestone/requirement or pending decision, rationale, and allocation state.
+  Reconcile source total = allocated + explicitly rejected + pending, then archive the
+  migration record. Do not create this layer for new work.
 
-## Author and critic loop
+## Writer and critic loop
 
 1. At `ready-to-dispatch`, record the WhitePaper anchor, mode, `node_id`, and content/checklist
-   above; dispatch an Author and retain `author_ref`. The orchestrator does not draft ROADMAP.
+   above. Select the actual writer and bind `author_ref`: the primary session may write
+   directly, or an Author may be delegated when the bounded handoff creates real value.
 2. At `author-returned`, check return completeness and boundaries. Use `author-rework` with
-   the same Author for missing inputs; otherwise create `candidate-anchored`.
+   the same recorded writer for missing inputs; otherwise create `candidate-anchored`.
 3. Dispatch an independent Critic. At `critic-returned`, adjudicate findings; resume the same
-   Author in `author-revising` and the same Critic in `critic-rechecking` for blockers.
+   recorded writer in `author-revising` and the same Critic in `critic-rechecking` for blockers.
 4. With no blocker, enter `acceptance-ready`; owner approval binds the candidate anchor. Use
-   an Integrator for reciprocal links, state, evidence pointers, and commit material, then
-   mark `node-complete`.
+   an Integrator for reciprocal links, state, evidence pointers, and commit material only when
+   the candidate crosses an integration boundary. Otherwise the recorded writer performs the
+   accepted same-batch propagation and machine checks, then marks `node-complete`.
 
-Closure backfill and other meaning-preserving maintenance skip Author/Critic: dispatch an
-Integrator, run machine checks, and preserve the existing approval through an equivalence
-record. Any semantic ambiguity returns to the full Author/Critic loop.
+Closure backfill and other meaning-preserving maintenance skip semantic criticism. The primary
+session may apply the mechanical batch directly; use an Integrator only when it crosses an
+integration boundary. Run machine checks and preserve the existing approval through an
+equivalence record. Any semantic ambiguity returns to the full writer/Critic loop.
 
 ## Controlled revision
 
@@ -76,12 +79,16 @@ record. Any semantic ambiguity returns to the full Author/Critic loop.
 
 ## Exit
 
-For creation or a semantic revision, run the identity-preserving Author/Critic loop using the
-locale-matched dispatch contract, present the weakest assumption, obtain owner approval with
-a version anchor, and integrate. A mechanical maintenance batch needs machine checks but no
+For creation or a semantic revision, run the identity-preserving writer/Critic loop using the
+locale-matched dispatch contract, present remaining material risks or that none are known,
+obtain owner approval with a version anchor, and integrate only when required by workspace
+topology. A mechanical maintenance batch needs machine checks but no
 new approval. When the owner explicitly starts a target Milestone, **REQUIRED next skill:
 `write-goal`**. After a revision, return to the stage that raised it and continue only the
 affected path.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

@@ -12,4 +12,7 @@ first verify the card worktree. Resume the same `verifier_ref` for
 `post-integration-verifying`, but use the Integrator's isolated temporary-combination
 workspace facts. Do not edit source, specification meaning, or status. A skipped, timed-out,
 or unavailable command is not a pass. Return exact evidence, side effects, limitations,
-deviations, and Reflection.
+and deviations. Before returning, perform a task-specific self-check and correct defects in
+your own report. Do not emit a fixed `Reflection` section. Report only material unresolved
+risks that could change a conclusion, decision, acceptance, or downstream work. Closure
+verification always states remaining material risks or that none are known.

@@ -31,18 +31,25 @@ GMGN defines seven execution-separated roles and one optional audit role.
   constitute owner authorization.
 - **Primary orchestrator** understands, decomposes, maintains the rolling ready set,
   dispatches, adjudicates, accepts, and gates. It retains decisions, interface freezes,
-  merge control, and stage transitions. It does not author or repair artifacts assigned to
-  an execution role.
-- **Author** creates or revises one document artifact against a content contract. It chooses
-  the document structure and self-checks before return.
+  merge control, and stage transitions. For WhitePaper, ROADMAP, Goal, Requirement, Design,
+  and Task, it may write or revise the artifact directly when its context makes that the
+  clearest and least wasteful path, or delegate a bounded writing unit to an Author when that
+  produces a real isolation, specialization, or parallelism benefit. These are judgment
+  inputs, not eligibility gates; the primary orchestrator owns the writer choice.
+- **Author** is an optional delegated writer. It creates or revises one document artifact
+  against a content contract, chooses the document structure, and self-checks before return.
+  A document stage does not require an Author-agent dispatch when the primary orchestrator is
+  the recorded writer.
 - **Coder** implements one approved task card and returns code, tests, and replayable evidence.
 - **Critic/reviewer** tries to falsify an anchored artifact and must be independent of its
-  Author/Coder. It reports findings and never edits the reviewed work.
+  actual writer/Coder. It reports findings and never edits the reviewed work.
 - **Verifier** independently executes tests, gates, and real product paths at an anchored
   candidate without changing product meaning or source code.
-- **Integrator** is the single writer for the shared baseline, `Task.md`, and traceability
-  state. It serially integrates accepted lanes and performs only accepted mechanical
-  propagation. Semantic ambiguity or a merge conflict returns to the orchestrator.
+- **Integrator** is required when an accepted candidate must cross an isolated-workspace,
+  concurrent-writer, or shared-baseline integration boundary. For implementation it is the
+  single writer for the shared baseline, `Task.md`, and traceability state. It serially
+  integrates accepted lanes and performs only accepted mechanical propagation. Semantic
+  ambiguity or a merge conflict returns to the orchestrator.
 - **External audit** is optional and introduces a frame from outside the working group.
 
 Stages close against explicit criteria, not dates. Dates may be planning constraints, but
@@ -54,12 +61,22 @@ Runtime state is separate from document approval state and work-item state. Each
 records `node_id`, `state`, `baseline_anchor`, `candidate_anchor`, and the relevant
 `author_ref`, `critic_ref`, `coder_ref`, `reviewer_ref`, `verifier_ref`, or `integrator_ref`.
 
-A document node follows `ready-to-dispatch → workspace-prepared → author-active → author-returned →
-candidate-anchored → critic-active → critic-returned`. An incomplete return uses
-`author-rework` with the same Author. Accepted findings use `author-revising` with that same
-Author; blocker resolution uses `critic-rechecking` with the same Critic. Upstream correction
-uses `upstream-change-pending` while preserving the current Author. Successful review then
-uses `acceptance-ready → accepted → integrating → node-complete`.
+A specification-document node first records its actual writer in `author_ref`: either the
+primary session or a delegated Author agent. It then follows `ready-to-dispatch →
+workspace-prepared → author-active → author-returned → candidate-anchored → critic-active →
+critic-returned`. An incomplete return uses `author-rework` with that same writer. Accepted
+findings use `author-revising` with the same writer; blocker resolution uses
+`critic-rechecking` with the same independent Critic. Upstream correction uses
+`upstream-change-pending` while preserving the current writer.
+
+Successful review enters `acceptance-ready → accepted`. If the accepted candidate must cross
+an isolated-workspace, concurrent-writer, or shared-baseline boundary, continue through
+`integrating → node-complete` with an Integrator. If the recorded writer already owns the
+canonical workspace and can safely perform the accepted same-batch propagation, no separate
+Integrator is required and the node may move from `accepted` to `node-complete` after the
+machine checks pass. WhitePaper normally favors the primary session because it retains the
+complete Brainstorm dialogue, but the same writer-selection rule applies to all six
+specification documents. The Critic always remains independent of the actual writer.
 
 Implementation keeps one independent lane per card across the whole authority project, not
 per conversation. Its `lane_key` is the combination of `project_scope_id` and `card_id`;
@@ -79,8 +96,8 @@ candidate may enter the integration queue. A card becomes `closed` only after it
 into `shared_baseline_anchor`, post-integration verification passes, and the Integrator
 refreshes `Task.md` and traceability.
 
-The primary orchestrator is the hub: Author and Critic, or Coder and Reviewer, do not
-communicate directly. Within one lane the same Coder repairs findings and
+The primary orchestrator is the hub: a delegated Author and Critic, or Coder and Reviewer, do
+not communicate directly. Within one lane the same Coder repairs findings and
 `integration-conflict`, the same Reviewer rechecks affected diffs, and the same Verifier
 reruns affected verification. A shared-baseline advance first receives a mechanical
 application attempt in an isolated temporary combination; use `rebase-required` only when it
@@ -142,7 +159,12 @@ The Coder stages and commits only its card's `write_set` in that assigned worktr
 a resolvable local commit SHA as immutable `candidate_anchor`. Local candidate commits are
 allowed; remote writes are not. When `workspace_mode: shared` cannot independently anchor each
 writer, parallel agents return proposals or patches instead of editing directly; one recorded
-Author or Coder serially applies, stages, commits, and anchors them.
+writer serially applies, stages, commits, and anchors them.
+
+A worker stops at `candidate-awaiting-anchor` after every initial or revised Coder return. The
+scheduler verifies lane/repository identity, path, candidate commit, and `write_set`, then
+atomically anchors it. Only an explicit `review-authorized` message for that exact candidate and
+epoch lets the worker dispatch Reviewer; old authorization never carries to a revision.
 
 A worker stops at `candidate-awaiting-anchor` after every initial or revised Coder return. The
 scheduler verifies lane/repository identity, path, candidate commit, and `write_set`, then
@@ -331,19 +353,33 @@ without a current handoff is not operationally closed.
 3. **One authority per fact.** Other documents point to the authority instead of copying it.
 4. **Hard gates are procedures.** Missing prerequisites route backward; apparent simplicity
    is not a bypass.
-5. **Delegate independent units.** Each dispatch states node identity, scope, boundaries,
-   inputs, content contract, outputs, verification, agent identity, and return format. The
-   orchestrator resumes the same agent for in-node corrections. During implementation, the
-   reviewed `Task.md` card is the only static execution authority: Coder, Reviewer, Verifier,
-   and Integrator receive a minimal runtime dispatch and no parent conversation history. That
-   dispatch cites the card and current lane facts; it is not a per-agent Handoff. The
-   orchestrator continuously dispatches every ready card into an isolated lane and keeps
+5. **Delegate only when delegation creates value.** For specification documents, the
+   orchestrator selects itself or an Author as the actual writer from context completeness,
+   task size, isolation, specialization, and parallelism benefit; delegation is not a
+   correctness gate. Each actual dispatch states node identity, scope, boundaries, inputs,
+   content contract, outputs, verification, agent identity, and return format. The same
+   recorded writer handles in-node corrections. During implementation, the reviewed `Task.md`
+   card is the only static execution authority: Coder, Reviewer, Verifier, and Integrator
+   receive a minimal runtime dispatch and no parent conversation history. That dispatch cites
+   the card and current lane facts; it is not a per-agent Handoff. The orchestrator continuously
+   dispatches every ready card owned by the target Milestone into an isolated lane and keeps
    shared-baseline integration serial.
 6. **Evidence before status.** A claim becomes complete only after the artifact, replayable
    evidence, and all representations agree.
 
-Every substantial response ends with **Reflection**: weakest assumption, neglected
-counterexample, and which claims were measured versus inferred.
+Before every substantive return, the primary orchestrator and every agent check the work
+against the active stage contract, available evidence, and the task's most likely failure
+modes, then correct every in-scope defect they find. The self-check is an action, not a report:
+its process is not emitted, and three fixed questions are neither required nor exhaustive.
+
+Do not output a fixed `Reflection` section. Disclose only unresolved assumptions,
+counterevidence, inference, limitations, or risks that could materially change the conclusion,
+an owner decision, acceptance, or downstream work. Use the form clearest for the task and omit
+the disclosure when no such item remains; never invent uncertainty to fill a template.
+Approval, acceptance, and closure presentations always state the remaining material risks—or
+that none are known. For each reported risk, give its impact, evidence strength, and cheapest
+next falsification step. When none is known, cite the evidence supporting that statement and
+do not invent a hypothetical concern or test merely to fill fields.
 
 ## 5. Adversarial quality
 
@@ -353,9 +389,10 @@ Use one focused falsification round after the author self-check. Findings must i
 location, evidence, impact, a normative correction, and blocking level. Scope the review
 to the changed artifact plus the minimum upstream/downstream context.
 
-Accepted findings return to the same Author. Blocking fixes return to the same Critic for
-targeted recheck; a replacement Critic repeats the full review. This preserves accountability
-without turning recheck into another independent full round.
+Accepted findings return to the same recorded writer, whether that is the primary session or
+a delegated Author. Blocking fixes return to the same Critic for targeted recheck; a
+replacement Critic repeats the full review. This preserves accountability without turning
+recheck into another independent full round.
 
 Two guards prevent review from becoming another authority:
 
@@ -388,10 +425,12 @@ After an incident, fix the local defect and generalize the lesson into the narro
 reusable location: test, checklist question, convention, or design rule. Do not create a
 new framework when one line in an existing authority is sufficient.
 
-### 5.5 Report the weakest assumption
+### 5.5 Report residual risk at decisions and closure
 
-Every approval or closure presentation explicitly names the assumption most likely to
-invalidate the conclusion. This is more useful than a generic confidence statement.
+Apply the §4 disclosure rule unconditionally at approval, acceptance, and closure. Present the
+remaining material risk, its impact, the evidence strength, and the cheapest next falsification
+step. If none is known, say so and cite the evidence supporting closure without manufacturing
+a hypothetical concern.
 
 ## 6. Tool and automation boundaries
 

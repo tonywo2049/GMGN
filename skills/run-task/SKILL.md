@@ -248,7 +248,7 @@ Only after post-integration verification passes does the Integrator refresh `Tas
 traceability, evidence pointers, and upstream state in that isolated candidate. Re-read all
 of `Task.md` and scan stale assertions:
 `not-started`, `pending`, `not created`, `not run`, `awaiting confirmation`, plus
-`待执行`, `未创建`, `未运行`, `待确认`, old output, and old Reflection. Mechanically refresh
+`待执行`, `未创建`, `未运行`, `待确认`, old output, and stale risk or uncertainty statements. Mechanically refresh
 them or explain why they remain true. Run `git diff --check`, link checks, and
 `git status --short`; prepare or create the local integration commit under repository policy.
 After these checks, atomically advance `shared_baseline_anchor` to the verified combined
@@ -289,5 +289,8 @@ queue entries are empty, none of its lanes is active, `rebase-required`, or
 `integration-conflict`, and its traceability is full, **REQUIRED next skill:
 `close-milestone`**. Downstream execution sets and lanes have separate lifecycle decisions.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

@@ -16,27 +16,29 @@ Use the ROADMAP locale unless the owner changes it explicitly. Load the matching
 
 ## One change batch
 
-Dispatch an Author to perform one semantic batch:
+The recorded writer performs one semantic batch:
 
 1. Change the ROADMAP row from `not-started` to `initiated` and record the owner authorization.
 2. Create the milestone directory and `Goal.md` as its single entry document. It must answer:
    objective, boundary, slices, non-goals, qualitative completion picture, document map, and
-   known gaps. The Author chooses the section structure.
+   known gaps. The writer chooses the section structure.
 3. Add reciprocal ROADMAP ↔ Goal links and return one anchored candidate.
 
 Do not create Requirement, Design, or Task content early. Mention absent downstream files
 as gaps; create each only when its stage starts.
 
-## Author and critic loop
+## Writer and critic loop
 
-At `ready-to-dispatch`, record the ROADMAP anchor and owner initiation, then dispatch one
-Author and retain `author_ref`. The orchestrator does not edit Goal or ROADMAP. After
-`author-returned`, send incomplete work to the same Author as `author-rework`; otherwise
-enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
-findings, resume the same Author in `author-revising`, and use the same Critic for blocker
+At `ready-to-dispatch`, record the ROADMAP anchor and owner initiation, select the actual
+writer, and bind `author_ref`. The primary session may write directly, or an Author may be
+delegated when the bounded handoff creates real value. After `author-returned`, send incomplete
+work to the same recorded writer as `author-rework`; otherwise enter `candidate-anchored` and
+dispatch an independent Critic. At `critic-returned`, adjudicate findings, resume the same
+recorded writer in `author-revising`, and use the same Critic for blocker
 `critic-rechecking`. At `acceptance-ready`, the primary orchestrator reviews the anchored
-candidate, then dispatches an Integrator for accepted mechanical propagation and commit
-material. Finish only at `node-complete`.
+candidate. Dispatch an Integrator for accepted mechanical propagation and commit material only
+when the candidate crosses an integration boundary; otherwise the recorded writer completes
+that accepted work and machine checks directly. Finish only at `node-complete`.
 
 ## Controlled revision
 
@@ -60,11 +62,15 @@ machine checks without reapproval.
 
 ## Exit
 
-Require the Author to self-check the ROADMAP boundary and slices. For creation or a semantic
-revision, run the identity-preserving Author/Critic loop using the locale-matched dispatch
-contract, obtain primary-orchestrator review, and integrate. Creation then uses **REQUIRED next skill:
+Require the recorded writer to self-check the ROADMAP boundary and slices. For creation or a
+semantic revision, run the identity-preserving writer/Critic loop using the locale-matched
+dispatch contract, obtain primary-orchestrator review, and integrate only when required by
+workspace topology. Creation then uses **REQUIRED next skill:
 `write-requirement`**. A revision returns to the stage that raised it and continues through
 the affected path only.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

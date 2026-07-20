@@ -1,6 +1,6 @@
 ---
 locale: zh-CN
-purpose: 在不可逆关账宣告前检查实体证据、信任面、正交审查、假设、不变量与状态自洽。
+purpose: 在不可逆关账宣告前检查实体证据、信任面、正交审查、剩余风险、不变量与状态自洽。
 upstream: [GMGN §3](../../../../GMGN.zh-CN.md)
 downstream: none
 status: approved
@@ -20,7 +20,8 @@ English: [../en/pre-close-checklist.md](../en/pre-close-checklist.md)
 3. **信任面归零**：目标 Design 中每个受理点的来源、校验、失败行为、owner 和负向证据
    是否重放？
 4. **正交对抗**：是否至少有一道不共享作者框架的 critic/reviewer/外源视角？
-5. **最弱假设**：哪条假设最可能推翻结论；反例是否被测或明确留债？
+5. **剩余风险**：还有什么未解决风险可能改变关账结论；其影响、证据强度和最便宜的下一步证伪动作是什么？
+   没有已知风险时是否直接写明，而非编造一条？
 6. **不变量族**：目标范围内的不变量是否逐条有正向与负向证据，而非只测 happy path？
 7. **文本与状态自洽**：目标 Task、矩阵、ROADMAP 行、Decision、Handoff、版本锚是否同批刷新？
 8. **集成收敛**：目标 Milestone 的集成队列条目是否为空，是否不存在它拥有的 active、

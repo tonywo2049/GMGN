@@ -14,10 +14,10 @@ Use the Requirement locale and the matching layout-free
 [中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename
 `Design.md`, `type: design`, and `nature: normative`.
 
-## Author content and self-check
+## Writer content and self-check
 
-- Dispatch an Author to inspect the existing repository and real call path before proposing
-  structures. The Author chooses the document layout.
+- Inspect the existing repository and real call path before proposing structures. The recorded
+  writer chooses the document layout.
 - Map every R-AC to modules, interfaces, data, failure paths, and verification points.
 - Define trust boundaries, input validation, concurrency/ordering, migration, rollback,
   observability, security, accessibility, and performance only where the requirements demand them.
@@ -33,16 +33,19 @@ Before return, check the mapping in both directions, trust boundaries and negati
 existing-call-path feasibility, rollback or failure behavior where required, and whether any
 new structure lacks a current R-AC.
 
-## Author and critic loop
+## Writer and critic loop
 
-At `ready-to-dispatch`, record the Requirement anchor and dispatch one Author with the content
-and self-check above; retain `author_ref`. The orchestrator does not draft Design. At
-`author-returned`, return missing or out-of-scope work to the same Author as `author-rework`;
-otherwise enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`,
-adjudicate findings, resume the same Author in `author-revising`, and send blocker fixes to
-the same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
-anchored candidate and dispatches an Integrator for accepted mechanical mappings, links,
-state, and commit material. Finish at `node-complete`.
+At `ready-to-dispatch`, record the Requirement anchor, select the actual writer, and bind
+`author_ref`. The primary session may write directly, or an Author may be delegated with the
+content and self-check above when the bounded handoff creates real value. At `author-returned`,
+return missing or out-of-scope work to the same recorded writer as `author-rework`; otherwise
+enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
+findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
+same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
+anchored candidate. Dispatch an Integrator for accepted mechanical mappings, links, state, and
+commit material only when the candidate crosses an integration boundary; otherwise the
+recorded writer completes that accepted work and machine checks directly. Finish at
+`node-complete`.
 
 ## Controlled revision
 
@@ -65,13 +68,16 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Require the Author to reconcile the affected mapping in both directions: no orphan design and
-no unmapped R-AC. For creation or a semantic revision, run the identity-preserving
-Author/Critic loop using the locale-matched dispatch contract; tell the Critic to emphasize
+Require the recorded writer to reconcile the affected mapping in both directions: no orphan
+design and no unmapped R-AC. For creation or a semantic revision, run the identity-preserving
+writer/Critic loop using the locale-matched dispatch contract; tell the Critic to emphasize
 feasibility, upstream/downstream consistency, and overdesign. Obtain primary-orchestrator
-review and integrate. Creation then uses **REQUIRED next skill:
+review and integrate only when required by workspace topology. Creation then uses **REQUIRED next skill:
 `write-task`**. A revision returns to the stage that raised it and continues through the
 affected path only.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

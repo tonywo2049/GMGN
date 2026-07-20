@@ -53,11 +53,16 @@ Use the locale-matched [dispatch and agent-lifecycle contract](references/en/dis
 or [中文契约](references/zh-CN/dispatch-and-handoff.md). Runtime state is not document or work-item
 state. Keep the node record and identity refs until `node-complete`.
 
-- `brainstorm`, `roadmap`, `write-goal`, `write-requirement`, `write-design`, and `write-task`
-  dispatch an Author, then an independent Critic. The primary orchestrator does not draft or
-  repair the artifact.
+- For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, the primary orchestrator
+  selects the actual writer before writing starts: itself when its context makes direct
+  authorship the clearest and least wasteful path, or a delegated Author when bounded
+  isolation, specialization, or parallelism creates real value. Bind `author_ref` to that
+  actual writer. WhitePaper normally favors the primary session because it holds the complete
+  owner dialogue. These factors guide the orchestrator's judgment; they are not eligibility
+  gates. Every semantic candidate still receives an independent Critic.
 - Accepted findings return to the same `author_ref`; blocker rechecks return to the same
-  `critic_ref`. Author and Critic communicate only through the orchestrator.
+  `critic_ref`. When `author_ref` is the primary session, it applies accepted findings
+  directly; a delegated Author and Critic communicate only through the orchestrator.
 - `run-task` maintains a rolling ready set for the recorded target Milestone and one lane per
   owned card. Each lane has its own Coder,
   Reviewer, and Verifier identities; fixes, affected review, and affected verification return
@@ -68,10 +73,15 @@ state. Keep the node record and identity refs until `node-complete`.
 - A platform that cannot resume an identity enters `agent-unavailable`; replacement is
   explicit, and replacing a Critic or Reviewer requires a full review.
 
-For document nodes, follow `ready-to-dispatch → author-active → author-returned →
-candidate-anchored → critic-active → critic-returned`. Accepted findings loop through
-`author-revising` with the same Author and, for blockers, `critic-rechecking` with the same
-Critic. Finish through `acceptance-ready → accepted → integrating → node-complete`.
+For specification-document nodes, select and bind the actual writer, then follow
+`ready-to-dispatch → author-active → author-returned → candidate-anchored → critic-active →
+critic-returned`. When `author_ref` is the primary session, author states are lifecycle
+checkpoints rather than Author-agent dispatches. Accepted findings loop through
+`author-revising` with the same `author_ref` and, for blockers, `critic-rechecking` with the
+same Critic. Finish through `acceptance-ready → accepted`. Use `integrating → node-complete`
+only when the candidate crosses an isolated-workspace, concurrent-writer, or shared-baseline
+boundary; otherwise the recorded writer may complete accepted same-batch propagation and
+machine checks directly before `node-complete`.
 
 For implementation, keep one project-wide lane. Use
 `lane_key = project_scope_id + card_id` as its identity; `run_id` records an execution attempt
@@ -153,7 +163,10 @@ the smallest authority/acceptance condition, implementation, test, independent r
 same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
 milestone initiation, scope expansion, or closure authority.
 
-<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may decide, dispatch, adjudicate, accept, and gate, but must not silently perform work assigned to Author, Coder, Reviewer, Verifier, or Integrator. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may be the recorded writer for WhitePaper, ROADMAP, Goal, Requirement, Design, or Task, but it must make that writer choice explicit before writing, preserve the independent Critic, and must not silently take over work already assigned to another writer. It must not perform Coder, Reviewer, or Verifier work in place of those independent roles. An Integrator is mandatory whenever an accepted candidate crosses an isolated-workspace, concurrent-writer, or shared-baseline boundary; otherwise it is not a required ceremony. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

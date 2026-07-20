@@ -1,6 +1,6 @@
 ---
 locale: en
-purpose: Check real evidence, trust surfaces, orthogonal review, assumptions, invariants, and state consistency before irreversible closure.
+purpose: Check real evidence, trust surfaces, orthogonal review, residual risk, invariants, and state consistency before irreversible closure.
 upstream: [GMGN §3](../../../../GMGN.md)
 downstream: none
 status: approved
@@ -20,7 +20,9 @@ nature: normative
 3. **Trust surfaces closed** — Was each target Design acceptance point's source, validation,
    failure behavior, owner, and negative evidence replayed?
 4. **Orthogonal challenge** — Did at least one critic, reviewer, or external source use a frame independent of the author?
-5. **Weakest assumption** — Which assumption most threatens the conclusion; was its counterexample tested or recorded as debt?
+5. **Residual risk** — Which unresolved risk could still change closure; what is its impact,
+   evidence strength, and cheapest next falsification step? If none is known, is that stated
+   without inventing one?
 6. **Invariant family** — Does each target-level invariant have positive and negative evidence, not only a happy path?
 7. **Text and state consistency** — Were the target Task, matrix, ROADMAP row, Decision,
    Handoff, and version anchors refreshed together?

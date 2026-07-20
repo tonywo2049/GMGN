@@ -14,10 +14,10 @@ Use the Goal locale and the matching layout-free
 [中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename
 `Requirement.md`, `type: requirement`, and `nature: normative`.
 
-## Author content and self-check
+## Writer content and self-check
 
-- Dispatch an Author to translate every in-scope Goal slice into numbered requirements
-  `R1`, `R2`, ...; the Author chooses the document structure.
+- Translate every in-scope Goal slice into numbered requirements `R1`, `R2`, ...; the recorded
+  writer chooses the document structure.
 - Give each requirement decidable ACs `R1-AC1`, ... using observable precondition, action,
   and result. This is the qualitative-to-quantitative boundary.
 - Separate functional, non-functional, parameter/constraint, non-goal, and open-decision sections.
@@ -25,20 +25,23 @@ Use the Goal locale and the matching layout-free
 - Maintain a Goal ↔ R/AC traceability table. No orphan Goal slice and no unowned AC.
 - For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
 
-Before return, the Author checks that every Goal slice is covered or explicitly excluded,
-every AC is decidable and owned, no requirement prescribes an implementation structure, and
-every number has an authority and verification method.
+Before return, the recorded writer checks that every Goal slice is covered or explicitly
+excluded, every AC is decidable and owned, no requirement prescribes an implementation
+structure, and every number has an authority and verification method.
 
-## Author and critic loop
+## Writer and critic loop
 
-At `ready-to-dispatch`, record the Goal anchor and dispatch one Author with the content and
-self-check above; retain `author_ref`. The orchestrator does not draft Requirement. At
-`author-returned`, send incomplete or out-of-scope work to the same Author as `author-rework`;
-otherwise enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`,
-adjudicate findings, resume the same Author in `author-revising`, and send blocker fixes to
-the same Critic in `critic-rechecking`. When no blocker remains, the primary orchestrator
-reviews the candidate and dispatches an Integrator for accepted mechanical links, mappings,
-state, and commit material. Finish at `node-complete`.
+At `ready-to-dispatch`, record the Goal anchor, select the actual writer, and bind `author_ref`.
+The primary session may write directly, or an Author may be delegated with the content and
+self-check above when the bounded handoff creates real value. At `author-returned`, send
+incomplete or out-of-scope work to the same recorded writer as `author-rework`; otherwise enter
+`candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
+findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
+same Critic in `critic-rechecking`. When no blocker remains, the primary orchestrator
+reviews the candidate. Dispatch an Integrator for accepted mechanical links, mappings, state,
+and commit material only when the candidate crosses an integration boundary; otherwise the
+recorded writer completes that accepted work and machine checks directly. Finish at
+`node-complete`.
 
 ## Controlled revision
 
@@ -60,12 +63,16 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Require the Author to reconcile scope coverage and scan every affected AC for decidability.
-For creation or a semantic revision, run the identity-preserving Author/Critic loop using the
-locale-matched dispatch contract; tell the Critic to emphasize upstream consistency and
-acceptance quality. Obtain primary-orchestrator review and integrate. Creation then uses **REQUIRED next skill:
+Require the recorded writer to reconcile scope coverage and scan every affected AC for
+decidability. For creation or a semantic revision, run the identity-preserving writer/Critic
+loop using the locale-matched dispatch contract; tell the Critic to emphasize upstream
+consistency and acceptance quality. Obtain primary-orchestrator review and integrate only
+when required by workspace topology. Creation then uses **REQUIRED next skill:
 `write-design`**. A revision returns to the stage that raised it and continues through the
 affected path only.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

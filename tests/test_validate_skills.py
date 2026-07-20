@@ -385,10 +385,10 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-design 修订态: 受控变更规则缺失", result.stdout)
 
-    def test_rejects_new_author_for_review_fixes(self) -> None:
+    def test_rejects_new_writer_for_review_fixes(self) -> None:
         path = self.root / "skills" / "write-requirement" / "SKILL.md"
         text = self.replace_required(
-            path.read_text(encoding="utf-8"), "same Author", "replacement Author"
+            path.read_text(encoding="utf-8"), "same recorded writer", "replacement writer"
         )
         path.write_text(text, encoding="utf-8")
 
@@ -396,6 +396,277 @@ class ValidateSkillsTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-requirement: 缺 agent 生命周期约束", result.stdout)
+
+    def test_rejects_mandatory_author_for_whitepaper(self) -> None:
+        path = self.root / "skills" / "brainstorm" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Prefer the primary\nsession because it already holds the complete Brainstorm context",
+            "Always delegate to an Author agent even when the primary\nsession already holds the complete Brainstorm context",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("brainstorm writer 选择", result.stdout)
+
+    def test_rejects_fixed_downstream_author_separation(self) -> None:
+        path = self.root / "skills" / "gmgn" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nAll downstream document nodes keep an Author agent.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_appended_mandatory_author_rule(self) -> None:
+        path = self.root / "skills" / "roadmap" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nROADMAP must be written by an Author agent.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_each_specification_document_requiring_author(self) -> None:
+        path = self.root / "skills" / "roadmap" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nEach specification document must use an Author agent.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_appended_chinese_mandatory_author_rule(self) -> None:
+        path = self.root / "GMGN.zh-CN.md"
+        text = path.read_text(encoding="utf-8") + "\nRequirement 必须由 Author agent 编写。\n"
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_unconditional_document_integrator(self) -> None:
+        path = self.root / "skills" / "write-design" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "only when the candidate crosses an integration boundary; otherwise the",
+            "for every document candidate; the",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-design: 缺 agent 生命周期约束", result.stdout)
+
+    def test_rejects_appended_unconditional_document_integrator(self) -> None:
+        path = self.root / "skills" / "write-design" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nEvery document candidate requires an Integrator.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_each_document_candidate_requiring_integrator(self) -> None:
+        path = self.root / "skills" / "write-design" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nEach document candidate requires an Integrator.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_allows_implementation_and_closure_role_boundaries(self) -> None:
+        path = self.root / "skills" / "gmgn" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nThe orchestrator does not draft implementation code.\n"
+            "Every implementation card requires an Integrator.\n"
+            "Closure requires a closure Author and an Integrator.\n"
+            "主编排者不代做编码。\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_allows_conditional_document_role_guards(self) -> None:
+        path = self.root / "skills" / "gmgn" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nFor ROADMAP, the orchestrator must dispatch an Author only when writing was delegated.\n"
+            "ROADMAP must receive a new anchor when revised by an Author agent.\n"
+            "The primary orchestrator must not edit ROADMAP while its delegated Author is active.\n"
+            "Must use an Integrator only when a document candidate crosses an integration boundary.\n"
+            "Requirement 必须在写作已委派时使用 Author。\n"
+            "主编排者不得在受委派 Author 活动时编辑 ROADMAP。\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_rejects_claude_author_mandatory_for_every_document(self) -> None:
+        path = self.root / "agents" / "author.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nThis Author is required for every document node.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_claude_integrator_mandatory_for_every_document(self) -> None:
+        path = self.root / "agents" / "integrator.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nThis Integrator is required for every document candidate.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_codex_author_mandatory_for_every_document(self) -> None:
+        path = self.root / ".codex" / "agents" / "author.toml"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            '\n"""\n',
+            '\nAuthor 每个规格文档节点都必须使用。\n"""\n',
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_codex_integrator_mandatory_for_every_document(self) -> None:
+        path = self.root / ".codex" / "agents" / "integrator.toml"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            '\n"""\n',
+            '\nIntegrator 每个规格文档候选都必须使用。\n"""\n',
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+
+    def test_rejects_writer_self_review_in_document_stage(self) -> None:
+        path = self.root / "skills" / "write-goal" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "dispatch an independent Critic",
+            "have the recorded writer self-review",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-goal: 缺 agent 生命周期约束", result.stdout)
+
+    def test_rejects_missing_task_specific_self_check(self) -> None:
+        path = self.root / "skills" / "brainstorm" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "perform a task-specific self-check and correct defects",
+            "write a generic compliance summary",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("brainstorm 自检与风险披露", result.stdout)
+
+    def test_rejects_fixed_reflection_footer(self) -> None:
+        path = self.root / "skills" / "brainstorm" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nEnd every substantive response with **Reflection**: "
+            "weakest assumption; neglected counterexample.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("固定 Reflection 规则回退", result.stdout)
+
+    def test_rejects_fixed_weakest_assumption_field(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + "\nRequire a weakest assumption field.\n"
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("固定 Reflection 规则回退", result.stdout)
+
+    def test_allows_task_specific_weakest_assumption_disclosure(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nA reported material risk may identify its actual weakest assumption.\n"
+            "Requirement evidence shows the actual weakest assumption is material.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_rejects_role_risk_trigger_without_conclusion(self) -> None:
+        path = self.root / "agents" / "coder.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "change a conclusion, decision, acceptance,\nor downstream work",
+            "change a decision, acceptance,\nor downstream work",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agents/coder.md 自检与风险披露", result.stdout)
+
+    def test_rejects_closure_author_without_unconditional_risk_disclosure(self) -> None:
+        path = self.root / "agents" / "author.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Closure-author returns always state remaining material risks or that none are known.",
+            "Closure-author returns follow the ordinary disclosure rule.",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agents/author.md 关账风险披露", result.stdout)
 
     def test_rejects_orchestrator_taking_over_execution(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"

@@ -10,4 +10,8 @@ consistency, upstream/downstream consistency, decidability, normative/descriptiv
 contamination, and overdesign. Every finding states location, evidence, impact, required
 correction, and blocker level. On targeted recheck, inspect only the accepted blocker fixes
 and unintended substantive additions. Return findings or explicit no-findings coverage,
-conflicts needing a ruling, and Reflection.
+and conflicts needing a ruling. Before returning, perform a task-specific self-check and
+correct defects in your own report. Do not emit a fixed `Reflection` section. Report only
+material unresolved risks that could change a conclusion, decision, acceptance, or downstream
+work; omit the disclosure otherwise. Closure reviews always state remaining material risks or
+that none are known.

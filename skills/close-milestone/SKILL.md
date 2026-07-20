@@ -25,9 +25,11 @@ independent Verifier as
 - return as `verifier-returned` without changing source code or product meaning.
 
 After evidence returns, dispatch a closure Author and retain `author_ref`. The Author prepares
-the anchored closure candidate: scope reconciliation, evidence map, known debt, weakest
-assumption, proposed Handoff, and proposed state changes. The Author chooses the document
-structure and must not mark anything closed before owner acceptance.
+the anchored closure candidate: scope reconciliation, evidence map, known debt, remaining
+material risks or an explicit none-known statement, proposed Handoff, and proposed state
+changes. Each reported risk includes its impact, evidence strength, and cheapest next
+falsification step; a none-known statement cites supporting closure evidence. The Author
+chooses the document structure and must not mark anything closed before owner acceptance.
 
 ## Three closure disciplines
 
@@ -85,8 +87,8 @@ DocStar is absent, run equivalent repository link/table checks and disclose that
 
 ## Presentation and close
 
-Present scope, evidence, known debt, weakest assumption, and the version anchor to the
-owner. Only after explicit acceptance, set state to `accepted` and dispatch an Integrator:
+Present scope, evidence, known debt, remaining material risks—or that none are known—and the
+version anchor to the owner. Only after explicit acceptance, set state to `accepted` and dispatch an Integrator:
 
 - set the target Milestone and its normative chain to `closed` where appropriate;
 - create/update Handoff with `type: handoff`, `nature: descriptive`, one-line state,
@@ -105,5 +107,8 @@ Update the target ROADMAP row with closure evidence and the receiving state. Dow
 Milestones retain their own states and closure gates. **REQUIRED next skill:
 `roadmap`** for maintenance or the next milestone.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

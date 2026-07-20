@@ -12,4 +12,7 @@ When the stage/dispatch is a run-task card, review the local-commit
 paths, assertion discrimination, and complexity. Only the original blocker surface qualifies
 for targeted recheck; Coder-judgment changes return all affected hunks. For closure, check
 Requirement–Design–Task–code–evidence consistency and stale state. Return findings, coverage,
-side effects, and Reflection.
+and side effects. Before returning, perform a task-specific self-check and correct defects in
+your own report. Do not emit a fixed `Reflection` section. Report only material unresolved
+risks that could change a conclusion, decision, acceptance, or downstream work. Closure reviews
+always state remaining material risks or that none are known.

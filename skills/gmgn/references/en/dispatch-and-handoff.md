@@ -59,8 +59,21 @@ needed `author_ref`, `critic_ref`, or `integrator_ref`. An implementation lane r
 run holding the claim, and `coder_ref` is that lane's writer agent; these identities are not
 interchangeable. `run_id` remains execution provenance and is not a uniqueness key.
 
+For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, record the writer choice before
+writing begins. `author_ref` identifies either the primary session or a delegated Author
+agent. Prefer direct primary authorship when its context makes that the clearest and least
+wasteful path; delegate only when bounded isolation, specialization, or parallelism creates
+real value. An `author_ref` bound to the primary session is a lifecycle identity, not an
+Author-agent dispatch. The Critic remains independent of whichever writer was selected.
+
+Before returning, every agent checks its work against the active stage contract, available
+evidence, and task-specific failure modes, then corrects every in-scope defect it finds. The
+self-check process is not a return artifact and does not use a fixed `Reflection` section.
 Every return contains artifacts or findings and replayable evidence; deviations and needed
-decisions; Reflection. Before any repository-writing dispatch enters `workspace-prepared`, run
+decisions; and only material unresolved risks that could change the conclusion, decision,
+acceptance, or downstream work. Omit that disclosure when no such risk remains; approval,
+acceptance, and closure candidates instead always state remaining material risks or that none
+are known. Before any repository-writing dispatch enters `workspace-prepared`, run
 `git rev-parse --show-toplevel` and require the resolved path to equal the absolute
 `worktree_path`. Also require `git rev-parse --verify "${baseline_anchor}^{commit}"` to succeed
 and `git rev-parse HEAD` to equal that exact commit. If the approved authority anchor is a
@@ -80,11 +93,14 @@ Runtime state is separate from document `status` and task work status.
 
 - `blocked-prerequisite`: a hard dependency or authority is missing.
 - `awaiting-owner-input`: an owner ruling, initiation, approval, or acceptance is required.
-- `ready-to-dispatch`: inputs, authority, dependencies, conflict domains, and locks are ready.
-- `workspace-prepared`: the isolated workspace, root-path assertion, and exact
+- `ready-to-dispatch`: inputs, authority, dependencies, conflict domains, and locks are ready;
+  for a specification document, the actual writer can now be selected and bound.
+- `workspace-prepared`: the assigned workspace, root-path assertion, and exact
   `HEAD == baseline_anchor` commit assertion passed.
-- `author-active`, `author-returned`, `author-rework`, `author-revising`: the recorded Author
-  is writing, returned, repairing an incomplete return, or applying accepted findings.
+- `author-active`, `author-returned`, `author-rework`, `author-revising`: the recorded writer
+  is writing, returned or reached its self-check checkpoint, repairing an incomplete
+  candidate, or applying accepted findings. The recorded writer may be the primary session or
+  a delegated Author agent.
 - `candidate-anchored`: the exact candidate has an immutable anchor.
 - `critic-active`, `critic-returned`, `critic-rechecking`: the independent Critic is reviewing,
   returned findings, or the same Critic is rechecking accepted blockers.
@@ -99,10 +115,12 @@ Runtime state is separate from document `status` and task work status.
 - `verifier-active`, `verifier-returned`: the lane's Verifier is executing or returned.
 - `upstream-change-pending`: only the affected node/lane waits for a controlled authority change.
 - `acceptance-ready`: required review and candidate verification have no unresolved blocker.
-- `accepted`: the anchored isolated candidate may enter integration; an implementation card
-  is not yet `closed`.
+- `accepted`: the anchored candidate passed adjudication or owner approval. A document
+  candidate crosses an integration boundary only when its workspace topology requires it; an
+  implementation card enters the integration queue and is not yet `closed`.
 - `integration-queued`: the accepted card waits in the recorded integration queue.
-- `integrating`: the single Integrator is applying the lane to the shared baseline.
+- `integrating`: an Integrator is applying a candidate across an isolated-workspace,
+  concurrent-writer, or shared-baseline boundary.
 - `integration-conflict`: integration stopped; the same Coder must resolve the conflict.
 - `rebase-required`: mechanical application is not clean, dependency/specification meaning is
   invalid on the current baseline, or resolution needs Coder judgment; the same Coder updates
@@ -151,17 +169,19 @@ worktree isolates files and the index; it does not resolve merge, semantic, inte
 shared-runtime-resource conflicts.
 
 If `workspace_mode: shared` cannot independently anchor each writer, parallel agents return
-proposals or patches and do not directly edit, stage, or commit; one recorded Author or Coder
-applies and anchors them serially. The same authoritative document has one writer by default. Parallel document
-work requires stable disjoint section/ID ownership, no shared semantics or interfaces,
-independent worktrees, and a fresh Critic review of the combined candidate. Frontmatter,
-tables of contents, shared tables, whole-file formatting, and the same decision, AC, or
-paragraph are never parallel writer surfaces.
+proposals or patches and do not directly edit, stage, or commit; one recorded writer applies
+and anchors them serially. The same authoritative document has one writer by default.
+Parallel document work requires stable disjoint section/ID ownership, no shared semantics or
+interfaces, independent worktrees, and a fresh Critic review of the combined candidate.
+Frontmatter, tables of contents, shared tables, whole-file formatting, and the same decision,
+AC, or paragraph are never parallel writer surfaces.
 
 ## Identity-preserving loops and integration ownership
 
-Author and Critic, or Coder and Reviewer, report only through the orchestrator. Accepted
-document findings return to the same `author_ref`; blockers return to the same `critic_ref`.
+A delegated Author and Critic, or Coder and Reviewer, report only through the orchestrator.
+Accepted document findings return to the same `author_ref`; when that ref is the primary
+session, it applies them directly without an Author-agent handoff. Blockers return to the
+same `critic_ref`.
 Card findings and `integration-conflict` or `rebase-required` return to the same `coder_ref`;
 every affected diff returns to the same `reviewer_ref`; affected verification returns to the
 same `verifier_ref`.
@@ -172,8 +192,12 @@ verifies the bound lane/repository/path, candidate commit, and `write_set`, perf
 anchor, and then sends candidate-and-epoch-scoped `review-authorized`. Only then may the worker
 dispatch Reviewer. Revision invalidates the preceding authorization and repeats the gate.
 
-One `integrator_ref` serially owns the integration workspace, `integration_queue_ref`, shared
-baseline, `Task.md`, and traceability. Integration is two-phase: from the current clean
+For specification documents, bind `integrator_ref` only when the accepted candidate must cross
+an isolated-workspace, concurrent-writer, or shared-baseline boundary. Otherwise the recorded
+writer may perform accepted same-batch propagation and machine checks directly. For
+implementation, one `integrator_ref` always serially owns the integration workspace,
+`integration_queue_ref`, shared baseline, `Task.md`, and traceability. Implementation
+integration is two-phase: from the current clean
 `shared_baseline_anchor`, it creates an isolated temporary combination and mechanically applies
 the accepted local-commit `candidate_anchor` without advancing the shared anchor. The
 integration event/evidence retains the preceding anchor; do not add a synonymous top-level
@@ -193,9 +217,10 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
 
 ## Role requirements
 
-- **Author** writes only the assigned document or closure artifact/delta, satisfies the active
-  `write-*` or `close-milestone` content contract, chooses the clearest structure, self-checks,
-  and returns checks and Reflection. Run-task-only rules apply only when its dispatch says so.
+- **Author** is used only when writing was delegated. It writes the assigned document or
+  closure artifact/delta, satisfies the active `brainstorm`, `write-*`, or `close-milestone`
+  content contract, chooses the clearest structure, self-checks, and returns checks plus any
+  material unresolved risk. Run-task-only rules apply only when its dispatch says so.
 - **Critic** is read-only and independent; every finding includes location, evidence, impact,
   required correction, and blocker level. It does not edit or become a second author.
 - **Coder** implements exactly one approved card in its recorded workspace, stays within
@@ -210,9 +235,10 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   gates. For a run-task card, the same `verifier_ref` receives the card workspace during
   candidate verification and the Integrator's temporary combination workspace during
   post-integration verification, validating the current dispatch path both times.
-- **Integrator** performs accepted mechanical propagation for document and milestone stages.
-  When the active dispatch is a run-task card, it is the shared-baseline single writer and
-  follows the two-phase integration/rollback protocol above.
+- **Integrator** performs accepted mechanical propagation for a document only when its
+  candidate crosses an integration boundary, and for milestone closure when that stage
+  requires it. When the active dispatch is a run-task card, it is the shared-baseline single
+  writer and follows the two-phase integration/rollback protocol above.
 - **Researcher** gathers scoped evidence and labels measured facts, source-backed facts, and
   inference; recommendations do not become authority.
 
@@ -254,8 +280,10 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   completion, updates the ready set, and immediately refills the freed slot. Never infer a
   concurrency number from a hard-coded environment-variable default.
 
-  For resumable Author, Critic, Coder, Reviewer, Verifier, and Integrator work, use a custom or
-  `general-purpose` agent and record its agent ID. `SendMessage` is available only when
+  Whenever Author, Critic, Coder, Reviewer, Verifier, or Integrator work is delegated to a
+  resumable agent, use a custom or `general-purpose` agent and record its agent ID. A primary
+  session recorded as a document writer is not an Author-agent dispatch. `SendMessage` is
+  available only when
   `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is enabled; enabling that flag does not require
   adopting Agent Teams. When messaging is available, resume by agent ID. When it is unavailable,
   enter the existing `agent-unavailable` explicit-replacement rule; do not claim a targeted
@@ -271,7 +299,8 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   isolated and all file/conflict domains non-overlapping; otherwise teammates are read-only or
   return proposals. Concurrent same-file writers can overwrite each other.
 
-  GMGN never relies on automatic merge; the recorded Integrator performs explicit integration.
+  GMGN never relies on automatic merge. When a candidate crosses an integration boundary, the
+  recorded Integrator performs explicit integration; implementation candidates always do so.
   A native worktree's default base may be a fresh/origin default rather than the approved
   `baseline_anchor`, so verify the exact commit before work. If it differs, select the approved
   head, use a `WorktreeCreate` hook, or provision a manual worktree. Do not hard-code Claude

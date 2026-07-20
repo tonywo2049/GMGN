@@ -18,10 +18,10 @@ Use the Design locale and the matching layout-free
 | # | task | spec anchor | prerequisite | failing test | status |
 ```
 
-## Author content and self-check
+## Writer content and self-check
 
-- Dispatch an Author to split the Design into cards; the Author chooses the surrounding
-  document structure while preserving the fixed parser-facing table header.
+- Split the Design into cards; the recorded writer chooses the surrounding document structure
+  while preserving the fixed parser-facing table header.
 - Each card is the smallest independently reviewable and verifiable unit.
 - Every card has a stable ID, R-AC spec anchor, explicit `depends_on`, failing-first test,
   completion criterion, allowed paths, `write_set`, `conflict_domains`, `runtime_locks`, a
@@ -49,23 +49,26 @@ Use the Design locale and the matching layout-free
 - Maintain an AC → task → test → evidence traceability matrix; every in-scope AC is covered.
 - Do not use task prose to redefine Requirement or Design.
 
-Before return, the Author checks that every target-Milestone AC has at least one card, test, and
-evidence destination; every card has all required facts; prerequisites form no cycle; and
-no reverse dependency points to a downstream Milestone. Cards eligible together have
-compatible `conflict_domains`, `runtime_locks`, and semantic ownership. The Author does not
+Before return, the recorded writer checks that every target-Milestone AC has at least one card,
+test, and evidence destination; every card has all required facts; prerequisites form no cycle;
+and no reverse dependency points to a downstream Milestone. Cards eligible together have
+compatible `conflict_domains`, `runtime_locks`, and semantic ownership. The writer does not
 freeze waves in `Task.md`; the orchestrator derives a rolling ready set from the current shared
 baseline.
 
-## Author and critic loop
+## Writer and critic loop
 
-At `ready-to-dispatch`, record the Design anchor and dispatch one Author with the content and
-self-check above; retain `author_ref`. The orchestrator does not split or edit cards. At
-`author-returned`, send incomplete or out-of-scope work to the same Author as `author-rework`;
-otherwise enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`,
-adjudicate findings, resume the same Author in `author-revising`, and send blocker fixes to
-the same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
-candidate and dispatches an Integrator for accepted mechanical traceability, links, state,
-and commit material. Finish at `node-complete`.
+At `ready-to-dispatch`, record the Design anchor, select the actual writer, and bind
+`author_ref`. The primary session may write directly, or an Author may be delegated with the
+content and self-check above when the bounded handoff creates real value. At `author-returned`,
+send incomplete or out-of-scope work to the same recorded writer as `author-rework`; otherwise
+enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
+findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
+same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
+candidate. Dispatch an Integrator for accepted mechanical traceability, links, state, and
+commit material only when the candidate crosses an integration boundary; otherwise the
+recorded writer completes that accepted work and machine checks directly. Finish at
+`node-complete`.
 
 ## Controlled revision
 
@@ -91,12 +94,16 @@ edges; it does not decide Milestone ownership, dependency legality, or closure e
 
 ## Exit
 
-Require the Author to reconcile the affected matrix and three anchors per changed card. For
-creation or a semantic revision, run the identity-preserving Author/Critic loop using the
-locale-matched dispatch contract, obtain primary-orchestrator review, and integrate. After a
-target-Milestone execution set is explicitly confirmed, use **REQUIRED next skill:
-`run-task`** to dispatch every ready owned card and keep refilling capacity. A revision returns
-to the stage that raised it and continues through the affected path only.
+Require the recorded writer to reconcile the affected matrix and three anchors per changed
+card. For creation or a semantic revision, run the identity-preserving writer/Critic loop
+using the locale-matched dispatch contract, obtain primary-orchestrator review, and integrate
+only when required by workspace topology. After a target-Milestone execution set is explicitly
+confirmed, use **REQUIRED next skill: `run-task`** to dispatch every ready owned card and keep
+refilling capacity. A revision returns to the stage that raised it and continues through the
+affected path only.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

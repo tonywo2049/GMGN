@@ -18,8 +18,12 @@ Use the active project/user locale. Load the matching layout-free
 
 The primary orchestrator stays in the owner dialogue, asks one question at a time, records
 rulings, and challenges premature implementation or solutions disguised as requirements.
-Dispatch a Researcher for scoped evidence and an Author for the WhitePaper; the orchestrator
-does not write the artifact.
+Before writing, it selects and records the actual WhitePaper writer. Prefer the primary
+session because it already holds the complete Brainstorm context; delegate to an Author only
+when a bounded context package and a concrete isolation, specialization, or parallelism
+benefit outweigh the handoff cost. Bind `author_ref` to the actual writer. Dispatch a
+Researcher only when scoped evidence work is independently useful; dispatch an independent
+Critic after anchoring the candidate.
 
 Use as needed:
 
@@ -35,25 +39,33 @@ Use as needed:
 4. top-level invariants;
 5. non-goals and scope boundary;
 6. major options, evidence, unknowns, and rejected directions;
-7. qualitative validation direction and weakest assumption.
+7. qualitative validation direction and remaining material risks, or an explicit statement
+   that none are known.
 
 Do not introduce R-AC IDs or quantitative requirement criteria here.
 
-## Author and critic loop
+## Writer and critic loop
 
 1. Enter `awaiting-owner-input` while a material problem, scope, or harm-order decision is
    missing. Once inputs are sufficient, create the node record and enter `ready-to-dispatch`.
-2. `author-active`: dispatch one Author with the evidence, owner rulings, required content
-   above, allowed paths, baseline anchor, and self-check. Record `author_ref`.
-3. `author-returned`: check only return completeness, scope, and forbidden changes. Send an
-   incomplete return to the same Author as `author-rework`. Otherwise enter `candidate-anchored`.
+2. Select the actual writer and bind `author_ref`, then enter `author-active`. If the primary
+   session is selected, it writes directly from the dialogue, evidence, owner rulings,
+   required content above, allowed paths, and baseline anchor. If an Author is selected,
+   dispatch that bounded package and retain its identity.
+3. At `author-returned`, the same recorded writer self-checks completeness, scope,
+   placeholders, contradictions, and forbidden changes. Resolve any gap with that writer in
+   `author-rework`, then enter `candidate-anchored`.
 4. `critic-active`: dispatch an independent Critic against that anchor and minimum context.
    The Critic reports to the orchestrator and does not edit the WhitePaper.
-5. At `critic-returned`, adjudicate findings. Resume the same `author_ref` in
-   `author-revising`; send blocker fixes to the same `critic_ref` in `critic-rechecking`.
-6. With no blocker, enter `acceptance-ready`, present the anchored candidate and weakest
-   assumption to the owner, then use an Integrator for accepted mechanical links, state, and
-   commit material. Finish at `node-complete` only after those representations agree.
+5. At `critic-returned`, adjudicate findings. The same recorded writer applies accepted
+   findings in `author-revising`; send blocker fixes to the same `critic_ref` in
+   `critic-rechecking`.
+6. With no blocker, enter `acceptance-ready`, present the anchored candidate and remaining
+   material risks—or that none are known—to the owner. Use an Integrator for accepted
+   mechanical links, state, and commit material only when the candidate crosses an integration
+   boundary—an isolated workspace, concurrent writer, or shared baseline; otherwise the
+   recorded writer completes that accepted propagation directly. Finish at `node-complete`
+   only after all representations agree and machine checks pass.
 
 ## Revision mode
 
@@ -77,12 +89,16 @@ revision mode or seeking reapproval.
 
 ## Exit
 
-Require the Author to self-check placeholders, contradictions, scope gaps, and ambiguity.
-Run the identity-preserving loop above using the locale-matched dispatch contract; adjudicate
-findings without letting the Critic expand scope. Bind owner approval to a commit or hash. In
-creation mode, integrate and use **REQUIRED next skill: `roadmap`**. In
-revision mode, commit, propagate the approved delta through its impact cone, and return to
-the stage that raised the change rather than restarting the full chain.
+The recorded writer self-checks placeholders, contradictions, scope gaps, and ambiguity.
+Run the writer/independent-Critic loop above using the locale-matched lifecycle
+contract; adjudicate findings without letting the Critic expand scope. Bind owner approval to
+a commit or hash. In creation mode, complete any workspace-topology-required integration and
+use **REQUIRED next skill: `roadmap`**. In revision mode, commit, propagate the approved delta
+through its impact cone, and return to the stage that raised the change rather than restarting
+the full chain.
 
-End every substantive response with **Reflection**: weakest assumption; neglected
-counterexample; measured versus inferred.
+Before every substantive return, perform a task-specific self-check and correct defects. Do
+not output a fixed `Reflection` section. Disclose only material unresolved risks that could
+change the conclusion, decision, acceptance, or downstream work; otherwise omit the
+disclosure. Approval, acceptance, and closure always state remaining material risks or that
+none are known.

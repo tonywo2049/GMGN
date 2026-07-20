@@ -157,14 +157,17 @@ The fixed six columns do not carry the complete execution contract. Card content
 same stable task ID also records `depends_on`, `write_set`, `conflict_domains`,
 `runtime_locks`, and the semantic owner. These facts do not change the DocStar table schema.
 If `workspace_mode: shared` cannot independently anchor each writer, parallel workers return
-proposals/patches and one recorded Coder or Author serially applies and anchors them.
+proposals/patches and one recorded writer serially applies and anchors them.
 
 ## 5. Content contract, not layout template
 
 GMGN does not prescribe section names, order, or prose shape. The active stage skill is the
-authority for what an artifact must answer and what its Author must self-check. A dispatch
-passes those requirements to the Author; a Critic reviews the result against the same
-requirements. Do not recreate a copy-ready skeleton in project or plugin references.
+authority for what an artifact must answer and what its writer must self-check. For
+WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, the primary orchestrator selects the
+actual writer: itself when its context makes direct authorship the clearest and least wasteful
+path, or a delegated Author when bounded isolation, specialization, or parallelism creates
+real value. Bind `author_ref` to that writer and keep the independent Critic separate from it.
+Do not recreate a copy-ready skeleton in project or plugin references.
 
 The only fixed body surfaces are identifiers and parser-facing tables. For `Task.md`, keep
 the canonical task header from §4; surrounding headings and explanatory prose remain free.

@@ -139,16 +139,18 @@ Milestone 关账由负责人验收。批准必须绑定 commit、内容 hash 或
 固定六列不承载全部执行契约。围绕同一稳定任务 ID 的卡片内容还要记录 `depends_on`、`write_set`、
 `conflict_domains`、`runtime_locks` 和 semantic owner；这些内容不改变 DocStar 的表格 schema。
 `workspace_mode: shared` 无法为每个 writer 独立锚定时，并行 worker 只返回 proposal/patch，由一个
-已登记 Coder 或 Author 串行应用和锚定。
+已登记 writer 串行应用和锚定。
 
 ## 5. 内容契约，不提供版式模板
 
-GMGN 不规定章节名、章节顺序或行文形态。当前阶段的 Skill 是“产物必须回答什么、Author 必须
-自检什么”的唯一权威；派发时把这些要求交给 Author，Critic 再按同一组要求审查。不得在项目
-或插件 reference 中重新制作可复制的章节骨架。
+GMGN 不规定章节名、章节顺序或行文形态。当前阶段的 Skill 是“产物必须回答什么、writer 必须
+自检什么”的唯一权威。WhitePaper、ROADMAP、Goal、Requirement、Design、Task 由主编排者选择
+实际 writer：上下文使直接写作最清楚、最省交接时由主编排者自己写；边界清楚，且隔离、专业性或
+并行收益足以覆盖交接成本时才委派 Author。`author_ref` 绑定实际 writer，独立 Critic 必须与它
+分离。不得在项目或插件 reference 中重新制作可复制的章节骨架。
 
 正文只固定编号和解析器要读取的表格接口。`Task.md` 必须保留第 4 节的固定任务表头；外围标题
-与解释文字可由 Author 自由组织。
+与解释文字可由已登记 writer 自由组织。
 
 ## 6. 写作纪律
 
