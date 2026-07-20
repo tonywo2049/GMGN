@@ -16,12 +16,86 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set, 
 
 SCHEMA_VERSION = "gmgn.telemetry.report.v1"
 SOURCE = "session_jsonl_unstable_fallback"
+OTEL_SOURCE = "collector_otel"
+HOOK_SOURCE = "gmgn_hook"
+MIXED_SOURCE = "mixed"
+OTEL_ENVELOPE_VERSION = "gmgn-otel-envelope-v1"
+HOOK_EVENT_VERSION = "gmgn-hook-event-v1"
 DEFAULT_FOLLOW_WINDOW = 5
 ESTIMATED_CHARACTERS_PER_TOKEN = 4
 
 TOKEN_FIELDS = ("input", "cached", "output", "reasoning", "total")
 IDENTIFIER_FIELDS = ("card_id", "run_id", "lane_key", "target_milestone_id")
 FORK_CONTEXT_VALUES = ("none", "all", "false", "true", "unspecified")
+OTEL_TOKEN_ATTRIBUTES = {
+    "input": ("gen_ai.usage.input_tokens", "input_token_count"),
+    "cached": (
+        "gen_ai.usage.cache_read.input_tokens",
+        "cached_token_count",
+    ),
+    "output": ("gen_ai.usage.output_tokens", "output_token_count"),
+    "reasoning": (
+        "codex.usage.reasoning_output_tokens",
+        "reasoning_token_count",
+    ),
+    "total": ("codex.usage.total_tokens", "tool_token_count"),
+}
+OTEL_COMMON_ATTRIBUTES = {
+    "conversation.id",
+    "event.name",
+    "event.timestamp",
+    "model",
+}
+OTEL_API_ATTRIBUTES = {"duration_ms", "http.response.status_code"}
+OTEL_SSE_ATTRIBUTES = {
+    "event.kind",
+    "gen_ai.usage.input_tokens",
+    "gen_ai.usage.cache_read.input_tokens",
+    "gen_ai.usage.cache_write.input_tokens",
+    "gen_ai.usage.output_tokens",
+    "codex.usage.reasoning_output_tokens",
+    "codex.usage.total_tokens",
+    "input_token_count",
+    "cached_token_count",
+    "cache_write_token_count",
+    "output_token_count",
+    "reasoning_token_count",
+    "tool_token_count",
+}
+OTEL_TOOL_ATTRIBUTES = {
+    "tool_name",
+    "call_id",
+    "duration_ms",
+    "success",
+    "output_length",
+    "output_line_count",
+    "mcp_server",
+    "mcp_server_origin",
+    "tool_origin",
+}
+HOOK_ALLOWED_FIELDS = {
+    "schema_version",
+    "timestamp",
+    "event",
+    "session_id",
+    "turn_id",
+    "tool_name",
+    "tool_use_id",
+    "model",
+    "input_bytes",
+    "output_bytes",
+    "success",
+    "exit_code",
+    "classification",
+    "docstar_subcommand",
+    "skill_name",
+    "card_id",
+    "run_id",
+    "lane_key",
+    "target_milestone_id",
+    "fork_context",
+    "fork_turns",
+}
 
 CALL_TYPES = {
     "function_call": "function",
@@ -171,12 +245,31 @@ class _SessionData:
     descriptor: _SessionDescriptor
     calls: List[_RawCall]
     child_ids: List[str]
-    actual_tokens: Dict[str, int]
+    actual_tokens: Dict[str, Optional[int]]
     malformed_lines: int
     unpaired_calls: int
     completed_turn_duration_ms: int
     wall_elapsed_ms: Optional[int]
     session_end_ms: Optional[float]
+
+
+@dataclass(frozen=True)
+class _OtelEvent:
+    session_id: str
+    event_name: str
+    timestamp: Optional[str]
+    timestamp_ms: Optional[float]
+    attributes: Mapping[str, Any]
+    sequence: int
+
+
+@dataclass(frozen=True)
+class _HookEvent:
+    session_id: str
+    timestamp: Optional[str]
+    timestamp_ms: Optional[float]
+    fields: Mapping[str, Any]
+    sequence: int
 
 
 class _SessionIndex:
@@ -293,6 +386,271 @@ def _timestamp(value: Any) -> Tuple[Optional[str], Optional[float]]:
     return candidate, parsed.timestamp() * 1000
 
 
+def _format_timestamp(milliseconds: float) -> str:
+    parsed = datetime.fromtimestamp(milliseconds / 1000, tz=timezone.utc)
+    return parsed.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def _otel_time(value: Any) -> Tuple[Optional[str], Optional[float]]:
+    if isinstance(value, str) and value.isdigit():
+        value = int(value)
+    if isinstance(value, int) and not isinstance(value, bool):
+        milliseconds = value / 1000000
+        try:
+            return _format_timestamp(milliseconds), milliseconds
+        except (OverflowError, OSError, ValueError):
+            return None, None
+    return _timestamp(value)
+
+
+def _otel_value(value: Any) -> Any:
+    if not isinstance(value, dict):
+        return value
+    for key in ("stringValue", "intValue", "doubleValue", "boolValue", "bytesValue"):
+        if key not in value:
+            continue
+        candidate = value[key]
+        if key == "intValue" and isinstance(candidate, str):
+            try:
+                return int(candidate)
+            except ValueError:
+                return None
+        return candidate
+    array_value = value.get("arrayValue")
+    if isinstance(array_value, dict) and isinstance(array_value.get("values"), list):
+        return [_otel_value(item) for item in array_value["values"]]
+    list_value = value.get("kvlistValue")
+    if isinstance(list_value, dict) and isinstance(list_value.get("values"), list):
+        return _otel_attributes(list_value["values"])
+    return None
+
+
+def _otel_attributes(value: Any) -> Dict[str, Any]:
+    if isinstance(value, dict):
+        return dict(value)
+    if not isinstance(value, list):
+        return {}
+    result: Dict[str, Any] = {}
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        key = item.get("key")
+        if isinstance(key, str):
+            result[key] = _otel_value(item.get("value"))
+    return result
+
+
+def _otel_allowed_attributes(event_name: str) -> Set[str]:
+    allowed = set(OTEL_COMMON_ATTRIBUTES)
+    allowed.update(OTEL_SSE_ATTRIBUTES)
+    if event_name == "codex.api_request":
+        allowed.update(OTEL_API_ATTRIBUTES)
+    elif event_name == "codex.tool_result":
+        allowed.update(OTEL_TOOL_ATTRIBUTES)
+    return allowed
+
+
+def _otel_log_records(body: Any) -> Iterable[Tuple[Mapping[str, Any], Mapping[str, Any]]]:
+    if not isinstance(body, dict):
+        return
+    resource_logs = body.get("resourceLogs")
+    if not isinstance(resource_logs, list):
+        return
+    for resource_log in resource_logs:
+        if not isinstance(resource_log, dict):
+            continue
+        resource = resource_log.get("resource")
+        resource_attributes = _otel_attributes(
+            resource.get("attributes") if isinstance(resource, dict) else None
+        )
+        scope_logs = resource_log.get("scopeLogs")
+        if not isinstance(scope_logs, list):
+            continue
+        for scope_log in scope_logs:
+            if not isinstance(scope_log, dict):
+                continue
+            log_records = scope_log.get("logRecords")
+            if not isinstance(log_records, list):
+                continue
+            for log_record in log_records:
+                if isinstance(log_record, dict):
+                    yield resource_attributes, log_record
+
+
+def _safe_integer(value: Any) -> Optional[int]:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str) and re.fullmatch(r"-?\d+", value.strip()):
+        return int(value.strip())
+    return None
+
+
+def _safe_boolean(value: Any) -> Optional[bool]:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"true", "false"}:
+            return normalized == "true"
+    return None
+
+
+class _TelemetryStore:
+    def __init__(self, codex_home: Path) -> None:
+        self.data_dir = codex_home / "gmgn-telemetry" / "data"
+        self.otel_by_session: Dict[str, List[_OtelEvent]] = defaultdict(list)
+        self.hooks_by_session: Dict[str, List[_HookEvent]] = defaultdict(list)
+        self.malformed_lines = 0
+        self._otel_seen: Set[str] = set()
+        self._hook_seen: Set[str] = set()
+        self._sequence = 0
+        if not self.data_dir.is_dir():
+            return
+        for path in sorted(self.data_dir.glob("*.jsonl")):
+            self._load_path(path)
+
+    @property
+    def otel_records(self) -> int:
+        return sum(len(events) for events in self.otel_by_session.values())
+
+    @property
+    def hook_records(self) -> int:
+        return sum(len(events) for events in self.hooks_by_session.values())
+
+    def has_session(self, session_id: str) -> bool:
+        return session_id in self.otel_by_session or session_id in self.hooks_by_session
+
+    def _load_path(self, path: Path) -> None:
+        try:
+            stream = path.open("r", encoding="utf-8", errors="replace")
+        except OSError:
+            self.malformed_lines += 1
+            return
+        with stream:
+            for line in stream:
+                try:
+                    document = json.loads(line)
+                except (json.JSONDecodeError, TypeError):
+                    self.malformed_lines += 1
+                    continue
+                if not isinstance(document, dict):
+                    self.malformed_lines += 1
+                    continue
+                schema_version = document.get("schema_version")
+                if schema_version == HOOK_EVENT_VERSION:
+                    self._add_hook(document)
+                elif schema_version == OTEL_ENVELOPE_VERSION:
+                    self._add_envelope(document)
+                elif "event_name" in document and "conversation_id" in document:
+                    self._add_flat_otel(document)
+
+    def _add_envelope(self, envelope: Mapping[str, Any]) -> None:
+        if envelope.get("signal") != "logs":
+            return
+        received_at = envelope.get("received_at")
+        for resource_attributes, log_record in _otel_log_records(envelope.get("body")):
+            attributes = dict(resource_attributes)
+            attributes.update(_otel_attributes(log_record.get("attributes")))
+            self._add_otel_event(attributes, log_record, received_at)
+
+    def _add_flat_otel(self, document: Mapping[str, Any]) -> None:
+        attributes = _otel_attributes(document.get("attributes"))
+        attributes.setdefault("conversation.id", document.get("conversation_id"))
+        attributes.setdefault("event.name", document.get("event_name"))
+        attributes.setdefault("event.timestamp", document.get("timestamp"))
+        self._add_otel_event(attributes, document, document.get("timestamp"))
+
+    def _add_otel_event(
+        self,
+        raw_attributes: Mapping[str, Any],
+        record: Mapping[str, Any],
+        fallback_timestamp: Any,
+    ) -> None:
+        session_id = _identifier(raw_attributes.get("conversation.id"))
+        event_name = _identifier(raw_attributes.get("event.name"))
+        if session_id is None or event_name is None:
+            return
+        allowed = _otel_allowed_attributes(event_name)
+        attributes = {
+            key: value
+            for key, value in raw_attributes.items()
+            if key in allowed and value is not None
+        }
+        public_time, timestamp_ms = _timestamp(attributes.get("event.timestamp"))
+        if timestamp_ms is None:
+            public_time, timestamp_ms = _otel_time(record.get("timeUnixNano"))
+        if timestamp_ms is None:
+            public_time, timestamp_ms = _timestamp(fallback_timestamp)
+        fingerprint = json.dumps(
+            {
+                "session_id": session_id,
+                "event_name": event_name,
+                "timestamp": public_time,
+                "attributes": attributes,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        if fingerprint in self._otel_seen:
+            return
+        self._otel_seen.add(fingerprint)
+        self._sequence += 1
+        self.otel_by_session[session_id].append(
+            _OtelEvent(
+                session_id=session_id,
+                event_name=event_name,
+                timestamp=public_time,
+                timestamp_ms=timestamp_ms,
+                attributes=attributes,
+                sequence=self._sequence,
+            )
+        )
+
+    def _add_hook(self, document: Mapping[str, Any]) -> None:
+        session_id = _identifier(document.get("session_id"))
+        if session_id is None:
+            return
+        fields: Dict[str, Any] = {"schema_version": HOOK_EVENT_VERSION}
+        for key in HOOK_ALLOWED_FIELDS - {"schema_version", "timestamp", "session_id"}:
+            value = document.get(key)
+            if key in {"input_bytes", "output_bytes", "exit_code"}:
+                cleaned = _safe_integer(value)
+            elif key in {"success", "fork_context"}:
+                cleaned = _safe_boolean(value)
+            else:
+                cleaned = _identifier(value)
+            if cleaned is not None:
+                fields[key] = cleaned
+        public_time, timestamp_ms = _timestamp(document.get("timestamp"))
+        fields["session_id"] = session_id
+        if public_time is not None:
+            fields["timestamp"] = public_time
+        fingerprint = json.dumps(
+            fields,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        if fingerprint in self._hook_seen:
+            return
+        self._hook_seen.add(fingerprint)
+        self._sequence += 1
+        self.hooks_by_session[session_id].append(
+            _HookEvent(
+                session_id=session_id,
+                timestamp=public_time,
+                timestamp_ms=timestamp_ms,
+                fields=fields,
+                sequence=self._sequence,
+            )
+        )
+
+
 def _event_time(item: Mapping[str, Any], payload: Mapping[str, Any]) -> Tuple[Optional[str], Optional[float]]:
     for value in (item.get("timestamp"), payload.get("timestamp"), payload.get("occurred_at_ms")):
         public, milliseconds = _timestamp(value)
@@ -312,21 +670,21 @@ def _task_time(
     return _timestamp(payload.get(fallback_key))
 
 
-def _empty_tokens() -> Dict[str, int]:
-    return {field_name: 0 for field_name in TOKEN_FIELDS}
+def _empty_tokens() -> Dict[str, Optional[int]]:
+    return {field_name: None for field_name in TOKEN_FIELDS}
 
 
-def _first_int(mapping: Mapping[str, Any], keys: Iterable[str]) -> int:
+def _first_int(mapping: Mapping[str, Any], keys: Iterable[str]) -> Optional[int]:
     for key in keys:
         value = mapping.get(key)
         if isinstance(value, bool):
             continue
         if isinstance(value, (int, float)):
             return max(0, int(value))
-    return 0
+    return None
 
 
-def _token_usage(payload: Mapping[str, Any]) -> Optional[Dict[str, int]]:
+def _token_usage(payload: Mapping[str, Any]) -> Optional[Dict[str, Optional[int]]]:
     info = payload.get("info")
     if not isinstance(info, dict):
         return None
@@ -359,7 +717,9 @@ def _token_usage(payload: Mapping[str, Any]) -> Optional[Dict[str, int]]:
         ),
         "total": _first_int(usage, ("total_tokens", "total_token_count")),
     }
-    if result["total"] == 0 and (result["input"] or result["output"]):
+    if result["total"] is None and (
+        result["input"] is not None and result["output"] is not None
+    ):
         result["total"] = result["input"] + result["output"]
     return result
 
@@ -861,17 +1221,6 @@ def _fork_context_bucket(arguments: Any) -> str:
     return "unspecified"
 
 
-def _walk_values(value: Any) -> Iterable[Any]:
-    if isinstance(value, dict):
-        for nested in value.values():
-            yield from _walk_values(nested)
-    elif isinstance(value, list):
-        for nested in value:
-            yield from _walk_values(nested)
-    else:
-        yield value
-
-
 def _extract_identifiers(arguments: Any) -> Dict[str, List[str]]:
     result = {field_name: [] for field_name in IDENTIFIER_FIELDS}
     seen = {field_name: set() for field_name in IDENTIFIER_FIELDS}
@@ -883,31 +1232,18 @@ def _extract_identifiers(arguments: Any) -> Dict[str, List[str]]:
             seen[field_name].add(identifier)
             result[field_name].append(identifier)
 
-    if isinstance(decoded, dict):
-        stack: List[Mapping[str, Any]] = [decoded]
-        while stack:
-            mapping = stack.pop()
-            for key, value in mapping.items():
+    stack: List[Any] = [decoded]
+    while stack:
+        value = stack.pop()
+        if isinstance(value, dict):
+            for key, child in value.items():
                 lowered = str(key).lower()
                 if lowered in result:
-                    add(lowered, value)
-                if isinstance(value, dict):
-                    stack.append(value)
-
-    identifier_pattern = r"([A-Za-z0-9][A-Za-z0-9._:@/+~=-]{0,255})"
-    patterns = {
-        field_name: re.compile(
-            r"(?:[\"']?" + re.escape(field_name) + r"[\"']?)\s*(?:=|:)\s*[\"']?" + identifier_pattern,
-            re.IGNORECASE,
-        )
-        for field_name in IDENTIFIER_FIELDS
-    }
-    for value in _walk_values(decoded):
-        if not isinstance(value, str):
-            continue
-        for field_name, pattern in patterns.items():
-            for match in pattern.finditer(value):
-                add(field_name, match.group(1))
+                    add(lowered, child)
+                if isinstance(child, (dict, list)):
+                    stack.append(child)
+        elif isinstance(value, list):
+            stack.extend(item for item in value if isinstance(item, (dict, list)))
     return result
 
 
@@ -1031,12 +1367,914 @@ def _skill_metrics(sessions: Sequence[_SessionData]) -> List[Dict[str, Any]]:
     return result
 
 
-def _sum_tokens(sessions: Sequence[_SessionData]) -> Dict[str, int]:
+def _sum_tokens(sessions: Sequence[_SessionData]) -> Dict[str, Optional[int]]:
     total = _empty_tokens()
-    for session in sessions:
-        for field_name in TOKEN_FIELDS:
-            total[field_name] += session.actual_tokens[field_name]
+    for field_name in TOKEN_FIELDS:
+        values = [session.actual_tokens[field_name] for session in sessions]
+        if values and all(value is not None for value in values):
+            total[field_name] = sum(value for value in values if value is not None)
     return total
+
+
+def _coverage(
+    source: str,
+    status: str,
+    observed_sessions: int,
+    total_sessions: int,
+    *,
+    fallback: bool = False,
+    **details: Any,
+) -> Dict[str, Any]:
+    result = {
+        "source": source,
+        "coverage": status,
+        "observed_sessions": observed_sessions,
+        "total_sessions": total_sessions,
+        "fallback": fallback,
+    }
+    result.update(details)
+    return result
+
+
+def _logical_session_groups(
+    requested_id: str,
+    run: Mapping[str, Any],
+    sessions: Sequence[_SessionData],
+    telemetry: _TelemetryStore,
+) -> List[Tuple[str, Set[str], Optional[_SessionData]]]:
+    groups: List[Tuple[str, Set[str], Optional[_SessionData]]] = []
+    if sessions:
+        for index, session in enumerate(sessions):
+            query_ids = {session.descriptor.session_id}
+            if index == 0:
+                query_ids.add(requested_id)
+            groups.append((session.descriptor.session_id, query_ids, session))
+    elif telemetry.has_session(requested_id):
+        groups.append((requested_id, {requested_id}, None))
+
+    known_ids = {logical_id for logical_id, _, _ in groups}
+    for missing_id in run["data_quality"]["missing_sessions"]:
+        if missing_id not in known_ids and telemetry.has_session(missing_id):
+            known_ids.add(missing_id)
+            groups.append((missing_id, {missing_id}, None))
+    return groups
+
+
+def _events_for_ids(
+    by_session: Mapping[str, Sequence[Any]],
+    query_ids: Iterable[str],
+) -> List[Any]:
+    result: List[Any] = []
+    seen: Set[Tuple[str, int]] = set()
+    for session_id in query_ids:
+        for event in by_session.get(session_id, []):
+            key = (event.session_id, event.sequence)
+            if key not in seen:
+                seen.add(key)
+                result.append(event)
+    return result
+
+
+def _otel_token_value(event: _OtelEvent, field_name: str) -> Optional[int]:
+    for attribute in OTEL_TOKEN_ATTRIBUTES[field_name]:
+        if attribute in event.attributes:
+            value = _safe_integer(event.attributes[attribute])
+            if value is not None and value >= 0:
+                return value
+    return None
+
+
+def _token_events(events: Sequence[_OtelEvent]) -> List[_OtelEvent]:
+    token_names = {
+        attribute
+        for attributes in OTEL_TOKEN_ATTRIBUTES.values()
+        for attribute in attributes
+    }
+    return [event for event in events if token_names.intersection(event.attributes)]
+
+
+def _telemetry_tokens(
+    groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
+    telemetry: _TelemetryStore,
+) -> Tuple[Dict[str, Optional[int]], Dict[str, Any], Set[str]]:
+    result = _empty_tokens()
+    field_coverage: Dict[str, Any] = {}
+    fallback_fields: Set[str] = set()
+    for field_name in TOKEN_FIELDS:
+        values: List[int] = []
+        sources: Set[str] = set()
+        observed_sessions = 0
+        missing = False
+        for _, query_ids, fallback_session in groups:
+            events = _events_for_ids(telemetry.otel_by_session, query_ids)
+            token_events = _token_events(events)
+            otel_values = [
+                _otel_token_value(event, field_name) for event in token_events
+            ]
+            if token_events and all(value is not None for value in otel_values):
+                values.append(sum(value for value in otel_values if value is not None))
+                sources.add(OTEL_SOURCE)
+                observed_sessions += 1
+                continue
+            fallback_value = (
+                fallback_session.actual_tokens[field_name]
+                if fallback_session is not None
+                else None
+            )
+            if fallback_value is not None:
+                values.append(fallback_value)
+                sources.add(SOURCE)
+                fallback_fields.add("actual_tokens." + field_name)
+                observed_sessions += 1
+            else:
+                missing = True
+        if groups and not missing and len(values) == len(groups):
+            result[field_name] = sum(values)
+        if not sources:
+            source = "unknown"
+            status = "unknown"
+        elif len(sources) > 1:
+            source = OTEL_SOURCE + "+" + SOURCE
+            status = "partial" if missing else "mixed"
+        elif OTEL_SOURCE in sources:
+            source = OTEL_SOURCE
+            status = "partial" if missing else "observed"
+        else:
+            source = SOURCE
+            status = "partial" if missing else "fallback"
+        field_coverage[field_name] = _coverage(
+            source,
+            status,
+            observed_sessions,
+            len(groups),
+            fallback=SOURCE in sources,
+        )
+
+    statuses = {details["coverage"] for details in field_coverage.values()}
+    sources = {details["source"] for details in field_coverage.values()}
+    if statuses == {"unknown"}:
+        overall_status = "unknown"
+        overall_source = "unknown"
+    elif len(statuses) == 1:
+        overall_status = next(iter(statuses))
+        overall_source = next(iter(sources)) if len(sources) == 1 else MIXED_SOURCE
+    else:
+        overall_status = "mixed" if "unknown" not in statuses else "partial"
+        overall_source = next(iter(sources)) if len(sources) == 1 else MIXED_SOURCE
+    return (
+        result,
+        {
+            "source": overall_source,
+            "coverage": overall_status,
+            "fields": field_coverage,
+        },
+        fallback_fields,
+    )
+
+
+def _api_metrics(events: Sequence[_OtelEvent]) -> Dict[str, Optional[int]]:
+    api_events = [event for event in events if event.event_name == "codex.api_request"]
+    if not api_events:
+        return {"count": None, "duration_ms": None, "success": None, "failure": None}
+    durations = [_safe_integer(event.attributes.get("duration_ms")) for event in api_events]
+    statuses = [
+        _safe_integer(event.attributes.get("http.response.status_code"))
+        for event in api_events
+    ]
+    known_statuses = [status for status in statuses if status is not None]
+    return {
+        "count": len(api_events),
+        "duration_ms": (
+            sum(duration for duration in durations if duration is not None)
+            if all(duration is not None for duration in durations)
+            else None
+        ),
+        "success": (
+            sum(200 <= status <= 299 for status in known_statuses)
+            if len(known_statuses) == len(api_events)
+            else None
+        ),
+        "failure": (
+            sum(not 200 <= status <= 299 for status in known_statuses)
+            if len(known_statuses) == len(api_events)
+            else None
+        ),
+    }
+
+
+def _native_tool_metrics(events: Sequence[_OtelEvent]) -> Dict[str, Optional[int]]:
+    tool_events = [event for event in events if event.event_name == "codex.tool_result"]
+    if not tool_events:
+        return {"count": None, "duration_ms": None, "success": None, "failure": None}
+    durations = [_safe_integer(event.attributes.get("duration_ms")) for event in tool_events]
+    successes = [_safe_boolean(event.attributes.get("success")) for event in tool_events]
+    known_successes = [success for success in successes if success is not None]
+    return {
+        "count": len(tool_events),
+        "duration_ms": (
+            sum(duration for duration in durations if duration is not None)
+            if all(duration is not None for duration in durations)
+            else None
+        ),
+        "success": (
+            sum(known_successes)
+            if len(known_successes) == len(tool_events)
+            else None
+        ),
+        "failure": (
+            sum(not success for success in known_successes)
+            if len(known_successes) == len(tool_events)
+            else None
+        ),
+    }
+
+
+def _hook_category(hook: _HookEvent) -> str:
+    classification = hook.fields.get("classification")
+    return {
+        "markdown_read": "read",
+        "skill_load": "read",
+        "unclassified_compound": "other",
+    }.get(str(classification), str(classification or "unclassified"))
+
+
+def _estimated_bytes(value: Any) -> Optional[int]:
+    byte_count = _safe_integer(value)
+    if byte_count is None or byte_count < 0:
+        return None
+    return int(math.ceil(byte_count / ESTIMATED_CHARACTERS_PER_TOKEN))
+
+
+def _hook_link_map(hooks: Sequence[_HookEvent]) -> Dict[Tuple[str, str], _HookEvent]:
+    result: Dict[Tuple[str, str], _HookEvent] = {}
+    for hook in hooks:
+        call_id = _identifier(hook.fields.get("tool_use_id"))
+        if call_id is not None:
+            result.setdefault((hook.session_id, call_id), hook)
+    return result
+
+
+def _otel_tool_call(event: _OtelEvent, hook: Optional[_HookEvent]) -> Dict[str, Any]:
+    duration_ms = _safe_integer(event.attributes.get("duration_ms"))
+    end_ms = event.timestamp_ms
+    start_ms = (
+        end_ms - duration_ms
+        if end_ms is not None and duration_ms is not None and duration_ms >= 0
+        else None
+    )
+    return {
+        "session_id": event.session_id,
+        "call_id": _identifier(event.attributes.get("call_id")),
+        "tool": _identifier(event.attributes.get("tool_name")) or "unknown",
+        "category": _hook_category(hook) if hook is not None else "unclassified",
+        "start": _format_timestamp(start_ms) if start_ms is not None else None,
+        "end": event.timestamp,
+        "duration_ms": duration_ms,
+        "success": _safe_boolean(event.attributes.get("success")),
+        "estimated_input_tokens": (
+            _estimated_bytes(hook.fields.get("input_bytes")) if hook else None
+        ),
+        "estimated_output_tokens": (
+            _estimated_bytes(hook.fields.get("output_bytes")) if hook else None
+        ),
+    }
+
+
+def _group_otel_events(
+    group: Tuple[str, Set[str], Optional[_SessionData]],
+    telemetry: _TelemetryStore,
+) -> List[_OtelEvent]:
+    return _events_for_ids(telemetry.otel_by_session, group[1])
+
+
+def _group_hook_events(
+    group: Tuple[str, Set[str], Optional[_SessionData]],
+    telemetry: _TelemetryStore,
+) -> List[_HookEvent]:
+    return _events_for_ids(telemetry.hooks_by_session, group[1])
+
+
+def _merged_tool_calls(
+    groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
+    telemetry: _TelemetryStore,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Set[str]]:
+    public_calls: List[Dict[str, Any]] = []
+    native_count = 0
+    linked_count = 0
+    hook_tool_count = 0
+    otel_sessions = 0
+    fallback_sessions = 0
+    fallback_fields: Set[str] = set()
+    for group in groups:
+        otel_events = _group_otel_events(group, telemetry)
+        tool_events = [
+            event for event in otel_events if event.event_name == "codex.tool_result"
+        ]
+        hooks = _group_hook_events(group, telemetry)
+        hook_links = _hook_link_map(hooks)
+        hook_tool_count += sum("tool_use_id" in hook.fields for hook in hooks)
+        if tool_events:
+            otel_sessions += 1
+            native_count += len(tool_events)
+            for event in tool_events:
+                call_id = _identifier(event.attributes.get("call_id"))
+                hook = hook_links.get((event.session_id, call_id)) if call_id else None
+                if hook is not None:
+                    linked_count += 1
+                public_calls.append(_otel_tool_call(event, hook))
+            continue
+        fallback_session = group[2]
+        if fallback_session is not None:
+            fallback_sessions += 1
+            fallback_fields.add("tool_calls")
+            public_calls.extend(call.public() for call in fallback_session.calls)
+
+    public_calls.sort(
+        key=lambda call: (
+            _timestamp(call.get("start"))[1] is None,
+            _timestamp(call.get("start"))[1] or float("inf"),
+            str(call.get("session_id")),
+            str(call.get("call_id")),
+        )
+    )
+    if native_count == 0 or hook_tool_count == 0:
+        linkage_status = "unavailable"
+    elif linked_count == native_count:
+        linkage_status = "complete"
+    else:
+        linkage_status = "partial"
+    linkage = {
+        "source": OTEL_SOURCE + "+" + HOOK_SOURCE,
+        "coverage": linkage_status,
+        "linked": linked_count,
+        "native_tool_results": native_count,
+        "hook_tool_events": hook_tool_count,
+    }
+    if otel_sessions and fallback_sessions:
+        source = OTEL_SOURCE + "+" + SOURCE
+        status = "mixed"
+    elif otel_sessions:
+        source = OTEL_SOURCE
+        status = "observed"
+    elif fallback_sessions:
+        source = SOURCE
+        status = "fallback"
+    else:
+        source = "unknown"
+        status = "unknown"
+    coverage = _coverage(
+        source,
+        status,
+        otel_sessions + fallback_sessions,
+        len(groups),
+        fallback=bool(fallback_sessions),
+    )
+    return public_calls, {"tool_calls": coverage, "native_hook_linkage": linkage}, fallback_fields
+
+
+def _hook_fork_bucket(hook: _HookEvent) -> str:
+    if "fork_context" in hook.fields:
+        return "true" if hook.fields["fork_context"] is True else "false"
+    fork_turns = hook.fields.get("fork_turns")
+    if fork_turns in {"none", "all"}:
+        return str(fork_turns)
+    return "unspecified"
+
+
+def _hook_gmgn_metrics(
+    groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
+    telemetry: _TelemetryStore,
+) -> Tuple[Dict[str, Any], Dict[str, Any], Set[str]]:
+    all_fallback_calls = [
+        call
+        for _, _, session in groups
+        if session is not None
+        for call in session.calls
+    ]
+    fallback_all = _gmgn_metrics(all_fallback_calls)
+    spawn_calls = 0
+    fork_counts = {value: 0 for value in FORK_CONTEXT_VALUES}
+    identifiers = {field_name: [] for field_name in IDENTIFIER_FIELDS}
+    identifier_seen = {field_name: set() for field_name in IDENTIFIER_FIELDS}
+    hook_sessions = 0
+    spawn_fallback_sessions = 0
+
+    def add_identifiers(source: Mapping[str, Sequence[str]]) -> None:
+        for field_name in IDENTIFIER_FIELDS:
+            for value in source[field_name]:
+                if value not in identifier_seen[field_name]:
+                    identifier_seen[field_name].add(value)
+                    identifiers[field_name].append(value)
+
+    for group in groups:
+        hooks = _group_hook_events(group, telemetry)
+        if hooks:
+            hook_sessions += 1
+            for hook in hooks:
+                tool = _tool_leaf(str(hook.fields.get("tool_name", "")))
+                if hook.fields.get("classification") != "agent" or tool not in SPAWN_TOOLS:
+                    continue
+                spawn_calls += 1
+                fork_counts[_hook_fork_bucket(hook)] += 1
+                explicit = {field_name: [] for field_name in IDENTIFIER_FIELDS}
+                for field_name in IDENTIFIER_FIELDS:
+                    value = _identifier(hook.fields.get(field_name))
+                    if value is not None:
+                        explicit[field_name].append(value)
+                add_identifiers(explicit)
+            continue
+        fallback_session = group[2]
+        if fallback_session is None:
+            continue
+        spawn_fallback_sessions += 1
+        metrics = _gmgn_metrics(fallback_session.calls)
+        spawn_calls += metrics["spawn_calls"]
+        for bucket in FORK_CONTEXT_VALUES:
+            fork_counts[bucket] += metrics["fork_context_counts"][bucket]
+        add_identifiers(metrics["identifiers"])
+
+    fallback_fields = set()
+    if all_fallback_calls:
+        fallback_fields.update({"gmgn.wait_calls", "gmgn.send_calls"})
+    if spawn_fallback_sessions:
+        fallback_fields.add("gmgn.spawn_calls")
+    if hook_sessions and spawn_fallback_sessions:
+        spawn_source = HOOK_SOURCE + "+" + SOURCE
+        spawn_coverage = "mixed"
+    elif hook_sessions:
+        spawn_source = HOOK_SOURCE
+        spawn_coverage = "observed"
+    elif spawn_fallback_sessions:
+        spawn_source = SOURCE
+        spawn_coverage = "fallback"
+    else:
+        spawn_source = "unknown"
+        spawn_coverage = "unknown"
+    result = {
+        "spawn_calls": spawn_calls,
+        "wait_calls": fallback_all["wait_calls"],
+        "send_calls": fallback_all["send_calls"],
+        "wait_duration_ms": fallback_all["wait_duration_ms"],
+        "fork_context_counts": fork_counts,
+        "identifiers": identifiers,
+        "metric_sources": {
+            "spawn_calls": spawn_source,
+            "fork_context_counts": spawn_source,
+            "identifiers": spawn_source,
+            "wait_calls": SOURCE if all_fallback_calls else "unknown",
+            "send_calls": SOURCE if all_fallback_calls else "unknown",
+            "wait_duration_ms": SOURCE if all_fallback_calls else "unknown",
+        },
+    }
+    coverage = _coverage(
+        spawn_source,
+        spawn_coverage,
+        hook_sessions + spawn_fallback_sessions,
+        len(groups),
+        fallback=bool(spawn_fallback_sessions or all_fallback_calls),
+    )
+    return result, coverage, fallback_fields
+
+
+def _hook_docstar_metrics(
+    groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
+    telemetry: _TelemetryStore,
+    follow_window: int,
+) -> Tuple[Dict[str, Any], Dict[str, Any], Set[str]]:
+    hook_records: List[_HookEvent] = []
+    fallback_calls: List[_RawCall] = []
+    hook_sessions = 0
+    fallback_sessions = 0
+    for group in groups:
+        hooks = _group_hook_events(group, telemetry)
+        if hooks:
+            hook_sessions += 1
+            hook_records.extend(hooks)
+        elif group[2] is not None:
+            fallback_sessions += 1
+            fallback_calls.extend(group[2].calls)
+
+    fallback = _docstar_metrics(fallback_calls, follow_window)
+    command_counts = Counter(fallback["commands"])
+    docstar_hooks = [
+        hook for hook in hook_records if hook.fields.get("classification") == "docstar"
+    ]
+    for hook in docstar_hooks:
+        command = _identifier(hook.fields.get("docstar_subcommand")) or "unknown"
+        command_counts[command] += 1
+    grep_calls = fallback["grep_calls"] + sum(
+        hook.fields.get("classification") == "grep" for hook in hook_records
+    )
+    read_calls = fallback["read_calls"] + sum(
+        hook.fields.get("classification") == "markdown_read" for hook in hook_records
+    )
+    follow_up = list(fallback["follow_up"])
+    by_session: Dict[str, List[_HookEvent]] = defaultdict(list)
+    for hook in hook_records:
+        if "tool_use_id" in hook.fields:
+            by_session[hook.session_id].append(hook)
+    for hook in docstar_hooks:
+        ordered = sorted(
+            by_session[hook.session_id],
+            key=lambda item: (
+                item.timestamp_ms is None,
+                item.timestamp_ms if item.timestamp_ms is not None else float("inf"),
+                item.sequence,
+            ),
+        )
+        subsequent = [
+            item
+            for item in ordered
+            if item.sequence != hook.sequence
+            and (item.timestamp_ms or float("inf")) > (hook.timestamp_ms or float("-inf"))
+            and item.fields.get("turn_id") == hook.fields.get("turn_id")
+        ][:follow_window]
+        following_grep = sum(item.fields.get("classification") == "grep" for item in subsequent)
+        following_read = sum(
+            item.fields.get("classification") == "markdown_read" for item in subsequent
+        )
+        follow_up.append(
+            {
+                "session_id": hook.session_id,
+                "call_id": hook.fields.get("tool_use_id"),
+                "turn_id": hook.fields.get("turn_id"),
+                "window": follow_window,
+                "grep_calls": following_grep,
+                "read_calls": following_read,
+                "grep_read_calls": following_grep + following_read,
+            }
+        )
+    result = {
+        "calls": fallback["calls"] + len(docstar_hooks),
+        "commands": dict(sorted(command_counts.items())),
+        "grep_calls": grep_calls,
+        "read_calls": read_calls,
+        "grep_read_calls": grep_calls + read_calls,
+        "follow_up": follow_up,
+        "grep_avoided": None,
+        "causal_status": "causal_not_measured",
+    }
+    if hook_sessions and fallback_sessions:
+        source = HOOK_SOURCE + "+" + SOURCE
+        status = "mixed"
+    elif hook_sessions:
+        source = HOOK_SOURCE
+        status = "observed"
+    elif fallback_sessions:
+        source = SOURCE
+        status = "fallback"
+    else:
+        source = "unknown"
+        status = "unknown"
+    coverage = _coverage(
+        source,
+        status,
+        hook_sessions + fallback_sessions,
+        len(groups),
+        fallback=bool(fallback_sessions),
+        follow_up="partial_hook_visibility" if hook_sessions else status,
+    )
+    fallback_fields = {"docstar"} if fallback_sessions else set()
+    return result, coverage, fallback_fields
+
+
+def _hook_skill_metrics(
+    groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
+    telemetry: _TelemetryStore,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Set[str]]:
+    result: List[Dict[str, Any]] = []
+    hook_sessions = 0
+    fallback_sessions = 0
+    native_links: Dict[Tuple[str, str], _OtelEvent] = {}
+    fallback_links: Dict[Tuple[str, str], _RawCall] = {}
+    session_ends: Dict[str, Optional[float]] = {}
+    for group in groups:
+        otel_events = _group_otel_events(group, telemetry)
+        for event in otel_events:
+            call_id = _identifier(event.attributes.get("call_id"))
+            if event.event_name == "codex.tool_result" and call_id is not None:
+                native_links.setdefault((event.session_id, call_id), event)
+        fallback_session = group[2]
+        for query_id in group[1]:
+            end_candidates = [
+                event.timestamp_ms for event in otel_events if event.timestamp_ms is not None
+            ]
+            if fallback_session is not None and fallback_session.session_end_ms is not None:
+                end_candidates.append(fallback_session.session_end_ms)
+            session_ends[query_id] = max(end_candidates) if end_candidates else None
+        if fallback_session is not None:
+            for call in fallback_session.calls:
+                if call.call_id is not None:
+                    fallback_links.setdefault((call.session_id, call.call_id), call)
+
+    for group in groups:
+        hooks = _group_hook_events(group, telemetry)
+        if hooks:
+            hook_sessions += 1
+            skill_hooks = [
+                hook
+                for hook in hooks
+                if hook.fields.get("classification") == "skill_load"
+                and _identifier(hook.fields.get("skill_name")) is not None
+            ]
+            skill_hooks.sort(
+                key=lambda item: (
+                    item.timestamp_ms is None,
+                    item.timestamp_ms if item.timestamp_ms is not None else float("inf"),
+                    item.sequence,
+                )
+            )
+            for index, hook in enumerate(skill_hooks):
+                call_id = _identifier(hook.fields.get("tool_use_id"))
+                native = native_links.get((hook.session_id, call_id)) if call_id else None
+                fallback_call = (
+                    fallback_links.get((hook.session_id, call_id))
+                    if call_id and native is None
+                    else None
+                )
+                if native is not None:
+                    load_duration = _safe_integer(native.attributes.get("duration_ms"))
+                    load_source: Optional[str] = OTEL_SOURCE
+                    linkage = "exact"
+                elif fallback_call is not None:
+                    load_duration = fallback_call.duration_ms
+                    load_source = SOURCE
+                    linkage = "fallback_exact"
+                else:
+                    load_duration = None
+                    load_source = None
+                    linkage = "unlinked"
+                boundary_ms = session_ends.get(hook.session_id)
+                if index + 1 < len(skill_hooks):
+                    boundary_ms = skill_hooks[index + 1].timestamp_ms
+                observed_span = None
+                if (
+                    hook.timestamp_ms is not None
+                    and boundary_ms is not None
+                    and boundary_ms >= hook.timestamp_ms
+                ):
+                    observed_span = int(round(boundary_ms - hook.timestamp_ms))
+                result.append(
+                    {
+                        "session_id": hook.session_id,
+                        "call_id": call_id,
+                        "skill": hook.fields["skill_name"],
+                        "load_duration_ms": load_duration,
+                        "observed_span_ms": observed_span,
+                        "estimated_context_tokens": _estimated_bytes(
+                            hook.fields.get("output_bytes")
+                        ),
+                        "source": HOOK_SOURCE,
+                        "load_duration_source": load_source,
+                        "observed_span_source": HOOK_SOURCE,
+                        "estimated_context_tokens_source": "hook_output_bytes_estimate",
+                        "estimated_context_tokens_is_estimate": True,
+                        "linkage": linkage,
+                    }
+                )
+            continue
+        fallback_session = group[2]
+        if fallback_session is None:
+            continue
+        fallback_sessions += 1
+        for skill in _skill_metrics([fallback_session]):
+            enriched = dict(skill)
+            enriched.update(
+                {
+                    "source": SOURCE,
+                    "load_duration_source": SOURCE,
+                    "observed_span_source": SOURCE,
+                    "estimated_context_tokens_source": "session_output_estimate",
+                    "estimated_context_tokens_is_estimate": True,
+                    "linkage": "fallback_exact",
+                }
+            )
+            result.append(enriched)
+
+    if hook_sessions and fallback_sessions:
+        source = HOOK_SOURCE + "+" + SOURCE
+        status = "mixed"
+    elif hook_sessions:
+        source = HOOK_SOURCE
+        status = "observed"
+    elif fallback_sessions:
+        source = SOURCE
+        status = "fallback"
+    else:
+        source = "unknown"
+        status = "unknown"
+    coverage = _coverage(
+        source,
+        status,
+        hook_sessions + fallback_sessions,
+        len(groups),
+        fallback=bool(fallback_sessions),
+        exact_duration_links=sum(
+            skill.get("linkage") in {"exact", "fallback_exact"} for skill in result
+        ),
+        skill_loads=len(result),
+    )
+    fallback_fields = {"skills"} if fallback_sessions else set()
+    return result, coverage, fallback_fields
+
+
+def _selected_events(
+    groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
+    by_session: Mapping[str, Sequence[Any]],
+) -> List[Any]:
+    result: List[Any] = []
+    seen: Set[Tuple[str, int]] = set()
+    for _, query_ids, _ in groups:
+        for event in _events_for_ids(by_session, query_ids):
+            key = (event.session_id, event.sequence)
+            if key not in seen:
+                seen.add(key)
+                result.append(event)
+    return result
+
+
+def _observed_session_count(events: Sequence[Any]) -> int:
+    return len({event.session_id for event in events})
+
+
+def _estimated_call_totals(calls: Sequence[Mapping[str, Any]]) -> Dict[str, Optional[int]]:
+    if not calls:
+        return {"input": 0, "output": 0, "total": 0}
+    input_values = [call.get("estimated_input_tokens") for call in calls]
+    output_values = [call.get("estimated_output_tokens") for call in calls]
+    input_total = (
+        sum(value for value in input_values if isinstance(value, int))
+        if all(isinstance(value, int) for value in input_values)
+        else None
+    )
+    output_total = (
+        sum(value for value in output_values if isinstance(value, int))
+        if all(isinstance(value, int) for value in output_values)
+        else None
+    )
+    return {
+        "input": input_total,
+        "output": output_total,
+        "total": (
+            input_total + output_total
+            if input_total is not None and output_total is not None
+            else None
+        ),
+    }
+
+
+def _apply_telemetry(
+    run: Dict[str, Any],
+    sessions: Sequence[_SessionData],
+    requested_id: str,
+    telemetry: _TelemetryStore,
+    follow_window: int,
+) -> None:
+    groups = _logical_session_groups(requested_id, run, sessions, telemetry)
+    covered_ids = {
+        missing_id
+        for missing_id in run["data_quality"]["missing_sessions"]
+        if telemetry.has_session(missing_id)
+    }
+    if covered_ids:
+        run["data_quality"]["missing_sessions"] = [
+            missing_id
+            for missing_id in run["data_quality"]["missing_sessions"]
+            if missing_id not in covered_ids
+        ]
+    if groups and run["session_id"] is None:
+        run["session_id"] = requested_id
+    if groups:
+        run["session_counts"] = {
+            "main": 1,
+            "descendants": len(groups) - 1,
+            "total": len(groups),
+        }
+
+    otel_events: List[_OtelEvent] = _selected_events(groups, telemetry.otel_by_session)
+    hook_events: List[_HookEvent] = _selected_events(groups, telemetry.hooks_by_session)
+    total_sessions = len(groups)
+    fallback_session_count = sum(group[2] is not None for group in groups)
+    fallback_fields: Set[str] = set()
+    if fallback_session_count:
+        fallback_fields.update({"session_counts", "timing"})
+
+    actual_tokens, token_coverage, token_fallback = _telemetry_tokens(groups, telemetry)
+    fallback_fields.update(token_fallback)
+    run["actual_tokens"] = actual_tokens
+
+    api_events = [event for event in otel_events if event.event_name == "codex.api_request"]
+    tool_events = [event for event in otel_events if event.event_name == "codex.tool_result"]
+    run["api_calls"] = _api_metrics(otel_events)
+    run["native_tool_results"] = _native_tool_metrics(otel_events)
+
+    tool_calls, tool_coverage, tool_fallback = _merged_tool_calls(groups, telemetry)
+    fallback_fields.update(tool_fallback)
+    run["tool_calls"] = tool_calls
+    run["estimated_tool_io_tokens"] = _estimated_call_totals(tool_calls)
+
+    gmgn, gmgn_coverage, gmgn_fallback = _hook_gmgn_metrics(groups, telemetry)
+    fallback_fields.update(gmgn_fallback)
+    run["gmgn"] = gmgn
+
+    docstar, docstar_coverage, docstar_fallback = _hook_docstar_metrics(
+        groups,
+        telemetry,
+        follow_window,
+    )
+    fallback_fields.update(docstar_fallback)
+    run["docstar"] = docstar
+
+    skills, skills_coverage, skills_fallback = _hook_skill_metrics(groups, telemetry)
+    fallback_fields.update(skills_fallback)
+    run["skills"] = skills
+
+    if fallback_session_count == total_sessions and total_sessions:
+        session_source = SOURCE
+        session_status = "fallback"
+    elif fallback_session_count:
+        session_source = SOURCE
+        session_status = "partial"
+    elif total_sessions:
+        session_source = OTEL_SOURCE if otel_events else HOOK_SOURCE
+        session_status = "partial"
+    else:
+        session_source = "unknown"
+        session_status = "unknown"
+    timing_status = "fallback" if sessions else "unknown"
+    timing_source = SOURCE if sessions else "unknown"
+    coverage = {
+        "session_counts": _coverage(
+            session_source,
+            session_status,
+            fallback_session_count,
+            total_sessions,
+            fallback=bool(fallback_session_count),
+        ),
+        "timing": _coverage(
+            timing_source,
+            timing_status,
+            1 if sessions else 0,
+            1 if total_sessions else 0,
+            fallback=bool(sessions),
+        ),
+        "actual_tokens": token_coverage,
+        "api_calls": _coverage(
+            OTEL_SOURCE if api_events else "unknown",
+            "observed" if api_events else "unknown",
+            _observed_session_count(api_events),
+            total_sessions,
+        ),
+        "native_tool_results": _coverage(
+            OTEL_SOURCE if tool_events else "unknown",
+            "observed" if tool_events else "unknown",
+            _observed_session_count(tool_events),
+            total_sessions,
+        ),
+        **tool_coverage,
+        "gmgn": gmgn_coverage,
+        "docstar": docstar_coverage,
+        "skills": skills_coverage,
+    }
+    run["coverage"] = coverage
+
+    otel_session_count = _observed_session_count(otel_events)
+    hook_session_count = _observed_session_count(hook_events)
+    fallback_used = bool(fallback_fields)
+    run["sources"] = {
+        OTEL_SOURCE: {
+            "available": bool(otel_events),
+            "records": len(otel_events),
+            "sessions": otel_session_count,
+        },
+        HOOK_SOURCE: {
+            "available": bool(hook_events),
+            "records": len(hook_events),
+            "sessions": hook_session_count,
+        },
+        SOURCE: {
+            "available": bool(sessions),
+            "used": fallback_used,
+            "fields": sorted(fallback_fields),
+            "sessions": fallback_session_count,
+        },
+    }
+    primary_sources = []
+    if otel_events:
+        primary_sources.append(OTEL_SOURCE)
+    if hook_events:
+        primary_sources.append(HOOK_SOURCE)
+    if primary_sources and fallback_used:
+        run_source = MIXED_SOURCE
+    elif len(primary_sources) == 2:
+        run_source = OTEL_SOURCE + "+" + HOOK_SOURCE
+    elif primary_sources:
+        run_source = primary_sources[0]
+    else:
+        run_source = SOURCE
+    run["source"] = run_source
+    run["data_quality"]["source"] = run_source
+    run["data_quality"]["malformed_telemetry_lines"] = telemetry.malformed_lines
 
 
 def _empty_run(requested_id: str) -> Dict[str, Any]:
@@ -1176,6 +2414,7 @@ def build_report(
         else os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
     ).expanduser()
     index = _SessionIndex(home)
+    telemetry = _TelemetryStore(home)
     cache: Dict[Path, _SessionData] = {}
     runs: List[Dict[str, Any]] = []
     included: Dict[Path, _SessionData] = {}
@@ -1189,6 +2428,7 @@ def build_report(
             include_descendants,
             follow_window,
         )
+        _apply_telemetry(run, sessions, requested_id, telemetry, follow_window)
         runs.append(run)
         for session in sessions:
             included[session.descriptor.path] = session
@@ -1197,9 +2437,11 @@ def build_report(
                 missing_seen.add(missing_id)
                 missing_sessions.append(missing_id)
 
+    run_sources = {run["source"] for run in runs}
+    report_source = next(iter(run_sources)) if len(run_sources) == 1 else MIXED_SOURCE
     return {
         "schema_version": SCHEMA_VERSION,
-        "source": SOURCE,
+        "source": report_source,
         "configuration": {
             "include_descendants": include_descendants,
             "follow_window": follow_window,
@@ -1208,10 +2450,15 @@ def build_report(
         "data_quality": {
             "malformed_lines": sum(item.malformed_lines for item in included.values()),
             "unpaired_calls": sum(item.unpaired_calls for item in included.values()),
+            "malformed_telemetry_lines": telemetry.malformed_lines,
             "missing_sessions": missing_sessions,
-            "source": SOURCE,
+            "source": report_source,
         },
     }
+
+
+def _human_value(value: Any) -> str:
+    return "unknown" if value is None else str(value)
 
 
 def render_human(report: Mapping[str, Any]) -> str:
@@ -1228,23 +2475,41 @@ def render_human(report: Mapping[str, Any]) -> str:
         gmgn = run["gmgn"]
         docstar = run["docstar"]
         quality = run["data_quality"]
+        coverage = run["coverage"]
+        sources = run["sources"]
+        fallback = sources[SOURCE]
+        follow_up_total = sum(
+            item["grep_read_calls"] for item in docstar["follow_up"]
+        )
         lines.extend(
             [
                 "运行 {0}（session {1}）".format(requested_id, run["session_id"]),
+                "  数据源：{0}；fallback：{1}；coverage：token {2}，API {3}，native tool {4}，linkage {5}".format(
+                    run["source"],
+                    "used" if fallback["used"] else "not_used",
+                    coverage["actual_tokens"]["coverage"],
+                    coverage["api_calls"]["coverage"],
+                    coverage["native_tool_results"]["coverage"],
+                    coverage["native_hook_linkage"]["coverage"],
+                ),
                 "  会话：主 {main}，子 {descendants}，总计 {total}".format(**counts),
                 "  主任务墙钟：{0} ms；完成 turn：{1} ms；agent turn：{2} ms".format(
-                    timing["main_wall_elapsed_ms"],
-                    timing["completed_turn_duration_ms"],
-                    timing["agent_turn_duration_ms"],
+                    _human_value(timing["main_wall_elapsed_ms"]),
+                    _human_value(timing["completed_turn_duration_ms"]),
+                    _human_value(timing["agent_turn_duration_ms"]),
                 ),
-                "  实际 token：input {input}，cached {cached}，output {output}，reasoning {reasoning}，total {total}".format(
-                    **actual
+                "  实际 token：input {0}，cached {1}，output {2}，reasoning {3}，total {4}".format(
+                    _human_value(actual["input"]),
+                    _human_value(actual["cached"]),
+                    _human_value(actual["output"]),
+                    _human_value(actual["reasoning"]),
+                    _human_value(actual["total"]),
                 ),
                 "  工具调用：{0}；估算工具 I/O token：input {1}，output {2}，total {3}".format(
                     len(run["tool_calls"]),
-                    estimated["input"],
-                    estimated["output"],
-                    estimated["total"],
+                    _human_value(estimated["input"]),
+                    _human_value(estimated["output"]),
+                    _human_value(estimated["total"]),
                 ),
                 "  GMGN：spawn {0}，wait {1}（{2} ms），send {3}".format(
                     gmgn["spawn_calls"],
@@ -1252,9 +2517,13 @@ def render_human(report: Mapping[str, Any]) -> str:
                     gmgn["wait_duration_ms"],
                     gmgn["send_calls"],
                 ),
-                "  DocStar：{0} 次；grep/read {1}".format(
-                    docstar["calls"], docstar["grep_read_calls"]
+                "  DocStar：{0} 次；grep/read {1}；DocStar follow-up grep/read {2}；{3}".format(
+                    docstar["calls"],
+                    docstar["grep_read_calls"],
+                    follow_up_total,
+                    docstar["causal_status"],
                 ),
+                "  skill 调用：{0}".format(len(run["skills"])),
                 "  数据质量：malformed {0}，unpaired {1}，missing {2}".format(
                     quality["malformed_lines"],
                     quality["unpaired_calls"],
@@ -1262,6 +2531,17 @@ def render_human(report: Mapping[str, Any]) -> str:
                 ),
             ]
         )
+        for skill in run["skills"]:
+            lines.append(
+                "    {0}：load {1} ms（{2}）；observed {3} ms；context {4} token（estimate）；linkage {5}".format(
+                    skill["skill"],
+                    _human_value(skill["load_duration_ms"]),
+                    _human_value(skill.get("load_duration_source")),
+                    _human_value(skill["observed_span_ms"]),
+                    _human_value(skill["estimated_context_tokens"]),
+                    skill.get("linkage", "fallback_exact"),
+                )
+            )
     return "\n".join(lines)
 
 

@@ -33,6 +33,7 @@ class TelemetryReportTests(unittest.TestCase):
         self.codex_home = Path(self.temporary.name)
         self.sessions = self.codex_home / "sessions" / "2026" / "07" / "20"
         self.sessions.mkdir(parents=True)
+        self.telemetry_data = self.codex_home / "gmgn-telemetry" / "data"
         self.private_prompt = "PRIVATE-SPAWN-PROMPT password=hunter2"
         self.private_arguments = "PRIVATE-ARGUMENTS api_key=secret"
         self.private_output = "PRIVATE-OUTPUT bearer-token"
@@ -111,6 +112,63 @@ class TelemetryReportTests(unittest.TestCase):
             },
         )
 
+    def otel_value(self, value: object) -> dict:
+        if isinstance(value, bool):
+            return {"boolValue": value}
+        if isinstance(value, int):
+            return {"intValue": str(value)}
+        return {"stringValue": value}
+
+    def otel_record(
+        self,
+        session_id: str,
+        event_name: str,
+        timestamp: str,
+        **attributes: object,
+    ) -> dict:
+        values = {
+            "conversation.id": session_id,
+            "event.name": event_name,
+            "event.timestamp": timestamp,
+            **attributes,
+        }
+        return {
+            "timeUnixNano": "1784505600000000000",
+            "attributes": [
+                {
+                    "key": key,
+                    "value": value
+                    if isinstance(value, dict)
+                    else self.otel_value(value),
+                }
+                for key, value in values.items()
+            ],
+        }
+
+    def write_otel(self, records: list[dict]) -> None:
+        self.telemetry_data.mkdir(parents=True, exist_ok=True)
+        envelope = {
+            "schema_version": "gmgn-otel-envelope-v1",
+            "received_at": "2026-07-20T00:00:30Z",
+            "signal": "logs",
+            "content_type": "application/json",
+            "body": {
+                "resourceLogs": [
+                    {"scopeLogs": [{"logRecords": records}]},
+                ]
+            },
+        }
+        path = self.telemetry_data / "2026-07-20.jsonl"
+        path.write_text(json.dumps(envelope) + "\n", encoding="utf-8")
+
+    def write_hooks(self, records: list[dict]) -> None:
+        self.telemetry_data.mkdir(parents=True, exist_ok=True)
+        path = self.telemetry_data / "hooks-2026-07-20.jsonl"
+        path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+
     def _write_fixture(self) -> None:
         root = [
             {
@@ -135,7 +193,10 @@ class TelemetryReportTests(unittest.TestCase):
                 "spawn-root",
                 "spawn_agent",
                 {
-                    "message": self.private_prompt,
+                    "message": (
+                        self.private_prompt
+                        + "\ncard_id: PROMPT-CARD\nrun_id: PROMPT-RUN"
+                    ),
                     "fork_context": False,
                     "card_id": "CARD-7",
                     "run_id": "run-9",
@@ -289,7 +350,10 @@ class TelemetryReportTests(unittest.TestCase):
                 "2026-07-20T00:00:04.500Z",
                 "spawn-child",
                 "spawn_agent",
-                {"message": self.private_prompt, "fork_turns": "none"},
+                {
+                    "message": self.private_prompt + "\ncard_id: CHILD-PROMPT-CARD",
+                    "fork_turns": "none",
+                },
             ),
             self.output("2026-07-20T00:00:05Z", "spawn-child", {"success": True}),
             event(
@@ -333,6 +397,212 @@ class TelemetryReportTests(unittest.TestCase):
         self.write_session("rollout-root-session", root)
         self.write_session("rollout-child-session", child)
         self.write_session("rollout-grandchild-session", grandchild)
+
+    def _write_primary_telemetry_fixture(self) -> None:
+        root_sse = self.otel_record(
+            "root-session",
+            "codex.sse_event",
+            "2026-07-20T00:00:24Z",
+            **{
+                "event.kind": "response.completed",
+                "input_token_count": 70,
+                "cached_token_count": 10,
+                "output_token_count": 20,
+                "tool_token_count": 90,
+            },
+        )
+        records = [
+            self.otel_record(
+                "root-session",
+                "codex.api_request",
+                "2026-07-20T00:00:03Z",
+                duration_ms=120,
+                **{"http.response.status_code": 200},
+            ),
+            root_sse,
+            root_sse,
+            self.otel_record(
+                "root-session",
+                "codex.tool_result",
+                "2026-07-20T00:00:03.400Z",
+                tool_name="exec_command",
+                call_id="docstar",
+                duration_ms=400,
+                success="true",
+                arguments={"length": 40, "redacted": True},
+                output={"length": 80, "redacted": True},
+            ),
+            self.otel_record(
+                "root-session",
+                "codex.tool_result",
+                "2026-07-20T00:00:12Z",
+                tool_name="exec_command",
+                call_id="skill-one",
+                duration_ms=1000,
+                success="true",
+                arguments={"length": 32, "redacted": True},
+                output={"length": 40, "redacted": True},
+            ),
+            self.otel_record(
+                "child-session",
+                "codex.api_request",
+                "2026-07-20T00:00:04Z",
+                duration_ms=80,
+                **{"http.response.status_code": 200},
+            ),
+            self.otel_record(
+                "child-session",
+                "codex.sse_event",
+                "2026-07-20T00:00:07Z",
+                **{
+                    "event.kind": "response.completed",
+                    "input_token_count": 30,
+                    "cached_token_count": 4,
+                    "output_token_count": 8,
+                    "reasoning_token_count": 2,
+                    "tool_token_count": 38,
+                },
+            ),
+            self.otel_record(
+                "child-session",
+                "codex.tool_result",
+                "2026-07-20T00:00:04Z",
+                tool_name="exec",
+                call_id="custom-grep",
+                duration_ms=900,
+                success="false",
+                arguments={"length": 24, "redacted": True},
+                output={"length": 16, "redacted": True},
+            ),
+        ]
+        self.write_otel(records)
+        hooks = [
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:01Z",
+                "event": "SessionStart",
+                "session_id": "root-session",
+                "classification": "other",
+                "input_bytes": 0,
+                "output_bytes": 0,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:02Z",
+                "event": "PreToolUse",
+                "session_id": "root-session",
+                "turn_id": "root-turn-1",
+                "tool_name": "spawn_agent",
+                "tool_use_id": "spawn-root",
+                "classification": "agent",
+                "fork_context": False,
+                "card_id": "CARD-7",
+                "run_id": "run-9",
+                "lane_key": "methodology:CARD-7",
+                "target_milestone_id": "M2",
+                "input_bytes": 100,
+                "output_bytes": 0,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:03.400Z",
+                "event": "PostToolUse",
+                "session_id": "root-session",
+                "turn_id": "root-turn-1",
+                "tool_name": "Bash",
+                "tool_use_id": "docstar",
+                "classification": "docstar",
+                "docstar_subcommand": "brief",
+                "input_bytes": 40,
+                "output_bytes": 80,
+                "success": True,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:04.200Z",
+                "event": "PostToolUse",
+                "session_id": "root-session",
+                "turn_id": "root-turn-1",
+                "tool_name": "Bash",
+                "tool_use_id": "grep-hook-only",
+                "classification": "grep",
+                "input_bytes": 20,
+                "output_bytes": 10,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:06.300Z",
+                "event": "PostToolUse",
+                "session_id": "root-session",
+                "turn_id": "root-turn-1",
+                "tool_name": "Bash",
+                "tool_use_id": "markdown-read",
+                "classification": "markdown_read",
+                "input_bytes": 20,
+                "output_bytes": 40,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:12Z",
+                "event": "PostToolUse",
+                "session_id": "root-session",
+                "turn_id": "root-turn-1",
+                "tool_name": "Bash",
+                "tool_use_id": "skill-one",
+                "classification": "skill_load",
+                "skill_name": "gmgn",
+                "input_bytes": 32,
+                "output_bytes": 40,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:21Z",
+                "event": "PostToolUse",
+                "session_id": "root-session",
+                "turn_id": "root-turn-2",
+                "tool_name": "Bash",
+                "tool_use_id": "unlinked-skill-two",
+                "classification": "skill_load",
+                "skill_name": "run-task",
+                "input_bytes": 28,
+                "output_bytes": 20,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:02.500Z",
+                "event": "SessionStart",
+                "session_id": "child-session",
+                "classification": "other",
+                "input_bytes": 0,
+                "output_bytes": 0,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:04.500Z",
+                "event": "PreToolUse",
+                "session_id": "child-session",
+                "turn_id": "child-turn",
+                "tool_name": "spawn_agent",
+                "tool_use_id": "spawn-child",
+                "classification": "agent",
+                "fork_turns": "none",
+                "input_bytes": 50,
+                "output_bytes": 0,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:04Z",
+                "event": "PostToolUse",
+                "session_id": "child-session",
+                "turn_id": "child-turn",
+                "tool_name": "Bash",
+                "tool_use_id": "not-custom-grep",
+                "classification": "grep",
+                "input_bytes": 24,
+                "output_bytes": 16,
+            },
+        ]
+        self.write_hooks(hooks + [hooks[2]])
 
     def build_report(self, *session_ids: str, **options: object) -> dict:
         from telemetry.report import build_report
@@ -506,6 +776,114 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertIn("--include-descendants", help_result.stdout)
         self.assertIn("--no-descendants", help_result.stdout)
         self.assertIn("default: 5", help_result.stdout)
+
+    def test_collector_and_hooks_are_primary_with_field_fallback_and_dedup(self) -> None:
+        self._write_primary_telemetry_fixture()
+        report = self.build_report("historical-task-id", follow_window=3)
+        run = report["runs"][0]
+
+        self.assertEqual(report["source"], "mixed")
+        self.assertEqual(run["api_calls"]["count"], 2)
+        self.assertEqual(run["api_calls"]["duration_ms"], 200)
+        self.assertEqual(run["native_tool_results"]["count"], 3)
+        self.assertEqual(run["native_tool_results"]["duration_ms"], 2300)
+        self.assertEqual(
+            run["actual_tokens"],
+            {"input": 120, "cached": 16, "output": 33, "reasoning": 8, "total": 153},
+        )
+        token_fields = run["coverage"]["actual_tokens"]["fields"]
+        self.assertIn("collector_otel", token_fields["input"]["source"])
+        self.assertIn("session_jsonl_unstable_fallback", token_fields["input"]["source"])
+        self.assertIn("session_jsonl_unstable_fallback", token_fields["reasoning"]["source"])
+        self.assertTrue(run["sources"]["session_jsonl_unstable_fallback"]["used"])
+
+        calls = {call["call_id"]: call for call in run["tool_calls"]}
+        self.assertEqual(calls["docstar"]["duration_ms"], 400)
+        self.assertEqual(calls["docstar"]["category"], "docstar")
+        self.assertEqual(calls["custom-grep"]["category"], "unclassified")
+        self.assertEqual(
+            run["coverage"]["native_hook_linkage"]["coverage"],
+            "partial",
+        )
+
+        skills = {skill["skill"]: skill for skill in run["skills"]}
+        self.assertEqual(skills["gmgn"]["load_duration_ms"], 1000)
+        self.assertEqual(skills["gmgn"]["load_duration_source"], "collector_otel")
+        self.assertEqual(skills["gmgn"]["observed_span_ms"], 9000)
+        self.assertEqual(skills["gmgn"]["estimated_context_tokens"], 10)
+        self.assertTrue(skills["gmgn"]["estimated_context_tokens_is_estimate"])
+        self.assertIsNone(skills["run-task"]["load_duration_ms"])
+        self.assertEqual(skills["run-task"]["linkage"], "unlinked")
+
+        self.assertEqual(run["gmgn"]["spawn_calls"], 2)
+        self.assertEqual(run["gmgn"]["wait_calls"], 1)
+        self.assertEqual(run["gmgn"]["send_calls"], 1)
+        self.assertEqual(run["docstar"]["calls"], 1)
+        self.assertEqual(run["docstar"]["follow_up"][0]["grep_read_calls"], 2)
+
+    def test_unknown_tokens_are_null_and_otel_only_session_is_reportable(self) -> None:
+        empty_home = Path(self.temporary.name) / "empty-codex"
+        session_dir = empty_home / "sessions"
+        session_dir.mkdir(parents=True)
+        (session_dir / "no-token.jsonl").write_text(
+            json.dumps(
+                {
+                    "timestamp": "2026-07-20T00:00:00Z",
+                    "type": "session_meta",
+                    "payload": {"id": "no-token"},
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        from telemetry.report import build_report
+
+        unknown = build_report(["no-token"], codex_home=empty_home)["runs"][0]
+        self.assertEqual(unknown["actual_tokens"], dict.fromkeys(
+            ("input", "cached", "output", "reasoning", "total"), None
+        ))
+        self.assertEqual(unknown["coverage"]["actual_tokens"]["coverage"], "unknown")
+
+        self.write_otel(
+            [
+                self.otel_record(
+                    "otel-only",
+                    "codex.api_request",
+                    "2026-07-20T00:00:01Z",
+                    duration_ms=50,
+                    **{"http.response.status_code": 200},
+                )
+            ]
+        )
+        only = self.build_report("otel-only")["runs"][0]
+        self.assertEqual(only["session_id"], "otel-only")
+        self.assertEqual(only["api_calls"]["count"], 1)
+        self.assertIsNone(only["actual_tokens"]["total"])
+        self.assertEqual(only["data_quality"]["missing_sessions"], [])
+
+    def test_structured_identifiers_ignore_adversarial_prompt_text(self) -> None:
+        run = self.build_report("root-session")["runs"][0]
+        identifiers = run["gmgn"]["identifiers"]
+        self.assertEqual(identifiers["card_id"], ["CARD-7"])
+        self.assertEqual(identifiers["run_id"], ["run-9"])
+        serialized = json.dumps(identifiers, sort_keys=True)
+        self.assertNotIn("PROMPT-CARD", serialized)
+        self.assertNotIn("PROMPT-RUN", serialized)
+        self.assertNotIn("CHILD-PROMPT-CARD", serialized)
+
+    def test_human_output_shows_sources_coverage_and_skill_estimates(self) -> None:
+        self._write_primary_telemetry_fixture()
+        from telemetry.report import render_human
+
+        human = render_human(self.build_report("root-session", follow_window=3))
+        self.assertIn("数据源", human)
+        self.assertIn("coverage", human)
+        self.assertIn("fallback", human)
+        self.assertIn("skill 调用", human)
+        self.assertIn("gmgn", human)
+        self.assertIn("estimate", human)
+        self.assertIn("DocStar follow-up grep/read", human)
+        self.assertIn("causal_not_measured", human)
 
 
 if __name__ == "__main__":
