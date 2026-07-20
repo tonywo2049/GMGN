@@ -65,6 +65,12 @@ CHAIN = [
     "brainstorm", "roadmap", "write-goal", "write-requirement", "write-design",
     "write-task", "run-task", "close-milestone",
 ]
+TELEMETRY_COMMANDS = (
+    "python3 telemetry/install.py --dry-run",
+    "python3 telemetry/install.py --print-codex-config",
+    "python3 telemetry/install.py",
+    "python3 telemetry/report.py <session-id...> [--json]",
+)
 
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
@@ -375,6 +381,198 @@ def require_section_tokens(
     ]
     if missing:
         errors.append(f"{label}: 受控变更规则缺失 {missing}")
+
+
+def validate_telemetry_contract(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    documents: dict[str, str] = {}
+    for relative_path in ("README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md"):
+        try:
+            documents[relative_path] = (ROOT / relative_path).read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+            documents[relative_path] = ""
+
+    def require_section(
+        text: str, heading: str, tokens: tuple[str, ...], label: str
+    ) -> None:
+        section = extract_section(text, heading)
+        normalized = "" if section is None else " ".join(section.split())
+        compact = "" if section is None else re.sub(r"\s+", "", section)
+        missing = [
+            token
+            for token in tokens
+            if " ".join(token.split()) not in normalized
+            and re.sub(r"\s+", "", token) not in compact
+        ]
+        if missing:
+            errors.append(f"{label}: telemetry 关键约束缺失 {missing}")
+
+    require_section(
+        documents["README.md"],
+        "## Optional telemetry",
+        (
+            "~/.codex/config.toml",
+            "project-level `otel` configuration is ignored by Codex",
+            "OTLP/HTTP JSON",
+            "/v1/logs",
+            "actual API calls, tool calls, and task-total token counts",
+            "traces and metrics are explicitly disabled",
+            "log_user_prompt=false",
+            "Before writing to disk",
+            "redacts body-like fields",
+            "redacted classifications and correlation IDs",
+            "Codex `/hooks`",
+            "unstable fallback",
+            "Per-tool/skill input/output token counts are estimates",
+            "task-total token count is actual",
+        ),
+        "README.md telemetry 配置与隐私",
+    )
+    require_section(
+        documents["README.zh-CN.md"],
+        "## 可选 telemetry",
+        (
+            "~/.codex/config.toml",
+            "项目级 `otel` 配置会被 Codex 忽略",
+            "OTLP/HTTP JSON",
+            "/v1/logs",
+            "API 调用",
+            "tool 调用",
+            "任务总 token",
+            "trace 和 metrics 明确关闭",
+            "log_user_prompt=false",
+            "落盘前脱敏正文型字段",
+            "脱敏分类和关联 ID",
+            "Codex `/hooks`",
+            "unstable fallback",
+            "per-tool/skill I/O token 是 estimates",
+            "任务总 token 是 actual",
+        ),
+        "README.zh-CN.md telemetry 配置与隐私",
+    )
+
+    telemetry_sections = (
+        (
+            documents["GMGN.md"],
+            "### 6.1 Telemetry is out-of-band observation",
+            (
+                "out-of-band observation, never execution, approval, or closure authority",
+                "prompt, `Task.md`, or `Handoff`",
+                "No model manually writes telemetry logs",
+                "redacted classifications and correlation IDs",
+                "Telemetry failure never blocks delivery",
+                "only when the user explicitly requests a retrospective",
+                "does not change DocStar or its JSON output",
+                "fresh full rebuild on every invocation",
+                "no cache",
+                "outside DocStar",
+                "call count, elapsed time, command type, and subsequent grep/read activity",
+                "`grep_avoided` does not claim causation",
+            ),
+            "GMGN.md telemetry 权威边界",
+        ),
+        (
+            documents["GMGN.zh-CN.md"],
+            "### 6.1 Telemetry 是带外观测",
+            (
+                "out-of-band observation",
+                "绝不是执行、审批或关账权威",
+                "prompt、`Task.md` 或 `Handoff`",
+                "模型不得手工写 telemetry 日志",
+                "脱敏分类和关联 ID",
+                "失败不阻塞交付",
+                "只有用户明确要求复盘",
+                "不改变 DocStar 本体或 JSON 输出",
+                "每次调用实时全量重建",
+                "不使用缓存",
+                "DocStar 外部",
+                "调用次数、耗时、命令类型和后续 grep/read",
+                "`grep_avoided` 不作因果断言",
+            ),
+            "GMGN.zh-CN.md telemetry 权威边界",
+        ),
+        (
+            parsed.get("gmgn", ("", ""))[1],
+            "## Telemetry boundary",
+            (
+                "out-of-band observation, never execution, approval, or closure authority",
+                "model to write telemetry logs",
+                "prompt, `Task.md`, or `Handoff`",
+                "redacted classifications and correlation IDs",
+                "failure never blocks routing or delivery",
+                "only when the user explicitly requests a retrospective",
+                "does not change DocStar or its JSON output",
+                "fresh full rebuild on every invocation",
+                "no cache",
+                "outside DocStar",
+                "`grep_avoided` does not claim causation",
+            ),
+            "gmgn skill telemetry 权威边界",
+        ),
+        (
+            parsed.get("run-task", ("", ""))[1],
+            "## Telemetry boundary",
+            (
+                "out-of-band observation, never execution, approval, or closure authority",
+                "lane prompt, `Task.md`, or `Handoff`",
+                "no model manually writes telemetry logs",
+                "redacted classifications and correlation IDs",
+                "never uses telemetry for readiness, review authorization, acceptance, integration, or card closure",
+                "Telemetry failure never blocks delivery",
+                "only when the user explicitly requests a retrospective",
+                "does not change DocStar or its JSON output",
+                "fresh full rebuild with no cache",
+                "outside DocStar",
+                "`grep_avoided` does not claim causation",
+            ),
+            "run-task skill telemetry 权威边界",
+        ),
+    )
+    for text, heading, tokens, label in telemetry_sections:
+        require_section(text, heading, tokens, label)
+
+    def commands(text: str) -> tuple[str, ...]:
+        return tuple(
+            line.strip()
+            for line in text.splitlines()
+            if line.strip().startswith("python3 telemetry/")
+        )
+
+    english_commands = commands(documents["README.md"])
+    chinese_commands = commands(documents["README.zh-CN.md"])
+    if english_commands != TELEMETRY_COMMANDS or chinese_commands != TELEMETRY_COMMANDS:
+        errors.append(
+            "README telemetry 机器命令必须完全一致且使用固定 CLI: "
+            f"en={english_commands}, zh-CN={chinese_commands}"
+        )
+
+    all_contract_text = "\n".join(
+        (*documents.values(), parsed.get("gmgn", ("", ""))[1], parsed.get("run-task", ("", ""))[1])
+    )
+    authority_regressions = (
+        "Telemetry may serve as execution, approval, and closure authority.",
+        "Telemetry 可以作为执行、审批和关账权威。",
+        "Telemetry may authorize workflow transitions.",
+        "Telemetry may close a task card.",
+    )
+    found_authority = [value for value in authority_regressions if value in all_contract_text]
+    if found_authority:
+        errors.append(f"telemetry 权威边界回退: {found_authority}")
+    if re.search(r"log_user_prompt\s*=\s*true", all_contract_text):
+        errors.append("telemetry 隐私边界回退: log_user_prompt 必须为 false")
+    if "Telemetry failure blocks delivery." in all_contract_text:
+        errors.append("telemetry 失败边界回退: 观测失败不得阻塞交付")
+    docstar_regressions = (
+        "adds a DocStar cache",
+        "changes its JSON output",
+        "为 DocStar 增加缓存",
+        "改变 DocStar JSON 输出",
+    )
+    found_docstar = [value for value in docstar_regressions if value in all_contract_text]
+    if found_docstar:
+        errors.append(f"DocStar 实时生成边界回退: {found_docstar}")
 
 
 def validate_controlled_change_protocol(
@@ -1238,6 +1436,7 @@ def main() -> int:
 
     validate_release_metadata(errors, set(parsed))
     validate_document_pairs(errors)
+    validate_telemetry_contract(errors, parsed)
     validate_docstar_adapter(errors)
     validate_lane_registry(errors)
     validate_controlled_change_protocol(errors, parsed)

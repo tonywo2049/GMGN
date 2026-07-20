@@ -192,6 +192,35 @@ claude plugin marketplace remove GMGN --scope user
 
 缺陷修复和琐碎单步改动可以走受控旁路，不强迫补齐整条规格链；白皮书、ROADMAP、立项与关账等停点仍需对应授权。
 
+## 可选 telemetry
+
+### 安装与配置
+
+在解压后的 GMGN 发布包或仓库根目录运行：
+
+```bash
+python3 telemetry/install.py --dry-run
+python3 telemetry/install.py --print-codex-config
+python3 telemetry/install.py
+python3 telemetry/report.py <session-id...> [--json]
+```
+
+`--dry-run` 预览安装内容，`--print-codex-config` 打印应合并到用户级
+`~/.codex/config.toml` 的精确配置；项目级 `otel` 配置会被 Codex 忽略。本地 Collector
+保持常驻，通过 `/v1/logs` 接收 Codex 原生 OTLP/HTTP JSON 日志，得到 actual 的 API 调用、
+tool 调用与任务总 token；trace 和 metrics 明确关闭。安装后在 Codex `/hooks` 中检查并信任
+这些低频用户级 hooks。
+
+### 隐私与报告
+
+Codex 使用 `log_user_prompt=false`；Collector 还会在落盘前脱敏正文型字段。用户级 hooks
+只记录脱敏分类和关联 ID；模型不手工写 telemetry 日志，也不把日志放进 prompt、`Task.md`
+或 `Handoff`。
+
+只有用户要求复盘时才运行报告命令。历史任务可回放 session JSONL，但必须明确标注为
+`unstable fallback`。per-tool/skill I/O token 是 estimates，任务总 token 是 actual；`--json`
+只改变报告格式。
+
 ## 仓库结构
 
 ```text
@@ -206,6 +235,7 @@ agents/                     Claude Code 插件 subagent 角色
 .agents/plugins/            Codex marketplace 清单
 tests/                      结构、触发、双平台与发布包校验
 scripts/package_release.py  可复现发布包与 SHA-256 生成器
+telemetry/                  可选 Codex Collector 安装器、hooks 与报告器
 GMGN.md                     工作流原理与条款权威
 ```
 
@@ -223,7 +253,7 @@ python3 scripts/package_release.py
 
 ## 可选增强
 
-[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包。GMGN 不依赖 DocStar 才能安装；项目未安装时，用文件检查和项目现成命令完成同等门禁。
+[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包。GMGN 不依赖 DocStar 才能安装；项目未安装时，用文件检查和项目现成命令完成同等门禁。DocStar 本体与 JSON 输出不变：每次调用仍实时全量重建，不使用缓存。Telemetry hooks 与报告器只在 DocStar 外部统计调用次数、耗时、命令类型和后续 grep/read；`grep_avoided` 是描述性统计，不表示 DocStar 导致某次 grep 被避免。
 
 ## License
 

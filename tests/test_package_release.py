@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGER = ROOT / "scripts" / "package_release.py"
 ALLOWED_PREFIXES = (
     ".agents/", ".claude-plugin/", ".codex-plugin/", ".docstar/", "agents/", "skills/",
+    "telemetry/",
 )
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md", "LICENSE"}
 VERSION_PATHS = (
@@ -144,6 +145,28 @@ class PackageReleaseTests(unittest.TestCase):
             archive = next(output_dir.glob("*.zip"))
             with zipfile.ZipFile(archive) as release:
                 self.assertNotIn("skills/private.log", release.namelist())
+
+    def test_archive_includes_telemetry_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            telemetry_files = {
+                "telemetry/install.py": "print('install')\n",
+                "telemetry/report.py": "print('report')\n",
+                "telemetry/hooks/session.py": "print('hook')\n",
+            }
+            for relative_path, content in telemetry_files.items():
+                path = copied_root / relative_path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(content, encoding="utf-8")
+
+            output_dir = Path(temporary) / "dist"
+            result = self.run_copied_packager(copied_root, output_dir)
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            archive = next(output_dir.glob("*.zip"))
+            with zipfile.ZipFile(archive) as release:
+                names = set(release.namelist())
+            self.assertTrue(telemetry_files.keys() <= names, names)
 
     def test_default_mode_accepts_clean_tree_and_rejects_dirty_tree(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

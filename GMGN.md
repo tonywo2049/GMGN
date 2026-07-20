@@ -398,6 +398,20 @@ invalidate the conclusion. This is more useful than a generic confidence stateme
 Automation may parse, link, count, compare, execute, and report. It must not invent product
 meaning, approve scope, or infer that silence means success.
 
+### 6.1 Telemetry is out-of-band observation
+
+Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
+write telemetry logs into a prompt, `Task.md`, or `Handoff`. No model manually writes telemetry
+logs. Low-frequency user-level hooks may emit only redacted classifications and correlation
+IDs. Telemetry failure never blocks delivery or changes a workflow gate. Run
+`telemetry/report.py` only when the user explicitly requests a retrospective; its output is
+evidence for that retrospective, not a state transition.
+
+External observation does not change DocStar or its JSON output. DocStar keeps a fresh full
+rebuild on every invocation, with no cache. Hooks and reporters measure outside DocStar: call
+count, elapsed time, command type, and subsequent grep/read activity. `grep_avoided` does not
+claim causation.
+
 DocStar is optional and deterministic. With the GMGN convention set it can check links,
 extract the G-R-D-T graph, compile a task brief, and compare English/Chinese locale trees.
 Its JSON uses the stable English `eg-3` contract regardless of display language. These IDs,

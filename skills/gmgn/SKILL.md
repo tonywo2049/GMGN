@@ -14,6 +14,18 @@ Infer `en` or `zh-CN` from approved project documents, then the user's language.
 machine contract English. Load the matching layout-free writing contract when writing documents:
 [English](references/en/writing-contract.md) | [中文](references/zh-CN/writing-contract.md).
 
+## Telemetry boundary
+
+Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
+ask a model to write telemetry logs or add them to a prompt, `Task.md`, or `Handoff`. Only
+low-frequency user-level hooks may emit redacted classifications and correlation IDs. Telemetry
+failure never blocks routing or delivery and never changes a gate. Run `telemetry/report.py`
+only when the user explicitly requests a retrospective.
+
+Telemetry does not change DocStar or its JSON output. DocStar keeps a fresh full rebuild on
+every invocation with no cache; hooks and reporters measure calls, elapsed time, command type,
+and later grep/read outside DocStar. `grep_avoided` does not claim causation.
+
 ## Route by observable state
 
 | State | Route |

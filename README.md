@@ -214,6 +214,37 @@ Small bug fixes and narrow one-step changes may use the controlled bypass; they 
 need a fabricated full specification chain. WhitePaper, ROADMAP, milestone initiation,
 scope expansion, and closure still require their defined authorization.
 
+## Optional telemetry
+
+### Install and configure
+
+Run these commands from an unpacked GMGN release or repository root:
+
+```bash
+python3 telemetry/install.py --dry-run
+python3 telemetry/install.py --print-codex-config
+python3 telemetry/install.py
+python3 telemetry/report.py <session-id...> [--json]
+```
+
+`--dry-run` previews the installation. `--print-codex-config` prints the exact block to
+merge into the user-level `~/.codex/config.toml`; project-level `otel` configuration is
+ignored by Codex. The local Collector stays resident and receives Codex-native
+OTLP/HTTP JSON at `/v1/logs`. Its logs provide actual API calls, tool calls, and task-total
+token counts; traces and metrics are explicitly disabled. After installation, inspect and
+trust the low-frequency user-level hooks in Codex `/hooks`.
+
+### Privacy and reports
+
+Codex uses `log_user_prompt=false`. Before writing to disk, the Collector also redacts
+body-like fields. User-level hooks record only redacted classifications and correlation IDs;
+models do not manually write telemetry logs or put them in prompts, `Task.md`, or `Handoff`.
+
+Run the report command only for a user-requested retrospective. For historical tasks it may
+replay session JSONL as an explicitly labelled `unstable fallback`. Per-tool/skill input/output
+token counts are estimates; the task-total token count is actual. `--json` changes report
+format only.
+
 ## Repository layout
 
 ```text
@@ -228,6 +259,7 @@ agents/                         Claude Code plugin subagent roles
 .agents/plugins/                Codex marketplace manifest
 tests/                          structure, language, platform, and package checks
 scripts/package_release.py      deterministic ZIP and SHA-256 builder
+telemetry/                      optional Codex Collector installer, hooks, and reporter
 GMGN.md                         normative methodology
 ```
 
@@ -257,7 +289,11 @@ python3 docstar.py dump --preset gmgn-v1 --json --corpus /path/to/gmgn-project
 ```
 
 When the corpus contains `.docstar/conventions/conventions.json`, the explicit preset is
-not required. GMGN remains installable and usable without DocStar.
+not required. GMGN remains installable and usable without DocStar. DocStar itself and its
+JSON output are unchanged: every invocation performs a fresh full rebuild with no cache.
+Telemetry hooks and reporters observe from outside DocStar, recording call count, elapsed
+time, command type, and subsequent grep/read activity. `grep_avoided` is descriptive and
+does not claim that DocStar caused a grep to be avoided.
 
 ## License
 

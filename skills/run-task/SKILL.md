@@ -14,6 +14,19 @@ The primary orchestrator keeps the run state, per-card lanes, identity refs, adj
 acceptance, and merge control. It does not write implementation, repair findings, run
 verification in place of a Verifier, or edit the shared ledger in place of the Integrator.
 
+## Telemetry boundary
+
+Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
+add telemetry logs or logging requests to a lane prompt, `Task.md`, or `Handoff`; no model
+manually writes telemetry logs. Low-frequency user-level hooks may emit only redacted
+classifications and correlation IDs. The scheduler never uses telemetry for readiness, review
+authorization, acceptance, integration, or card closure. Telemetry failure never blocks
+delivery. Run `telemetry/report.py` only when the user explicitly requests a retrospective.
+
+Telemetry does not change DocStar or its JSON output. Every DocStar call remains a fresh full
+rebuild with no cache. Hooks and reporters measure calls, elapsed time, command type, and later
+grep/read outside DocStar; `grep_avoided` does not claim causation.
+
 ## Dispatch context for every lane
 
 The critic-reviewed `Task.md` card is the only static execution authority for a run-task lane.

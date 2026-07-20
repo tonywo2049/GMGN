@@ -642,6 +642,62 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("残留可复制文档骨架", result.stdout)
 
+    def test_rejects_telemetry_authority_regressions(self) -> None:
+        mutations = (
+            ("GMGN.md", "Telemetry may serve as execution, approval, and closure authority.\n"),
+            ("GMGN.zh-CN.md", "Telemetry 可以作为执行、审批和关账权威。\n"),
+            ("skills/gmgn/SKILL.md", "Telemetry may authorize workflow transitions.\n"),
+            ("skills/run-task/SKILL.md", "Telemetry may close a task card.\n"),
+        )
+
+        for relative_path, mutation in mutations:
+            with self.subTest(path=relative_path):
+                path = self.root / relative_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + "\n" + mutation, encoding="utf-8")
+                result = self.run_validator()
+                path.write_text(original, encoding="utf-8")
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("telemetry 权威边界", result.stdout)
+
+    def test_rejects_telemetry_privacy_and_delivery_regressions(self) -> None:
+        mutations = (
+            ("README.md", "log_user_prompt=true\n", "telemetry 隐私边界"),
+            (
+                "skills/run-task/SKILL.md",
+                "Telemetry failure blocks delivery.\n",
+                "telemetry 失败边界",
+            ),
+            (
+                "GMGN.md",
+                "Telemetry adds a DocStar cache and changes its JSON output.\n",
+                "DocStar 实时生成边界",
+            ),
+        )
+
+        for relative_path, mutation, error in mutations:
+            with self.subTest(path=relative_path):
+                path = self.root / relative_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + "\n" + mutation, encoding="utf-8")
+                result = self.run_validator()
+                path.write_text(original, encoding="utf-8")
+                self.assertEqual(result.returncode, 1)
+                self.assertIn(error, result.stdout)
+
+    def test_rejects_bilingual_telemetry_command_drift(self) -> None:
+        path = self.root / "README.md"
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\npython3 telemetry/install.py --unexpected\n",
+            encoding="utf-8",
+        )
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("telemetry 机器命令", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

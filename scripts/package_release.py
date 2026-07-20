@@ -34,12 +34,14 @@ PACKAGE_PATHS = (
     ".docstar",
     "agents",
     "skills",
+    "telemetry",
     "README.md",
     "README.zh-CN.md",
     "GMGN.md",
     "GMGN.zh-CN.md",
     "LICENSE",
 )
+OPTIONAL_PACKAGE_PATHS = {"telemetry"}
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 
 
@@ -67,6 +69,8 @@ def release_files() -> list[Path]:
         if value and (ROOT / Path(value.decode("utf-8"))).exists()
     ]
     for relative in PACKAGE_PATHS:
+        if relative in OPTIONAL_PACKAGE_PATHS and not (ROOT / relative).exists():
+            continue
         if not any(path == Path(relative) or Path(relative) in path.parents for path in relative_files):
             raise ValueError(f"发布白名单路径不存在: {relative}")
     files: list[Path] = []
