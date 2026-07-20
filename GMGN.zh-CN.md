@@ -340,6 +340,7 @@ old anchor、new anchor、`supersedes` 与影响范围。M0 状态及旧 closure
 
 - 选档按复杂度——机械执行用小模型低档，常规执行用中档，判断密集用大模型高档；按本机派发工具实际支持的字段显式指定 model / effort，工具不支持的字段不伪造。
 - 派发必须满足[派发与 agent 生命周期契约](skills/gmgn/references/zh-CN/dispatch-and-handoff.md)：写清节点与 agent 身份、必读锚、边界与禁区、当前 Skill 的内容要求、验证和回传；不要求套固定 prompt 版式。
+- 实现阶段以已评审的 `Task.md` 任务卡为唯一静态执行权威。Coder、Reviewer、Verifier、Integrator 不继承父会话历史，只接收任务卡/权威锚和最小运行态派发；它不是逐 agent Handoff。若执行语义只在聊天里，先返回 `write-task` 修订权威。
 - agent 对完成状态、磁盘改动和模型身份的自述不作数；Reviewer、Verifier 或 Integrator 负责重放并落盘命令证据，主编排者只核对候选锚、落盘输出与范围；模型只在平台提供可核验运行记录时核验。
 - 续跑是否继承初次模型取决于平台。先查本机工具 schema；无法硬控而剩余工作判断密集时，另派合适角色，机械收尾可续跑并加强验收。
 

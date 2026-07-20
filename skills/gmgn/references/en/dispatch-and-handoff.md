@@ -28,6 +28,22 @@ Every dispatch states:
 - workspace permission, effort when supported, remote-write prohibition, deliverables, and
   exact verification or acceptance conditions.
 
+For `run-task`, the critic-reviewed `Task.md` card is the only static execution authority.
+An exact card and authority anchor satisfies the static part of this contract; do not copy the
+card into another prompt or document. The minimal dispatch adds only the current role and
+identity mode, authority repository or corpus pointer, runtime state, lane/workspace/anchor
+facts, permissions, prohibitions, and return gate. A same-baseline DocStar brief may accompany
+those pointers as a derived index. This dispatch is not a per-agent `Handoff`; GMGN Handoff is
+the receiving-state artifact used after closure or at a session boundary.
+
+Start or resume a run-task Coder, Reviewer, Verifier, or Integrator without parent conversation
+history. Where the historical Codex schema is exposed, set `fork_turns="none"`; where the
+boolean schema is exposed, set `fork_context=false` or omit it when false is the documented
+default. Do not use `fork_turns="all"` or `fork_context=true` for these roles. Resuming a
+recorded identity may retain that agent's own history, but never imports the scheduler
+transcript. If required execution meaning exists only in chat, the card is not ready: stop the
+affected lane and return to `write-task` so the authority is reviewed and anchored.
+
 A dispatch for any repository operation—document node, implementation lane, or integration
 queue—records and verifies the existing workspace facts `workspace_mode`, `worktree_path`, and
 `branch_ref`. These facts describe the current dispatch, not an agent's permanent identity. A

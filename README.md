@@ -83,6 +83,10 @@ traceability. Each Coder returns a local commit containing only its card write s
 first verifies an isolated temporary combination; only success atomically advances the shared
 baseline. A card closes only after post-integration verification and ledger refresh there.
 
+The reviewed `Task.md` card is the static authority for each implementation lane. Run-task
+roles receive the exact card/authority pointers plus current lane facts, not the parent
+conversation or a duplicated per-agent handoff.
+
 ## Install
 
 ### Codex

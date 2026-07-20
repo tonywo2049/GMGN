@@ -444,6 +444,18 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 工作区基线锁", result.stdout)
 
+    def test_rejects_run_task_parent_context_inheritance(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            'Never use\n`fork_turns="all"` or `fork_context=true` for a run-task role.',
+            "Let every run-task role inherit the parent conversation.",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 派发上下文", result.stdout)
+
     def test_rejects_claude_resume_without_explicit_degradation(self) -> None:
         path = (
             self.root / "skills" / "gmgn" / "references" / "en" /

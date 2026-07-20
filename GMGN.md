@@ -333,9 +333,12 @@ without a current handoff is not operationally closed.
    is not a bypass.
 5. **Delegate independent units.** Each dispatch states node identity, scope, boundaries,
    inputs, content contract, outputs, verification, agent identity, and return format. The
-   orchestrator resumes the same agent for in-node corrections. During implementation it
-   continuously dispatches every ready card into an isolated lane and keeps shared-baseline
-   integration serial.
+   orchestrator resumes the same agent for in-node corrections. During implementation, the
+   reviewed `Task.md` card is the only static execution authority: Coder, Reviewer, Verifier,
+   and Integrator receive a minimal runtime dispatch and no parent conversation history. That
+   dispatch cites the card and current lane facts; it is not a per-agent Handoff. The
+   orchestrator continuously dispatches every ready card into an isolated lane and keeps
+   shared-baseline integration serial.
 6. **Evidence before status.** A claim becomes complete only after the artifact, replayable
    evidence, and all representations agree.
 

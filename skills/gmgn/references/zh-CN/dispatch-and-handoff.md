@@ -25,6 +25,18 @@ English: [../en/dispatch-and-handoff.md](../en/dispatch-and-handoff.md)
 - 当前阶段 Skill 的必备内容与自检项；
 - 工作区权限、本机支持时的 effort、远端写入禁令、交付物与原样验证或验收条件。
 
+对 `run-task`，经过 Critic 与主编排者评审的 `Task.md` 任务卡是唯一静态执行权威。精确的任务卡与
+权威锚已经满足本契约的静态部分，不把卡片正文复制成另一份 prompt 或文档。最小派发只补当前角色
+与身份模式、权威仓库或 corpus 指针、运行态、lane/workspace/anchor 事实、权限、禁区和回传门禁；
+可以附带同一基线的 DocStar brief 作为派生索引。这不是逐 agent 的 `Handoff`；GMGN Handoff 只在
+关账后或跨会话接手时记录接手态。
+
+新建或恢复 run-task 的 Coder、Reviewer、Verifier、Integrator 时，不继承父会话历史。Codex 暴露
+历史 schema 时设置 `fork_turns="none"`；暴露布尔 schema 时设置 `fork_context=false`，或在平台
+明确以 false 为默认值时省略。不得对这些角色使用 `fork_turns="all"` 或 `fork_context=true`。
+恢复既有身份可以保留该 agent 自己的历史，但不得导入 scheduler transcript。若执行所需语义
+只存在于聊天，任务卡就尚未 ready：停止受影响 lane，返回 `write-task`，先让权威经过评审并锚定。
+
 任何操作仓库的文档节点、实现 lane 或集成队列派发，都记录并核验现有
 `workspace_mode`、`worktree_path`、`branch_ref`；这些是当前派发的工作区事实，不与 agent 身份
 永久绑定。文档节点另外记录 `node_id`、`baseline_anchor`、`candidate_anchor`，以及需要的

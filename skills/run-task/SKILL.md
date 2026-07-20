@@ -14,6 +14,26 @@ The primary orchestrator keeps the run state, per-card lanes, identity refs, adj
 acceptance, and merge control. It does not write implementation, repair findings, run
 verification in place of a Verifier, or edit the shared ledger in place of the Integrator.
 
+## Dispatch context for every lane
+
+The critic-reviewed `Task.md` card is the only static execution authority for a run-task lane.
+The scheduler resolves that card and its spec/Design anchors, using DocStar when available,
+instead of treating the parent conversation as task input. Start or resume every Coder,
+Reviewer, Verifier, and Integrator without parent conversation history. On a Codex surface with
+the historical schema, set `fork_turns="none"`; on a surface with the current boolean schema,
+set `fork_context=false` or omit it when false is the documented default. Never use
+`fork_turns="all"` or `fork_context=true` for a run-task role. Resuming a recorded identity may
+retain that same agent's own history; it must not import the scheduler's transcript.
+
+Each minimal runtime dispatch cites the exact `card_id`, Task/spec/Design authority anchors,
+and authority repository or corpus, then adds only facts that do not exist until execution:
+role and identity mode, runtime state, lane/workspace/anchor facts, permissions, prohibitions,
+and the current return gate. It may attach the same-baseline DocStar brief as a derived index,
+but does not restate the card. The dispatch is not a new `Handoff` artifact. If a required
+instruction,
+owner ruling, scope boundary, or acceptance condition exists only in chat, the card is not
+ready; stop the affected lane and return to `write-task` rather than inheriting the transcript.
+
 ## 1. Build and continuously refill the ready set
 
 Record one `run_id`, `target_milestone_id`, that Milestone's Goal/Requirement/Design/Task

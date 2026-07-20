@@ -879,6 +879,8 @@ def validate_agent_lifecycle(
             "read_thread", "wait_threads", "send_message_to_thread", "read-only",
             "exactly one card", "recursively create main tasks", "run-scoped authorization",
             "clientThreadId", "threadId", "hostId", "first blocking wait", "timeoutMs: 0",
+            "only static execution authority", "parent conversation history", "fork_turns",
+            "fork_context", "not a per-agent `Handoff`", "only in chat", "write-task",
         ),
         dispatch_paths[1]: (
             "普通 subagent 默认共享", "isolation: worktree", "Agent Teams", "不自动创建 worktree",
@@ -892,6 +894,8 @@ def validate_agent_lifecycle(
             "send_message_to_thread", "只读", "一张卡", "递归创建主任务",
             "本轮授权", "clientThreadId", "threadId", "hostId", "第一次阻塞等待",
             "timeoutMs: 0",
+            "唯一静态执行权威", "父会话历史", "fork_turns", "fork_context",
+            "不是逐 agent 的 `Handoff`", "只存在于聊天", "write-task",
         ),
     }
     for path, tokens in adapter_tokens.items():
@@ -946,6 +950,19 @@ def validate_agent_lifecycle(
     )
 
     run_task = parsed.get("run-task", ("", ""))[1]
+    require_section_tokens(
+        errors,
+        run_task,
+        "## Dispatch context for every lane",
+        (
+            "critic-reviewed `Task.md` card", "only static execution authority",
+            "parent conversation history", '`fork_turns="none"`', "`fork_context=false`",
+            '`fork_turns="all"`', "`fork_context=true`", "minimal runtime dispatch",
+            "authority repository or corpus", "not a new `Handoff` artifact",
+            "only in chat", "return to `write-task`", "same agent's own history",
+        ),
+        "run-task 派发上下文",
+    )
     require_section_tokens(
         errors,
         run_task,
@@ -1054,6 +1071,8 @@ def validate_agent_lifecycle(
                 "only owner of the global ready set", "create more main tasks",
                 "clientThreadId", "threadId + hostId", "first blocking wait",
                 "never hard-code", "candidate-awaiting-anchor", "review-authorized",
+                "only static execution authority", "parent conversation history",
+                "minimal runtime dispatch", "not a per-agent Handoff",
             ),
         ),
         (
@@ -1066,6 +1085,8 @@ def validate_agent_lifecycle(
                 "创建主任务", "clientThreadId", "threadId + hostId",
                 "第一次阻塞等待", "不得写死", "candidate-awaiting-anchor",
                 "review-authorized",
+                "唯一静态执行权威", "父会话历史", "最小运行态派发",
+                "不是逐 agent Handoff",
             ),
         ),
         (
