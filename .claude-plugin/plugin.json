@@ -1,7 +1,7 @@
 {
   "name": "gmgn",
   "description": "GMGN — bilingual agentic delivery from idea to closure: Brainstorm→WhitePaper→Roadmap→Goal→Requirement→Design→Task→implementation→closure / 中英双语全链门禁工作流。",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": {
     "name": "Tony",
     "url": "https://github.com/tonywo2049"
