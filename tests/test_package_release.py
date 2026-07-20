@@ -22,6 +22,13 @@ VERSION_PATHS = (
     Path(".agents/plugins/marketplace.json"),
     Path(".claude-plugin/marketplace.json"),
 )
+REQUIRED_TELEMETRY_FILES = {
+    "telemetry/__init__.py",
+    "telemetry/collector.py",
+    "telemetry/hook.py",
+    "telemetry/install.py",
+    "telemetry/report.py",
+}
 
 
 class PackageReleaseTests(unittest.TestCase):
@@ -110,6 +117,7 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("agents/verifier.md", names)
             self.assertIn("README.zh-CN.md", names)
             self.assertIn("GMGN.zh-CN.md", names)
+            self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
             self.assertIn("integration_queue_ref", run_task_skill)
             self.assertIn("post-integration-verifying", run_task_skill)
@@ -166,7 +174,43 @@ class PackageReleaseTests(unittest.TestCase):
             archive = next(output_dir.glob("*.zip"))
             with zipfile.ZipFile(archive) as release:
                 names = set(release.namelist())
+                extract_root = Path(temporary) / "extracted"
+                release.extractall(extract_root)
+            self.assertTrue(REQUIRED_TELEMETRY_FILES <= names, names)
             self.assertTrue(telemetry_files.keys() <= names, names)
+
+            report_help = subprocess.run(
+                ["python3", str(extract_root / "telemetry" / "report.py"), "--help"],
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(report_help.returncode, 0, report_help.stderr)
+            dry_run = subprocess.run(
+                [
+                    "python3",
+                    str(extract_root / "telemetry" / "install.py"),
+                    "--dry-run",
+                    "--home",
+                    str(Path(temporary) / "home"),
+                    "--codex-home",
+                    str(Path(temporary) / "codex"),
+                ],
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(dry_run.returncode, 0, dry_run.stderr)
+
+    def test_archive_rejects_missing_required_telemetry_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            (copied_root / "telemetry" / "collector.py").unlink()
+            output_dir = Path(temporary) / "dist"
+
+            result = self.run_copied_packager(copied_root, output_dir)
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("发布包缺少 telemetry 运行文件", result.stderr)
+            self.assert_no_release_artifacts(output_dir)
 
     def test_default_mode_accepts_clean_tree_and_rejects_dirty_tree(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

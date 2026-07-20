@@ -207,19 +207,23 @@ python3 telemetry/report.py <session-id...> [--json]
 
 `--dry-run` 预览安装内容，`--print-codex-config` 打印应合并到用户级
 `~/.codex/config.toml` 的精确配置；项目级 `otel` 配置会被 Codex 忽略。本地 Collector
-保持常驻，通过 `/v1/logs` 接收 Codex 原生 OTLP/HTTP JSON 日志，得到 actual 的 API 调用、
-tool 调用与任务总 token；trace 和 metrics 明确关闭。安装后在 Codex `/hooks` 中检查并信任
-这些低频用户级 hooks。
+保持常驻，通过 `/v1/logs` 接收 Codex 原生 OTLP/HTTP JSON 日志。落盘前只把已知 Codex
+事件转换为严格的元数据白名单，不保存原始 OTLP body。记录可提供 actual 的 API 尝试、
+原生 tool-result 耗时，以及 Codex 实际发出的任务 token 计数；trace 和 metrics 明确关闭。
+安装后在 Codex `/hooks` 中检查并信任这些选定的用户级 hooks。
 
 ### 隐私与报告
 
-Codex 使用 `log_user_prompt=false`；Collector 还会在落盘前脱敏正文型字段。用户级 hooks
-只记录脱敏分类和关联 ID；模型不手工写 telemetry 日志，也不把日志放进 prompt、`Task.md`
-或 `Handoff`。
+Codex 使用 `log_user_prompt=false`。Collector 丢弃 prompt、命令、tool 输出、错误正文、
+主机与用户身份、凭据和未知字段。用户级 hooks 只在已配置的 session/subagent 生命周期事件
+和匹配的 Bash/Agent 事件上运行，记录时间、不可读的 session/turn/tool ID、模型、项目路径
+哈希、输入输出字节数、成功/退出状态、分类、fork policy 与结构化 GMGN 关联 ID。模型不手工
+写 telemetry 日志，也不把日志放进 prompt、`Task.md` 或 `Handoff`。
 
-只有用户要求复盘时才运行报告命令。历史任务可回放 session JSONL，但必须明确标注为
-`unstable fallback`。per-tool/skill I/O token 是 estimates，任务总 token 是 actual；`--json`
-只改变报告格式。
+只有用户要求复盘时才运行报告命令。报告优先使用 Collector 与 hook 记录，再从 session JSONL
+补缺，并明确标注 `unstable fallback`；每个指标都报告来源与 coverage。actual token 缺失时显示
+`unknown`，不能写成 0；per-tool/skill I/O token 仍是 estimates。安装后也可运行
+`~/.codex/gmgn-telemetry/bin/report.py`。`--json` 只改变报告格式。
 
 ## 仓库结构
 
@@ -235,7 +239,7 @@ agents/                     Claude Code 插件 subagent 角色
 .agents/plugins/            Codex marketplace 清单
 tests/                      结构、触发、双平台与发布包校验
 scripts/package_release.py  可复现发布包与 SHA-256 生成器
-telemetry/                  可选 Codex Collector 安装器、hooks 与报告器
+telemetry/                  发布包内置的可选 Codex Collector、hooks、安装器与报告器
 GMGN.md                     工作流原理与条款权威
 ```
 

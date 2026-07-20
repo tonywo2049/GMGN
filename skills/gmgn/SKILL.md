@@ -18,8 +18,9 @@ machine contract English. Load the matching layout-free writing contract when wr
 
 Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
 ask a model to write telemetry logs or add them to a prompt, `Task.md`, or `Handoff`. Only
-low-frequency user-level hooks may emit redacted classifications and correlation IDs. Telemetry
-failure never blocks routing or delivery and never changes a gate. Run `telemetry/report.py`
+selected user-level hooks may emit privacy-safe lifecycle/tool metadata: opaque IDs, byte
+counts, status, classifications, fork policy, and structured correlation IDs. Telemetry failure
+never blocks routing or delivery and never changes a gate. Run `telemetry/report.py`
 only when the user explicitly requests a retrospective.
 
 Telemetry does not change DocStar or its JSON output. DocStar keeps a fresh full rebuild on

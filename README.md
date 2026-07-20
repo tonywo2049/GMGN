@@ -230,20 +230,27 @@ python3 telemetry/report.py <session-id...> [--json]
 `--dry-run` previews the installation. `--print-codex-config` prints the exact block to
 merge into the user-level `~/.codex/config.toml`; project-level `otel` configuration is
 ignored by Codex. The local Collector stays resident and receives Codex-native
-OTLP/HTTP JSON at `/v1/logs`. Its logs provide actual API calls, tool calls, and task-total
-token counts; traces and metrics are explicitly disabled. After installation, inspect and
-trust the low-frequency user-level hooks in Codex `/hooks`.
+OTLP/HTTP JSON at `/v1/logs`. Before writing, it converts known Codex events to a strict
+metadata allowlist; raw OTLP bodies are not stored. The resulting records provide actual API
+attempts, native tool-result durations, and task token counters when Codex emits those fields;
+traces and metrics are explicitly disabled. After installation, inspect and trust the selected
+user-level hooks in Codex `/hooks`.
 
 ### Privacy and reports
 
-Codex uses `log_user_prompt=false`. Before writing to disk, the Collector also redacts
-body-like fields. User-level hooks record only redacted classifications and correlation IDs;
-models do not manually write telemetry logs or put them in prompts, `Task.md`, or `Handoff`.
+Codex uses `log_user_prompt=false`. The Collector drops prompts, commands, tool output, error
+messages, host and user identity, credentials, and unknown fields. User-level hooks run for
+configured session/subagent lifecycle events and matched Bash/Agent events. They store only
+timestamps, opaque session/turn/tool IDs, model, hashed project path, byte counts,
+success/exit status, classifications, fork policy, and structured GMGN correlation IDs. Models
+do not manually write telemetry logs or put them in prompts, `Task.md`, or `Handoff`.
 
-Run the report command only for a user-requested retrospective. For historical tasks it may
-replay session JSONL as an explicitly labelled `unstable fallback`. Per-tool/skill input/output
-token counts are estimates; the task-total token count is actual. `--json` changes report
-format only.
+Run the report command only for a user-requested retrospective. It prefers Collector and hook
+records, then fills missing fields from session JSONL as an explicitly labelled `unstable
+fallback`. Every metric reports its source and coverage. Missing actual token data is
+`unknown`, not zero. Per-tool/skill input/output token counts remain estimates. After
+installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/report.py`.
+`--json` changes report format only.
 
 ## Repository layout
 
@@ -259,7 +266,7 @@ agents/                         Claude Code plugin subagent roles
 .agents/plugins/                Codex marketplace manifest
 tests/                          structure, language, platform, and package checks
 scripts/package_release.py      deterministic ZIP and SHA-256 builder
-telemetry/                      optional Codex Collector installer, hooks, and reporter
+telemetry/                      bundled optional Codex Collector, hooks, installer, and reporter
 GMGN.md                         normative methodology
 ```
 

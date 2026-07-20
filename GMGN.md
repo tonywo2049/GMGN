@@ -402,8 +402,9 @@ meaning, approve scope, or infer that silence means success.
 
 Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
 write telemetry logs into a prompt, `Task.md`, or `Handoff`. No model manually writes telemetry
-logs. Low-frequency user-level hooks may emit only redacted classifications and correlation
-IDs. Telemetry failure never blocks delivery or changes a workflow gate. Run
+logs. Selected user-level hooks may emit privacy-safe lifecycle/tool metadata: opaque IDs,
+byte counts, status, classifications, fork policy, and structured correlation IDs. Telemetry
+failure never blocks delivery or changes a workflow gate. Run
 `telemetry/report.py` only when the user explicitly requests a retrospective; its output is
 evidence for that retrospective, not a state transition.
 

@@ -41,7 +41,13 @@ PACKAGE_PATHS = (
     "GMGN.zh-CN.md",
     "LICENSE",
 )
-OPTIONAL_PACKAGE_PATHS = {"telemetry"}
+REQUIRED_PACKAGE_FILES = (
+    Path("telemetry/__init__.py"),
+    Path("telemetry/collector.py"),
+    Path("telemetry/hook.py"),
+    Path("telemetry/install.py"),
+    Path("telemetry/report.py"),
+)
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 
 
@@ -69,10 +75,14 @@ def release_files() -> list[Path]:
         if value and (ROOT / Path(value.decode("utf-8"))).exists()
     ]
     for relative in PACKAGE_PATHS:
-        if relative in OPTIONAL_PACKAGE_PATHS and not (ROOT / relative).exists():
-            continue
         if not any(path == Path(relative) or Path(relative) in path.parents for path in relative_files):
             raise ValueError(f"发布白名单路径不存在: {relative}")
+    missing_required = [
+        relative for relative in REQUIRED_PACKAGE_FILES if relative not in relative_files
+    ]
+    if missing_required:
+        joined = ", ".join(path.as_posix() for path in missing_required)
+        raise ValueError(f"发布包缺少 telemetry 运行文件: {joined}")
     files: list[Path] = []
     for relative in relative_files:
         path = ROOT / relative

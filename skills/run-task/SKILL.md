@@ -18,8 +18,9 @@ verification in place of a Verifier, or edit the shared ledger in place of the I
 
 Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
 add telemetry logs or logging requests to a lane prompt, `Task.md`, or `Handoff`; no model
-manually writes telemetry logs. Low-frequency user-level hooks may emit only redacted
-classifications and correlation IDs. The scheduler never uses telemetry for readiness, review
+manually writes telemetry logs. Selected user-level hooks may emit privacy-safe lifecycle/tool
+metadata: opaque IDs, byte counts, status, classifications, fork policy, and structured
+correlation IDs. The scheduler never uses telemetry for readiness, review
 authorization, acceptance, integration, or card closure. Telemetry failure never blocks
 delivery. Run `telemetry/report.py` only when the user explicitly requests a retrospective.
 
