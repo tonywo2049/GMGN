@@ -20,6 +20,7 @@ OTEL_SOURCE = "collector_otel"
 HOOK_SOURCE = "gmgn_hook"
 MIXED_SOURCE = "mixed"
 OTEL_ENVELOPE_VERSION = "gmgn-otel-envelope-v1"
+OTEL_EVENT_VERSION = "gmgn-otel-event-v1"
 HOOK_EVENT_VERSION = "gmgn-hook-event-v1"
 DEFAULT_FOLLOW_WINDOW = 5
 ESTIMATED_CHARACTERS_PER_TOKEN = 4
@@ -46,7 +47,25 @@ OTEL_COMMON_ATTRIBUTES = {
     "event.timestamp",
     "model",
 }
-OTEL_API_ATTRIBUTES = {"duration_ms", "http.response.status_code"}
+KNOWN_OTEL_EVENTS = {
+    "codex.api_request",
+    "codex.conversation_starts",
+    "codex.sse_event",
+    "codex.tool_decision",
+    "codex.tool_result",
+    "codex.user_prompt",
+    "codex.websocket_event",
+    "codex.websocket_request",
+}
+OTEL_API_ATTRIBUTES = {
+    "attempt",
+    "duration_ms",
+    "endpoint",
+    "http.response.status_code",
+    "status_code",
+    "status",
+    "success",
+}
 OTEL_SSE_ATTRIBUTES = {
     "event.kind",
     "gen_ai.usage.input_tokens",
@@ -441,10 +460,13 @@ def _otel_attributes(value: Any) -> Dict[str, Any]:
 
 
 def _otel_allowed_attributes(event_name: str) -> Set[str]:
+    if event_name not in KNOWN_OTEL_EVENTS:
+        return set()
     allowed = set(OTEL_COMMON_ATTRIBUTES)
-    allowed.update(OTEL_SSE_ATTRIBUTES)
-    if event_name == "codex.api_request":
+    if event_name in {"codex.api_request", "codex.websocket_request"}:
         allowed.update(OTEL_API_ATTRIBUTES)
+    elif event_name in {"codex.sse_event", "codex.websocket_event"}:
+        allowed.update(OTEL_SSE_ATTRIBUTES)
     elif event_name == "codex.tool_result":
         allowed.update(OTEL_TOOL_ATTRIBUTES)
     return allowed
@@ -562,7 +584,13 @@ class _TelemetryStore:
         attributes.setdefault("conversation.id", document.get("conversation_id"))
         attributes.setdefault("event.name", document.get("event_name"))
         attributes.setdefault("event.timestamp", document.get("timestamp"))
-        self._add_otel_event(attributes, document, document.get("timestamp"))
+        attributes.setdefault("model", document.get("model"))
+        event_name = _identifier(attributes.get("event.name"))
+        if event_name is not None:
+            for key in _otel_allowed_attributes(event_name):
+                if key in document:
+                    attributes.setdefault(key, document.get(key))
+        self._add_otel_event(attributes, document, document.get("received_at"))
 
     def _add_otel_event(
         self,
@@ -575,6 +603,8 @@ class _TelemetryStore:
         if session_id is None or event_name is None:
             return
         allowed = _otel_allowed_attributes(event_name)
+        if not allowed:
+            return
         attributes = {
             key: value
             for key, value in raw_attributes.items()
@@ -1533,15 +1563,30 @@ def _telemetry_tokens(
 
 
 def _api_metrics(events: Sequence[_OtelEvent]) -> Dict[str, Optional[int]]:
-    api_events = [event for event in events if event.event_name == "codex.api_request"]
+    api_events = [
+        event
+        for event in events
+        if event.event_name in {"codex.api_request", "codex.websocket_request"}
+    ]
     if not api_events:
         return {"count": None, "duration_ms": None, "success": None, "failure": None}
     durations = [_safe_integer(event.attributes.get("duration_ms")) for event in api_events]
-    statuses = [
-        _safe_integer(event.attributes.get("http.response.status_code"))
-        for event in api_events
-    ]
-    known_statuses = [status for status in statuses if status is not None]
+    outcomes: List[Optional[bool]] = []
+    for event in api_events:
+        success = _safe_boolean(event.attributes.get("success"))
+        if success is None:
+            status = _safe_integer(
+                event.attributes.get("http.response.status_code")
+                if "http.response.status_code" in event.attributes
+                else (
+                    event.attributes.get("status_code")
+                    if "status_code" in event.attributes
+                    else event.attributes.get("status")
+                )
+            )
+            success = 200 <= status <= 299 if status is not None else None
+        outcomes.append(success)
+    known_outcomes = [outcome for outcome in outcomes if outcome is not None]
     return {
         "count": len(api_events),
         "duration_ms": (
@@ -1550,13 +1595,13 @@ def _api_metrics(events: Sequence[_OtelEvent]) -> Dict[str, Optional[int]]:
             else None
         ),
         "success": (
-            sum(200 <= status <= 299 for status in known_statuses)
-            if len(known_statuses) == len(api_events)
+            sum(known_outcomes)
+            if len(known_outcomes) == len(api_events)
             else None
         ),
         "failure": (
-            sum(not 200 <= status <= 299 for status in known_statuses)
-            if len(known_statuses) == len(api_events)
+            sum(not outcome for outcome in known_outcomes)
+            if len(known_outcomes) == len(api_events)
             else None
         ),
     }
@@ -1772,7 +1817,9 @@ def _hook_gmgn_metrics(
             hook_sessions += 1
             for hook in hooks:
                 tool = _tool_leaf(str(hook.fields.get("tool_name", "")))
-                if hook.fields.get("classification") != "agent" or tool not in SPAWN_TOOLS:
+                if hook.fields.get("classification") != "agent":
+                    continue
+                if tool not in SPAWN_TOOLS and tool != "agent":
                     continue
                 spawn_calls += 1
                 fork_counts[_hook_fork_bucket(hook)] += 1
@@ -1811,10 +1858,12 @@ def _hook_gmgn_metrics(
         spawn_source = "unknown"
         spawn_coverage = "unknown"
     result = {
-        "spawn_calls": spawn_calls,
-        "wait_calls": fallback_all["wait_calls"],
-        "send_calls": fallback_all["send_calls"],
-        "wait_duration_ms": fallback_all["wait_duration_ms"],
+        "spawn_calls": spawn_calls if spawn_source != "unknown" else None,
+        "wait_calls": fallback_all["wait_calls"] if all_fallback_calls else None,
+        "send_calls": fallback_all["send_calls"] if all_fallback_calls else None,
+        "wait_duration_ms": (
+            fallback_all["wait_duration_ms"] if all_fallback_calls else None
+        ),
         "fork_context_counts": fork_counts,
         "identifiers": identifiers,
         "metric_sources": {
@@ -1926,6 +1975,14 @@ def _hook_docstar_metrics(
     else:
         source = "unknown"
         status = "unknown"
+        result.update(
+            {
+                "calls": None,
+                "grep_calls": None,
+                "read_calls": None,
+                "grep_read_calls": None,
+            }
+        )
     coverage = _coverage(
         source,
         status,
@@ -2163,7 +2220,11 @@ def _apply_telemetry(
     fallback_fields.update(token_fallback)
     run["actual_tokens"] = actual_tokens
 
-    api_events = [event for event in otel_events if event.event_name == "codex.api_request"]
+    api_events = [
+        event
+        for event in otel_events
+        if event.event_name in {"codex.api_request", "codex.websocket_request"}
+    ]
     tool_events = [event for event in otel_events if event.event_name == "codex.tool_result"]
     run["api_calls"] = _api_metrics(otel_events)
     run["native_tool_results"] = _native_tool_metrics(otel_events)
@@ -2283,8 +2344,8 @@ def _empty_run(requested_id: str) -> Dict[str, Any]:
         "session_id": None,
         "timing": {
             "main_wall_elapsed_ms": None,
-            "completed_turn_duration_ms": 0,
-            "agent_turn_duration_ms": 0,
+            "completed_turn_duration_ms": None,
+            "agent_turn_duration_ms": None,
         },
         "session_counts": {"main": 0, "descendants": 0, "total": 0},
         "actual_tokens": _empty_tokens(),
@@ -2398,7 +2459,7 @@ def build_report(
     include_descendants: bool = True,
     follow_window: int = DEFAULT_FOLLOW_WINDOW,
 ) -> Dict[str, Any]:
-    """Build a privacy-safe report from Codex session JSONL files."""
+    """Build a privacy-safe report from Collector, hook, and session records."""
     requested_ids = (
         [session_ids]
         if isinstance(session_ids, str)
@@ -2481,6 +2542,19 @@ def render_human(report: Mapping[str, Any]) -> str:
         follow_up_total = sum(
             item["grep_read_calls"] for item in docstar["follow_up"]
         )
+        tool_count = (
+            len(run["tool_calls"])
+            if coverage["tool_calls"]["coverage"] != "unknown"
+            else None
+        )
+        skill_count = (
+            len(run["skills"])
+            if coverage["skills"]["coverage"] != "unknown"
+            else None
+        )
+        docstar_follow_up = (
+            follow_up_total if coverage["docstar"]["coverage"] != "unknown" else None
+        )
         lines.extend(
             [
                 "运行 {0}（session {1}）".format(requested_id, run["session_id"]),
@@ -2506,24 +2580,24 @@ def render_human(report: Mapping[str, Any]) -> str:
                     _human_value(actual["total"]),
                 ),
                 "  工具调用：{0}；估算工具 I/O token：input {1}，output {2}，total {3}".format(
-                    len(run["tool_calls"]),
+                    _human_value(tool_count),
                     _human_value(estimated["input"]),
                     _human_value(estimated["output"]),
                     _human_value(estimated["total"]),
                 ),
                 "  GMGN：spawn {0}，wait {1}（{2} ms），send {3}".format(
-                    gmgn["spawn_calls"],
-                    gmgn["wait_calls"],
-                    gmgn["wait_duration_ms"],
-                    gmgn["send_calls"],
+                    _human_value(gmgn["spawn_calls"]),
+                    _human_value(gmgn["wait_calls"]),
+                    _human_value(gmgn["wait_duration_ms"]),
+                    _human_value(gmgn["send_calls"]),
                 ),
                 "  DocStar：{0} 次；grep/read {1}；DocStar follow-up grep/read {2}；{3}".format(
-                    docstar["calls"],
-                    docstar["grep_read_calls"],
-                    follow_up_total,
+                    _human_value(docstar["calls"]),
+                    _human_value(docstar["grep_read_calls"]),
+                    _human_value(docstar_follow_up),
                     docstar["causal_status"],
                 ),
-                "  skill 调用：{0}".format(len(run["skills"])),
+                "  skill 调用：{0}".format(_human_value(skill_count)),
                 "  数据质量：malformed {0}，unpaired {1}，missing {2}".format(
                     quality["malformed_lines"],
                     quality["unpaired_calls"],

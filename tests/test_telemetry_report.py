@@ -161,6 +161,14 @@ class TelemetryReportTests(unittest.TestCase):
         path = self.telemetry_data / "2026-07-20.jsonl"
         path.write_text(json.dumps(envelope) + "\n", encoding="utf-8")
 
+    def write_flat_otel(self, records: list[dict]) -> None:
+        self.telemetry_data.mkdir(parents=True, exist_ok=True)
+        path = self.telemetry_data / "otel-2026-07-20.jsonl"
+        path.write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+
     def write_hooks(self, records: list[dict]) -> None:
         self.telemetry_data.mkdir(parents=True, exist_ok=True)
         path = self.telemetry_data / "hooks-2026-07-20.jsonl"
@@ -860,6 +868,74 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertEqual(only["api_calls"]["count"], 1)
         self.assertIsNone(only["actual_tokens"]["total"])
         self.assertEqual(only["data_quality"]["missing_sessions"], [])
+
+    def test_flat_otel_schema_agent_hook_and_unknown_event_are_fail_closed(self) -> None:
+        empty_home = Path(self.temporary.name) / "flat-codex"
+        data_dir = empty_home / "gmgn-telemetry" / "data"
+        data_dir.mkdir(parents=True)
+        records = [
+            {
+                "schema_version": "gmgn-otel-event-v1",
+                "received_at": "2026-07-20T00:00:02Z",
+                "timestamp": "2026-07-20T00:00:01Z",
+                "conversation_id": "flat-session",
+                "event_name": "codex.api_request",
+                "model": "gpt-test",
+                "attributes": {
+                    "duration_ms": 25,
+                    "success": False,
+                    "attempt": 1,
+                    "endpoint": "/responses",
+                },
+            },
+            {
+                "schema_version": "gmgn-otel-event-v1",
+                "received_at": "2026-07-20T00:00:03Z",
+                "conversation_id": "flat-session",
+                "event_name": "codex.unknown_event",
+                "attributes": {"gen_ai.usage.input_tokens": 999999},
+            },
+            {
+                "schema_version": "gmgn-otel-event-v1",
+                "received_at": "2026-07-20T00:00:04Z",
+                "conversation_id": "flat-session",
+                "event_name": "codex.websocket_request",
+                "model": "gpt-test",
+                "attributes": {
+                    "duration_ms": 10,
+                    "status": 200,
+                },
+            },
+        ]
+        (data_dir / "2026-07-20.jsonl").write_text(
+            "".join(json.dumps(record) + "\n" for record in records),
+            encoding="utf-8",
+        )
+        hook = {
+            "schema_version": "gmgn-hook-event-v1",
+            "timestamp": "2026-07-20T00:00:01.500Z",
+            "event": "PreToolUse",
+            "session_id": "flat-session",
+            "tool_name": "Agent",
+            "tool_use_id": "agent-call",
+            "classification": "agent",
+            "fork_context": False,
+        }
+        (data_dir / "hooks-2026-07-20.jsonl").write_text(
+            json.dumps(hook) + "\n",
+            encoding="utf-8",
+        )
+        from telemetry.report import build_report, render_human
+
+        run = build_report(["flat-session"], codex_home=empty_home)["runs"][0]
+
+        self.assertEqual(run["api_calls"]["count"], 2)
+        self.assertEqual(run["api_calls"]["success"], 1)
+        self.assertEqual(run["api_calls"]["failure"], 1)
+        self.assertEqual(run["gmgn"]["spawn_calls"], 1)
+        self.assertIsNone(run["actual_tokens"]["input"])
+        self.assertIsNone(run["timing"]["completed_turn_duration_ms"])
+        self.assertIn("wait unknown", render_human({"runs": [run]}))
 
     def test_structured_identifiers_ignore_adversarial_prompt_text(self) -> None:
         run = self.build_report("root-session")["runs"][0]
