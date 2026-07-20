@@ -166,11 +166,6 @@ scheduler verifies lane/repository identity, path, candidate commit, and `write_
 atomically anchors it. Only an explicit `review-authorized` message for that exact candidate and
 epoch lets the worker dispatch Reviewer; old authorization never carries to a revision.
 
-A worker stops at `candidate-awaiting-anchor` after every initial or revised Coder return. The
-scheduler verifies lane/repository identity, path, candidate commit, and `write_set`, then
-atomically anchors it. Only an explicit `review-authorized` message for that exact candidate and
-epoch lets the worker dispatch Reviewer; old authorization never carries to a revision.
-
 Integration is two-phase. From the clean current `shared_baseline_anchor`, the Integrator
 mechanically applies an accepted lane in an isolated temporary combination workspace. The
 same Verifier keeps its identity but receives that temporary workspace's current
