@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -10,7 +10,7 @@ import re
 import shlex
 import stat
 import sys
-from typing import Any, Iterable, Optional
+from typing import Any, Optional
 
 
 SCHEMA_VERSION = "gmgn-hook-event-v1"
@@ -24,24 +24,24 @@ SEMANTIC_FIELDS = {
     "lane_key": "lanekey",
     "target_milestone_id": "targetmilestoneid",
 }
-SEMANTIC_PATTERNS = {
-    output_name: re.compile(
-        r"(?i)(?<![A-Za-z0-9_])"
-        + re.escape(normalized_name)
-        + r"[`\"']*\s*(?::|=)\s*[`\"']*"
-        + r"([A-Za-z0-9][A-Za-z0-9._:/@+#~\-]{0,255})"
-    )
-    for output_name, normalized_name in SEMANTIC_FIELDS.items()
-}
 READ_COMMANDS = {"awk", "bat", "batcat", "cat", "head", "less", "more", "sed", "tail"}
 GREP_COMMANDS = {"egrep", "fgrep", "grep", "rg", "ripgrep"}
 SHELL_COMMANDS = {"bash", "dash", "sh", "zsh"}
 SUCCESS_WORDS = {"completed", "ok", "passed", "success", "succeeded"}
 FAILURE_WORDS = {"error", "failed", "failure", "timed_out", "timeout"}
+PYTHON_EXECUTABLE = re.compile(r"python(?:3(?:\.\d+)*)?\Z", re.IGNORECASE)
+PYTHON_OPTIONS = {"-B", "-E", "-I", "-O", "-OO", "-P", "-s", "-S", "-u"}
+PYTHON_VALUE_OPTIONS = {"-W", "-X", "--check-hash-based-pycs"}
+HOOK_FILE = re.compile(r"hooks-(\d{4}-\d{2}-\d{2})\.jsonl\Z")
 
 
-def timestamp() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def timestamp(now: Optional[datetime] = None) -> str:
+    current = now or utc_now()
+    return current.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace(
         "+00:00", "Z"
     )
 
@@ -180,15 +180,50 @@ def executable_index(tokens: list[str]) -> int:
     return index
 
 
+def python_docstar_index(tokens: list[str], start: int) -> Optional[int]:
+    index = start + 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            index += 1
+            break
+        if token == "-m":
+            if index + 1 < len(tokens) and tokens[index + 1].casefold() == "docstar":
+                return index + 1
+            return None
+        if token in PYTHON_OPTIONS:
+            index += 1
+            continue
+        if token in PYTHON_VALUE_OPTIONS:
+            if index + 1 >= len(tokens):
+                return None
+            index += 2
+            continue
+        if any(
+            token.startswith(prefix) and token != prefix
+            for prefix in ("-W", "-X", "--check-hash-based-pycs=")
+        ):
+            index += 1
+            continue
+        if token.startswith("-"):
+            return None
+        break
+    if index >= len(tokens):
+        return None
+    script = tokens[index]
+    if "/" not in script or basename(script) != "docstar.py":
+        return None
+    return index
+
+
 def docstar_index(tokens: list[str], start: int) -> Optional[int]:
     if start >= len(tokens):
         return None
     executable = basename(tokens[start])
     if executable == "docstar":
         return start
-    if executable in {"python", "python3"} and len(tokens) > start + 2:
-        if tokens[start + 1] == "-m" and tokens[start + 2].casefold() == "docstar":
-            return start + 2
+    if PYTHON_EXECUTABLE.fullmatch(executable) is not None:
+        return python_docstar_index(tokens, start)
     if executable in {"npx", "pipx", "uvx"} and len(tokens) > start + 1:
         if basename(tokens[start + 1]) == "docstar":
             return start + 1
@@ -300,77 +335,13 @@ def command_from_input(tool_input: Any) -> Any:
     return get_value(tool_input, "command", "cmd", default=MISSING)
 
 
-def iter_prompt_text(value: Any, include: bool = False) -> Iterable[str]:
-    if isinstance(value, str):
-        if include:
-            yield value
-        return
-    if isinstance(value, list):
-        for child in value:
-            yield from iter_prompt_text(child, include)
-        return
-    if not isinstance(value, dict):
-        return
-    prompt_keys = {
-        "content",
-        "instruction",
-        "instructions",
-        "items",
-        "message",
-        "prompt",
-        "task",
-        "text",
-    }
-    normalized_prompt_keys = {normalize_key(item) for item in prompt_keys}
-    for key, child in value.items():
-        child_included = include or (
-            isinstance(key, str) and normalize_key(key) in normalized_prompt_keys
-        )
-        yield from iter_prompt_text(child, child_included)
-
-
 def extract_semantic_ids(tool_input: Any) -> dict[str, str]:
     extracted = {}
     for output_name, normalized_name in SEMANTIC_FIELDS.items():
         direct = safe_token(find_value(tool_input, normalized_name))
         if direct is not None:
             extracted[output_name] = direct
-            continue
-        pattern = SEMANTIC_PATTERNS[output_name]
-        for text in iter_prompt_text(tool_input):
-            match = pattern.search(normalize_semantic_labels(text))
-            if match is None:
-                continue
-            candidate = safe_token(match.group(1))
-            if candidate is not None:
-                extracted[output_name] = candidate
-                break
     return extracted
-
-
-def normalize_semantic_labels(text: str) -> str:
-    replacements = {
-        "card_id": "cardid",
-        "card-id": "cardid",
-        "card id": "cardid",
-        "cardId": "cardid",
-        "run_id": "runid",
-        "run-id": "runid",
-        "run id": "runid",
-        "runId": "runid",
-        "lane_key": "lanekey",
-        "lane-key": "lanekey",
-        "lane key": "lanekey",
-        "laneKey": "lanekey",
-        "target_milestone_id": "targetmilestoneid",
-        "target-milestone-id": "targetmilestoneid",
-        "target milestone id": "targetmilestoneid",
-        "targetMilestoneId": "targetmilestoneid",
-    }
-    normalized = text
-    for source, target in replacements.items():
-        normalized = re.sub(re.escape(source), target, normalized, flags=re.IGNORECASE)
-    return normalized
 
 
 def extract_fork_context(tool_input: Any) -> Optional[bool]:
@@ -433,10 +404,10 @@ def extract_skill_name(tool_input: Any) -> Optional[str]:
     return safe_token(direct, 128)
 
 
-def build_record(payload: dict) -> dict[str, Any]:
+def build_record(payload: dict, now: Optional[datetime] = None) -> dict[str, Any]:
     record: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
-        "timestamp": timestamp(),
+        "timestamp": timestamp(now),
     }
     fields = (
         ("event", get_value(payload, "hook_event_name", "hookEventName", "event"), 64),
@@ -511,20 +482,75 @@ def build_record(payload: dict) -> dict[str, Any]:
     return record
 
 
-def output_path(arguments: list[str]) -> Optional[Path]:
-    for index, argument in enumerate(arguments):
-        if argument == "--output" and index + 1 < len(arguments):
-            return Path(arguments[index + 1]).expanduser()
-        if argument.startswith("--output="):
-            return Path(argument.split("=", 1)[1]).expanduser()
-    return None
+def output_config(arguments: list[str]) -> Optional[tuple[Path, int]]:
+    output_dir = None
+    retention_days = None
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        if argument == "--output-dir" and index + 1 < len(arguments):
+            if output_dir is not None:
+                return None
+            output_dir = Path(arguments[index + 1]).expanduser()
+            index += 2
+            continue
+        if argument.startswith("--output-dir="):
+            if output_dir is not None:
+                return None
+            output_dir = Path(argument.split("=", 1)[1]).expanduser()
+            index += 1
+            continue
+        if argument == "--retention-days" and index + 1 < len(arguments):
+            if retention_days is not None:
+                return None
+            raw_retention = arguments[index + 1]
+            index += 2
+        elif argument.startswith("--retention-days="):
+            if retention_days is not None:
+                return None
+            raw_retention = argument.split("=", 1)[1]
+            index += 1
+        else:
+            return None
+        if not raw_retention.isdigit() or int(raw_retention) < 1:
+            return None
+        retention_days = int(raw_retention)
+    if output_dir is None or retention_days is None:
+        return None
+    return output_dir, retention_days
 
 
-def append_record(path: Path, record: dict[str, Any]) -> None:
-    parent = path.parent
-    if not parent.exists():
-        parent.mkdir(parents=True, mode=0o700)
-        parent.chmod(0o700)
+def cleanup_outputs(output_dir: Path, retention_days: int, now: datetime) -> None:
+    cutoff = now.date() - timedelta(days=retention_days - 1)
+    for path in output_dir.glob("hooks-*.jsonl"):
+        match = HOOK_FILE.fullmatch(path.name)
+        if match is None:
+            continue
+        try:
+            file_date = datetime.strptime(match.group(1), "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if file_date < cutoff:
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+    try:
+        (output_dir / "hooks.jsonl").unlink()
+    except FileNotFoundError:
+        pass
+
+
+def append_record(
+    output_dir: Path,
+    record: dict[str, Any],
+    retention_days: int,
+    now: datetime,
+) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    output_dir.chmod(0o700)
+    cleanup_outputs(output_dir, retention_days, now)
+    path = output_dir / f"hooks-{now.date().isoformat()}.jsonl"
     flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
@@ -543,14 +569,23 @@ def append_record(path: Path, record: dict[str, Any]) -> None:
 
 def main(arguments: Optional[list[str]] = None) -> int:
     try:
-        destination = output_path(list(arguments) if arguments is not None else sys.argv[1:])
-        if destination is None:
+        configuration = output_config(
+            list(arguments) if arguments is not None else sys.argv[1:]
+        )
+        if configuration is None:
             return 0
+        output_dir, retention_days = configuration
         raw = sys.stdin.buffer.read()
         document = json.loads(raw.decode("utf-8"))
         if not isinstance(document, dict):
             return 0
-        append_record(destination, build_record(document))
+        now = utc_now()
+        append_record(
+            output_dir,
+            build_record(document, now),
+            retention_days,
+            now,
+        )
     except BaseException:
         return 0
     return 0

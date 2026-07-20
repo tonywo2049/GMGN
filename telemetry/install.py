@@ -4,11 +4,13 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 import json
+import math
 import os
 from pathlib import Path
 import plistlib
 import shlex
 import stat
+import subprocess
 import sys
 import tempfile
 from typing import Any, Optional
@@ -16,11 +18,15 @@ from typing import Any, Optional
 
 LABEL = "com.gmgn.codex-telemetry"
 PLIST_NAME = f"{LABEL}.plist"
-SCRIPT_NAMES = ("collector.py", "hook.py", "install.py")
+SCRIPT_NAMES = ("collector.py", "hook.py", "install.py", "report.py")
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 4318
 DEFAULT_RETENTION_DAYS = 30
 DEFAULT_MAX_BODY_BYTES = 1024 * 1024
+DEFAULT_MAX_WRITE_BYTES = 256 * 1024
+DEFAULT_MAX_DATA_BYTES = 100 * 1024 * 1024
+DEFAULT_READ_TIMEOUT_SECONDS = 5.0
+DEFAULT_MAX_CONCURRENT_REQUESTS = 8
 HOOK_EVENTS = (
     ("SessionStart", None),
     ("PostToolUse", "^Bash$"),
@@ -39,7 +45,6 @@ class Layout:
     bin_dir: Path
     data_dir: Path
     logs_dir: Path
-    hook_output: Path
     hooks_path: Path
     launch_agents_dir: Path
     plist_path: Path
@@ -60,7 +65,6 @@ def make_layout(home: Path, codex_home: Path) -> Layout:
         bin_dir=telemetry_root / "bin",
         data_dir=telemetry_root / "data",
         logs_dir=telemetry_root / "logs",
-        hook_output=telemetry_root / "data" / "hooks.jsonl",
         hooks_path=resolved_codex_home / "hooks.json",
         launch_agents_dir=resolved_home / "Library" / "LaunchAgents",
         plist_path=resolved_home / "Library" / "LaunchAgents" / PLIST_NAME,
@@ -78,7 +82,7 @@ def default_codex_home(home: Path) -> Path:
 
 
 def stable_python() -> Path:
-    return Path(sys.executable).resolve()
+    return Path(sys.executable)
 
 
 def toml_string(value: str) -> str:
@@ -114,6 +118,10 @@ def render_launch_agent(
     port: int,
     retention_days: int,
     max_body_bytes: int,
+    max_write_bytes: int,
+    max_data_bytes: int,
+    read_timeout_seconds: float,
+    max_concurrent_requests: int,
 ) -> bytes:
     collector = layout.bin_dir / "collector.py"
     document = {
@@ -131,6 +139,14 @@ def render_launch_agent(
             str(retention_days),
             "--max-body-bytes",
             str(max_body_bytes),
+            "--max-write-bytes",
+            str(max_write_bytes),
+            "--max-data-bytes",
+            str(max_data_bytes),
+            "--read-timeout-seconds",
+            str(read_timeout_seconds),
+            "--max-concurrent-requests",
+            str(max_concurrent_requests),
         ],
         "WorkingDirectory": str(layout.telemetry_root),
         "RunAtLoad": True,
@@ -197,17 +213,54 @@ def load_hooks(path: Path) -> dict[str, Any]:
     return document
 
 
-def is_owned_handler(handler: Any) -> bool:
+def hook_command_tokens(
+    layout: Layout, python_path: Path, retention_days: int
+) -> list[str]:
+    return [
+        str(python_path),
+        str(layout.bin_dir / "hook.py"),
+        "--output-dir",
+        str(layout.data_dir),
+        "--retention-days",
+        str(retention_days),
+    ]
+
+
+def hook_command(layout: Layout, python_path: Path, retention_days: int) -> str:
+    return shlex.join(hook_command_tokens(layout, python_path, retention_days))
+
+
+def is_owned_handler(
+    handler: Any,
+    layout: Layout,
+) -> bool:
     if not isinstance(handler, dict) or handler.get("type") != "command":
         return False
     command = handler.get("command")
     if not isinstance(command, str):
         return False
-    normalized = command.replace("\\", "/")
-    return "/gmgn-telemetry/bin/hook.py" in normalized
+    try:
+        tokens = shlex.split(command, posix=True)
+    except ValueError:
+        return False
+    if len(tokens) != 6:
+        return False
+    python_path = Path(tokens[0])
+    return (
+        python_path.is_absolute()
+        and tokens[1] == str(layout.bin_dir / "hook.py")
+        and tokens[2] == "--output-dir"
+        and tokens[3] == str(layout.data_dir)
+        and tokens[4] == "--retention-days"
+        and tokens[5].isdigit()
+        and int(tokens[5]) > 0
+    )
 
 
-def remove_owned_handlers(document: dict[str, Any]) -> int:
+def remove_owned_handlers(
+    document: dict[str, Any],
+    layout: Layout,
+) -> int:
     hooks = document.setdefault("hooks", {})
     if not isinstance(hooks, dict):
         raise ValueError("hooks.json hooks must be an object")
@@ -223,7 +276,9 @@ def remove_owned_handlers(document: dict[str, Any]) -> int:
             if not isinstance(handlers, list):
                 raise ValueError(f"hooks.json event {event} group hooks must be an array")
             retained_handlers = [
-                handler for handler in handlers if not is_owned_handler(handler)
+                handler
+                for handler in handlers
+                if not is_owned_handler(handler, layout)
             ]
             removed += len(handlers) - len(retained_handlers)
             if retained_handlers or len(retained_handlers) == len(handlers):
@@ -234,23 +289,15 @@ def remove_owned_handlers(document: dict[str, Any]) -> int:
     return removed
 
 
-def hook_command(layout: Layout, python_path: Path) -> str:
-    return shlex.join(
-        [
-            str(python_path),
-            str(layout.bin_dir / "hook.py"),
-            "--output",
-            str(layout.hook_output),
-        ]
-    )
-
-
 def merge_hooks(
-    document: dict[str, Any], layout: Layout, python_path: Path
+    document: dict[str, Any],
+    layout: Layout,
+    python_path: Path,
+    retention_days: int,
 ) -> dict[str, Any]:
-    remove_owned_handlers(document)
+    remove_owned_handlers(document, layout)
     hooks = document["hooks"]
-    command = hook_command(layout, python_path)
+    command = hook_command(layout, python_path, retention_days)
     for event, matcher in HOOK_EVENTS:
         groups = hooks.setdefault(event, [])
         if not isinstance(groups, list):
@@ -281,6 +328,43 @@ def hooks_mode(path: Path) -> int:
     return stat.S_IMODE(path.stat().st_mode)
 
 
+def run_launchctl(
+    action: str,
+    layout: Layout,
+    runner: Any = None,
+    uid: Optional[int] = None,
+) -> None:
+    if action not in {"bootout", "bootstrap"}:
+        raise ValueError(f"unsupported launchctl action: {action}")
+    domain = f"gui/{os.getuid() if uid is None else uid}"
+    command = ["launchctl", action, domain, str(layout.plist_path)]
+    command_runner = runner or subprocess.run
+    try:
+        result = command_runner(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as error:
+        raise RuntimeError(f"{shlex.join(command)} could not run: {error}") from error
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "no diagnostic output").strip()
+        normalized_detail = detail.casefold()
+        if action == "bootout" and any(
+            marker in normalized_detail
+            for marker in (
+                "could not find specified service",
+                "no such process",
+                "service not found",
+            )
+        ):
+            return
+        raise RuntimeError(
+            f"{shlex.join(command)} failed with exit code {result.returncode}: {detail}"
+        )
+
+
 def install(
     layout: Layout,
     source_dir: Path,
@@ -289,14 +373,26 @@ def install(
     port: int,
     retention_days: int,
     max_body_bytes: int,
+    max_write_bytes: int = DEFAULT_MAX_WRITE_BYTES,
+    max_data_bytes: int = DEFAULT_MAX_DATA_BYTES,
+    read_timeout_seconds: float = DEFAULT_READ_TIMEOUT_SECONDS,
+    max_concurrent_requests: int = DEFAULT_MAX_CONCURRENT_REQUESTS,
+    launchctl_runner: Any = None,
+    launchctl_uid: Optional[int] = None,
 ) -> None:
+    had_plist = layout.plist_path.exists()
     ensure_directory(layout.codex_home, 0o700)
     ensure_directory(layout.telemetry_root, 0o700)
     ensure_directory(layout.data_dir, 0o700)
     ensure_directory(layout.logs_dir, 0o700)
     copy_scripts(source_dir, layout)
 
-    document = merge_hooks(load_hooks(layout.hooks_path), layout, python_path)
+    document = merge_hooks(
+        load_hooks(layout.hooks_path),
+        layout,
+        python_path,
+        retention_days,
+    )
     atomic_write(layout.hooks_path, hooks_bytes(document), hooks_mode(layout.hooks_path))
 
     ensure_directory(layout.launch_agents_dir, 0o755)
@@ -307,14 +403,27 @@ def install(
         port,
         retention_days,
         max_body_bytes,
+        max_write_bytes,
+        max_data_bytes,
+        read_timeout_seconds,
+        max_concurrent_requests,
     )
+    if had_plist:
+        run_launchctl("bootout", layout, launchctl_runner, launchctl_uid)
     atomic_write(layout.plist_path, plist, 0o644)
+    run_launchctl("bootstrap", layout, launchctl_runner, launchctl_uid)
 
 
-def uninstall(layout: Layout) -> None:
+def uninstall(
+    layout: Layout,
+    launchctl_runner: Any = None,
+    launchctl_uid: Optional[int] = None,
+) -> None:
+    if layout.plist_path.exists():
+        run_launchctl("bootout", layout, launchctl_runner, launchctl_uid)
     if layout.hooks_path.exists():
         document = load_hooks(layout.hooks_path)
-        removed = remove_owned_handlers(document)
+        removed = remove_owned_handlers(document, layout)
         if removed:
             atomic_write(
                 layout.hooks_path,
@@ -330,6 +439,13 @@ def uninstall(layout: Layout) -> None:
 def positive_integer(value: str) -> int:
     parsed = int(value)
     if parsed < 1:
+        raise argparse.ArgumentTypeError("must be positive")
+    return parsed
+
+
+def positive_float(value: str) -> float:
+    parsed = float(value)
+    if parsed <= 0 or not math.isfinite(parsed):
         raise argparse.ArgumentTypeError("must be positive")
     return parsed
 
@@ -353,6 +469,7 @@ def parse_args(arguments: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--print-codex-config", action="store_true")
     parser.add_argument("--home", type=Path)
     parser.add_argument("--codex-home", type=Path)
+    parser.add_argument("--python", type=Path)
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=valid_port, default=DEFAULT_PORT)
     parser.add_argument(
@@ -365,13 +482,41 @@ def parse_args(arguments: Optional[list[str]] = None) -> argparse.Namespace:
         type=positive_integer,
         default=DEFAULT_MAX_BODY_BYTES,
     )
+    parser.add_argument(
+        "--max-write-bytes",
+        type=positive_integer,
+        default=DEFAULT_MAX_WRITE_BYTES,
+    )
+    parser.add_argument(
+        "--max-data-bytes",
+        type=positive_integer,
+        default=DEFAULT_MAX_DATA_BYTES,
+    )
+    parser.add_argument(
+        "--read-timeout-seconds",
+        type=positive_float,
+        default=DEFAULT_READ_TIMEOUT_SECONDS,
+    )
+    parser.add_argument(
+        "--max-concurrent-requests",
+        type=positive_integer,
+        default=DEFAULT_MAX_CONCURRENT_REQUESTS,
+    )
     return parser.parse_args(arguments)
 
 
-def dry_run_output(layout: Layout, action: str, host: str, port: int) -> str:
+def dry_run_output(
+    layout: Layout,
+    action: str,
+    host: str,
+    port: int,
+    python_path: Path,
+    retention_days: int,
+) -> str:
     if action == "uninstall":
         return (
             f"Would remove GMGN handlers from {layout.hooks_path}\n"
+            f"Would run launchctl bootout for {layout.plist_path}\n"
             f"Would remove {layout.plist_path}\n"
         )
     copied = "\n".join(
@@ -380,7 +525,10 @@ def dry_run_output(layout: Layout, action: str, host: str, port: int) -> str:
     return (
         f"{copied}\n"
         f"Would merge GMGN handlers into {layout.hooks_path}\n"
+        f"Would configure hook command: "
+        f"{hook_command(layout, python_path, retention_days)}\n"
         f"Would write {layout.plist_path}\n"
+        f"Would run launchctl bootstrap for {layout.plist_path}\n"
         f"Would create data directory {layout.data_dir}\n\n"
         f"Codex config to add manually:\n{render_codex_config(host, port)}"
     )
@@ -395,17 +543,27 @@ def main(arguments: Optional[list[str]] = None) -> int:
         else absolute_path(default_codex_home(home))
     )
     layout = make_layout(home, codex_home)
+    python_path = options.python.expanduser() if options.python else stable_python()
 
     if options.print_codex_config:
         sys.stdout.write(render_codex_config(options.host, options.port))
         return 0
     if options.dry_run:
         sys.stdout.write(
-            dry_run_output(layout, options.action, options.host, options.port)
+            dry_run_output(
+                layout,
+                options.action,
+                options.host,
+                options.port,
+                python_path,
+                options.retention_days,
+            )
         )
         return 0
 
     try:
+        if not python_path.is_absolute():
+            raise ValueError("--python must be an absolute path")
         if options.action == "uninstall":
             uninstall(layout)
             sys.stdout.write(f"Removed GMGN hooks and {layout.plist_path}\n")
@@ -413,11 +571,15 @@ def main(arguments: Optional[list[str]] = None) -> int:
             install(
                 layout=layout,
                 source_dir=Path(__file__).resolve().parent,
-                python_path=stable_python(),
+                python_path=python_path,
                 host=options.host,
                 port=options.port,
                 retention_days=options.retention_days,
                 max_body_bytes=options.max_body_bytes,
+                max_write_bytes=options.max_write_bytes,
+                max_data_bytes=options.max_data_bytes,
+                read_timeout_seconds=options.read_timeout_seconds,
+                max_concurrent_requests=options.max_concurrent_requests,
             )
             sys.stdout.write(
                 f"Installed local telemetry under {layout.telemetry_root}\n"
@@ -425,7 +587,7 @@ def main(arguments: Optional[list[str]] = None) -> int:
                 f"{render_codex_config(options.host, options.port)}"
                 "Codex must explicitly trust the new hooks before they run.\n"
             )
-    except (OSError, ValueError, json.JSONDecodeError) as error:
+    except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         sys.stderr.write(f"telemetry installer failed: {error}\n")
         return 1
     return 0
