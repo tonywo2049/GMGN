@@ -404,6 +404,43 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(websocket_record["event_name"], "codex.websocket_event")
         self.assertEqual(websocket_record["attributes"]["input_token_count"], 12)
 
+    def test_codex_string_scalars_are_strictly_normalized(self) -> None:
+        records = [
+            self.log_record(
+                "codex.websocket_request",
+                {
+                    "duration_ms": "15.5",
+                    "success": "true",
+                    "status_code": "200",
+                },
+            ),
+            self.log_record(
+                "codex.sse_event",
+                {
+                    "event.kind": "response.completed",
+                    "input_token_count": "12",
+                    "output_token_count": "3",
+                    "tool_token_count": "0",
+                },
+            ),
+        ]
+        status, _, _ = self.post_json("/v1/logs", self.logs_payload(records))
+        self.assertEqual(status, 200)
+        stored = self.records()
+        self.assertEqual(
+            stored[0]["attributes"],
+            {"duration_ms": 15.5, "status_code": 200, "success": True},
+        )
+        self.assertEqual(
+            stored[1]["attributes"],
+            {
+                "event.kind": "response.completed",
+                "input_token_count": 12,
+                "output_token_count": 3,
+                "tool_token_count": 0,
+            },
+        )
+
     def test_mixed_batch_drops_unknown_and_unrelated_events(self) -> None:
         unrelated_api = {
             "attributes": self.otel_attributes(

@@ -28,6 +28,9 @@ SCHEMA_VERSION = "gmgn-otel-event-v1"
 LOGS_PATH = "/v1/logs"
 DATED_JSONL = re.compile(r"(?:^|\D)(\d{4}-\d{2}-\d{2})(?:\D|$)")
 SAFE_METADATA = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/@+#~\-=]{0,255}\Z")
+NONNEGATIVE_NUMBER_TEXT = re.compile(
+    r"(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\Z"
+)
 OTEL_VALUE_KEYS = {
     "arrayValue",
     "boolValue",
@@ -221,12 +224,16 @@ def metadata_text(value: Any, field_name: str, limit: int = 256) -> str:
 
 
 def nonnegative_integer(value: Any, field_name: str) -> int:
+    if isinstance(value, str) and re.fullmatch(r"[0-9]+", value):
+        value = int(value)
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise RequestValidationError(f"{field_name} must be a non-negative integer")
     return value
 
 
 def nonnegative_number(value: Any, field_name: str) -> int | float:
+    if isinstance(value, str) and NONNEGATIVE_NUMBER_TEXT.fullmatch(value):
+        value = float(value) if any(char in value for char in ".eE") else int(value)
     if (
         isinstance(value, bool)
         or not isinstance(value, (int, float))
@@ -300,6 +307,8 @@ def normalize_event_attribute(field_name: str, value: Any) -> Any:
     if field_name == "duration_ms":
         return nonnegative_number(value, field_name)
     if field_name == "success":
+        if isinstance(value, str) and value.casefold() in {"true", "false"}:
+            value = value.casefold() == "true"
         if not isinstance(value, bool):
             raise RequestValidationError("success must be a boolean")
         return value
