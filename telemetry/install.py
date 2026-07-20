@@ -337,7 +337,10 @@ def run_launchctl(
     if action not in {"bootout", "bootstrap"}:
         raise ValueError(f"unsupported launchctl action: {action}")
     domain = f"gui/{os.getuid() if uid is None else uid}"
-    command = ["launchctl", action, domain, str(layout.plist_path)]
+    if action == "bootout":
+        command = ["launchctl", action, f"{domain}/{LABEL}"]
+    else:
+        command = ["launchctl", action, domain, str(layout.plist_path)]
     command_runner = runner or subprocess.run
     try:
         result = command_runner(
@@ -380,7 +383,6 @@ def install(
     launchctl_runner: Any = None,
     launchctl_uid: Optional[int] = None,
 ) -> None:
-    had_plist = layout.plist_path.exists()
     ensure_directory(layout.codex_home, 0o700)
     ensure_directory(layout.telemetry_root, 0o700)
     ensure_directory(layout.data_dir, 0o700)
@@ -408,8 +410,7 @@ def install(
         read_timeout_seconds,
         max_concurrent_requests,
     )
-    if had_plist:
-        run_launchctl("bootout", layout, launchctl_runner, launchctl_uid)
+    run_launchctl("bootout", layout, launchctl_runner, launchctl_uid)
     atomic_write(layout.plist_path, plist, 0o644)
     run_launchctl("bootstrap", layout, launchctl_runner, launchctl_uid)
 
@@ -419,8 +420,7 @@ def uninstall(
     launchctl_runner: Any = None,
     launchctl_uid: Optional[int] = None,
 ) -> None:
-    if layout.plist_path.exists():
-        run_launchctl("bootout", layout, launchctl_runner, launchctl_uid)
+    run_launchctl("bootout", layout, launchctl_runner, launchctl_uid)
     if layout.hooks_path.exists():
         document = load_hooks(layout.hooks_path)
         removed = remove_owned_handlers(document, layout)

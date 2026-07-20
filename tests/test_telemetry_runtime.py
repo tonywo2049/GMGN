@@ -1014,8 +1014,9 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(
             self.launchctl_calls,
             [
+                ["launchctl", "bootout", "gui/501/com.gmgn.codex-telemetry"],
                 ["launchctl", "bootstrap", "gui/501", str(self.layout.plist_path)],
-                ["launchctl", "bootout", "gui/501", str(self.layout.plist_path)],
+                ["launchctl", "bootout", "gui/501/com.gmgn.codex-telemetry"],
                 ["launchctl", "bootstrap", "gui/501", str(self.layout.plist_path)],
             ],
         )
@@ -1079,7 +1080,7 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(self.layout.data_dir.exists())
         self.assertEqual(
             self.launchctl_calls,
-            [["launchctl", "bootout", "gui/501", str(self.layout.plist_path)]],
+            [["launchctl", "bootout", "gui/501/com.gmgn.codex-telemetry"]],
         )
 
     def test_launchctl_failure_is_explicit_and_preserves_uninstall_files(self) -> None:
@@ -1095,7 +1096,7 @@ class InstallerTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             RuntimeError,
-            r"launchctl bootout gui/501 .* failed with exit code 5: permission denied",
+            r"launchctl bootout gui/501/com\.gmgn\.codex-telemetry failed with exit code 5: permission denied",
         ):
             self.installer.uninstall(
                 self.layout,
