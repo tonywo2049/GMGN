@@ -1299,6 +1299,8 @@ def _wait_result(call: _RawCall) -> str:
         except (TypeError, ValueError):
             text_value = str(text_value)
     normalized = text_value.casefold()
+    if "timeout_ms" in normalized and "must" in normalized:
+        return "error"
     if re.search(r"\b(?:interrupted|cancelled|canceled)\b", normalized):
         return "interrupted"
     if (

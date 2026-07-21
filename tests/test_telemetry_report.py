@@ -821,6 +821,32 @@ class TelemetryReportTests(unittest.TestCase):
             },
         )
 
+    def test_wait_argument_rejection_is_an_error(self) -> None:
+        entries = [
+            {
+                "timestamp": "2026-07-20T02:00:00Z",
+                "type": "session_meta",
+                "payload": {"id": "wait-error-session"},
+            },
+            self.call(
+                "2026-07-20T02:00:01Z",
+                "wait-error",
+                "wait_agent",
+                {"timeout_ms": 1},
+            ),
+            self.output(
+                "2026-07-20T02:00:01.100Z",
+                "wait-error",
+                "timeout_ms must be at least 10000",
+            ),
+        ]
+        self.write_session("rollout-wait-error-session", entries)
+
+        wait = self.build_report("wait-error-session")["runs"][0]["gmgn"]["wait"]
+        self.assertEqual(wait["result_counts"]["error"], 1)
+        self.assertEqual(wait["state_change_counts"]["unknown"], 1)
+        self.assertEqual(wait["reactivation"]["coverage"], "unknown")
+
     def test_missing_sessions_and_no_descendants(self) -> None:
         report = self.build_report(
             "historical-task-id",
