@@ -883,6 +883,17 @@ class TelemetryReportTests(unittest.TestCase):
                 "wait-failed-status-timeout-text",
                 {"status": "failed", "message": "wait timed out upstream"},
             ),
+            self.call(
+                "2026-07-20T02:00:10Z",
+                "wait-structured-cancelled",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T02:00:11Z",
+                "wait-structured-cancelled",
+                {"status": "cancelled"},
+            ),
         ]
         self.write_session("rollout-wait-error-session", entries)
 
@@ -890,7 +901,8 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertEqual(wait["result_counts"]["error"], 3)
         self.assertEqual(wait["result_counts"]["unknown"], 1)
         self.assertEqual(wait["result_counts"]["timeout"], 1)
-        self.assertEqual(wait["state_change_counts"]["unknown"], 4)
+        self.assertEqual(wait["result_counts"]["interrupted"], 1)
+        self.assertEqual(wait["state_change_counts"]["unknown"], 5)
         self.assertEqual(wait["state_change_counts"]["unchanged"], 1)
         self.assertEqual(wait["reactivation"]["coverage"], "unknown")
 

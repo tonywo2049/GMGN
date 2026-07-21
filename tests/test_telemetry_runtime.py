@@ -930,6 +930,18 @@ class HookTests(unittest.TestCase):
                 "hookEventName": "PostToolUse",
                 "sessionId": "session-wait",
                 "toolName": "wait_agent",
+                "toolUseId": "wait-structured-interrupted",
+                "toolResponse": {"status": "interrupted"},
+            }
+        )
+        interrupted = self.read_records()[-1]
+        self.assertEqual(interrupted["wait_result"], "interrupted")
+
+        self.run_hook(
+            {
+                "hookEventName": "PostToolUse",
+                "sessionId": "session-wait",
+                "toolName": "wait_agent",
                 "toolUseId": "wait-status-timeout",
                 "toolResponse": {"status": "timed_out"},
             }
