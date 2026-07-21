@@ -1,7 +1,7 @@
 {
   "name": "gmgn",
   "version": "0.2.6",
-  "description": "GMGN — bilingual agentic delivery from idea to milestone closure / 从想法到关账的中英双语 agent 研发工作流。",
+  "description": "GMGN — bilingual agentic delivery from idea to accepted release / 从想法到已接受版本发布的中英双语 agent 研发工作流。",
   "author": {
     "name": "Tony",
     "url": "https://github.com/tonywo2049"
@@ -22,8 +22,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "GMGN",
-    "shortDescription": "Bilingual agent workflow from idea to closure / 从想法到关账的双语 agent 工作流",
-    "longDescription": "Nine composable skills manage discovery, G-R-D-T documents, task execution, independent review, and milestone closure in English or Chinese. / 九件技能用中英文管理需求澄清、规格链、逐卡实现、独立评审和关账。",
+    "shortDescription": "Bilingual agent workflow from idea to accepted release / 从想法到已接受版本发布的双语 agent 工作流",
+    "longDescription": "Ten composable skills manage discovery, G-R-D-T documents, task execution, independent review, milestone closure, and evidence-reusing release in English or Chinese. / 十件技能用中英文管理需求澄清、规格链、逐卡实现、独立评审、关账和证据复用发布。",
     "developerName": "Tony",
     "category": "Productivity",
     "capabilities": [

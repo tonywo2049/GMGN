@@ -106,17 +106,94 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("release 证据复用契约缺失", result.stdout)
 
-    def test_rejects_unconditional_full_regression_on_release_retry(self) -> None:
+    def test_rejects_exact_anchor_reuse_without_stable_evidence_inputs(self) -> None:
         path = self.root / "skills" / "release" / "SKILL.md"
-        text = path.read_text(encoding="utf-8") + (
-            "\nEvery release retry must rerun full regression and combined review.\n"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Only when those inputs are unchanged",
+            "Regardless of whether those inputs changed",
         )
         path.write_text(text, encoding="utf-8")
 
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("发布不得无条件重做关账审查", result.stdout)
+        self.assertIn("release 证据复用契约缺失", result.stdout)
+
+    def test_rejects_unconditional_full_regression_on_release_retry(self) -> None:
+        mutations = (
+            ("skills/release/SKILL.md", "Every release retry must rerun full regression."),
+            ("GMGN.md", "Every release must rerun full regression."),
+            ("GMGN.zh-CN.md", "每次发布必须运行完整回归。"),
+            ("GMGN.zh-CN.md", "每次发布都需要完整回归。"),
+            ("GMGN.zh-CN.md", "每次发布均应当执行组合审查。"),
+        )
+        for relative_path, mutation in mutations:
+            with self.subTest(path=relative_path):
+                path = self.root / relative_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + "\n" + mutation + "\n", encoding="utf-8")
+                result = self.run_validator()
+                path.write_text(original, encoding="utf-8")
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("发布不得无条件重做关账审查", result.stdout)
+
+    def test_allows_negated_release_regression_rule(self) -> None:
+        mutations = (
+            ("GMGN.md", "Not every release must rerun full regression."),
+            ("GMGN.zh-CN.md", "并非每次发布都需要完整回归。"),
+            ("GMGN.zh-CN.md", "每次发布并非都需要完整回归。"),
+            ("GMGN.zh-CN.md", "每次发布不需要组合审查。"),
+            ("GMGN.zh-CN.md", "每次发布必须说明不需要完整回归。"),
+        )
+        for relative_path, mutation in mutations:
+            path = self.root / relative_path
+            path.write_text(
+                path.read_text(encoding="utf-8") + "\n" + mutation + "\n",
+                encoding="utf-8",
+            )
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_rejects_closure_without_persisted_release_evidence_tuple(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "persist the release evidence tuple",
+            "summarize release evidence in the current session",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("close-milestone 缺发布证据交接", result.stdout)
+
+    def test_rejects_public_metadata_without_release_capability(self) -> None:
+        mutations = (
+            (
+                ".codex-plugin/plugin.json",
+                (("accepted release", "milestone closure"), ("版本发布", "里程碑关账")),
+            ),
+            (
+                ".claude-plugin/marketplace.json",
+                (("accepted release", "closure"), ("版本发布", "关账")),
+            ),
+        )
+        for relative_path, replacements in mutations:
+            with self.subTest(path=relative_path):
+                path = self.root / relative_path
+                original = path.read_text(encoding="utf-8")
+                mutated = original
+                for old, new in replacements:
+                    mutated = self.replace_required(mutated, old, new)
+                path.write_text(mutated, encoding="utf-8")
+                result = self.run_validator()
+                path.write_text(original, encoding="utf-8")
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("必须描述 release/发布能力", result.stdout)
 
     def test_rejects_mechanical_release_without_allowed_diff_record(self) -> None:
         path = self.root / "GMGN.md"

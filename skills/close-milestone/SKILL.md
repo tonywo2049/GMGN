@@ -96,7 +96,10 @@ version anchor to the owner. Only after explicit acceptance, set state to `accep
 - set the target Milestone and its normative chain to `closed` where appropriate;
 - create/update Handoff with `type: handoff`, `nature: descriptive`, one-line state,
   baseline, completed work, non-blocking downstream TODOs, risks, authority pointers, and next
-  command;
+  command; in the same batch, persist the release evidence tuple: `accepted_anchor`, owner
+  acceptance reference, review evidence reference and scope, verification evidence reference,
+  required test plan, target execution environment, disclosed remaining material risks, and
+  their immutable or repository-relative evidence locations;
 - if DocStar uses a project classification mapping, reuse a registered type/token;
 - refresh ROADMAP, Task, matrix, Decision, version anchors, execution-log links, and evidence
   pointers in the same batch; reject a project-wide or Milestone-wide combined execution log,

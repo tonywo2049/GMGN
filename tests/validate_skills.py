@@ -140,6 +140,7 @@ def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
         return
     claude_manifest = metadata["claude_manifest"]
     codex_manifest = metadata["codex_manifest"]
+    claude_marketplace_entry = metadata["claude_marketplace_entry"]
 
     if claude_manifest.get("name") != codex_manifest.get("name"):
         errors.append("双 manifest name 不一致")
@@ -149,6 +150,23 @@ def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
         errors.append("Codex manifest description 必须同时提供英文和中文")
     if not has_ascii_and_cjk(claude_manifest.get("description", "")):
         errors.append("Claude manifest description 必须同时提供英文和中文")
+
+    codex_interface = codex_manifest.get("interface")
+    if not isinstance(codex_interface, dict):
+        errors.append("Codex manifest interface 必须是对象")
+        codex_interface = {}
+    public_descriptions = {
+        "Codex manifest description": codex_manifest.get("description", ""),
+        "Codex interface shortDescription": codex_interface.get("shortDescription", ""),
+        "Codex interface longDescription": codex_interface.get("longDescription", ""),
+        "Claude manifest description": claude_manifest.get("description", ""),
+        "Claude marketplace description": claude_marketplace_entry.get("description", ""),
+    }
+    for source, description in public_descriptions.items():
+        if not isinstance(description, str) or not re.search(r"release|发布", description, re.I):
+            errors.append(f"{source}: 必须描述 release/发布能力")
+        if isinstance(description, str) and re.search(r"\bnine\b|九件", description, re.I):
+            errors.append(f"{source}: 残留九件技能旧描述")
 
     for name in skill_names:
         path = SKILLS / name / "agents" / "openai.yaml"
@@ -2173,8 +2191,10 @@ def validate_release_evidence_reuse(
         release,
         "## 2. Classify the release delta",
         (
-            "Exact-anchor release", "Do not dispatch another closure Author",
-            "do not rerun those gates", "Mechanical equivalent",
+            "Exact-anchor release", "reviewed content and scope", "required test plan",
+            "target execution environment", "Only when those inputs are unchanged",
+            "invalidate and regenerate only evidence that depends on it",
+            "Do not dispatch another closure Author", "Mechanical equivalent",
             "approval_inherited_from", "Semantic delta", "Invalidate only the affected",
             "When the delta's meaning is uncertain",
         ),
@@ -2218,6 +2238,9 @@ def validate_release_evidence_reuse(
         (
             "Closure evidence is reusable", "Route an authorized release through `release`",
             "must not\nredispatch the closure Author", "regenerates only evidence whose inputs changed",
+            "persist the release evidence tuple", "`accepted_anchor`", "owner\n  acceptance reference",
+            "review evidence reference and scope", "verification evidence reference",
+            "required test plan", "target execution environment",
         ),
         "close-milestone 缺发布证据交接",
     )
@@ -2245,12 +2268,22 @@ def validate_release_evidence_reuse(
     )
 
     forbidden = (
-        r"Every release(?: retry)? must rerun full regression",
-        r"Every release requires (?:a )?full regression",
-        r"每次发布[^。\n]{0,40}完整回归",
-        r"每次发布[^。\n]{0,40}组合审查",
+        r"(?m)^[ \t]*(?:[-*][ \t]+)?Every release(?: retry)? must rerun full regression",
+        r"(?m)^[ \t]*(?:[-*][ \t]+)?Every release requires (?:a )?full regression",
+        r"(?m)^[ \t]*(?:[-*][ \t]+)?每次发布(?:重试)?[ \t]*(?:都|均)?[ \t]*"
+        r"(?:必须|需要|应当|务必)[ \t]*(?:重新[ \t]*)?(?:运行|执行|进行|重跑)?"
+        r"[ \t]*(?:一次[ \t]*)?完整回归",
+        r"(?m)^[ \t]*(?:[-*][ \t]+)?每次发布(?:重试)?[ \t]*(?:都|均)?[ \t]*"
+        r"(?:必须|需要|应当|务必)[ \t]*(?:重新[ \t]*)?(?:运行|执行|进行|重跑)?"
+        r"[ \t]*(?:一次[ \t]*)?组合审查",
     )
-    for name, text in (("release", release), ("gmgn", router), ("close-milestone", close)):
+    for name, text in (
+        ("release", release),
+        ("gmgn", router),
+        ("close-milestone", close),
+        ("GMGN.md", method_en),
+        ("GMGN.zh-CN.md", method_zh),
+    ):
         found = [pattern for pattern in forbidden if re.search(pattern, text, re.I)]
         if found:
             errors.append(f"{name}: 发布不得无条件重做关账审查 {found}")

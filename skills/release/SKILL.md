@@ -36,9 +36,12 @@ an agent summary without the anchored commands and results is not reusable evide
 
 Choose exactly one path:
 
-1. **Exact-anchor release.** `release_anchor == accepted_anchor`. Reuse the accepted review,
-   regression, E2E, DocStar, and closure evidence. Do not dispatch another closure Author,
-   combined Critic/Reviewer, or closure Verifier and do not rerun those gates.
+1. **Exact-anchor release.** `release_anchor == accepted_anchor`. Before reuse, compare the
+   reviewed content and scope, required test plan, target execution environment, and every
+   other recorded evidence-validity input. Only when those inputs are unchanged, reuse the
+   accepted review, regression, E2E, DocStar, and closure evidence. If an input changed,
+   invalidate and regenerate only evidence that depends on it. Do not dispatch another closure Author,
+   combined Critic/Reviewer, or closure Verifier unless that role's evidence was invalidated.
 2. **Mechanical equivalent.** The release anchor differs only by an explicit allowlist such
    as version manifests, checksums, generated release metadata, or meaning-preserving links.
    Record old and new anchors, `semantic_delta: none`, `allowed_diff`, and
