@@ -216,6 +216,99 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行日志读取与集成边界", result.stdout)
 
+    def test_rejects_appended_task_execution_contradictions(self) -> None:
+        mutations = (
+            (
+                "skills/run-task/SKILL.md",
+                "Always read the whole execution log and all of Task.md on every initial card dispatch.",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "每次初次任务卡派发都必须读取整份执行日志和全部 Task.md。",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Failed implementation candidates may directly advance shared_baseline_anchor.",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "失败实现候选可以直接推进 shared_baseline_anchor。",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Set runtime lane to node-complete before final Task/log closure batch is committed.",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "在最终 Task 与日志关账批次提交前把运行态 lane 设为 node-complete。",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "Task.md must append every detailed attempt.",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "Use one project-wide execution log.",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "Task.md 必须追加每次详细尝试。",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "使用一个项目级执行日志。",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Always read the whole execution log\non every initial card dispatch.",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Do not skip the Task card, but always read the whole execution log on every initial card dispatch.",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "不得跳过 Task 卡，但是每次初次任务卡派发都必须读取整份执行日志。",
+            ),
+        )
+
+        for relative_path, mutation in mutations:
+            with self.subTest(path=relative_path, mutation=mutation):
+                path = self.root / relative_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + "\n" + mutation + "\n", encoding="utf-8")
+                result = self.run_validator()
+                path.write_text(original, encoding="utf-8")
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("Task 执行日志冲突规则", result.stdout)
+
+    def test_allows_explicit_task_execution_guard_sentences(self) -> None:
+        guards = {
+            "skills/run-task/SKILL.md": (
+                "Do not always read the whole execution log on every initial card dispatch.",
+                "必须防止每次初次任务卡派发读取整份执行日志。",
+                "Failed implementation candidates may not directly advance shared_baseline_anchor.",
+                "失败实现候选不可以直接推进 shared_baseline_anchor。",
+                "Do not set runtime lane to node-complete before final Task/log closure is committed.",
+                "不得在最终 Task 与日志关账提交前把运行态 lane 设为 node-complete。",
+            ),
+            "skills/write-task/SKILL.md": (
+                "Task.md must not append every detailed attempt. Never use a single project-wide execution log.",
+                "Task.md 必须不追加每次详细尝试。禁止使用一个项目级执行日志。",
+            ),
+        }
+
+        for relative_path, sentences in guards.items():
+            path = self.root / relative_path
+            path.write_text(
+                path.read_text(encoding="utf-8") + "\n" + "\n".join(sentences) + "\n",
+                encoding="utf-8",
+            )
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
+
     def test_rejects_run_task_without_first_event_log_creation(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(

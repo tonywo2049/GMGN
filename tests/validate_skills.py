@@ -1263,6 +1263,125 @@ def validate_task_execution_log_contract(
         except FileNotFoundError as exc:
             errors.append(str(exc))
 
+    contract_paths = [ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md"]
+    contract_paths.extend(SKILLS.glob("*/SKILL.md"))
+    contract_paths.extend(REFERENCES.rglob("*.md"))
+    contract_paths.extend(CLAUDE_AGENTS.glob("*.md"))
+    contract_paths.extend(CODEX_AGENTS.glob("*.toml"))
+    contradiction_patterns = (
+        (
+            "初次派发强制整份读取",
+            re.compile(
+                r"always\s+read\s+(?:the\s+)?whole\s+execution\s+log.*?"
+                r"(?:every|each)\s+(?:normal\s+)?initial(?:\s+card)?\s+dispatch|"
+                r"(?:每次|每个|始终|必须).*?初次(?:任务卡)?派发.*?"
+                r"(?:整份|全部).*?(?:执行日志|Task\.md)",
+                re.I,
+            ),
+        ),
+        (
+            "失败实现推进共享基线",
+            re.compile(
+                r"failed\s+implementation\s+candidates?\s+may\s+(?:directly\s+)?"
+                r"advance\s+`?shared_baseline_anchor`?|"
+                r"失败实现候选.*?(?:可以|可|允许).*?(?:推进|前移).*?"
+                r"`?shared_baseline_anchor`?",
+                re.I,
+            ),
+        ),
+        (
+            "关账提交前 node-complete",
+            re.compile(
+                r"set\s+(?:the\s+)?runtime\s+lane\s+to\s+`?node-complete`?\s+"
+                r"before.*?(?:closure|Task/log).*?(?:commit|persist)|"
+                r"在.*?(?:最终|Task.*?日志).*?关账.*?(?:提交|持久化|落盘).*?前.*?"
+                r"`?node-complete`?",
+                re.I,
+            ),
+        ),
+        (
+            "Task 累积详细尝试",
+            re.compile(
+                r"Task\.md\s+must\s+append\s+every\s+detailed\s+(?:attempt|event)|"
+                r"Task\.md.*?(?:必须|需要).*?(?:追加|累积).*?"
+                r"(?:每次|每个|全部|所有).*?(?:详细尝试|详细过程|执行事件)",
+                re.I,
+            ),
+        ),
+        (
+            "项目级合并执行日志",
+            re.compile(
+                r"(?:use|create)\s+(?:one|a\s+single)\s+project-wide\s+execution\s+log|"
+                r"(?:使用|建立|创建).*?(?:一个|单一).*?(?:项目级|全项目).*?执行日志",
+                re.I,
+            ),
+        ),
+    )
+    policy_negation = re.compile(
+        r"\b(?:do|does|must|should|may|can)\s+not\b|\bnever\b|"
+        r"\b(?:prohibit|prevent|avoid)\b|"
+        r"不得|不能|不可|不可以|不应|禁止|防止|避免|无需|无须|必须不|不要",
+        re.I,
+    )
+    adversative_boundary = re.compile(
+        r"(?:,\s*|\b)(?:but|however|yet)\b|(?:，|,)?(?:但是|然而|但|却)",
+        re.I,
+    )
+
+    def has_affirmative_match(pattern: re.Pattern[str], line: str) -> bool:
+        for match in pattern.finditer(line):
+            punctuation_start = max(
+                (line.rfind(delimiter, 0, match.start()) + 1 for delimiter in ".!?;。！？；"),
+                default=0,
+            )
+            adversatives = tuple(adversative_boundary.finditer(line, 0, match.start()))
+            adversative_start = adversatives[-1].end() if adversatives else 0
+            context = line[max(punctuation_start, adversative_start):match.end()]
+            if not policy_negation.search(context):
+                return True
+        return False
+
+    def policy_units(text: str) -> list[str]:
+        units: list[str] = []
+        current: list[str] = []
+
+        def flush() -> None:
+            if current:
+                units.append(" ".join(current))
+                current.clear()
+
+        for raw_line in text.splitlines():
+            line = raw_line.strip()
+            if not line:
+                flush()
+                continue
+            block_start = re.match(
+                r"^(?:#{1,6}\s|[-*+]\s|\d+[.)]\s|```|>|<HARD-GATE>)",
+                line,
+            )
+            if block_start and current:
+                flush()
+            current.append(line)
+            if re.search(r"[.!?;。！？；]\s*$", line):
+                flush()
+        flush()
+        return units
+
+    for path in sorted(set(contract_paths)):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+            continue
+        units = policy_units(text)
+        found = [
+            label
+            for label, pattern in contradiction_patterns
+            if any(has_affirmative_match(pattern, unit) for unit in units)
+        ]
+        if found:
+            errors.append(f"{path}: Task 执行日志冲突规则 {found}")
+
 
 def validate_agent_lifecycle(
     errors: list[str], parsed: dict[str, tuple[str, str]]
