@@ -293,9 +293,10 @@ after every lane owned by that session reaches `node-complete` and is released.
   main tasks, adjudicate, accept, integrate, edit shared `Task.md` or traceability, push, or
   publish. When workers exceed one `wait_threads` call's runtime target limit, group them by the
   observed capability. Wait on groups concurrently when supported; otherwise take one
-  `timeoutMs: 0` snapshot when grouping changes, block with the longest platform-safe wait, and
-  rotate only after a real timeout. A timeout is a liveness checkpoint, not an instruction to
-  automatically list/read tasks and wait again. Wake on a material update and refill
+  `timeoutMs: 0` snapshot when grouping changes, select one group, and block once with the
+  longest platform-safe wait. On timeout, record the next group for the next external
+  reactivation and yield; the current activation must not call another wait or list/read tasks.
+  A timeout is a liveness checkpoint, never an in-turn rotation signal. Wake on a material update and refill
   immediately. Workers push blockers, candidates, review, verification, and completion rather
   than periodic heartbeats. Without capability or run-scoped authorization, degrade to rolling
   dispatch in the current task. Never encode a current/default subagent count, wait-target

@@ -881,7 +881,20 @@ class HookTests(unittest.TestCase):
         )
         invalid = self.read_records()[-1]
         self.assertEqual(invalid["agent_action"], "wait")
-        self.assertEqual(invalid["wait_result"], "error")
+        self.assertEqual(invalid["wait_result"], "unknown")
+
+        self.run_hook(
+            {
+                "hookEventName": "PostToolUse",
+                "sessionId": "session-wait",
+                "toolName": "wait_agent",
+                "toolUseId": "wait-structured-error",
+                "toolResponse": {"status": "failed"},
+            }
+        )
+        failed = self.read_records()[-1]
+        self.assertFalse(failed["success"])
+        self.assertEqual(failed["wait_result"], "error")
 
         self.run_hook(
             {

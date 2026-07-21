@@ -821,7 +821,7 @@ class TelemetryReportTests(unittest.TestCase):
             },
         )
 
-    def test_wait_argument_rejection_is_an_error(self) -> None:
+    def test_unstructured_wait_rejection_remains_unknown(self) -> None:
         entries = [
             {
                 "timestamp": "2026-07-20T02:00:00Z",
@@ -854,11 +854,103 @@ class TelemetryReportTests(unittest.TestCase):
         self.write_session("rollout-wait-error-session", entries)
 
         wait = self.build_report("wait-error-session")["runs"][0]["gmgn"]["wait"]
-        self.assertEqual(wait["result_counts"]["error"], 1)
+        self.assertEqual(wait["result_counts"]["error"], 0)
+        self.assertEqual(wait["result_counts"]["unknown"], 1)
         self.assertEqual(wait["result_counts"]["timeout"], 1)
         self.assertEqual(wait["state_change_counts"]["unknown"], 1)
         self.assertEqual(wait["state_change_counts"]["unchanged"], 1)
         self.assertEqual(wait["reactivation"]["coverage"], "unknown")
+
+    def test_wait_hook_fills_session_gap_and_deduplicates_by_call_id(self) -> None:
+        empty_session = [
+            {
+                "timestamp": "2026-07-20T03:00:00Z",
+                "type": "session_meta",
+                "payload": {"id": "wait-hook-gap"},
+            }
+        ]
+        matched_session = [
+            {
+                "timestamp": "2026-07-20T03:10:00Z",
+                "type": "session_meta",
+                "payload": {"id": "wait-hook-match"},
+            },
+            self.call(
+                "2026-07-20T03:10:01Z",
+                "wait-shared",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T03:10:02Z",
+                "wait-shared",
+                "legacy opaque result",
+            ),
+        ]
+        self.write_session("rollout-wait-hook-gap", empty_session)
+        self.write_session("rollout-wait-hook-match", matched_session)
+        self.write_hooks(
+            [
+                {
+                    "schema_version": "gmgn-hook-event-v1",
+                    "timestamp": "2026-07-20T03:00:01Z",
+                    "event": "PostToolUse",
+                    "session_id": "wait-hook-gap",
+                    "tool_name": "wait_agent",
+                    "tool_use_id": "wait-hook-only",
+                    "classification": "agent",
+                    "agent_action": "wait",
+                    "wait_result": "timeout",
+                },
+                {
+                    "schema_version": "gmgn-hook-event-v1",
+                    "timestamp": "2026-07-20T03:10:02Z",
+                    "event": "PostToolUse",
+                    "session_id": "wait-hook-match",
+                    "tool_name": "wait_agent",
+                    "tool_use_id": "wait-shared",
+                    "classification": "agent",
+                    "agent_action": "wait",
+                    "wait_result": "update",
+                },
+            ]
+        )
+
+        gap = self.build_report("wait-hook-gap")["runs"][0]
+        self.assertEqual(gap["gmgn"]["wait_calls"], 1)
+        self.assertEqual(gap["gmgn"]["wait"]["result_counts"]["timeout"], 1)
+        self.assertIsNone(gap["gmgn"]["wait_duration_ms"])
+        self.assertEqual(
+            gap["coverage"]["gmgn"]["fields"]["wait"]["source"],
+            "gmgn_hook",
+        )
+        self.assertEqual(
+            gap["coverage"]["gmgn"]["fields"]["wait_calls"]["source"],
+            "gmgn_hook+session_jsonl_unstable_fallback",
+        )
+        self.assertEqual(
+            gap["coverage"]["gmgn"]["fields"]["wait_calls"]["coverage"],
+            "mixed",
+        )
+
+        matched = self.build_report("wait-hook-match")["runs"][0]
+        self.assertEqual(matched["gmgn"]["wait_calls"], 1)
+        self.assertEqual(
+            matched["gmgn"]["wait"]["result_counts"],
+            {
+                "update": 1,
+                "timeout": 0,
+                "interrupted": 0,
+                "error": 0,
+                "unknown": 0,
+            },
+        )
+        self.assertEqual(matched["gmgn"]["wait_duration_ms"], 1000)
+        self.assertEqual(
+            matched["gmgn"]["metric_sources"]["wait_calls"],
+            "session_jsonl_unstable_fallback",
+        )
+        self.assertEqual(matched["gmgn"]["metric_sources"]["wait"], "gmgn_hook")
 
     def test_missing_sessions_and_no_descendants(self) -> None:
         report = self.build_report(

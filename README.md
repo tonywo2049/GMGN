@@ -258,8 +258,12 @@ records, then fills missing fields from session JSONL as an explicitly labelled 
 fallback`. Every metric reports its source and coverage. Missing actual token data is
 `unknown`, not zero. The report exposes wait outcomes, state-change/timeout counts, maximum
 consecutive timeouts, wait-storm count, and actual cumulative-token deltas associated with
-model reactivation after a wait result. Because current session token events do not carry a
-tool call ID, that last association is labelled `session_sequence_delta` and reports
+model reactivation after a wait result. Wait calls are merged per `tool_use_id`: a structured
+hook result is primary and session JSONL fills only uncovered calls, so the same wait is not
+counted twice. Legacy unstructured rejection output with no reliable failure status remains
+`unknown`; error classification never depends on argument/error message wording. Because current
+session token events do not carry a tool call ID, that last association is labelled
+`session_sequence_delta` and reports
 matched/eligible coverage instead of claiming exact native linkage. Per-tool/skill input/output
 token counts remain estimates. After
 installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/report.py`.

@@ -98,12 +98,13 @@ never hard-code a number. A slow or blocked lane does not stop unrelated lanes. 
 is lower than the ready set, choose by dependency topology and then stable `card_id` order.
 
 If this calculation leaves no implementation lane that can run in parallel with useful
-orchestrator work—for example, there is one ready lane, every other lane conflicts on an
-exclusive domain, or no separate writer slot can be obtained—the primary session may be the
-Coder for exactly one ready lane. Record that no-parallelism reason, bind the primary session
-as `coder_ref` before any implementation write, and use the same isolated workspace and
-candidate-anchor gates as any Coder. Do not take over a lane already bound to another Coder.
-This exception never combines Coder with Reviewer or Verifier; both remain independent.
+orchestrator work—for example, there is one ready lane and no useful orchestration work can run
+beside it, every other lane conflicts on an exclusive domain, or no separate writer slot can be
+obtained—the primary session may be the Coder for exactly one ready lane. Record that
+no-parallelism reason, bind the primary session as `coder_ref` before any implementation write,
+and use the same isolated workspace and candidate-anchor gates as any Coder. Do not take over a
+lane already bound to another Coder. This exception never combines Coder with Reviewer or
+Verifier; both remain independent.
 
 On Codex, first fill the current task's actual subagent capacity. If ready cards remain, use
 cross-task fan-out only when the owner explicitly authorized it for this run and the surface
@@ -136,9 +137,11 @@ Only after all currently allowed creation requests and useful local work have be
 may the scheduler block in `wait_threads`. When active workers exceed one call's runtime target
 limit, partition them by that observed capability rather than a method constant. If parallel
 waits are supported, wait on all groups concurrently. Otherwise take one `timeoutMs: 0`
-snapshot when the grouping changes, then block on one group with the longest platform-safe
-wait and rotate only after a real timeout. A timeout is a liveness checkpoint, not a reason to
-automatically run `list_threads`/`read_thread` and wait again. Wake on any material update,
+snapshot when the grouping changes, select one group, and block once with the longest
+platform-safe wait. On timeout, record which group should be selected after the next external
+reactivation, then yield; the current scheduler activation must not call another wait,
+`list_threads`, or `read_thread`. A timeout is a liveness checkpoint, never an in-turn rotation
+signal. Wake on any material update,
 update global state, and immediately refill local or worker capacity. Workers push blockers,
 candidates, review, verification, and completion; they do not send periodic heartbeats.
 `list_threads` and `read_thread` are collision diagnostics, not polling or a lock. Without the

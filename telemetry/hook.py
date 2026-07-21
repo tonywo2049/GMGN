@@ -439,8 +439,6 @@ def extract_wait_result(tool_output: Any, success: Optional[bool]) -> str:
             ).casefold()
         except (TypeError, ValueError):
             normalized = str(tool_output).casefold()
-    if "timeout_ms" in normalized and "must" in normalized:
-        return "error"
     if re.search(r"\b(?:interrupted|cancelled|canceled)\b", normalized):
         return "interrupted"
     if (

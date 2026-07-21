@@ -485,8 +485,11 @@ policy 与结构化关联 ID。Telemetry 失败不阻塞交付，也不改变任
 只有用户明确要求复盘时才运行 `telemetry/report.py`，其输出只是复盘证据，不触发状态变化。
 
 Agent 等待只保留归一化结果与关联元数据，不保存消息正文。复盘报告给出 update/timeout/状态变化数、
-连续超时与等待风暴信号，以及等待后模型重激活所关联的 actual 累计 token 差值。平台缺少原生
-turn/call 关联时，明确标为 `session_sequence_delta` 并报告 matched/eligible coverage，不冒充原生
+连续超时与等待风暴信号，以及等待后模型重激活所关联的 actual 累计 token 差值。等待观测按
+`tool_use_id` 逐次合并：结构化 hook 结果优先，session JSONL 只补未覆盖调用；禁止把已关联的 hook
+与 session 调用重复计数。没有可靠失败状态的旧版非结构化拒绝输出保持 `unknown`，不得读取参数/错误
+消息文案猜测错误结果。
+平台缺少原生 turn/call 关联时，明确标为 `session_sequence_delta` 并报告 matched/eligible coverage，不冒充原生
 精确归因。
 
 外部观测不改变 DocStar 本体或 JSON 输出。DocStar 每次调用实时全量重建，不使用缓存。Hooks

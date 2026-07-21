@@ -1297,8 +1297,6 @@ def _wait_result(call: _RawCall) -> str:
         except (TypeError, ValueError):
             text_value = str(text_value)
     normalized = text_value.casefold()
-    if "timeout_ms" in normalized and "must" in normalized:
-        return "error"
     if re.search(r"\b(?:interrupted|cancelled|canceled)\b", normalized):
         return "interrupted"
     if (
@@ -2058,8 +2056,16 @@ def _hook_gmgn_metrics(
     identifier_seen = {field_name: set() for field_name in IDENTIFIER_FIELDS}
     hook_sessions = 0
     spawn_fallback_sessions = 0
-    hook_wait_summaries: List[Dict[str, Any]] = []
-    hook_wait_count = 0
+    wait_summaries: List[Dict[str, Any]] = []
+    wait_call_count = 0
+    wait_call_sources: Set[str] = set()
+    wait_result_sources: Set[str] = set()
+    wait_duration_sources: Set[str] = set()
+    wait_observed_groups = 0
+    wait_duration_observed_groups = 0
+    wait_durations: List[int] = []
+    wait_duration_complete = True
+    extra_hook_waits = 0
 
     def add_identifiers(source: Mapping[str, Sequence[str]]) -> None:
         for field_name in IDENTIFIER_FIELDS:
@@ -2068,28 +2074,171 @@ def _hook_gmgn_metrics(
                     identifier_seen[field_name].add(value)
                     identifiers[field_name].append(value)
 
+    def combined_source(sources: Set[str]) -> str:
+        ordered = [HOOK_SOURCE, OTEL_SOURCE, SOURCE]
+        selected = [source for source in ordered if source in sources]
+        return "+".join(selected) if selected else "unknown"
+
+    def metric_coverage(
+        source: str,
+        observed_sessions: int,
+        *,
+        fallback: bool = False,
+    ) -> Dict[str, Any]:
+        if source == "unknown":
+            status = "unknown"
+        elif "+" in source:
+            status = "mixed"
+        elif source == SOURCE:
+            status = "fallback"
+        else:
+            status = "observed"
+        return _coverage(
+            source,
+            status,
+            observed_sessions,
+            len(groups),
+            fallback=fallback,
+        )
+
     for group in groups:
         hooks = _group_hook_events(group, telemetry)
-        if group[2] is None:
-            hook_wait_results = []
-            for hook in hooks:
-                tool = _tool_leaf(str(hook.fields.get("tool_name", "")))
-                action = hook.fields.get("agent_action")
-                if action != "wait" and tool not in {
-                    "wait_agent",
-                    "wait_agents",
-                    "wait_threads",
-                }:
-                    continue
-                wait_result = str(hook.fields.get("wait_result", "unknown"))
-                hook_wait_results.append(
-                    wait_result if wait_result in WAIT_RESULT_VALUES else "unknown"
+        fallback_session = group[2]
+        fallback_waits = sorted(
+            [
+                call
+                for call in (fallback_session.calls if fallback_session else [])
+                if _gmgn_kind(call) == "wait"
+            ],
+            key=lambda call: call.sequence,
+        )
+        hook_waits = []
+        for hook in hooks:
+            tool = _tool_leaf(str(hook.fields.get("tool_name", "")))
+            action = hook.fields.get("agent_action")
+            if action != "wait" and tool not in {
+                "wait_agent",
+                "wait_agents",
+                "wait_threads",
+            }:
+                continue
+            if "wait_result" in hook.fields:
+                hook_waits.append(hook)
+
+        hook_waits_by_id: Dict[str, _HookEvent] = {}
+        hook_waits_without_id: List[_HookEvent] = []
+        for hook in sorted(hook_waits, key=lambda item: item.sequence):
+            call_id = _identifier(hook.fields.get("tool_use_id"))
+            if call_id is None:
+                hook_waits_without_id.append(hook)
+            else:
+                hook_waits_by_id[call_id] = hook
+
+        native_duration_by_id: Dict[str, int] = {}
+        for event in _group_otel_events(group, telemetry):
+            if event.event_name != "codex.tool_result":
+                continue
+            call_id = _identifier(event.attributes.get("call_id"))
+            duration = _safe_integer(event.attributes.get("duration_ms"))
+            if call_id is not None and duration is not None and duration >= 0:
+                native_duration_by_id[call_id] = duration
+
+        logical_results: List[Tuple[Tuple[bool, float, int], str]] = []
+        matched_hook_ids: Set[str] = set()
+        group_duration_complete = True
+        group_duration_sources: Set[str] = set()
+        for call in fallback_waits:
+            hook = hook_waits_by_id.get(call.call_id) if call.call_id else None
+            fallback_result = _wait_result(call)
+            if hook is not None:
+                matched_hook_ids.add(call.call_id)
+                hook_result = str(hook.fields.get("wait_result", "unknown"))
+                if hook_result not in WAIT_RESULT_VALUES:
+                    hook_result = "unknown"
+                if hook_result != "unknown" or fallback_result == "unknown":
+                    result_value = hook_result
+                    wait_result_sources.add(HOOK_SOURCE)
+                else:
+                    result_value = fallback_result
+                    wait_result_sources.add(SOURCE)
+            else:
+                result_value = fallback_result
+                wait_result_sources.add(SOURCE)
+            logical_results.append(
+                (
+                    (
+                        call.start_ms is None,
+                        call.start_ms if call.start_ms is not None else float("inf"),
+                        call.sequence,
+                    ),
+                    result_value,
                 )
-            if hook_wait_results:
-                hook_wait_count += len(hook_wait_results)
-                hook_wait_summaries.append(
-                    _wait_result_metrics(hook_wait_results)
+            )
+            if call.duration_ms is None:
+                group_duration_complete = False
+            else:
+                wait_durations.append(call.duration_ms)
+                group_duration_sources.add(SOURCE)
+
+        extra_hooks = [
+            hook
+            for call_id, hook in hook_waits_by_id.items()
+            if call_id not in matched_hook_ids
+        ]
+        if not fallback_waits:
+            extra_hooks.extend(hook_waits_without_id)
+        for hook in extra_hooks:
+            result_value = str(hook.fields.get("wait_result", "unknown"))
+            if result_value not in WAIT_RESULT_VALUES:
+                result_value = "unknown"
+            logical_results.append(
+                (
+                    (
+                        hook.timestamp_ms is None,
+                        hook.timestamp_ms
+                        if hook.timestamp_ms is not None
+                        else float("inf"),
+                        hook.sequence,
+                    ),
+                    result_value,
                 )
+            )
+            wait_result_sources.add(HOOK_SOURCE)
+            call_id = _identifier(hook.fields.get("tool_use_id"))
+            duration = native_duration_by_id.get(call_id) if call_id else None
+            if duration is None:
+                group_duration_complete = False
+            else:
+                wait_durations.append(duration)
+                group_duration_sources.add(OTEL_SOURCE)
+
+        group_wait_count = len(fallback_waits) + len(extra_hooks)
+        wait_call_count += group_wait_count
+        extra_hook_waits += len(extra_hooks)
+        if extra_hooks:
+            wait_call_sources.add(HOOK_SOURCE)
+        if fallback_session is not None:
+            wait_call_sources.add(SOURCE)
+            wait_observed_groups += 1
+        elif extra_hooks:
+            wait_call_sources.add(HOOK_SOURCE)
+            wait_observed_groups += 1
+        if fallback_session is not None and not fallback_waits:
+            group_duration_sources.add(SOURCE)
+        if fallback_session is not None or extra_hooks:
+            if group_duration_complete:
+                wait_duration_observed_groups += 1
+                wait_duration_sources.update(group_duration_sources)
+            else:
+                wait_duration_complete = False
+        if logical_results:
+            logical_results.sort(key=lambda item: item[0])
+            wait_summaries.append(
+                _wait_result_metrics([result for _, result in logical_results])
+            )
+        elif fallback_session is not None:
+            wait_summaries.append(_wait_result_metrics([]))
+            wait_result_sources.add(SOURCE)
 
         spawn_hooks = []
         for hook in hooks:
@@ -2110,7 +2259,6 @@ def _hook_gmgn_metrics(
                         explicit[field_name].append(value)
                 add_identifiers(explicit)
             continue
-        fallback_session = group[2]
         if fallback_session is None:
             continue
         spawn_fallback_sessions += 1
@@ -2121,25 +2269,30 @@ def _hook_gmgn_metrics(
         add_identifiers(metrics["identifiers"])
 
     fallback_fields = set()
-    if all_fallback_calls:
+    if fallback_sessions:
         fallback_fields.update({"gmgn.wait_calls", "gmgn.send_calls"})
     if spawn_fallback_sessions:
         fallback_fields.add("gmgn.spawn_calls")
-    wait_metrics = (
-        fallback_all["wait"] if all_fallback_calls else _wait_metrics([], [])
-    )
-    wait_summary = _merge_wait_result_metrics(
-        [wait_metrics, *hook_wait_summaries]
-    )
-    wait_summary["reactivation"] = wait_metrics["reactivation"]
-    wait_metrics = wait_summary
-    if hook_wait_count:
-        wait_metrics["reactivation"]["eligible_waits"] += hook_wait_count
-        wait_metrics["reactivation"]["coverage"] = (
-            "partial"
-            if wait_metrics["reactivation"]["matched_waits"]
-            else "unknown"
+    wait_metrics = _merge_wait_result_metrics(wait_summaries)
+    reactivation = dict(fallback_all["wait"]["reactivation"])
+    reactivation["tokens"] = dict(reactivation["tokens"])
+    if extra_hook_waits:
+        reactivation["eligible_waits"] += extra_hook_waits
+        reactivation["coverage"] = (
+            "partial" if reactivation["matched_waits"] else "unknown"
         )
+    wait_metrics["reactivation"] = reactivation
+    wait_call_source = combined_source(wait_call_sources)
+    wait_result_source = combined_source(wait_result_sources)
+    wait_duration_source = (
+        combined_source(wait_duration_sources)
+        if wait_duration_complete and wait_observed_groups
+        else "unknown"
+    )
+    if SOURCE in wait_result_sources or reactivation["source"] == SOURCE:
+        fallback_fields.add("gmgn.wait")
+    if SOURCE in wait_duration_sources and wait_duration_complete:
+        fallback_fields.add("gmgn.wait_duration_ms")
     if hook_sessions and spawn_fallback_sessions:
         spawn_source = HOOK_SOURCE + "+" + SOURCE
         spawn_coverage = "mixed"
@@ -2152,26 +2305,15 @@ def _hook_gmgn_metrics(
     else:
         spawn_source = "unknown"
         spawn_coverage = "unknown"
-    if all_fallback_calls and hook_wait_count:
-        wait_source = SOURCE + "+" + HOOK_SOURCE
-    elif all_fallback_calls:
-        wait_source = SOURCE
-    elif hook_wait_count:
-        wait_source = HOOK_SOURCE
-    else:
-        wait_source = "unknown"
+    send_source = SOURCE if fallback_sessions else "unknown"
     result = {
         "spawn_calls": spawn_calls if spawn_source != "unknown" else None,
         "wait_calls": (
-            fallback_all["wait_calls"] + hook_wait_count
-            if wait_source != "unknown"
-            else None
+            wait_call_count if wait_call_source != "unknown" else None
         ),
-        "send_calls": fallback_all["send_calls"] if all_fallback_calls else None,
+        "send_calls": fallback_all["send_calls"] if fallback_sessions else None,
         "wait_duration_ms": (
-            fallback_all["wait_duration_ms"]
-            if all_fallback_calls and not hook_wait_count
-            else None
+            sum(wait_durations) if wait_duration_source != "unknown" else None
         ),
         "wait": wait_metrics,
         "fork_context_counts": fork_counts,
@@ -2180,12 +2322,10 @@ def _hook_gmgn_metrics(
             "spawn_calls": spawn_source,
             "fork_context_counts": spawn_source,
             "identifiers": spawn_source,
-            "wait_calls": wait_source,
-            "send_calls": SOURCE if all_fallback_calls else "unknown",
-            "wait_duration_ms": (
-                SOURCE if all_fallback_calls and not hook_wait_count else "unknown"
-            ),
-            "wait": wait_source,
+            "wait_calls": wait_call_source,
+            "send_calls": send_source,
+            "wait_duration_ms": wait_duration_source,
+            "wait": wait_result_source,
         },
     }
     coverage = _coverage(
@@ -2195,6 +2335,33 @@ def _hook_gmgn_metrics(
         len(groups),
         fallback=bool(spawn_fallback_sessions or all_fallback_calls),
     )
+    coverage["fields"] = {
+        "spawn_calls": metric_coverage(
+            spawn_source,
+            hook_sessions + spawn_fallback_sessions,
+            fallback=bool(spawn_fallback_sessions),
+        ),
+        "wait_calls": metric_coverage(
+            wait_call_source,
+            wait_observed_groups,
+            fallback=SOURCE in wait_call_sources,
+        ),
+        "wait_duration_ms": metric_coverage(
+            wait_duration_source,
+            wait_duration_observed_groups,
+            fallback=SOURCE in wait_duration_sources,
+        ),
+        "wait": metric_coverage(
+            wait_result_source,
+            wait_observed_groups,
+            fallback=SOURCE in wait_result_sources,
+        ),
+        "send_calls": metric_coverage(
+            send_source,
+            len(fallback_sessions),
+            fallback=bool(fallback_sessions),
+        ),
+    }
     return result, coverage, fallback_fields
 
 

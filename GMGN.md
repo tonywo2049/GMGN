@@ -490,6 +490,10 @@ evidence for that retrospective, not a state transition.
 For agent waits, retain only normalized outcome and correlation metadata, never message text.
 The retrospective reports update/timeout/state-change counts, consecutive-timeout and wait-storm
 signals, and actual cumulative-token deltas associated with model reactivation after a wait.
+Merge wait observations per `tool_use_id`: prefer a structured hook outcome and use session JSONL
+only for uncovered calls. Do not count a linked hook and session call twice. Leave a legacy
+unstructured rejection without reliable failure status as `unknown`; never infer an error from
+argument/error message wording.
 When the platform omits native turn/call linkage, label the association
 `session_sequence_delta` with matched/eligible coverage; never present it as exact native
 attribution.
