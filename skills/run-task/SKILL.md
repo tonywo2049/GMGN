@@ -48,6 +48,20 @@ instruction,
 owner ruling, scope boundary, or acceptance condition exists only in chat, the card is not
 ready; stop the affected lane and return to `write-task` rather than inheriting the transcript.
 
+Do not read execution history on a normal initial dispatch. Follow the card's `execution_log`
+link only for resume, retry, failed verification or integration, identity replacement, audit,
+or closure. Start at the card's anchored `latest_event`, then extract only that event and links
+needed for the unresolved cycle; do not ingest the whole log. An execution log is descriptive evidence, not an
+authority supplement. If it contains new scope, dependency, acceptance, status, or closure
+meaning not present in `Task.md` or upstream authority, stop the impact cone and route the
+meaning through `write-task` or the correct upstream controlled-change path.
+
+For single-card work, `current summary surfaces` means only the exact card, directly gating
+card rows, affected AC traceability rows, and the target Milestone's current
+`shared_baseline_anchor` and `integration_queue_ref` pointers. Resolve those surfaces with
+DocStar or targeted extraction; do not ingest all of `Task.md`, unrelated cards, or upstream
+documents whose meaning is unaffected.
+
 ## 1. Build and continuously refill the ready set
 
 Record one `run_id`, `target_milestone_id`, that Milestone's Goal/Requirement/Design/Task
@@ -149,6 +163,21 @@ vacancy. If the registered owner cannot be confirmed, enter `owner-unreachable` 
 lane; do not expire, steal, or recreate it automatically. A released lane keeps its tombstone,
 and its next claim increments `ownership_epoch`.
 
+A successful claim is the card's first durable execution event. Before Coder activation, the
+same Integrator serially creates `execution/<card_id>.md`, appends the claim and workspace
+with Task-matched `locale`, a card-naming `purpose`, an exact Task-card `upstream` link,
+`downstream: none`, `status: draft`, `type: execution-log`, and `nature: descriptive`. It
+appends the claim and workspace facts with a stable `event_id`, replaces
+`execution_log: none` and `latest_event: none` with
+real links, and changes the Task work state to `initiated` in one state-refresh batch; several newly claimed cards may share that mechanical
+batch while retaining separate log files. If the refresh fails, keep the lane stopped at its
+recorded owner and repair the state batch rather than starting from chat-only history.
+This state-only candidate is not implementation acceptance. Run `git diff --check`, link
+checks, and repository-required document checks, then advance `shared_baseline_anchor` under
+repository policy; do not leave shared state as an uncommitted side channel. The prepared
+lane's recorded `baseline_anchor` remains its provenance, and this mechanical baseline advance
+does not by itself require a rebase.
+
 At claim, bind the implementation repository identity as well as the path: canonical Git
 common-dir and git-dir paths, both directories' local stat identities, and Git object format.
 Every `bind-coder`, `verify`, `anchor`, `release`, or `cancel-unbound` recomputes and matches that
@@ -205,11 +234,25 @@ Coder, then the affected diff returns to the same Reviewer and verification to t
 Verifier. With no blocker, the orchestrator may mark the branch candidate `accepted`; it is
 not `closed` and must not update the shared ledger.
 
+Every Coder, Reviewer, Verifier, and Integrator return supplies a durable event for the same
+Integrator to append on the next serialized state-refresh batch. Flush pending events before
+identity replacement, retry after a failed gate, audit, or session handoff. The event stream
+uses stable `event_id` and `previous_event` links. In the same batch, update `latest_event` and
+replace every Task current field changed by the event—status, blocker, readiness, latest
+anchors, or current evidence. The log alone must never carry a fact needed for the next current
+decision; it may explain history but never changes the Task card's authority by itself.
+
+Every pre-integration flush starts from the clean current shared baseline and creates a
+docs-only state candidate containing no lane implementation. Run diff, link, and
+repository-required document checks before advancing `shared_baseline_anchor` to that state
+commit. The lane retains its recorded baseline provenance and does not rebase for this
+mechanical documentation advance alone. Never make a durable event an uncommitted side channel.
+
 ## 4. Serialize integration, then close the card
 
 Move an accepted lane through `accepted → integration-queued → integrating →
 post-integration-verifying → node-complete`. The same Integrator is the only writer for the
-integration workspace, shared baseline, `Task.md`, and traceability. It processes eligible
+integration workspace, shared baseline, `Task.md`, per-card execution logs, and traceability. It processes eligible
 queue entries by dependency topology and then stable `card_id`; a conflicted entry is skipped
 while unrelated eligible entries continue.
 
@@ -237,26 +280,40 @@ required interaction and project gates. The temporary combined commit is not yet
 baseline.
 
 If merge/cherry-pick conflicts or post-integration verification fails, abort the Git operation
-or discard the temporary combination workspace and leave the original
-`shared_baseline_anchor` unchanged. Record the failed `candidate_anchor` and preceding anchor
-in event/evidence, confirm the original shared-baseline index and worktree are clean with
-`git status --short`, then skip the failed entry and process unrelated eligible queue items.
+or discard the temporary combination workspace and restore the preceding clean
+`shared_baseline_anchor`; the failed implementation candidate never advances it. Confirm that
+anchor's index and worktree are clean with `git status --short`. From it, create a separate
+state-only candidate that records the failed `candidate_anchor`, preceding anchor, current
+blocker, and evidence in the affected card's execution log, while replacing the Task card's
+current blocker, status, latest anchors, current evidence, and `latest_event` pointer. Create that per-card log if this is
+its first durable event; never append the failure history to `Task.md` or include failed
+implementation in the state-only candidate. After diff, link, and repository-required document
+checks, advance `shared_baseline_anchor` only to that descriptive-only commit, then skip the
+failed entry and process unrelated eligible queue items.
 A verification failure returns to the same Coder, affected diff to the same Reviewer, and
 verification to the same Verifier.
 
-Only after post-integration verification passes does the Integrator refresh `Task.md`,
-traceability, evidence pointers, and upstream state in that isolated candidate. Re-read all
-of `Task.md` and scan stale assertions:
+Only after post-integration verification passes may the Integrator prepare closure fields in
+that isolated candidate. Append the successful integration event to
+`execution/<card_id>.md`; record the post-integration-verified combined candidate and preceding
+shared anchor without predicting the final commit that contains this event. Set the log
+frontmatter to `status: closed`, set the Task card work
+status to `closed`, replace its blocker, anchors, evidence, `execution_log`, and `latest_event`,
+compact the card to its closure result and current pointers, and refresh affected traceability
+and current summary surfaces. These closure fields are provisional until this exact candidate
+becomes the shared baseline. Never copy the detailed history back into `Task.md` or combine
+several cards into one log. Re-read the affected card plus the defined current summary surfaces in
+`Task.md` and scan stale assertions:
 `not-started`, `pending`, `not created`, `not run`, `awaiting confirmation`, plus
 `待执行`, `未创建`, `未运行`, `待确认`, old output, and stale risk or uncertainty statements. Mechanically refresh
 them or explain why they remain true. Run `git diff --check`, link checks, and
 `git status --short`; prepare or create the local integration commit under repository policy.
 After these checks, atomically advance `shared_baseline_anchor` to the verified combined
-candidate. Never expose an unverified temporary combination as the shared baseline.
+candidate that already contains the Task and log closure state. Never expose an unverified
+temporary combination as the shared baseline.
 
-Only now set the card work status to `closed` and the lane to `node-complete`. Update
-`shared_baseline_anchor`, release its locks, delete no worktree until the integrated anchor and
-evidence are recorded, then call the registry `release` operation with the exact owner and
+Only after that atomic advance set the runtime lane to `node-complete`, release its locks,
+delete no worktree until the integrated anchor and evidence are recorded, then call the registry `release` operation with the exact owner and
 epoch so the tombstone remains while writer ownership and path occupancy are freed. Immediately
 recompute and refill the ready set. Do not push unless explicitly authorized.
 

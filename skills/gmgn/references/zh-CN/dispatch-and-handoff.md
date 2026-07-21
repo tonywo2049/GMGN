@@ -37,6 +37,12 @@ English: [../en/dispatch-and-handoff.md](../en/dispatch-and-handoff.md)
 恢复既有身份可以保留该 agent 自己的历史，但不得导入 scheduler transcript。若执行所需语义
 只存在于聊天，任务卡就尚未 ready：停止受影响 lane，返回 `write-task`，先让权威经过评审并锚定。
 
+详细执行历史不属于正常初次派发的必读集。只有续跑、重试、失败、冲突、身份替换、审计或关账时，
+才沿任务卡的 `execution_log` 指针，从已锚定的 `latest_event` 开始，定向提取该事件并只沿当前未解决
+周期需要的链接读取，不整份读入描述性日志。执行单卡时只解析精确卡片、直接门禁行、受影响 AC 行、
+当前共享基线与集成队列指针，不整份读入 `Task.md`。只存在于日志里的语义必须先
+提升到正确的规范性权威，受影响工作才能继续。
+
 任何操作仓库的文档节点、实现 lane 或集成队列派发，都记录并核验现有
 `workspace_mode`、`worktree_path`、`branch_ref`；这些是当前派发的工作区事实，不与 agent 身份
 永久绑定。文档节点另外记录 `node_id`、`baseline_anchor`、`candidate_anchor`，以及需要的
@@ -158,15 +164,21 @@ anchor，再发送绑定候选与 epoch 的 `review-authorized`。只有此后 w
 
 规格文档只有已接受候选需要跨隔离工作区、并发 writer 或共享基线边界时才绑定 `integrator_ref`；
 否则由已登记 writer 直接完成已接受的同批机械传导与机检。实现阶段始终由一个 `integrator_ref`
-串行拥有集成工作区、`integration_queue_ref`、共享基线、`Task.md` 和追踪矩阵。实现集成分两阶段：
+串行拥有集成工作区、`integration_queue_ref`、共享基线、`Task.md`、单卡执行日志和追踪矩阵。实现集成分两阶段：
 从干净的当前 `shared_baseline_anchor` 创建隔离临时组合，机械应用已接受的
 本地 commit `candidate_anchor`，但不推进共享锚。事件/证据保留前一锚，不新增同义 top-level
 runtime 字段。同一 Verifier 改收临时组合当前的 `workspace_mode`、`worktree_path`、`branch_ref`。
 
 只有集成后验证通过，并完成已接受的机械台账刷新，才原子推进 `shared_baseline_anchor`。
-merge/cherry-pick 冲突或验证失败时，中止操作或丢弃临时工作区，保持原共享锚不变，并用
-`git status --short` 确认其 index/worktree clean 后再处理无关队列项。未验证组合不得成为共享
-基线。
+merge/cherry-pick 冲突或验证失败时，中止操作或丢弃临时工作区，恢复前一个共享锚，并用
+`git status --short` 确认其 index/worktree clean；失败实现候选不得推进该锚。Integrator 可从这个
+干净锚另建并机械检查状态候选，只把持久事件追加到 `execution/<card_id>.md`，并在 `Task.md` 中
+替换当前阻塞、状态、版本锚、证据与 `latest_event`；该描述性提交随后可以推进共享锚。不得把详细历史
+复制回 Task，也不得把多张卡合并进一个总日志。未验证实现组合不得成为共享基线。
+
+集成后验证通过后，验证过的组合候选本身必须追加最终事件、关闭日志元信息、精简并关闭 Task 卡，
+同批刷新受影响追踪与证据。只有这个精确候选可以推进共享锚，之后运行态 lane 才进入
+`node-complete`。
 
 平台无法恢复 agent 时进入 `agent-unavailable`，记录原因并显式替换，把完整 lane 记录交过去。
 替换 Critic/Reviewer 必须做完整审查；替换 Verifier 必须重跑全部要求的验证；替换 Integrator

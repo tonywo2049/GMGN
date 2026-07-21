@@ -216,7 +216,12 @@ Each document answers one question and has one lifecycle.
 - **ROADMAP** — qualitative sequencing, milestone goals, and unallocated TODOs.
 - **Requirement** — what a milestone must satisfy; numbered, decidable acceptance criteria.
 - **Design** — how structures and interfaces satisfy requirements.
-- **Task** — execution authority: cards, dependencies, status, tests, and completion proof.
+- **Task** — normative current execution snapshot: cards, dependencies, current status,
+  tests, blockers, and completion proof. It replaces superseded state instead of retaining
+  detailed progress history.
+- **Execution log** — descriptive, append-only per-card history under
+  `execution/<card_id>.md`; it records attempts, transitions, review and verification rounds,
+  commands, results, conflicts, and superseded anchors without becoming execution authority.
 - **Research** — revisable exploration; archive it after conclusions enter the spec chain.
 - **Decision** — append-only decisions, conditions, rationale, and propagation targets.
 - **Handoff** — concise receiving state: baseline, current status, remaining work, pointers.
@@ -238,8 +243,11 @@ unimplemented work.
 The **process chain** is research → decision → normative document → archived exploration.
 Keep revisable exploration separate from approved conclusions.
 
-The **state chain** is task ledger → handoff → cross-track register → ROADMAP pointer.
-Higher layers summarize less and point downward more.
+The **state chain** is per-card execution log → current Task snapshot → handoff → cross-track
+register → ROADMAP pointer. Normal dispatch reads the Task card; resume, failure, conflict,
+audit, and closure start from its anchored `latest_event` and follow the `execution_log` only
+when history is needed; neither path ingests the whole file by default. Higher
+layers summarize less and point downward more.
 
 ### 2.3 Stable machine contract
 
@@ -251,7 +259,7 @@ purpose: <natural-language sentence>
 upstream: <real Markdown links or declared none>
 downstream: <real Markdown links or declared none>
 status: draft | pending-approval | approved | closed
-type: whitepaper | roadmap | goal | requirement | design | task | research | decision | retrospective | handoff
+type: whitepaper | roadmap | goal | requirement | design | task | execution-log | research | decision | retrospective | handoff
 nature: normative | descriptive
 ```
 
@@ -333,7 +341,7 @@ Closure has three disciplines:
    Requirement, Task, and matrix synchronized; a `deferred` label or TODO alone never waives
    an AC that remains in target scope;
 2. **evidence closure** — each criterion has a replayable test or real execution path;
-3. **state closure** — task ledger, matrix, ROADMAP, decisions, and handoff are refreshed in
+3. **state closure** — current Task snapshot, matrix, ROADMAP, decisions, and handoff are refreshed in
    the same batch.
 
 Immediately after closure, write receiving state for the next operator. A closed milestone
@@ -356,7 +364,9 @@ without a current handoff is not operationally closed.
    recorded writer handles in-node corrections. During implementation, the reviewed `Task.md`
    card is the only static execution authority: Coder, Reviewer, Verifier, and Integrator
    receive a minimal runtime dispatch and no parent conversation history. That dispatch cites
-   the card and current lane facts; it is not a per-agent Handoff. The orchestrator continuously
+   the card and current lane facts; it is not a per-agent Handoff. Detailed history stays in
+   the card's descriptive execution log and cannot introduce scope, gates, or completion
+   meaning. The orchestrator continuously
    dispatches every ready card owned by the target Milestone into an isolated lane and keeps
    shared-baseline integration serial.
 6. **Evidence before status.** A claim becomes complete only after the artifact, replayable

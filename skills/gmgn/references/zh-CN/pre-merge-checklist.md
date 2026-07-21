@@ -31,9 +31,17 @@ English: [../en/pre-merge-checklist.md](../en/pre-merge-checklist.md)
 8. **命名、数字与所有权溯源**：机制专名、关键数字、semantic owner、`conflict_domains` 和
    `runtime_locks` 能否指回权威？
 9. **过度设计扫**：逐项检查 `delete | stdlib | native | empty abstraction | shrink`。
+10. **当前状态与日志分离**：`Task.md` 是否替换当前状态、阻塞、版本锚、证据与 `latest_event`，
+    单卡日志的追加式事件正文是否保留尝试和已被替代的状态？日志是否保持描述性、单卡化且不进入
+    正常初次派发的必读集？
+11. **失败隔离**：冲突或失败后，失败实现是否已丢弃、前一共享锚是否已证明 clean，并另用经过
+    检查的状态候选记录日志事件和 Task 当前阻塞？
+12. **原子关账**：推进 `shared_baseline_anchor` 前，验证通过的组合候选是否已经包含精简后的
+    closed Task 卡、closed 日志元信息、最终事件、追踪与证据；是否只在该候选原子推进后才把运行态
+    lane 改为 `node-complete`？
 
 同一 Integrator 在临时组合运行 `git diff --check`、`git status --short` 等机械检查。同一 lane 的
 Verifier 收到当前派发的 `workspace_mode`、`worktree_path`、`branch_ref`，在该临时组合运行受影响
 交互与项目门禁。冲突/失败时中止或丢弃临时候选并证明原共享工作区 clean。只有验证通过的候选
-加台账刷新才能原子推进 `shared_baseline_anchor` 并进入 `node-complete`/`closed`；未验证组合不得
-成为共享基线。
+加台账刷新才能原子推进 `shared_baseline_anchor`；候选必须先包含 closed 文档状态，运行态 lane 才能
+进入 `node-complete`。未验证实现组合不得成为共享基线。

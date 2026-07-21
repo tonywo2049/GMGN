@@ -44,6 +44,14 @@ recorded identity may retain that agent's own history, but never imports the sch
 transcript. If required execution meaning exists only in chat, the card is not ready: stop the
 affected lane and return to `write-task` so the authority is reviewed and anchored.
 
+Detailed execution history is not part of the normal initial read set. Follow the card's
+`execution_log` link only for resume, retry, failure, conflict, replacement, audit, or closure,
+starting from its anchored `latest_event`; extract that event and follow only links needed for
+the unresolved cycle instead of ingesting the whole descriptive log. For single-card work,
+resolve only the exact card, directly gating rows, affected AC rows, and current shared-baseline
+and integration-queue pointers rather than all of `Task.md`. Meaning found only in the log must
+be promoted to the correct normative authority before affected work continues.
+
 A dispatch for any repository operation—document node, implementation lane, or integration
 queue—records and verifies the existing workspace facts `workspace_mode`, `worktree_path`, and
 `branch_ref`. These facts describe the current dispatch, not an agent's permanent identity. A
@@ -196,7 +204,7 @@ For specification documents, bind `integrator_ref` only when the accepted candid
 an isolated-workspace, concurrent-writer, or shared-baseline boundary. Otherwise the recorded
 writer may perform accepted same-batch propagation and machine checks directly. For
 implementation, one `integrator_ref` always serially owns the integration workspace,
-`integration_queue_ref`, shared baseline, `Task.md`, and traceability. Implementation
+`integration_queue_ref`, shared baseline, `Task.md`, per-card execution logs, and traceability. Implementation
 integration is two-phase: from the current clean
 `shared_baseline_anchor`, it creates an isolated temporary combination and mechanically applies
 the accepted local-commit `candidate_anchor` without advancing the shared anchor. The
@@ -206,9 +214,19 @@ runtime field. The same Verifier is resumed with the temporary workspace's curre
 
 Only a post-integration-verified candidate plus accepted mechanical ledger refresh may
 atomically advance `shared_baseline_anchor`. On merge/cherry-pick conflict or verification
-failure, abort the operation or discard the temporary workspace, leave the original shared
-anchor unchanged, and confirm its index/worktree clean with `git status --short` before
-processing unrelated queue entries. An unverified combination is never the shared baseline.
+failure, abort the operation or discard the temporary workspace, restore the preceding shared
+anchor, and confirm its index/worktree clean with `git status --short`. The failed implementation
+candidate never advances it. From that clean anchor, the Integrator may create and mechanically
+check a separate state-only candidate containing the durable event in
+`execution/<card_id>.md` and the replaced current blocker, status, anchors, evidence, and
+`latest_event` in `Task.md`; that descriptive-only
+commit may then advance the shared anchor. It never copies detailed history into Task or
+combines cards into one log. An unverified implementation combination is never the shared baseline.
+
+After successful post-integration verification, the verified combined candidate itself must
+append the final event, close the log metadata, compact and close the Task card, and refresh
+affected traceability and evidence. Only that exact candidate may advance the shared anchor;
+the runtime lane becomes `node-complete` afterward.
 
 If the platform cannot resume an agent, enter `agent-unavailable`, record why, and hand the
 complete lane record to an explicit replacement. A replacement Critic/Reviewer performs a

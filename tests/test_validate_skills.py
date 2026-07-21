@@ -169,6 +169,109 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("卡关账前缺少过期断言扫描", result.stdout)
 
+    def test_rejects_task_execution_log_contract_regressions(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        original = path.read_text(encoding="utf-8")
+        mutations = (
+            ("replace superseded state", "append every execution event"),
+            ("Never accumulate all cards", "Accumulate all cards"),
+            ("`nature: descriptive`", "`nature: normative`"),
+            ("Promote any discovered semantic change", "Keep any discovered semantic change only in the log"),
+        )
+
+        for removed, replacement in mutations:
+            with self.subTest(removed=removed):
+                path.write_text(
+                    self.replace_required(original, removed, replacement), encoding="utf-8"
+                )
+                result = self.run_validator()
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("write-task 当前快照与单卡执行日志", result.stdout)
+
+    def test_rejects_run_task_eager_execution_log_read(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Do not read execution history on a normal initial dispatch",
+            "Read all execution history on every normal initial dispatch",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 执行日志读取与集成边界", result.stdout)
+
+    def test_rejects_run_task_whole_log_read_on_resume(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Start at the card's anchored `latest_event`, then extract only that event and links\nneeded for the unresolved cycle; do not ingest the whole log",
+            "Ingest the whole execution log on every resume",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 执行日志读取与集成边界", result.stdout)
+
+    def test_rejects_run_task_without_first_event_log_creation(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "A successful claim is the card's first durable execution event",
+            "A successful claim requires no durable record",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 执行日志读取与集成边界", result.stdout)
+
+    def test_rejects_legacy_task_migration_without_old_anchor(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Bind `legacy_task_anchor` to the pre-migration commit",
+            "Delete the pre-migration version before editing",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task 当前快照与单卡执行日志", result.stdout)
+
+    def test_rejects_execution_log_without_exact_task_card_link(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "`upstream` as a\n  real relative link to the exact Task card anchor",
+            "`upstream` as a plain-text card ID",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task 当前快照与单卡执行日志", result.stdout)
+
+    def test_rejects_close_with_stale_latest_event(self) -> None:
+        path = self.root / "skills" / "close-milestone" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "its `latest_event` must resolve inside that log to the final closure event",
+            "its `latest_event` may remain stale after closure",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("close-milestone/SKILL.md", result.stdout)
+
     def test_rejects_close_milestone_guards_moved_out_of_their_sections(self) -> None:
         path = self.root / "skills" / "close-milestone" / "SKILL.md"
         text = path.read_text(encoding="utf-8")
@@ -759,7 +862,7 @@ class ValidateSkillsTests(unittest.TestCase):
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
-            "leave the original\n`shared_baseline_anchor` unchanged",
+            "restore the preceding clean\n`shared_baseline_anchor`",
             "advance the original `shared_baseline_anchor` despite failure",
         )
         path.write_text(text, encoding="utf-8")
@@ -819,8 +922,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_card_closed_before_integration(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(path.read_text(encoding="utf-8"),
-            "Only now set the card work status to `closed`",
-            "Set the card work status to `closed` before integration",
+            "These closure fields are provisional until this exact candidate\nbecomes the shared baseline",
+            "These closure fields are effective before the candidate becomes the shared baseline",
         )
         path.write_text(text, encoding="utf-8")
 

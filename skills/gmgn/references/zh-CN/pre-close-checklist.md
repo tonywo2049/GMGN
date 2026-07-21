@@ -24,6 +24,9 @@ English: [../en/pre-close-checklist.md](../en/pre-close-checklist.md)
    没有已知风险时是否直接写明，而非编造一条？
 6. **不变量族**：目标范围内的不变量是否逐条有正向与负向证据，而非只测 happy path？
 7. **文本与状态自洽**：目标 Task、矩阵、ROADMAP 行、Decision、Handoff、版本锚是否同批刷新？
+   每张已执行任务卡是否链接各自已关闭的描述性执行日志，Task 是否只保留当前状态与关账证据？
+   在关账共享锚上，`latest_event` 是否可解析到该日志的最终关账事件？该事件是否记录验证过的组合
+   候选与前一共享锚，且证据/当前指针是否与 Task 卡一致？
 8. **集成收敛**：目标 Milestone 的集成队列条目是否为空，是否不存在它拥有的 active、
    `rebase-required`、`integration-conflict` lane 或未释放锁，其所有任务卡是否关在同一个
    `shared_baseline_anchor`？

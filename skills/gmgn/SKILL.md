@@ -67,7 +67,7 @@ state. Keep the node record and identity refs until `node-complete`.
   owned card. Each lane has its own Coder,
   Reviewer, and Verifier identities; fixes, affected review, and affected verification return
   to those same agents. One Integrator serially owns the integration queue, shared baseline,
-  `Task.md`, and traceability.
+  `Task.md`, per-card execution logs, and traceability.
 - `close-milestone` dispatches target-scoped independent verification, a closure Author, a
   combined Critic/Reviewer, and an Integrator after owner acceptance.
 - A platform that cannot resume an identity enters `agent-unavailable`; replacement is

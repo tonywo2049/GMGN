@@ -5,13 +5,15 @@ description: "Use when every target-milestone card is closed and its traceabilit
 
 # Close a milestone
 
-<HARD-GATE>Every hard gate is scoped to the recorded `target_milestone_id`: every card owned by that Milestone must be `closed` on the same `shared_baseline_anchor`; the target Milestone integration queue must be empty; no lane owned by it may be active, `rebase-required`, or `integration-conflict`; and every target-Milestone AC must have a task, test, and evidence row. Downstream work, lanes, documents, confirmations, TODOs, or evidence gaps do not block unless they prove that this target Milestone still has an undecided or unproved in-scope criterion. Otherwise return to `run-task` or revise an invalid reverse dependency through `write-task`. If closure review exposes a changed in-scope premise, withhold closure and route to its authority. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
+<HARD-GATE>Every hard gate is scoped to the recorded `target_milestone_id`: every card owned by that Milestone must be `closed` on the same `shared_baseline_anchor`; the target Milestone integration queue must be empty; no lane owned by it may be active, `rebase-required`, or `integration-conflict`; every target-Milestone AC must have a task, test, and evidence row; and every executed card must link its own closed descriptive execution log. At the closing shared-baseline anchor, its `latest_event` must resolve inside that log to the final closure event; that event records the verified combined candidate and preceding shared anchor, and its evidence/current pointers match the Task card. Downstream work, lanes, documents, confirmations, TODOs, or evidence gaps do not block unless they prove that this target Milestone still has an undecided or unproved in-scope criterion. Otherwise return to `run-task` or revise an invalid reverse dependency through `write-task`. If closure review exposes a changed in-scope premise, withhold closure and route to its authority. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
 
 ## Establish evidence first
 
 The primary orchestrator records `target_milestone_id` plus its Goal/Requirement/Design/Task
 anchors, proves that Milestone's integration entries are empty, reconciles every lane it owns
-to the same `shared_baseline_anchor`, records that value as the closing anchor, and dispatches an
+to the same `shared_baseline_anchor`, verifies that every executed card has a real
+`execution_log` link to its own closed descriptive log and a resolvable `latest_event` aligned
+with the card's current closure evidence, records that value as the closing anchor, and dispatches an
 independent Verifier as
 `verifier-active`; it does not run closure evidence in place of that agent. The Verifier must:
 
@@ -40,7 +42,8 @@ chooses the document structure and must not mark anything closed before owner ac
    ownership check.
 2. Evidence: every target-Milestone closure criterion has a replayable real verification path.
 3. State: the target Task, matrix, ROADMAP row, Decision, version anchors, and Handoff refresh
-   together.
+   together. `Task.md` remains a current snapshot: closed cards retain closure evidence and
+   per-card log pointers, while superseded execution narratives remain only in those logs.
 4. Integration: no accepted branch owned by the target Milestone remains outside the shared
    baseline and no lane or lock it owns remains active. An unrelated resource conflict may
    delay a mechanical integration or state-refresh action, but it does not alter semantic
@@ -95,8 +98,9 @@ version anchor to the owner. Only after explicit acceptance, set state to `accep
   baseline, completed work, non-blocking downstream TODOs, risks, authority pointers, and next
   command;
 - if DocStar uses a project classification mapping, reuse a registered type/token;
-- refresh ROADMAP, Task, matrix, Decision, version anchors, and evidence pointers in the same
-  batch, then prepare or create the topic commit under repository policy.
+- refresh ROADMAP, Task, matrix, Decision, version anchors, execution-log links, and evidence
+  pointers in the same batch; reject a project-wide or Milestone-wide combined execution log,
+  then prepare or create the topic commit under repository policy.
 
 The orchestrator checks disk and evidence, then marks `node-complete`. Do not push, publish,
 deploy, or release unless separately authorized.

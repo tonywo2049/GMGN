@@ -42,7 +42,7 @@ Fixed keys: `locale | purpose | upstream | downstream | status | type | nature`.
 
 - `locale`: `en | zh-CN`
 - `status`: `draft | pending-approval | approved | closed`
-- `type`: `whitepaper | roadmap | goal | requirement | design | task | research | decision | retrospective | handoff`
+- `type`: `whitepaper | roadmap | goal | requirement | design | task | execution-log | research | decision | retrospective | handoff`
 - `nature`: `normative | descriptive`
 
 `normative` means downstream work depends on the document and changes must propagate.
@@ -55,11 +55,15 @@ plain text as a link.
 
 ## 3. Do not mix the two state machines
 
-Document approval state:
+Normative document approval state:
 
 ```text
 draft → pending-approval → approved → closed
 ```
+
+A descriptive record does not acquire approval or normative authority. It may use
+`draft → closed` to mean that recording is active and then stopped; this is not an approval
+transition. An execution log follows this descriptive lifecycle.
 
 Milestone, slice, and task work state:
 
@@ -81,6 +85,13 @@ shared baseline. Verification failure or merge/cherry-pick conflict discards or 
 candidate and leaves the preceding `shared_baseline_anchor` clean and unchanged. Only a
 verified combined candidate plus mechanical ledger refresh may atomically advance the shared
 anchor; an unverified combination is not a baseline.
+
+After restoring that preceding clean anchor, the Integrator may create a separate state-only
+candidate containing the per-card failure event and current Task blocker. It contains no failed
+implementation. Only after link, diff, and repository-required document checks may that
+descriptive-only commit advance `shared_baseline_anchor`; the failed implementation candidate
+never does. Existing lanes retain their recorded baseline provenance and are not rebased for
+this mechanical documentation advance alone.
 
 The owner approves WhitePaper and ROADMAP. The primary orchestrator reviews Goal,
 Requirement, Design, and Task after an independent critic. The owner accepts milestone
@@ -135,6 +146,7 @@ document:
 
 - Project level: `WhitePaper.md`, `ROADMAP.md`
 - Milestone level: `Goal.md`, `Requirement.md`, `Design.md`, `Task.md`
+- Per-card process record: `execution/<card_id>.md`
 - Milestones: `M1`, `M2`, ...
 - Requirements: `R1`, `R2`, ...
 - Acceptance criteria: `R1-AC1`, `R1-AC2`, ...
@@ -152,12 +164,45 @@ Task-table headers are fixed English tokens:
 ```
 
 This is the shared GMGN/DocStar parsing surface. Chinese documents use the same headers.
+Each card also exposes a stable Markdown anchor keyed by the same task ID so its execution log
+can link to the exact card without imposing a surrounding section layout.
 
 The fixed six columns do not carry the complete execution contract. Card content keyed by the
 same stable task ID also records `depends_on`, `write_set`, `conflict_domains`,
-`runtime_locks`, and the semantic owner. These facts do not change the DocStar table schema.
+`runtime_locks`, the semantic owner, `execution_log`, and `latest_event`. Use
+`execution_log: none` and `latest_event: none` before the first durable execution event;
+create `execution/<card_id>.md` on that event and replace both values with real relative links
+in the same state-refresh batch. These facts do not change the DocStar table schema.
 If `workspace_mode: shared` cannot independently anchor each writer, parallel workers return
 proposals/patches and one recorded writer serially applies and anchors them.
+
+`Task.md` is the normative current execution snapshot. Keep only facts needed to decide current
+scope, readiness, ownership, status, blockers, anchors, evidence, and closure. For single-card
+execution, resolve the exact card, its directly gating card rows, affected AC traceability rows,
+and the target Milestone's current shared-baseline and integration-queue pointers; do not ingest
+the whole file or unrelated closed cards by default. Replace superseded state instead of
+appending progress narratives. A closed card
+keeps its stable row, closure result, current evidence, and `execution_log` pointer; its past
+attempts do not remain in `Task.md`.
+
+Each `execution/<card_id>.md` uses all seven fixed frontmatter keys. `locale` matches Task;
+`purpose` names the card and says that the file records its execution history; `upstream` is a
+real relative link to the exact stable card anchor in `Task.md`; `downstream: none` remains
+until a real consumer exists; `status: draft` applies while active; `type: execution-log`; and
+`nature: descriptive`. Set `status: closed` when its card closes. Its event body is an
+append-only per-card record of durable status transitions,
+candidate and baseline anchors,
+review and verification rounds, commands, results, limitations, integration attempts,
+conflicts, and superseded states. Each event has a stable `event_id`, a `previous_event` link
+or `none`, and links to its evidence; the Task card's `latest_event` points to the newest event.
+For resume, retry, audit, or closure, extract that anchored event and follow only links needed
+for the unresolved cycle instead of ingesting the whole log. Correct a past event with a later
+correction entry rather than rewriting history. Fixed frontmatter and current pointers are
+mechanical metadata and may be refreshed; past event bodies may not. Do not combine all cards
+into a project-wide or Milestone-wide log.
+The log never owns scope, requirements, design, dependencies, completion criteria, current
+status, or closure. Any event that changes such meaning must be promoted to the correct
+normative authority through its controlled-change route before affected work continues.
 
 ## 5. Content contract, not layout template
 
@@ -170,7 +215,9 @@ real value. Bind `author_ref` to that writer and keep the independent Critic sep
 Do not recreate a copy-ready skeleton in project or plugin references.
 
 The only fixed body surfaces are identifiers and parser-facing tables. For `Task.md`, keep
-the canonical task header from §4; surrounding headings and explanatory prose remain free.
+the canonical task header from §4 and the per-card `execution_log` and `latest_event` facts; surrounding headings
+and explanatory prose remain free. Execution logs follow the content boundary in §4 without
+requiring a shared prose template.
 
 ## 6. Writing discipline
 

@@ -25,7 +25,11 @@ nature: normative
    without inventing one?
 6. **Invariant family** — Does each target-level invariant have positive and negative evidence, not only a happy path?
 7. **Text and state consistency** — Were the target Task, matrix, ROADMAP row, Decision,
-   Handoff, and version anchors refreshed together?
+   Handoff, and version anchors refreshed together? Does each executed card link its own closed
+   descriptive execution log, with only current state and closure evidence retained in Task?
+   At the closing shared-baseline anchor, does `latest_event` resolve to that log's final
+   closure event? Does the event record the verified combined candidate and preceding shared
+   anchor, with evidence/current pointers matching the Task card?
 8. **Integration convergence** — Are the target Milestone's integration entries empty, are
    there no active, `rebase-required`, or `integration-conflict` lanes or held locks it owns,
    and are all its cards closed on one `shared_baseline_anchor`?

@@ -1,6 +1,6 @@
 ---
 name: write-task
-description: "Use after Design review to create or change Task.md: implementation/development plan, steps, tasks/subtasks, task cards, work items, TODOs, dependencies, traceability, and rolling ledger. Design 已过审后拆任务/拆卡/排任务、实施计划/开发计划、任务卡/工作项/待办/TODO，并建立 Task.md 滚动台账。"
+description: "Use after Design review to create or change Task.md: implementation/development plan, steps, tasks/subtasks, task cards, work items, TODOs, dependencies, traceability, current execution snapshot, and linked per-card execution logs. Design 已过审后拆任务/拆卡/排任务、实施计划/开发计划、任务卡/工作项/待办/TODO，并建立 Task.md 当前执行快照与单卡执行日志关联。"
 ---
 
 # Task.md: execution authority
@@ -21,13 +21,14 @@ Use the Design locale and the matching layout-free
 ## Writer content and self-check
 
 - Split the Design into cards; the recorded writer chooses the surrounding document structure
-  while preserving the fixed parser-facing table header.
+  while preserving the fixed parser-facing table header. Give each card a stable Markdown
+  anchor keyed by its existing task ID for its log's exact upstream link.
 - Each card is the smallest independently reviewable and verifiable unit.
 - Every card has a stable ID, R-AC spec anchor, explicit `depends_on`, failing-first test,
   completion criterion, allowed paths, `write_set`, `conflict_domains`, `runtime_locks`, a
-  semantic owner, exactly one owning Milestone, and work state `not-started`. Keep the six
-  parser-facing columns unchanged; record the additional execution facts in card content
-  keyed by the same stable ID.
+  semantic owner, exactly one owning Milestone, work state `not-started`,
+  `execution_log: none`, and `latest_event: none`. Keep the six parser-facing columns unchanged; record the additional
+  execution facts in card content keyed by the same stable ID.
 - `depends_on` forms an acyclic DAG. It may name cards in the same Milestone; an external hard
   prerequisite may only point to an already planned upstream Milestone as established by the
   ROADMAP dependency relationship, not by Milestone ID or numeric order, and never authorizes
@@ -56,6 +57,36 @@ compatible `conflict_domains`, `runtime_locks`, and semantic ownership. The writ
 freeze waves in `Task.md`; the orchestrator derives a rolling ready set from the current shared
 baseline.
 
+## Current snapshot and per-card execution history
+
+- Keep `Task.md` as the normative current execution snapshot. It contains only the facts
+  needed for current scope, readiness, ownership, status, blockers, latest anchors, current
+  evidence, and closure; replace superseded state rather than appending progress narratives.
+- On the first durable execution event for a card, create `execution/<card_id>.md` with
+  all seven fixed frontmatter keys: Task locale; a purpose naming the card; `upstream` as a
+  real relative link to the exact Task card anchor; `downstream: none`; `status: draft`;
+  `type: execution-log`; and `nature: descriptive`. Then replace the card's
+  `execution_log: none` and `latest_event: none` with real relative links in the same
+  state-refresh batch.
+- Append durable status transitions, attempts, candidate and baseline anchors, review and
+  verification rounds, commands, results, limitations, integration conflicts, corrections,
+  and superseded states to that card's log. Give each event a stable `event_id`, a
+  `previous_event` link or `none`, and evidence links; update the Task card's `latest_event`
+  pointer in the same batch. Do not rewrite old event bodies; append a correction. Fixed
+  frontmatter and current pointers may be mechanically refreshed.
+- Keep one log per stable `card_id`. Never accumulate all cards into one project-wide or
+  Milestone-wide execution log.
+- The execution log is descriptive and on-demand. It never defines current scope,
+  dependencies, acceptance, status, or closure. Promote any discovered semantic change to
+  its normative authority through the controlled revision route before affected work resumes.
+- A single-card operator resolves the exact card, its directly gating rows, affected AC rows,
+  and target-Milestone shared-baseline/integration-queue pointers. Do not ingest all of
+  `Task.md`, unrelated closed cards, or the whole execution log by default; start from
+  `latest_event` and follow only the unresolved cycle's links.
+- A closed card remains in the canonical Task table with its closure result, current evidence,
+  and execution-log pointer. Remove its superseded narrative from `Task.md`; do not remove its
+  stable ID or traceability.
+
 ## Writer and critic loop
 
 At `ready-to-dispatch`, record the Design anchor, select the actual writer, and bind
@@ -82,11 +113,32 @@ recorded writer completes that accepted work and machine checks directly. Finish
 4. A delta that changes execution authority or reasonable understanding receives independent
    criticism and primary-orchestrator review at a new anchor. Old review remains attached to
    the old anchor.
-5. Propagate only to affected implementation, tests, evidence, rolling records, and state
+5. Propagate only to affected implementation, tests, evidence, per-card execution logs, and state
    representations; review and verify that impact cone only.
 
 Meaning-preserving mechanical changes use same-batch link, hash, task reference, and status
 refresh plus machine checks without reapproval.
+
+## Legacy Task migration
+
+When an existing `Task.md` already mixes current authority with accumulated history:
+
+1. Bind `legacy_task_anchor` to the pre-migration commit, content hash, or equivalent immutable
+   version before editing. It remains the source for history that cannot be assigned safely.
+2. Reconstruct only the current normative projection: canonical rows, current dependencies,
+   status, blocker, anchors, evidence, traceability, and log pointers. If current meaning is
+   uncertain, treat the migration as a semantic revision and use the normal Critic loop.
+3. For each previously executed card, create its per-card log and append one
+   `legacy-migration` event that cites `legacy_task_anchor` and exact source locations. Copy or
+   summarize only facts that are unambiguously owned by that `card_id`; do not invent event
+   order, timestamps, evidence, or outcomes. Use the same seven-key frontmatter and exact
+   Task-card upstream link as a new log.
+4. Preserve unassignable old batch or project narrative only through `legacy_task_anchor`.
+   Keep a single compact pointer in the migrated Task or Handoff; do not copy it into a new
+   project-wide or Milestone-wide live log, and do not use it as current authority.
+5. Cut over Task, per-card links, current traceability, and migration record in one checked
+   batch. Verify the new current projection against the old anchor and keep unrelated cards
+   unchanged.
 
 If DocStar is available, run `brief <task-id> --preset gmgn-v1 --json` on a representative
 card; otherwise inspect all fixed table columns manually. DocStar reports structural IDs and

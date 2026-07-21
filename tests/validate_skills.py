@@ -1012,6 +1012,258 @@ def require_tokens(errors: list[str], text: str, tokens: tuple[str, ...], label:
         errors.append(f"{label}: 缺 agent 生命周期约束 {missing}")
 
 
+def validate_task_execution_log_contract(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    write_task = parsed.get("write-task", ("", ""))[1]
+    run_task = parsed.get("run-task", ("", ""))[1]
+
+    require_tokens(
+        errors,
+        write_task,
+        (
+            "## Current snapshot and per-card execution history",
+            "normative current execution snapshot",
+            "replace superseded state",
+            "execution/<card_id>.md",
+            "type: execution-log",
+            "nature: descriptive",
+            "all seven fixed frontmatter keys",
+            "real relative link to the exact Task card anchor",
+            "`downstream: none`",
+            "`status: draft`",
+            "execution_log: none",
+            "latest_event: none",
+            "one log per stable `card_id`",
+            "Never accumulate all cards",
+            "descriptive and on-demand",
+            "Promote any discovered semantic change",
+            "closed card remains in the canonical Task table",
+            "## Legacy Task migration",
+            "Bind `legacy_task_anchor` to the pre-migration commit",
+            "`legacy-migration` event",
+            "do not invent event order",
+            "do not copy it into a new project-wide",
+        ),
+        "write-task 当前快照与单卡执行日志",
+    )
+    require_tokens(
+        errors,
+        run_task,
+        (
+            "Do not read execution history on a normal initial dispatch",
+            "`execution_log`",
+            "Start at the card's anchored `latest_event`",
+            "do not ingest the whole log",
+            "For single-card work, `current summary surfaces` means only",
+            "do not ingest all of `Task.md`",
+            "resume", "retry", "identity replacement", "audit", "closure",
+            "descriptive evidence", "authority supplement",
+            "route the meaning through `write-task`",
+            "successful claim is the card's first durable execution event",
+            "Before Coder activation",
+            "replaces `execution_log: none` and `latest_event: none` with",
+            "state-only candidate is not implementation acceptance",
+            "do not leave shared state as an uncommitted side channel",
+            "failed implementation candidate never advances it",
+            "separate state-only candidate",
+            "descriptive-only commit",
+            "Every Coder, Reviewer, Verifier, and Integrator return supplies a durable event",
+            "Flush pending events before identity replacement",
+            "replace every Task current field changed by the event",
+            "Every pre-integration flush starts from the clean current shared baseline",
+            "docs-only state candidate containing no lane implementation",
+            "Never make a durable event an uncommitted side channel",
+            "Task-matched `locale`",
+            "exact Task-card `upstream` link",
+            "`downstream: none`",
+            "per-card execution logs",
+            "execution/<card_id>.md",
+            "replacing the Task card's current blocker",
+            "Never copy the detailed history back into `Task.md`",
+            "combine several cards into one log",
+            "Set the log frontmatter to `status: closed`",
+            "compact the card to its closure result",
+            "closure fields are provisional until this exact candidate",
+            "already contains the Task and log closure state",
+            "Only after that atomic advance set the runtime lane to `node-complete`",
+        ),
+        "run-task 执行日志读取与集成边界",
+    )
+
+    checks = (
+        (
+            REFERENCES / "en" / "writing-contract.md",
+            (
+                "task | execution-log | research",
+                "Per-card process record: `execution/<card_id>.md`",
+                "`execution_log: none`",
+                "`latest_event: none`",
+                "normative current execution snapshot",
+                "Replace superseded state",
+                "`type: execution-log`",
+                "`nature: descriptive`",
+                "Do not combine all cards",
+                "must be promoted to the correct normative authority",
+                "separate state-only candidate",
+                "contains no failed implementation",
+                "stable `event_id`",
+                "`previous_event`",
+                "instead of ingesting the whole log",
+                "uses all seven fixed frontmatter keys",
+                "A descriptive record does not acquire approval or normative authority",
+                "`draft → closed`",
+                "execution log follows this descriptive lifecycle",
+                "real relative link to the exact stable card anchor",
+                "`downstream: none`",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "writing-contract.md",
+            (
+                "task | execution-log | research",
+                "单卡过程记录：`execution/<card_id>.md`",
+                "`execution_log: none`",
+                "`latest_event: none`",
+                "规范性的当前执行快照",
+                "更新时替换已过时状态",
+                "`type: execution-log`",
+                "`nature: descriptive`",
+                "不得把所有任务卡合并",
+                "提升到正确的规范性权威",
+                "另建只含单卡失败事件与 Task 当前阻塞的状态候选",
+                "失败实现候选始终不能推进共享锚",
+                "稳定 `event_id`",
+                "`previous_event`",
+                "不整份读入日志",
+                "使用全部七个固定元信息键",
+                "描述性记录不取得批准或规范性权威",
+                "`draft → closed`",
+                "执行日志使用这条描述性生命周期",
+                "真实相对链接指向 `Task.md` 中该卡的稳定锚",
+                "`downstream: none`",
+            ),
+        ),
+        (
+            ROOT / "GMGN.md",
+            (
+                "normative current execution snapshot",
+                "descriptive, append-only per-card history",
+                "task | execution-log | research",
+                "start from its anchored `latest_event`",
+                "neither path ingests the whole file by default",
+            ),
+        ),
+        (
+            ROOT / "GMGN.zh-CN.md",
+            (
+                "规范性的当前执行快照",
+                "按任务卡拆分、追加式记录详细过程",
+                "从已锚定的 `latest_event` 开始",
+                "默认都不整份读入文件",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "dispatch-and-handoff.md",
+            (
+                "not part of the normal initial read set",
+                "correct normative authority",
+                "per-card execution logs",
+                "replaced current blocker, status, anchors, evidence",
+                "separate state-only candidate",
+                "starting from its anchored `latest_event`",
+                "verified combined candidate itself must",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "dispatch-and-handoff.md",
+            (
+                "不属于正常初次派发的必读集",
+                "提升到正确的规范性权威",
+                "单卡执行日志",
+                "替换当前阻塞",
+                "另建并机械检查状态候选",
+                "从已锚定的 `latest_event` 开始",
+                "验证过的组合候选本身必须",
+            ),
+        ),
+        (
+            CLAUDE_AGENTS / "integrator.md",
+            (
+                "per-card execution logs",
+                "execution/<card_id>.md",
+                "never accumulate history",
+                "descriptive evidence only",
+                "seven fixed frontmatter keys",
+                "exact stable Task-card anchor",
+                "docs-only state candidate",
+            ),
+        ),
+        (
+            CODEX_AGENTS / "integrator.toml",
+            (
+                "单卡执行日志",
+                "execution/<card_id>.md",
+                "不累积历史",
+                "返回规范性权威",
+                "七个固定元信息键",
+                "真实相对链接指向精确 Task 卡稳定锚",
+                "docs-only 状态候选",
+            ),
+        ),
+        (
+            SKILLS / "close-milestone" / "SKILL.md",
+            (
+                "`latest_event` must resolve inside that log to the final closure event",
+                "records the verified combined candidate and preceding shared anchor",
+                "evidence/current pointers match the Task card",
+                "resolvable `latest_event` aligned with the card's current closure evidence",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "pre-merge-checklist.md",
+            (
+                "Current-state/log split",
+                "Failure isolation",
+                "Atomic closure",
+                "closed log metadata",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "pre-merge-checklist.md",
+            (
+                "当前状态与日志分离",
+                "失败隔离",
+                "原子关账",
+                "closed 日志元信息",
+            ),
+        ),
+        (
+            REFERENCES / "en" / "pre-close-checklist.md",
+            (
+                "At the closing shared-baseline anchor",
+                "`latest_event` resolve to that log's final closure event",
+                "verified combined candidate and preceding shared anchor",
+                "evidence/current pointers matching the Task card",
+            ),
+        ),
+        (
+            REFERENCES / "zh-CN" / "pre-close-checklist.md",
+            (
+                "在关账共享锚上",
+                "`latest_event` 是否可解析到该日志的最终关账事件",
+                "前一共享锚",
+                "证据/当前指针是否与 Task 卡一致",
+            ),
+        ),
+    )
+    for path, tokens in checks:
+        try:
+            require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
+        except FileNotFoundError as exc:
+            errors.append(str(exc))
+
+
 def validate_agent_lifecycle(
     errors: list[str], parsed: dict[str, tuple[str, str]]
 ) -> None:
@@ -1452,7 +1704,9 @@ def validate_agent_lifecycle(
             "dependency or specification meaning", "current `workspace_mode`",
             "current `worktree_path`", "current `branch_ref`", "same `verifier_ref`",
             "abort the Git operation", "discard the temporary combination workspace",
-            "leave the original `shared_baseline_anchor` unchanged", "git status --short",
+            "restore the preceding clean `shared_baseline_anchor`", "git status --short",
+            "failed implementation candidate never advances it",
+            "separate state-only candidate",
             "atomically advance `shared_baseline_anchor`",
             "Never expose an unverified temporary combination as the shared baseline",
         ),
@@ -1800,6 +2054,7 @@ def main() -> int:
     validate_lane_registry(errors)
     validate_controlled_change_protocol(errors, parsed)
     validate_milestone_scope_protocol(errors, parsed)
+    validate_task_execution_log_contract(errors, parsed)
     validate_agent_lifecycle(errors, parsed)
     validate_self_check_and_risk_disclosure(errors, parsed)
 
@@ -1845,9 +2100,16 @@ def main() -> int:
             "same Integrator", "same Verifier", "shared_baseline_anchor", "Task.md",
             "stale assertions", "not-started", "not created", "not run",
             "awaiting confirmation", "Mechanically refresh", "git diff --check",
-            "Only now set the card work status to `closed`",
+            "Set the log frontmatter to `status: closed`",
+            "set the Task card work status to `closed`",
+            "closure fields are provisional until this exact candidate",
+            "already contains the Task and log closure state",
+            "Only after that atomic advance set the runtime lane to `node-complete`",
         )
-        if not close_step or any(token not in close_step.group(1) for token in required):
+        normalized_close_step = " ".join(close_step.group(1).split()) if close_step else ""
+        if not close_step or any(
+            " ".join(token.split()) not in normalized_close_step for token in required
+        ):
             errors.append("run-task: 卡关账前缺少过期断言扫描")
 
     for path in (
