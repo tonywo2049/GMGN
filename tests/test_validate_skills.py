@@ -770,12 +770,12 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
 
-    def test_rejects_unconditional_document_integrator(self) -> None:
+    def test_rejects_document_integration_delegation(self) -> None:
         path = self.root / "skills" / "write-design" / "SKILL.md"
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
-            "only when the candidate crosses an integration boundary; otherwise the",
-            "for every document candidate; the",
+            "The primary orchestrator applies accepted mechanical",
+            "A delegated worker applies accepted mechanical",
         )
         path.write_text(text, encoding="utf-8")
 
@@ -784,7 +784,7 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-design: 缺 agent 生命周期约束", result.stdout)
 
-    def test_rejects_appended_unconditional_document_integrator(self) -> None:
+    def test_rejects_removed_role_name_in_skill(self) -> None:
         path = self.root / "skills" / "write-design" / "SKILL.md"
         text = path.read_text(encoding="utf-8") + (
             "\nEvery document candidate requires an Integrator.\n"
@@ -794,26 +794,62 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+        self.assertIn("残留已删除的集成角色标识", result.stdout)
 
-    def test_rejects_each_document_candidate_requiring_integrator(self) -> None:
+    def test_rejects_integrator_ref_in_skill(self) -> None:
         path = self.root / "skills" / "write-design" / "SKILL.md"
         text = path.read_text(encoding="utf-8") + (
-            "\nEach document candidate requires an Integrator.\n"
+            "\nStore integrator_ref on each document candidate.\n"
         )
         path.write_text(text, encoding="utf-8")
 
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+        self.assertIn("残留已删除的集成角色标识", result.stdout)
+
+    def test_rejects_renamed_delegated_merge_worker(self) -> None:
+        path = self.root / "skills" / "write-design" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nDelegate accepted-candidate integration to a merge worker.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("集成职责不得委派给 agent/worker", result.stdout)
+
+    def test_rejects_renamed_chinese_integration_agent(self) -> None:
+        path = self.root / "skills" / "write-design" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\n将共享基线集成交给集成 agent。\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("集成职责不得委派给 agent/worker", result.stdout)
+
+    def test_allows_delegated_post_integration_verification(self) -> None:
+        path = self.root / "skills" / "gmgn" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nDelegate a Verifier for post-integration verification.\n"
+            "派发 Verifier 做集成后验证。\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_allows_implementation_and_closure_role_boundaries(self) -> None:
         path = self.root / "skills" / "gmgn" / "SKILL.md"
         text = path.read_text(encoding="utf-8") + (
             "\nThe orchestrator does not draft implementation code.\n"
-            "Every implementation card requires an Integrator.\n"
-            "Closure requires a closure Author and an Integrator.\n"
+            "The primary orchestrator serially integrates accepted implementation cards.\n"
+            "Closure requires a closure Author and primary-session integration.\n"
             "主编排者不代做编码。\n"
         )
         path.write_text(text, encoding="utf-8")
@@ -828,7 +864,6 @@ class ValidateSkillsTests(unittest.TestCase):
             "\nFor ROADMAP, the orchestrator must dispatch an Author only when writing was delegated.\n"
             "ROADMAP must receive a new anchor when revised by an Author agent.\n"
             "The primary orchestrator must not edit ROADMAP while its delegated Author is active.\n"
-            "Must use an Integrator only when a document candidate crosses an integration boundary.\n"
             "Requirement 必须在写作已委派时使用 Author。\n"
             "主编排者不得在受委派 Author 活动时编辑 ROADMAP。\n"
         )
@@ -850,17 +885,14 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
 
-    def test_rejects_claude_integrator_mandatory_for_every_document(self) -> None:
+    def test_rejects_restored_claude_integrator_agent(self) -> None:
         path = self.root / "agents" / "integrator.md"
-        text = path.read_text(encoding="utf-8") + (
-            "\nThis Integrator is required for every document candidate.\n"
-        )
-        path.write_text(text, encoding="utf-8")
+        path.write_text("---\nname: integrator\n---\nremoved role\n", encoding="utf-8")
 
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+        self.assertIn("已删除的集成角色 agent 文件不得恢复", result.stdout)
 
     def test_rejects_codex_author_mandatory_for_every_document(self) -> None:
         path = self.root / ".codex" / "agents" / "author.toml"
@@ -876,19 +908,17 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
 
-    def test_rejects_codex_integrator_mandatory_for_every_document(self) -> None:
+    def test_rejects_restored_codex_integrator_agent(self) -> None:
         path = self.root / ".codex" / "agents" / "integrator.toml"
-        text = self.replace_required(
-            path.read_text(encoding="utf-8"),
-            '\n"""\n',
-            '\nIntegrator 每个规格文档候选都必须使用。\n"""\n',
+        path.write_text(
+            'name = "removed"\ndescription = "removed"\n',
+            encoding="utf-8",
         )
-        path.write_text(text, encoding="utf-8")
 
         result = self.run_validator()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("文档 writer 不得退回固定角色分离", result.stdout)
+        self.assertIn("已删除的集成角色 agent 文件不得恢复", result.stdout)
 
     def test_rejects_writer_self_review_in_document_stage(self) -> None:
         path = self.root / "skills" / "write-goal" / "SKILL.md"
@@ -984,8 +1014,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_orchestrator_taking_over_execution(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(path.read_text(encoding="utf-8"),
-            "It does not write implementation",
-            "It writes implementation",
+            "It does not\nwrite implementation",
+            "It\nwrites implementation",
         )
         path.write_text(text, encoding="utf-8")
 
@@ -1048,7 +1078,7 @@ class ValidateSkillsTests(unittest.TestCase):
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
             "enter the existing `agent-unavailable` explicit-replacement rule; do not claim a targeted\n"
-            "  recheck, the same Verifier, or the same Integrator.",
+            "  recheck or the same Verifier.",
             "silently create a replacement and treat it as the original agent.",
         )
         path.write_text(text, encoding="utf-8")

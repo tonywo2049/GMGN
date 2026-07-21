@@ -36,9 +36,9 @@ work to the same recorded writer as `author-rework`; otherwise enter `candidate-
 dispatch an independent Critic. At `critic-returned`, adjudicate findings, resume the same
 recorded writer in `author-revising`, and use the same Critic for blocker
 `critic-rechecking`. At `acceptance-ready`, the primary orchestrator reviews the anchored
-candidate. Dispatch an Integrator for accepted mechanical propagation and commit material only
-when the candidate crosses an integration boundary; otherwise the recorded writer completes
-that accepted work and machine checks directly. Finish only at `node-complete`.
+candidate. The primary orchestrator applies accepted mechanical propagation and commit
+material, including across an integration boundary, and runs the machine checks. Finish only
+at `node-complete`.
 
 ## Controlled revision
 

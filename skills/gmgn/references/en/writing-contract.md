@@ -75,7 +75,7 @@ For a task card, `initiated` means its execution lane has been claimed, and `in-
 covers coding through integration. Review or verification of an isolated branch may make the
 runtime candidate `accepted`, but never makes the task `closed`. `closed` requires integration
 into the recorded `shared_baseline_anchor`, successful post-integration verification, and
-same-batch refresh of `Task.md`, traceability, and evidence by the shared-baseline Integrator.
+same-batch refresh of `Task.md`, traceability, and evidence by the primary orchestrator.
 The card Coder stages and commits only its `write_set` in the assigned detached-HEAD or
 unique-branch worktree and returns a resolvable local commit SHA as immutable
 `candidate_anchor`; local commits are allowed and remote writes are not.
@@ -86,7 +86,7 @@ candidate and leaves the preceding `shared_baseline_anchor` clean and unchanged.
 verified combined candidate plus mechanical ledger refresh may atomically advance the shared
 anchor; an unverified combination is not a baseline.
 
-After restoring that preceding clean anchor, the Integrator may create a separate state-only
+After restoring that preceding clean anchor, the primary orchestrator may create a separate state-only
 candidate containing the per-card failure event and current Task blocker. It contains no failed
 implementation. Only after link, diff, and repository-required document checks may that
 descriptive-only commit advance `shared_baseline_anchor`; the failed implementation candidate

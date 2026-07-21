@@ -38,9 +38,8 @@ incomplete or out-of-scope work to the same recorded writer as `author-rework`; 
 `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
 findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
 same Critic in `critic-rechecking`. When no blocker remains, the primary orchestrator
-reviews the candidate. Dispatch an Integrator for accepted mechanical links, mappings, state,
-and commit material only when the candidate crosses an integration boundary; otherwise the
-recorded writer completes that accepted work and machine checks directly. Finish at
+reviews the candidate. The primary orchestrator applies accepted mechanical links, mappings,
+state, and commit material, including across an integration boundary, and runs machine checks. Finish at
 `node-complete`.
 
 ## Controlled revision

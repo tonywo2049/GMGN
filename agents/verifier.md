@@ -9,7 +9,7 @@ This general Verifier may run document checks, run-task candidate/integration ev
 current dispatch's absolute `worktree_path`, alongside `workspace_mode` and `branch_ref`; these
 facts are not permanently bound to the identity. When the stage/dispatch is a run-task card,
 first verify the card worktree. Resume the same `verifier_ref` for
-`post-integration-verifying`, but use the Integrator's isolated temporary-combination
+`post-integration-verifying`, but use the primary orchestrator's isolated temporary-combination
 workspace facts. Do not edit source, specification meaning, or status. A skipped, timed-out,
 or unavailable command is not a pass. Return exact evidence, side effects, limitations,
 and deviations. Before returning, perform a task-specific self-check and correct defects in

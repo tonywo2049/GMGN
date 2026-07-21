@@ -61,11 +61,10 @@ Do not introduce R-AC IDs or quantitative requirement criteria here.
    findings in `author-revising`; send blocker fixes to the same `critic_ref` in
    `critic-rechecking`.
 6. With no blocker, enter `acceptance-ready`, present the anchored candidate and remaining
-   material risks—or that none are known—to the owner. Use an Integrator for accepted
-   mechanical links, state, and commit material only when the candidate crosses an integration
-   boundary—an isolated workspace, concurrent writer, or shared baseline; otherwise the
-   recorded writer completes that accepted propagation directly. Finish at `node-complete`
-   only after all representations agree and machine checks pass.
+   material risks—or that none are known—to the owner. The primary orchestrator applies the
+   accepted mechanical links, state, and commit material, including across an integration
+   boundary such as an isolated workspace, concurrent writer, or shared baseline. Finish at `node-complete` only
+   after all representations agree and machine checks pass.
 
 ## Revision mode
 

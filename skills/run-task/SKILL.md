@@ -11,8 +11,8 @@ Use the document locale for status updates and the user's language for conversat
 all machine tokens and IDs unchanged.
 
 The primary orchestrator keeps the run state, per-card lanes, identity refs, adjudication,
-acceptance, and merge control. It does not write implementation, repair findings, run
-verification in place of a Verifier, or edit the shared ledger in place of the Integrator.
+acceptance, merge control, integration queue, shared baseline, and shared ledger. It does not
+write implementation, repair findings, or run verification in place of a Verifier.
 
 ## Telemetry boundary
 
@@ -33,7 +33,7 @@ grep/read outside DocStar; `grep_avoided` does not claim causation.
 The critic-reviewed `Task.md` card is the only static execution authority for a run-task lane.
 The scheduler resolves that card and its spec/Design anchors, using DocStar when available,
 instead of treating the parent conversation as task input. Start or resume every Coder,
-Reviewer, Verifier, and Integrator without parent conversation history. On a Codex surface with
+Reviewer, and Verifier without parent conversation history. On a Codex surface with
 the historical schema, set `fork_turns="none"`; on a surface with the current boolean schema,
 set `fork_context=false` or omit it when false is the documented default. Never use
 `fork_turns="all"` or `fork_context=true` for a run-task role. Resuming a recorded identity may
@@ -107,7 +107,7 @@ After the actual task/worktree and bootstrap `coder_ref` are known, move through
 The scheduler alone performs registry `claim → bind-coder → verify`, then uses
 `send_message_to_thread` to activate that worker, which resumes the same Coder with the write
 instruction. The originating scheduler remains the sole owner of the global ready set, lane
-registry, `integration_queue_ref`, `shared_baseline_anchor`, and Integrator. A worker must not
+registry, `integration_queue_ref`, and `shared_baseline_anchor`. A worker must not
 mutate the registry, recursively create main tasks, adjudicate findings, accept a candidate,
 integrate, edit shared `Task.md` or traceability, push, publish, or accept a second lane.
 
@@ -128,8 +128,8 @@ Record `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `owner
 `run_id`, `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
 `repository_identity`, `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
 `integration_queue_ref`, and `shared_baseline_anchor`. Add the lane's own `coder_ref`,
-`reviewer_ref`, and `verifier_ref`; retain one `integrator_ref` for the shared integration
-queue.
+`reviewer_ref`, and `verifier_ref`. The originating primary orchestrator owns the shared
+integration queue.
 
 Prefer `workspace_mode: worktree`. The orchestrator must explicitly provision the worktree
 when the platform does not do so. Use detached `HEAD` or a unique `branch_ref`; never attach
@@ -164,7 +164,7 @@ lane; do not expire, steal, or recreate it automatically. A released lane keeps 
 and its next claim increments `ownership_epoch`.
 
 A successful claim is the card's first durable execution event. Before Coder activation, the
-same Integrator serially creates `execution/<card_id>.md`, appends the claim and workspace
+primary orchestrator serially creates `execution/<card_id>.md`, appends the claim and workspace
 with Task-matched `locale`, a card-naming `purpose`, an exact Task-card `upstream` link,
 `downstream: none`, `status: draft`, `type: execution-log`, and `nature: descriptive`. It
 appends the claim and workspace facts with a stable `event_id`, replaces
@@ -234,9 +234,11 @@ Coder, then the affected diff returns to the same Reviewer and verification to t
 Verifier. With no blocker, the orchestrator may mark the branch candidate `accepted`; it is
 not `closed` and must not update the shared ledger.
 
-Every Coder, Reviewer, Verifier, and Integrator return supplies a durable event for the same
-Integrator to append on the next serialized state-refresh batch. Flush pending events before
-identity replacement, retry after a failed gate, audit, or session handoff. The event stream
+Every Coder, Reviewer, and Verifier return supplies a durable event for the primary
+orchestrator to append on the next serialized state-refresh batch. Flush pending events before
+identity replacement, retry after a failed gate, audit, or an allowed session handoff. A main
+session handoff must not cross an active owner-bound lane: every lane owned by that session
+must first reach `node-complete` and be released. The event stream
 uses stable `event_id` and `previous_event` links. In the same batch, update `latest_event` and
 replace every Task current field changed by the event—status, blocker, readiness, latest
 anchors, or current evidence. The log alone must never carry a fact needed for the next current
@@ -251,14 +253,16 @@ mechanical documentation advance alone. Never make a durable event an uncommitte
 ## 4. Serialize integration, then close the card
 
 Move an accepted lane through `accepted → integration-queued → integrating →
-post-integration-verifying → node-complete`. The same Integrator is the only writer for the
-integration workspace, shared baseline, `Task.md`, per-card execution logs, and traceability. It processes eligible
+post-integration-verifying → node-complete`. The primary orchestrator is the only writer for the
+integration workspace, shared baseline, `Task.md`, per-card execution logs, and traceability.
+It processes eligible
 queue entries by dependency topology and then stable `card_id`; a conflicted entry is skipped
 while unrelated eligible entries continue.
 
 Integration is two-phase. Starting from the current clean `shared_baseline_anchor`, the
-Integrator creates an isolated temporary combination workspace and mechanically applies the
-accepted lane there without advancing the shared anchor. The integration dispatch includes
+primary orchestrator creates an isolated temporary combination workspace and mechanically
+applies the accepted lane there without advancing the shared anchor. The verification dispatch
+includes
 the current `workspace_mode`, absolute `worktree_path`, and `branch_ref`; its
 `candidate_anchor` is the temporary combined commit. Preserve the preceding anchor in the
 integration event and evidence rather than adding another top-level runtime field.
@@ -293,8 +297,8 @@ failed entry and process unrelated eligible queue items.
 A verification failure returns to the same Coder, affected diff to the same Reviewer, and
 verification to the same Verifier.
 
-Only after post-integration verification passes may the Integrator prepare closure fields in
-that isolated candidate. Append the successful integration event to
+Only after post-integration verification passes may the primary orchestrator prepare closure
+fields in that isolated candidate. Append the successful integration event to
 `execution/<card_id>.md`; record the post-integration-verified combined candidate and preceding
 shared anchor without predicting the final commit that contains this event. Set the log
 frontmatter to `status: closed`, set the Task card work

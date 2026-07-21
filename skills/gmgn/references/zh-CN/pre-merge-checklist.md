@@ -40,7 +40,7 @@ English: [../en/pre-merge-checklist.md](../en/pre-merge-checklist.md)
     closed Task 卡、closed 日志元信息、最终事件、追踪与证据；是否只在该候选原子推进后才把运行态
     lane 改为 `node-complete`？
 
-同一 Integrator 在临时组合运行 `git diff --check`、`git status --short` 等机械检查。同一 lane 的
+主编排者在临时组合运行 `git diff --check`、`git status --short` 等机械检查。同一 lane 的
 Verifier 收到当前派发的 `workspace_mode`、`worktree_path`、`branch_ref`，在该临时组合运行受影响
 交互与项目门禁。冲突/失败时中止或丢弃临时候选并证明原共享工作区 clean。只有验证通过的候选
 加台账刷新才能原子推进 `shared_baseline_anchor`；候选必须先包含 closed 文档状态，运行态 lane 才能

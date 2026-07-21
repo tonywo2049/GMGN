@@ -47,14 +47,13 @@ Use the active locale and the matching layout-free
    the same recorded writer for missing inputs; otherwise create `candidate-anchored`.
 3. Dispatch an independent Critic. At `critic-returned`, adjudicate findings; resume the same
    recorded writer in `author-revising` and the same Critic in `critic-rechecking` for blockers.
-4. With no blocker, enter `acceptance-ready`; owner approval binds the candidate anchor. Use
-   an Integrator for reciprocal links, state, evidence pointers, and commit material only when
-   the candidate crosses an integration boundary. Otherwise the recorded writer performs the
-   accepted same-batch propagation and machine checks, then marks `node-complete`.
+4. With no blocker, enter `acceptance-ready`; owner approval binds the candidate anchor. The
+   primary orchestrator applies accepted mechanical reciprocal links, state, evidence pointers,
+   and commit material, runs machine checks, then marks `node-complete`.
 
 Closure backfill and other meaning-preserving maintenance skip semantic criticism. The primary
-session may apply the mechanical batch directly; use an Integrator only when it crosses an
-integration boundary. Run machine checks and preserve the existing approval through an
+session applies the mechanical batch directly, including across an integration boundary. Run
+machine checks and preserve the existing approval through an
 equivalence record. Any semantic ambiguity returns to the full writer/Critic loop.
 
 ## Controlled revision

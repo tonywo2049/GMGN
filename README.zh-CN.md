@@ -54,7 +54,7 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 
 `run-task` 按依赖 ready set 持续补满可用槽位，不等上一卡关账才启动下一张独立卡。每卡保留独立
 Coder、Reviewer、Verifier 和显式 provision 的 worktree。Worktree 能防止 agent 互相覆盖文件与
-index，但不能解决 merge、语义、接口或共享运行资源冲突。同一 Integrator 串行拥有共享基线、
+index，但不能解决 merge、语义、接口或共享运行资源冲突。主 session 串行拥有共享基线、
 `Task.md` 和追踪矩阵。每个 Coder 回传只包含本卡写集的本地 commit；集成先验证隔离临时组合，
 只有成功才原子推进共享基线。任务卡完成集成后验证和台账刷新才关账。
 

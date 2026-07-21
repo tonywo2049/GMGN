@@ -80,8 +80,8 @@ replacement and repeats a full review when the reviewer changes.
 not wait for one card to close before starting another independent card. Each card keeps its
 own Coder, Reviewer, Verifier, and explicitly provisioned worktree. Worktrees prevent agents
 from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
-runtime-resource conflicts. One Integrator serially owns the shared baseline, `Task.md`, and
-traceability. Each Coder returns a local commit containing only its card write set. Integration
+runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
+and traceability. Each Coder returns a local commit containing only its card write set. Integration
 first verifies an isolated temporary combination; only success atomically advances the shared
 baseline. A card closes only after post-integration verification and ledger refresh there.
 

@@ -43,7 +43,7 @@ nature: normative
     exact candidate advances `shared_baseline_anchor` and the runtime lane becomes
     `node-complete`?
 
-The single Integrator runs mechanical checks including `git diff --check` and
+The primary orchestrator runs mechanical checks including `git diff --check` and
 `git status --short` in the temporary combination. The same lane Verifier receives that
 current dispatch's `workspace_mode`, `worktree_path`, and `branch_ref` and runs affected
 interaction and project gates there. On conflict/failure, abort or discard the temporary

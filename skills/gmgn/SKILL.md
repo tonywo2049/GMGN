@@ -67,10 +67,10 @@ state. Keep the node record and identity refs until `node-complete`.
 - `run-task` maintains a rolling ready set for the recorded target Milestone and one lane per
   owned card. Each lane has its own Coder,
   Reviewer, and Verifier identities; fixes, affected review, and affected verification return
-  to those same agents. One Integrator serially owns the integration queue, shared baseline,
-  `Task.md`, per-card execution logs, and traceability.
+  to those same agents. The primary orchestrator serially owns the integration queue, shared
+  baseline, `Task.md`, per-card execution logs, and traceability.
 - `close-milestone` dispatches target-scoped independent verification, a closure Author, a
-  combined Critic/Reviewer, and an Integrator after owner acceptance.
+  combined Critic/Reviewer, then has the primary orchestrator integrate after owner acceptance.
 - `release` consumes review, verification, and acceptance evidence already bound to an
   immutable anchor. An exact-anchor release or an explicitly equivalent mechanical release
   does not dispatch another closure Author, combined Critic/Reviewer, or closure Verifier.
@@ -86,8 +86,8 @@ checkpoints rather than Author-agent dispatches. Accepted findings loop through
 `author-revising` with the same `author_ref` and, for blockers, `critic-rechecking` with the
 same Critic. Finish through `acceptance-ready → accepted`. Use `integrating → node-complete`
 only when the candidate crosses an isolated-workspace, concurrent-writer, or shared-baseline
-boundary; otherwise the recorded writer may complete accepted same-batch propagation and
-machine checks directly before `node-complete`.
+boundary. In every case, the primary orchestrator completes accepted same-batch propagation,
+machine checks, and commit control before `node-complete`.
 
 For implementation, keep one project-wide lane. Use
 `lane_key = project_scope_id + card_id` as its identity; `run_id` records an execution attempt
@@ -126,7 +126,7 @@ Every worker Coder return stops at `candidate-awaiting-anchor`. Only after sched
 candidate/path/`write_set` checks, atomic anchor, and an explicit candidate-scoped
 `review-authorized` message may that worker dispatch Reviewer. Revisions repeat the same gate.
 
-The Integrator first applies an accepted local-commit `candidate_anchor` to an isolated
+The primary orchestrator first applies an accepted local-commit `candidate_anchor` to an isolated
 temporary combination based on the current shared baseline. A baseline advance alone does not
 force `rebase-required`; use it only when clean mechanical application fails, dependency/spec
 meaning is invalid, or Coder judgment is needed. Resume the same Verifier with the temporary
@@ -175,7 +175,7 @@ the smallest authority/acceptance condition, implementation, test, independent r
 same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
 milestone initiation, scope expansion, or closure authority.
 
-<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may be the recorded writer for WhitePaper, ROADMAP, Goal, Requirement, Design, or Task, but it must make that writer choice explicit before writing, preserve the independent Critic, and must not silently take over work already assigned to another writer. It must not perform Coder, Reviewer, or Verifier work in place of those independent roles. An Integrator is mandatory whenever an accepted candidate crosses an isolated-workspace, concurrent-writer, or shared-baseline boundary; otherwise it is not a required ceremony. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may be the recorded writer for WhitePaper, ROADMAP, Goal, Requirement, Design, or Task, but it must make that writer choice explicit before writing, preserve the independent Critic, and must not silently take over work already assigned to another writer. It must not perform Coder, Reviewer, or Verifier work in place of those independent roles. The primary orchestrator must itself integrate every accepted candidate, serialize shared-baseline writes, refresh Task/log/traceability state, and preserve the verified candidate meaning; this responsibility must not be delegated. Semantic ambiguity, source repair, or conflict resolution requiring implementation judgment returns to the recorded writer/Coder. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

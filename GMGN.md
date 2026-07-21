@@ -23,7 +23,7 @@ This file is the normative method. Installation and quick use belong in
 
 ## 0. Scope and roles
 
-GMGN defines seven execution-separated roles and one optional audit role.
+GMGN defines six execution-separated roles and one optional audit role.
 
 - **Owner** decides scope, approves project-level commitments, accepts closure, and is the only
   role that may authorize removing or reassigning a completion criterion through a controlled
@@ -35,7 +35,10 @@ GMGN defines seven execution-separated roles and one optional audit role.
   and Task, it may write or revise the artifact directly when its context makes that the
   clearest and least wasteful path, or delegate a bounded writing unit to an Author when that
   produces a real isolation, specialization, or parallelism benefit. These are judgment
-  inputs, not eligibility gates; the primary orchestrator owns the writer choice.
+  inputs, not eligibility gates; the primary orchestrator owns the writer choice. It also
+  applies accepted mechanical propagation, serializes shared-baseline writes, and refreshes
+  `Task.md`, per-card execution logs, and traceability without replacing the recorded
+  writer/Coder, independent review, or verification.
 - **Author** is an optional delegated writer. It creates or revises one document artifact
   against a content contract, chooses the document structure, and self-checks before return.
   A document stage does not require an Author-agent dispatch when the primary orchestrator is
@@ -45,11 +48,6 @@ GMGN defines seven execution-separated roles and one optional audit role.
   actual writer/Coder. It reports findings and never edits the reviewed work.
 - **Verifier** independently executes tests, gates, and real product paths at an anchored
   candidate without changing product meaning or source code.
-- **Integrator** is required when an accepted candidate must cross an isolated-workspace,
-  concurrent-writer, or shared-baseline integration boundary. For implementation it is the
-  single writer for the shared baseline, `Task.md`, and traceability state. It serially
-  integrates accepted lanes and performs only accepted mechanical propagation. Semantic
-  ambiguity or a merge conflict returns to the orchestrator.
 - **External audit** is optional and introduces a frame from outside the working group.
 
 Stages close against explicit criteria, not dates. Dates may be planning constraints, but
@@ -59,7 +57,7 @@ they never turn an unmet criterion into a completed one.
 
 Runtime state is separate from document approval state and work-item state. Each active node
 records `node_id`, `state`, `baseline_anchor`, `candidate_anchor`, and the relevant
-`author_ref`, `critic_ref`, `coder_ref`, `reviewer_ref`, `verifier_ref`, or `integrator_ref`.
+`author_ref`, `critic_ref`, `coder_ref`, `reviewer_ref`, or `verifier_ref`.
 
 A specification-document node first records its actual writer in `author_ref`: either the
 primary session or a delegated Author agent. It then follows `ready-to-dispatch →
@@ -69,12 +67,12 @@ findings use `author-revising` with the same writer; blocker resolution uses
 `critic-rechecking` with the same independent Critic. Upstream correction uses
 `upstream-change-pending` while preserving the current writer.
 
-Successful review enters `acceptance-ready → accepted`. If the accepted candidate must cross
+Successful review enters `acceptance-ready → accepted`. The primary orchestrator applies any
+accepted mechanical propagation, links, state, and commit material; when a candidate crosses
 an isolated-workspace, concurrent-writer, or shared-baseline boundary, continue through
-`integrating → node-complete` with an Integrator. If the recorded writer already owns the
-canonical workspace and can safely perform the accepted same-batch propagation, no separate
-Integrator is required and the node may move from `accepted` to `node-complete` after the
-machine checks pass. WhitePaper normally favors the primary session because it retains the
+`integrating → node-complete`. If the primary already owns the canonical workspace, the node
+may move from `accepted` to `node-complete` after the same-batch propagation and machine checks
+pass. WhitePaper normally favors the primary session because it retains the
 complete Brainstorm dialogue, but the same writer-selection rule applies to all six
 specification documents. The Critic always remains independent of the actual writer.
 
@@ -84,17 +82,18 @@ per conversation. Its `lane_key` is the combination of `project_scope_id` and `c
 `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`, `run_id`,
 `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
 `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
-and `shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`. The
-integration queue retains one `integrator_ref`.
+and `shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`.
+The primary orchestrator that owns `owner_thread_id` and `owner_run_id` also owns the shared
+integration queue.
 
 The normal card path is `ready-to-dispatch → workspace-prepared → coder-active →
 coder-returned → candidate-awaiting-anchor → candidate-anchored → review-authorized →
 reviewer-active → reviewer-returned → verifier-active → verifier-returned → acceptance-ready →
 accepted → integration-queued → integrating → post-integration-verifying → node-complete`.
 `accepted` means only that the isolated card
-candidate may enter the integration queue. A card becomes `closed` only after it is integrated
-into `shared_baseline_anchor`, post-integration verification passes, and the Integrator
-refreshes `Task.md` and traceability.
+candidate may enter the integration queue. A card becomes `closed` only after the primary
+orchestrator integrates it into `shared_baseline_anchor`, post-integration verification
+passes, and the primary refreshes `Task.md` and traceability.
 
 The primary orchestrator is the hub: a delegated Author and Critic, or Coder and Reviewer, do
 not communicate directly. Within one lane the same Coder repairs findings and
@@ -166,9 +165,9 @@ scheduler verifies lane/repository identity, path, candidate commit, and `write_
 atomically anchors it. Only an explicit `review-authorized` message for that exact candidate and
 epoch lets the worker dispatch Reviewer; old authorization never carries to a revision.
 
-Integration is two-phase. From the clean current `shared_baseline_anchor`, the Integrator
-mechanically applies an accepted lane in an isolated temporary combination workspace. The
-same Verifier keeps its identity but receives that temporary workspace's current
+Integration is two-phase. From the clean current `shared_baseline_anchor`, the primary
+orchestrator mechanically applies an accepted lane in an isolated temporary combination
+workspace. The same Verifier keeps its identity but receives that temporary workspace's current
 `workspace_mode`, `worktree_path`, and `branch_ref`. Only a verified combined candidate plus
 its mechanical ledger refresh may atomically advance the shared anchor. On merge/cherry-pick
 conflict or verification failure, abort the operation or discard the temporary workspace,
@@ -386,7 +385,7 @@ separate owner authorization.
    correctness gate. Each actual dispatch states node identity, scope, boundaries, inputs,
    content contract, outputs, verification, agent identity, and return format. The same
    recorded writer handles in-node corrections. During implementation, the reviewed `Task.md`
-   card is the only static execution authority: Coder, Reviewer, Verifier, and Integrator
+   card is the only static execution authority: Coder, Reviewer, and Verifier
    receive a minimal runtime dispatch and no parent conversation history. That dispatch cites
    the card and current lane facts; it is not a per-agent Handoff. Detailed history stays in
    the card's descriptive execution log and cannot introduce scope, gates, or completion

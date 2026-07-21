@@ -91,7 +91,8 @@ DocStar is absent, run equivalent repository link/table checks and disclose that
 ## Presentation and close
 
 Present scope, evidence, known debt, remaining material risks—or that none are known—and the
-version anchor to the owner. Only after explicit acceptance, set state to `accepted` and dispatch an Integrator:
+version anchor to the owner. Only after explicit acceptance, set state to `accepted`; the
+primary orchestrator then performs the following mechanical integration work:
 
 - set the target Milestone and its normative chain to `closed` where appropriate;
 - create/update Handoff with `type: handoff`, `nature: descriptive`, one-line state,

@@ -20,7 +20,7 @@ wording and order to the task and platform.
 Every dispatch states:
 
 - one independently acceptable objective and role:
-  `author | coder | critic | reviewer | verifier | researcher | integrator`;
+  `author | coder | critic | reviewer | verifier | researcher`;
 - whether to start a new agent or resume an existing identity ref;
 - current runtime state, authority links, required reading, in-scope paths/behaviors, and
   explicit exclusions;
@@ -34,9 +34,10 @@ card into another prompt or document. The minimal dispatch adds only the current
 identity mode, authority repository or corpus pointer, runtime state, lane/workspace/anchor
 facts, permissions, prohibitions, and return gate. A same-baseline DocStar brief may accompany
 those pointers as a derived index. This dispatch is not a per-agent `Handoff`; GMGN Handoff is
-the receiving-state artifact used after closure or at a session boundary.
+the receiving-state artifact used after closure or at a session boundary that does not cross
+active owner-bound lanes.
 
-Start or resume a run-task Coder, Reviewer, Verifier, or Integrator without parent conversation
+Start or resume a run-task Coder, Reviewer, or Verifier without parent conversation
 history. Where the historical Codex schema is exposed, set `fork_turns="none"`; where the
 boolean schema is exposed, set `fork_context=false` or omit it when false is the documented
 default. Do not use `fork_turns="all"` or `fork_context=true` for these roles. Resuming a
@@ -52,17 +53,18 @@ resolve only the exact card, directly gating rows, affected AC rows, and current
 and integration-queue pointers rather than all of `Task.md`. Meaning found only in the log must
 be promoted to the correct normative authority before affected work continues.
 
-A dispatch for any repository operation—document node, implementation lane, or integration
-queue—records and verifies the existing workspace facts `workspace_mode`, `worktree_path`, and
-`branch_ref`. These facts describe the current dispatch, not an agent's permanent identity. A
+A repository operation—document node, implementation lane, or primary-orchestrator
+integration—records and verifies the existing workspace facts `workspace_mode`, `worktree_path`, and
+`branch_ref`. These facts describe the current repository operation, not an agent's permanent identity. A
 document node additionally records `node_id`, `baseline_anchor`, `candidate_anchor`, and the
-needed `author_ref`, `critic_ref`, or `integrator_ref`. An implementation lane records exactly
+needed `author_ref` or `critic_ref`. An implementation lane records exactly
 `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`, `run_id`,
 `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
 `repository_identity`, `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
 `integration_queue_ref`, and `shared_baseline_anchor`, plus its own `coder_ref`,
-`reviewer_ref`, and `verifier_ref`. The shared integration queue retains one
-`integrator_ref`. Task planning also states `depends_on` and the semantic owner.
+`reviewer_ref`, and `verifier_ref`. The primary orchestrator identified by `owner_thread_id`
+and `owner_run_id` owns the shared integration queue. Task planning also states `depends_on`
+and the semantic owner.
 `owner_thread_id` is the main task that owns the writer lane, `owner_run_id` is the scheduler
 run holding the claim, and `coder_ref` is that lane's writer agent; these identities are not
 interchangeable. `run_id` remains execution provenance and is not a uniqueness key.
@@ -127,7 +129,7 @@ Runtime state is separate from document `status` and task work status.
   candidate crosses an integration boundary only when its workspace topology requires it; an
   implementation card enters the integration queue and is not yet `closed`.
 - `integration-queued`: the accepted card waits in the recorded integration queue.
-- `integrating`: an Integrator is applying a candidate across an isolated-workspace,
+- `integrating`: the primary orchestrator is applying a candidate across an isolated-workspace,
   concurrent-writer, or shared-baseline boundary.
 - `integration-conflict`: integration stopped; the same Coder must resolve the conflict.
 - `rebase-required`: mechanical application is not clean, dependency/specification meaning is
@@ -200,13 +202,13 @@ verifies the bound lane/repository/path, candidate commit, and `write_set`, perf
 anchor, and then sends candidate-and-epoch-scoped `review-authorized`. Only then may the worker
 dispatch Reviewer. Revision invalidates the preceding authorization and repeats the gate.
 
-For specification documents, bind `integrator_ref` only when the accepted candidate must cross
-an isolated-workspace, concurrent-writer, or shared-baseline boundary. Otherwise the recorded
-writer may perform accepted same-batch propagation and machine checks directly. For
-implementation, one `integrator_ref` always serially owns the integration workspace,
-`integration_queue_ref`, shared baseline, `Task.md`, per-card execution logs, and traceability. Implementation
-integration is two-phase: from the current clean
-`shared_baseline_anchor`, it creates an isolated temporary combination and mechanically applies
+For specification documents, the primary orchestrator performs accepted same-batch propagation,
+machine checks, and commit control, including when the candidate crosses an isolated-workspace,
+concurrent-writer, or shared-baseline boundary. For implementation, the primary orchestrator
+serially owns the integration workspace, `integration_queue_ref`, shared baseline, `Task.md`,
+per-card execution logs, and traceability. Implementation integration is two-phase: from the
+current clean `shared_baseline_anchor`, it creates an isolated temporary combination and
+mechanically applies
 the accepted local-commit `candidate_anchor` without advancing the shared anchor. The
 integration event/evidence retains the preceding anchor; do not add a synonymous top-level
 runtime field. The same Verifier is resumed with the temporary workspace's current
@@ -216,7 +218,7 @@ Only a post-integration-verified candidate plus accepted mechanical ledger refre
 atomically advance `shared_baseline_anchor`. On merge/cherry-pick conflict or verification
 failure, abort the operation or discard the temporary workspace, restore the preceding shared
 anchor, and confirm its index/worktree clean with `git status --short`. The failed implementation
-candidate never advances it. From that clean anchor, the Integrator may create and mechanically
+candidate never advances it. From that clean anchor, the primary orchestrator may create and mechanically
 check a separate state-only candidate containing the durable event in
 `execution/<card_id>.md` and the replaced current blocker, status, anchors, evidence, and
 `latest_event` in `Task.md`; that descriptive-only
@@ -230,8 +232,11 @@ the runtime lane becomes `node-complete` afterward.
 
 If the platform cannot resume an agent, enter `agent-unavailable`, record why, and hand the
 complete lane record to an explicit replacement. A replacement Critic/Reviewer performs a
-full review; a replacement Verifier reruns the full required verification. A replacement
-Integrator re-reads the queue and shared baseline and replays its mechanical checks.
+full review; a replacement Verifier reruns the full required verification. An active lane must
+not change `owner_thread_id` or `owner_run_id`: if its originating primary session cannot be
+resumed, enter `owner-unreachable`; a new session must not reconstruct ownership, impersonate
+the old IDs, anchor, integrate, or release that lane. Main-session handoff is allowed only
+after every lane owned by that session reaches `node-complete` and is released.
 
 ## Role requirements
 
@@ -251,12 +256,8 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   conflict/recheck rules.
 - **Verifier** independently runs the active stage's tests, real paths, negative cases, and
   gates. For a run-task card, the same `verifier_ref` receives the card workspace during
-  candidate verification and the Integrator's temporary combination workspace during
+  candidate verification and the primary orchestrator's temporary combination workspace during
   post-integration verification, validating the current dispatch path both times.
-- **Integrator** performs accepted mechanical propagation for a document only when its
-  candidate crosses an integration boundary, and for milestone closure when that stage
-  requires it. When the active dispatch is a run-task card, it is the shared-baseline single
-  writer and follows the two-phase integration/rollback protocol above.
 - **Researcher** gathers scoped evidence and labels measured facts, source-backed facts, and
   inference; recommendations do not become authority.
 
@@ -284,7 +285,7 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   Coder.
 
   The originating scheduler is the sole global ready-set, lane-registry, integration-queue,
-  shared-baseline, and Integrator owner. Workers cannot mutate the registry, recursively create
+  and shared-baseline owner. Workers cannot mutate the registry, recursively create
   main tasks, adjudicate, accept, integrate, edit shared `Task.md` or traceability, push, or
   publish. When workers exceed one `wait_threads` call's runtime target limit, group them by the
   observed capability. Wait on groups concurrently when supported; otherwise take
@@ -298,14 +299,14 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   completion, updates the ready set, and immediately refills the freed slot. Never infer a
   concurrency number from a hard-coded environment-variable default.
 
-  Whenever Author, Critic, Coder, Reviewer, Verifier, or Integrator work is delegated to a
+  Whenever Author, Critic, Coder, Reviewer, or Verifier work is delegated to a
   resumable agent, use a custom or `general-purpose` agent and record its agent ID. A primary
   session recorded as a document writer is not an Author-agent dispatch. `SendMessage` is
   available only when
   `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is enabled; enabling that flag does not require
   adopting Agent Teams. When messaging is available, resume by agent ID. When it is unavailable,
   enter the existing `agent-unavailable` explicit-replacement rule; do not claim a targeted
-  recheck, the same Verifier, or the same Integrator. `Explore` and `Plan` cannot carry a role
+  recheck or the same Verifier. `Explore` and `Plan` cannot carry a role
   that must be resumed. Plugin agents live in root `agents/`.
 
   Do not claim automatic worktree isolation. Isolation exists only when explicitly requested
@@ -317,13 +318,13 @@ Integrator re-reads the queue and shared baseline and replays its mechanical che
   isolated and all file/conflict domains non-overlapping; otherwise teammates are read-only or
   return proposals. Concurrent same-file writers can overwrite each other.
 
-  GMGN never relies on automatic merge. When a candidate crosses an integration boundary, the
-  recorded Integrator performs explicit integration; implementation candidates always do so.
+  GMGN never relies on automatic merge. The primary orchestrator explicitly integrates every
+  candidate that crosses an integration boundary; implementation candidates always do so.
   A native worktree's default base may be a fresh/origin default rather than the approved
   `baseline_anchor`, so verify the exact commit before work. If it differs, select the approved
   head, use a `WorktreeCreate` hook, or provision a manual worktree. Do not hard-code Claude
-  temporary paths or branch names. Reviewer, Verifier, and Integrator use the current dispatch
-  path rather than blindly creating another worktree.
+  temporary paths or branch names. Reviewer and Verifier use the current dispatch path rather
+  than blindly creating another worktree.
 
 If a surface lacks steering, resume, or safe workspace controls, apply the corresponding
 degradation rule; do not silently weaken identity or isolation.

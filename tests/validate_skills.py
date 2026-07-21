@@ -22,7 +22,7 @@ DOCSTAR_CONVENTIONS = ROOT / ".docstar" / "conventions" / "conventions.json"
 LANE_REGISTRY = SKILLS / "run-task" / "scripts" / "lane_registry.py"
 
 REQUIRED_OPENAI_INTERFACE_FIELDS = ("display_name", "short_description", "default_prompt")
-ROLE_NAMES = ("author", "coder", "critic", "reviewer", "verifier", "integrator")
+ROLE_NAMES = ("author", "coder", "critic", "reviewer", "verifier")
 REQUIRED_CODEX_ROLE_FILES = tuple(f"{name}.toml" for name in ROLE_NAMES)
 REQUIRED_CLAUDE_ROLE_FILES = tuple(f"{name}.md" for name in ROLE_NAMES)
 CANONICAL_FRONTMATTER = {"locale", "purpose", "upstream", "downstream", "status", "type", "nature"}
@@ -217,7 +217,7 @@ def validate_release_metadata(errors: list[str], skill_names: set[str]) -> None:
                 errors.append(f"{path}: 只读角色必须禁用 Write/Edit")
         if path.stem in {"author", "coder"} and fields.get("isolation") != "worktree":
             errors.append(f"{path}: writer 必须显式 isolation: worktree")
-        if path.stem in {"reviewer", "verifier", "integrator"} and "isolation" in fields:
+        if path.stem in {"reviewer", "verifier"} and "isolation" in fields:
             errors.append(f"{path}: 非 writer 不得盲目新建 worktree")
 
 
@@ -1087,7 +1087,7 @@ def validate_task_execution_log_contract(
             "failed implementation candidate never advances it",
             "separate state-only candidate",
             "descriptive-only commit",
-            "Every Coder, Reviewer, Verifier, and Integrator return supplies a durable event",
+            "Every Coder, Reviewer, and Verifier return supplies a durable event",
             "Flush pending events before identity replacement",
             "replace every Task current field changed by the event",
             "Every pre-integration flush starts from the clean current shared baseline",
@@ -1204,30 +1204,6 @@ def validate_task_execution_log_contract(
                 "另建并机械检查状态候选",
                 "从已锚定的 `latest_event` 开始",
                 "验证过的组合候选本身必须",
-            ),
-        ),
-        (
-            CLAUDE_AGENTS / "integrator.md",
-            (
-                "per-card execution logs",
-                "execution/<card_id>.md",
-                "never accumulate history",
-                "descriptive evidence only",
-                "seven fixed frontmatter keys",
-                "exact stable Task-card anchor",
-                "docs-only state candidate",
-            ),
-        ),
-        (
-            CODEX_AGENTS / "integrator.toml",
-            (
-                "单卡执行日志",
-                "execution/<card_id>.md",
-                "不累积历史",
-                "返回规范性权威",
-                "七个固定元信息键",
-                "真实相对链接指向精确 Task 卡稳定锚",
-                "docs-only 状态候选",
             ),
         ),
         (
@@ -1422,9 +1398,8 @@ def validate_agent_lifecycle(
         "worker-queued", "worker-resolved", "worker-bootstrap-returned", "worker-activated",
     )
     role_tokens = (
-        "author | coder | critic | reviewer | verifier | researcher | integrator",
+        "author | coder | critic | reviewer | verifier | researcher",
         "author_ref", "critic_ref", "coder_ref", "reviewer_ref", "verifier_ref",
-        "integrator_ref",
     )
     lane_fields = (
         "project_scope_id", "lane_key", "owner_thread_id", "owner_run_id",
@@ -1465,30 +1440,34 @@ def validate_agent_lifecycle(
             "scheduler DAG", "named `Agent`", "waits for any", "general-purpose",
             "SendMessage", "Explore", "Plan", "experimental", "/resume",
             "actual platform capacity", "environment-variable default",
-            "Author, Critic, Coder, Reviewer, Verifier, or Integrator",
+            "Author, Critic, Coder, Reviewer, or Verifier",
             "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "does not require adopting Agent Teams",
             "agent-unavailable", "do not claim a targeted recheck", "same Verifier",
-            "same Integrator", "cross-task fan-out", "create_thread", "list_threads",
+            "cross-task fan-out", "create_thread", "list_threads",
             "read_thread", "wait_threads", "send_message_to_thread", "read-only",
             "exactly one card", "recursively create main tasks", "run-scoped authorization",
             "clientThreadId", "threadId", "hostId", "first blocking wait", "timeoutMs: 0",
             "only static execution authority", "parent conversation history", "fork_turns",
             "fork_context", "not a per-agent `Handoff`", "only in chat", "write-task",
+            "does not cross active owner-bound lanes", "owner-unreachable",
+            "must not reconstruct ownership", "reaches `node-complete` and is released",
         ),
         dispatch_paths[1]: (
             "普通 subagent 默认共享", "isolation: worktree", "Agent Teams", "不自动创建 worktree",
             "不依赖自动 merge", "fresh/origin default", "baseline_anchor", "WorktreeCreate",
             "当前派发", "调度 DAG", "具名 `Agent`", "任一 agent 完成", "general-purpose",
             "SendMessage", "Explore", "Plan", "实验性", "/resume", "实际平台容量",
-            "环境变量默认值", "Author、Critic、Coder、Reviewer、Verifier、Integrator",
+            "环境变量默认值", "Author、Critic、Coder、Reviewer、Verifier",
             "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1", "不等于必须采用", "agent-unavailable",
-            "不能声称做原身份的定向复核", "同一 Verifier", "同一 Integrator",
+            "不能声称做原身份的定向复核", "同一 Verifier",
             "跨任务", "create_thread", "list_threads", "read_thread", "wait_threads",
             "send_message_to_thread", "只读", "一张卡", "递归创建主任务",
             "本轮授权", "clientThreadId", "threadId", "hostId", "第一次阻塞等待",
             "timeoutMs: 0",
             "唯一静态执行权威", "父会话历史", "fork_turns", "fork_context",
             "不是逐 agent 的 `Handoff`", "只存在于聊天", "write-task",
+            "不跨越活动 owner-bound lane", "owner-unreachable", "不得重建 owner",
+            "全部 lane 都已 `node-complete` 并 release",
         ),
     }
     for path, tokens in adapter_tokens.items():
@@ -1499,7 +1478,8 @@ def validate_agent_lifecycle(
         (
             "author-active", "author-returned", "candidate-anchored", "critic-active",
             "critic-returned", "author-revising", "critic-rechecking", "author_ref",
-            "critic_ref", "agent-unavailable", "Integrator", "node-complete",
+            "critic_ref", "agent-unavailable", "primary orchestrator", "node-complete",
+            "must itself integrate every accepted candidate", "must not be delegated",
             "lane_key = project_scope_id + card_id", "owner_thread_id", "owner_run_id",
             "ownership_epoch", "owner-unreachable", "claim/bind/verify",
             "cross-task fan-out", "worker main task", "read-only bootstrap",
@@ -1517,7 +1497,8 @@ def validate_agent_lifecycle(
                 "author_ref", "author-returned", "candidate-anchored", "critic-returned",
                 "actual writer", "primary session may write directly",
                 "Author may be delegated", "same recorded writer", "independent Critic",
-                "critic-rechecking", "integration boundary", "node-complete",
+                "critic-rechecking", "integration boundary",
+                "The primary orchestrator applies accepted mechanical", "node-complete",
             ),
             name,
         )
@@ -1544,7 +1525,7 @@ def validate_agent_lifecycle(
                 "For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
                 "selects the actual writer", "Bind `author_ref` to that actual writer",
                 "WhitePaper normally favors the primary session", "independent Critic",
-                "not a required ceremony",
+                "must itself integrate every accepted candidate",
             ),
             "gmgn 路由 writer 选择",
         ),
@@ -1554,7 +1535,8 @@ def validate_agent_lifecycle(
                 "For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
                 "may write or revise the artifact directly", "optional delegated writer",
                 "actual writer in `author_ref`", "primary session or a delegated Author agent",
-                "no separate Integrator is required", "Critic always remains independent",
+                "applies accepted mechanical propagation",
+                "Critic always remains independent",
             ),
             "GMGN.md writer 选择",
         ),
@@ -1564,7 +1546,8 @@ def validate_agent_lifecycle(
                 "WhitePaper、ROADMAP、Goal、Requirement、Design、Task",
                 "可由主编排者直接完成", "也可把边界清楚的写作单元委派给 Author",
                 "`author_ref` 绑定到实际 writer", "主 session 或受委派 Author agent",
-                "不必另派 Integrator", "Critic 始终必须独立于实际 writer",
+                "已接受的机械传导、链接、状态与提交材料由主编排者",
+                "Critic 始终必须独立于实际 writer",
             ),
             "GMGN.zh-CN.md writer 选择",
         ),
@@ -1592,7 +1575,7 @@ def validate_agent_lifecycle(
                 "For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task",
                 "record the writer choice", "primary session or a delegated Author agent",
                 "not an Author-agent dispatch", "Critic remains independent",
-                "bind `integrator_ref` only when",
+                "primary orchestrator performs accepted same-batch propagation",
             ),
             "英文生命周期契约 writer 选择",
         ),
@@ -1602,7 +1585,7 @@ def validate_agent_lifecycle(
                 "WhitePaper、ROADMAP、Goal、Requirement、Design、Task",
                 "记录 writer 选择", "主 session", "受委派 Author agent",
                 "不是 Author-agent 派发", "Critic 必须独立于实际 writer",
-                "才绑定 `integrator_ref`",
+                "同批机械传导、机检与提交控制都由主编排者完成",
             ),
             "中文生命周期契约 writer 选择",
         ),
@@ -1682,46 +1665,13 @@ def validate_agent_lifecycle(
             r"(?:候选|节点|产物)?[^。\n]{0,25}(?:必须|一律|始终)",
         ),
     )
-    unconditional_integrator_patterns = (
-        re.compile(
-            r"\b(?:Every|All|Each)\s+(?:specification\s+)?document"
-            r"(?:\s+(?:candidate|node|artifact))?s?\b[^.\n]{0,30}"
-            r"\b(?:must|shall|requires?|required)\b[^.\n]{0,20}\bIntegrator\b",
-            re.I,
-        ),
-        re.compile(
-            r"\b(?:Always|Must\s+always|Shall\s+always)\b[^.\n]{0,20}(?:dispatch|use)"
-            r"[^.\n]{0,15}\bIntegrator\b[^.\n]{0,60}"
-            r"\b(?:document|specification artifact|WhitePaper|ROADMAP|Goal|Requirement|Design|Task)\b",
-            re.I,
-        ),
-        re.compile(
-            r"\bIntegrator\b[^.\n]{0,50}\b(?:must|shall|always|required)\b"
-            r"[^.\n]{0,50}\b(?:every|all|each)\s+(?:specification\s+)?document"
-            r"(?:\s+(?:candidate|node|artifact))?s?\b",
-            re.I,
-        ),
-        re.compile(
-            r"(?:每个|所有)[^。\n]{0,15}(?:规格)?文档(?:候选|节点|产物)?"
-            r"[^。\n]{0,25}(?:必须|都要|一律)[^。\n]{0,15}Integrator",
-        ),
-        re.compile(
-            r"(?:一律|始终)[^。\n]{0,20}(?:派发|使用)[^。\n]{0,12}Integrator"
-            r"[^。\n]{0,50}(?:文档候选|规格文档|WhitePaper|ROADMAP|Goal|Requirement|Design|Task)",
-        ),
-        re.compile(
-            r"Integrator[^。\n]{0,50}(?:每个|所有)[^。\n]{0,15}(?:规格)?文档"
-            r"(?:候选|节点|产物)?[^。\n]{0,25}(?:必须|一律|始终)",
-        ),
-    )
     role_policy_paths = (
         ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md", *dispatch_paths,
         REFERENCES / "en" / "writing-contract.md",
         REFERENCES / "zh-CN" / "writing-contract.md",
         SKILLS / "gmgn" / "SKILL.md", SKILLS / "brainstorm" / "SKILL.md",
         *(SKILLS / name / "SKILL.md" for name in SPEC_DOCUMENT_NODE_SKILLS),
-        CLAUDE_AGENTS / "author.md", CLAUDE_AGENTS / "integrator.md",
-        CODEX_AGENTS / "author.toml", CODEX_AGENTS / "integrator.toml",
+        CLAUDE_AGENTS / "author.md", CODEX_AGENTS / "author.toml",
     )
     for path in role_policy_paths:
         try:
@@ -1730,19 +1680,63 @@ def validate_agent_lifecycle(
             errors.append(str(exc))
             continue
         found = [phrase for phrase in legacy_fixed_role_separation if phrase in text]
-        for pattern in (*mandatory_writer_patterns, *unconditional_integrator_patterns):
+        for pattern in mandatory_writer_patterns:
             match = pattern.search(text)
             if match:
                 found.append(match.group(0))
         if found:
             errors.append(f"{path}: 文档 writer 不得退回固定角色分离 {found}")
 
+    removed_role_files = (
+        CLAUDE_AGENTS / "integrator.md",
+        CODEX_AGENTS / "integrator.toml",
+    )
+    for path in removed_role_files:
+        if path.exists():
+            errors.append(f"{path}: 已删除的集成角色 agent 文件不得恢复")
+    public_policy_paths = {
+        *ROOT.glob("*.md"),
+        *SKILLS.rglob("*.md"),
+        *CLAUDE_AGENTS.glob("*.md"),
+        *CODEX_AGENTS.glob("*.toml"),
+    }
+    removed_role_pattern = re.compile(r"\bIntegrator\b|\bintegrator_ref\b|\bintegrator\b")
+    delegated_integration_patterns = (
+        re.compile(
+            r"\b(?:delegate|assign|hand\s+off)\w*\b[^.\n]{0,35}\b(?:"
+            r"accepted[- ]candidate\s+integration|integration\s+(?:work|control|ownership)|"
+            r"merge\s+(?:work|control)|shared[- ]baseline\s+(?:write|control|ownership))\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(?:integration|merge)\s+(?:agent|worker|role)\b",
+            re.I,
+        ),
+        re.compile(
+            r"(?:委派|派发|交给|另派|分配给|转交)[^。\n]{0,30}(?:"
+            r"已接受候选(?:的)?集成|集成(?:工作|控制|职责)|合并(?:工作|控制|职责)|"
+            r"共享基线(?:写入|控制|所有权))[^。\n]{0,12}(?:agent|worker|角色|代理)?",
+        ),
+        re.compile(r"(?:集成|合并)\s*(?:agent|worker|角色|代理)"),
+    )
+    for path in sorted(public_policy_paths):
+        text = path.read_text(encoding="utf-8")
+        match = removed_role_pattern.search(text)
+        if match:
+            errors.append(f"{path}: 残留已删除的集成角色标识 {match.group(0)!r}")
+        for pattern in delegated_integration_patterns:
+            match = pattern.search(text)
+            if match:
+                errors.append(f"{path}: 集成职责不得委派给 agent/worker {match.group(0)!r}")
+                break
+
     require_tokens(
         errors,
         parsed.get("run-task", ("", ""))[1],
         (
             "coder_ref", "coder-returned", "same Coder", "reviewer_ref", "same Reviewer",
-            "reviewer-rechecking", "verifier-active", "verifier-returned", "Integrator",
+            "reviewer-rechecking", "verifier-active", "verifier-returned",
+            "primary orchestrator is the only writer",
             "project_scope_id", "lane_key", "owner_thread_id", "owner_run_id",
             "ownership_epoch", "owner-unreachable", "run_id", "card_id", "workspace_mode",
             "worktree_path", "branch_ref",
@@ -1855,7 +1849,7 @@ def validate_agent_lifecycle(
         parsed.get("close-milestone", ("", ""))[1],
         (
             "verifier-active", "verifier-returned", "author_ref", "same closure Author",
-            "same Critic/Reviewer", "acceptance-ready", "Integrator", "owner acceptance",
+            "same Critic/Reviewer", "acceptance-ready", "primary orchestrator", "owner acceptance",
             "node-complete", "shared_baseline_anchor", "integration queue must be empty",
             "rebase-required", "integration-conflict",
         ),
@@ -1970,7 +1964,7 @@ def validate_agent_lifecycle(
     )
     protocol_files = (
         ROOT / "GMGN.md", ROOT / "GMGN.zh-CN.md", SKILLS / "run-task" / "SKILL.md",
-        *dispatch_paths, CLAUDE_AGENTS / "integrator.md", CODEX_AGENTS / "integrator.toml",
+        *dispatch_paths,
     )
     for path in protocol_files:
         text = path.read_text(encoding="utf-8")
@@ -1987,10 +1981,6 @@ def validate_agent_lifecycle(
                      ("run-task", "close-milestone", "当前派发")),
         "verifier": (("run-task", "close-milestone", "current dispatch", "same `verifier_ref`"),
                      ("run-task", "close-milestone", "当前派发", "同一 verifier_ref")),
-        "integrator": (("only when the dispatch identifies", "integration boundary",
-                         "write-*", "close-milestone", "run-task", "temporary"),
-                       ("只有 brainstorm 或 write-* 文档候选需要跨", "close-milestone",
-                        "run-task", "临时")),
     }
     for name, (claude_tokens, codex_tokens) in general_role_tokens.items():
         for path, tokens in (
@@ -2124,7 +2114,7 @@ def validate_self_check_and_risk_disclosure(
             f"{path} 自检与风险披露",
         )
 
-    for name in ("author", "critic", "integrator", "reviewer", "verifier"):
+    for name in ("author", "critic", "reviewer", "verifier"):
         for path, tokens in (
             (
                 CLAUDE_AGENTS / f"{name}.md",
@@ -2361,7 +2351,7 @@ def main() -> int:
         required = (
             "Move an accepted lane", "integration-queued", "post-integration-verifying",
             "node-complete",
-            "same Integrator", "same Verifier", "shared_baseline_anchor", "Task.md",
+            "primary orchestrator", "same Verifier", "shared_baseline_anchor", "Task.md",
             "stale assertions", "not-started", "not created", "not run",
             "awaiting confirmation", "Mechanically refresh", "git diff --check",
             "Set the log frontmatter to `status: closed`",
