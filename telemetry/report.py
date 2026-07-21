@@ -1287,6 +1287,16 @@ def _wait_result(call: _RawCall) -> str:
     timed_out = _nested_values(value, {"timedout", "timeout"})
     if any(candidate is True for candidate in timed_out):
         return "timeout"
+    statuses = _nested_values(value, {"status"})
+    status = next((candidate for candidate in statuses if isinstance(candidate, str)), None)
+    if status is not None:
+        normalized_status = re.sub(r"[^a-z0-9]", "", status.casefold())
+        if normalized_status in {"timeout", "timedout"}:
+            return "timeout"
+        if normalized_status in {"interrupted", "cancelled", "canceled"}:
+            return "interrupted"
+    if _infer_success(call.status, call.output) is False:
+        return "error"
     if any(candidate is False for candidate in timed_out):
         return "update"
 
@@ -1308,8 +1318,6 @@ def _wait_result(call: _RawCall) -> str:
         return "update"
     if re.search(r"\b(?:wait(?:ing)?[ _-]?)?timed[ _-]?out\b", normalized):
         return "timeout"
-    if _infer_success(call.status, call.output) is False:
-        return "error"
     return "unknown"
 
 
@@ -2174,7 +2182,13 @@ def _hook_gmgn_metrics(
                     result_value,
                 )
             )
-            if call.duration_ms is None:
+            native_duration = (
+                native_duration_by_id.get(call.call_id) if call.call_id else None
+            )
+            if native_duration is not None:
+                wait_durations.append(native_duration)
+                group_duration_sources.add(OTEL_SOURCE)
+            elif call.duration_ms is None:
                 group_duration_complete = False
             else:
                 wait_durations.append(call.duration_ms)

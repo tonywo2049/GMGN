@@ -850,14 +850,47 @@ class TelemetryReportTests(unittest.TestCase):
                 "wait-timeout-status",
                 {"status": "timed_out"},
             ),
+            self.call(
+                "2026-07-20T02:00:04Z",
+                "wait-failed-timeout-text",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T02:00:05Z",
+                "wait-failed-timeout-text",
+                {"success": False, "error": "backend timed out"},
+            ),
+            self.call(
+                "2026-07-20T02:00:06Z",
+                "wait-failed-false-timeout",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T02:00:07Z",
+                "wait-failed-false-timeout",
+                {"success": False, "timed_out": False},
+            ),
+            self.call(
+                "2026-07-20T02:00:08Z",
+                "wait-failed-status-timeout-text",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T02:00:09Z",
+                "wait-failed-status-timeout-text",
+                {"status": "failed", "message": "wait timed out upstream"},
+            ),
         ]
         self.write_session("rollout-wait-error-session", entries)
 
         wait = self.build_report("wait-error-session")["runs"][0]["gmgn"]["wait"]
-        self.assertEqual(wait["result_counts"]["error"], 0)
+        self.assertEqual(wait["result_counts"]["error"], 3)
         self.assertEqual(wait["result_counts"]["unknown"], 1)
         self.assertEqual(wait["result_counts"]["timeout"], 1)
-        self.assertEqual(wait["state_change_counts"]["unknown"], 1)
+        self.assertEqual(wait["state_change_counts"]["unknown"], 4)
         self.assertEqual(wait["state_change_counts"]["unchanged"], 1)
         self.assertEqual(wait["reactivation"]["coverage"], "unknown")
 
@@ -915,6 +948,19 @@ class TelemetryReportTests(unittest.TestCase):
                 },
             ]
         )
+        self.write_otel(
+            [
+                self.otel_record(
+                    "wait-hook-match",
+                    "codex.tool_result",
+                    "2026-07-20T03:10:02Z",
+                    tool_name="wait_agent",
+                    call_id="wait-shared",
+                    duration_ms=25,
+                    success=True,
+                )
+            ]
+        )
 
         gap = self.build_report("wait-hook-gap")["runs"][0]
         self.assertEqual(gap["gmgn"]["wait_calls"], 1)
@@ -945,12 +991,20 @@ class TelemetryReportTests(unittest.TestCase):
                 "unknown": 0,
             },
         )
-        self.assertEqual(matched["gmgn"]["wait_duration_ms"], 1000)
+        self.assertEqual(matched["gmgn"]["wait_duration_ms"], 25)
         self.assertEqual(
             matched["gmgn"]["metric_sources"]["wait_calls"],
             "session_jsonl_unstable_fallback",
         )
         self.assertEqual(matched["gmgn"]["metric_sources"]["wait"], "gmgn_hook")
+        self.assertEqual(
+            matched["gmgn"]["metric_sources"]["wait_duration_ms"],
+            "collector_otel",
+        )
+        self.assertEqual(
+            matched["coverage"]["gmgn"]["fields"]["wait_duration_ms"]["coverage"],
+            "observed",
+        )
 
     def test_missing_sessions_and_no_descendants(self) -> None:
         report = self.build_report(

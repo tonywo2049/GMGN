@@ -889,12 +889,41 @@ class HookTests(unittest.TestCase):
                 "sessionId": "session-wait",
                 "toolName": "wait_agent",
                 "toolUseId": "wait-structured-error",
-                "toolResponse": {"status": "failed"},
+                "toolResponse": {
+                    "status": "failed",
+                    "message": "wait timed out upstream",
+                },
             }
         )
         failed = self.read_records()[-1]
         self.assertFalse(failed["success"])
         self.assertEqual(failed["wait_result"], "error")
+
+        self.run_hook(
+            {
+                "hookEventName": "PostToolUse",
+                "sessionId": "session-wait",
+                "toolName": "wait_agent",
+                "toolUseId": "wait-failed-timeout-text",
+                "toolResponse": {"success": False, "error": "backend timed out"},
+            }
+        )
+        failed_timeout_text = self.read_records()[-1]
+        self.assertFalse(failed_timeout_text["success"])
+        self.assertEqual(failed_timeout_text["wait_result"], "error")
+
+        self.run_hook(
+            {
+                "hookEventName": "PostToolUse",
+                "sessionId": "session-wait",
+                "toolName": "wait_agent",
+                "toolUseId": "wait-failed-false-timeout",
+                "toolResponse": {"success": False, "timed_out": False},
+            }
+        )
+        failed_false_timeout = self.read_records()[-1]
+        self.assertFalse(failed_false_timeout["success"])
+        self.assertEqual(failed_false_timeout["wait_result"], "error")
 
         self.run_hook(
             {

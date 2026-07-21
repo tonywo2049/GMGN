@@ -29,6 +29,13 @@ GREP_COMMANDS = {"egrep", "fgrep", "grep", "rg", "ripgrep"}
 SHELL_COMMANDS = {"bash", "dash", "sh", "zsh"}
 SUCCESS_WORDS = {"completed", "ok", "passed", "success", "succeeded"}
 FAILURE_WORDS = {"error", "failed", "failure", "timed_out", "timeout"}
+WAIT_STATUS_RESULTS = {
+    "timeout": "timeout",
+    "timedout": "timeout",
+    "interrupted": "interrupted",
+    "cancelled": "interrupted",
+    "canceled": "interrupted",
+}
 WAIT_TOOLS = {"wait_agent", "wait_agents", "wait_threads"}
 SPAWN_TOOLS = {"agent", "spawn", "spawn_agent"}
 SEND_TOOLS = {
@@ -422,12 +429,22 @@ def extract_success(payload: dict, tool_output: Any, exit_code: Optional[int]) -
 
 
 def extract_wait_result(tool_output: Any, success: Optional[bool]) -> str:
+    timed_out: list[bool] = []
     for normalized_name in ("timedout", "timeout"):
         raw = find_value(tool_output, normalized_name)
-        if raw is True:
-            return "timeout"
-        if raw is False:
-            return "update"
+        if isinstance(raw, bool):
+            timed_out.append(raw)
+    if True in timed_out:
+        return "timeout"
+    status = find_value(tool_output, "status")
+    if isinstance(status, str):
+        structured_result = WAIT_STATUS_RESULTS.get(normalize_key(status))
+        if structured_result is not None:
+            return structured_result
+    if success is False:
+        return "error"
+    if False in timed_out:
+        return "update"
     if isinstance(tool_output, str):
         normalized = tool_output.casefold()
     else:
@@ -450,8 +467,6 @@ def extract_wait_result(tool_output: Any, success: Optional[bool]) -> str:
         return "update"
     if re.search(r"\b(?:wait(?:ing)?[ _-]?)?timed[ _-]?out\b", normalized):
         return "timeout"
-    if success is False:
-        return "error"
     return "unknown"
 
 
