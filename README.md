@@ -310,6 +310,7 @@ semantics, task closure, and bilingual parity using the same machine contract.
 ```bash
 python3 docstar.py check --preset gmgn-v1 --corpus /path/to/gmgn-project
 python3 docstar.py dump --preset gmgn-v1 --json --corpus /path/to/gmgn-project
+python3 docstar.py brief CARD-ID --baseline COMMIT --preset gmgn-v1 --json --corpus /path/to/gmgn-project
 ```
 
 When the corpus contains `.docstar/conventions/conventions.json`, the explicit preset is
@@ -318,6 +319,13 @@ JSON output are unchanged: every invocation performs a fresh full rebuild with n
 Telemetry hooks and reporters observe from outside DocStar, recording call count, elapsed
 time, command type, and subsequent grep/read activity. `grep_avoided` is descriptive and
 does not claim that DocStar caused a grep to be avoided.
+
+For run-task dispatch, DocStar 0.2.3 or later provides a commit-bound brief as the starting
+evidence bundle.
+It does not forbid an agent from following pointers or reading exact source ranges when more
+evidence is needed. If `.codegraph/` exists, GMGN also uses CodeGraph as a role-specific code
+locator—baseline for Coder, candidate for Reviewer, and on demand for Verifier—while grounding
+claims in source, diffs, tests, and real execution.
 
 ## License
 

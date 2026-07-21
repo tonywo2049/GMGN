@@ -32,6 +32,10 @@ uncommitted diff 代替。
 4. 是否削弱边界校验、安全、数据保护、性能或无障碍。
 5. 五类复杂度：`delete | stdlib | native | empty abstraction | shrink`。
 
+存在 `.codegraph/` 时，在候选 worktree 中独立查询 CodeGraph，检查改动符号、调用者和同类路径。
+索引不能证明与候选 commit 一致时，只用于定位。finding 必须引用精确 Git diff 或已检出源码；测试
+与真实运行才是行为证据。任务 brief 或图不够用时，允许直接定向读取文件。
+
 只报 finding，不修改被审工作树。每条写 `location · evidence · impact · normative fix · priority`。
 结束后运行 `git status --short`，把审查生成的缓存或副产物显式列出。
 

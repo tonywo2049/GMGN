@@ -323,6 +323,14 @@ Freezing establishes a controlled-change baseline; it does not mean immutable fo
 After approval, a change must state trigger, impact, affected downstream documents,
 required signers, and the new anchor.
 
+When adopting a repository whose historical anchors cannot be recovered, never guess commits
+or infer approval from current status. Record the current reviewed clean commit as an adoption
+baseline and state that it proves only the imported present state. Known closed historical work
+stays closed rather than being reopened to manufacture evidence. Active work without usable
+anchors starts again from that baseline and receives full review and verification before its
+next acceptance. Unanchored pre-adoption evidence is descriptive only and cannot authorize a
+release.
+
 ### 3.1 Place changes by authority; review them by impact
 
 Workflow nodes are not one-way. When current work exposes an upstream defect or changed
@@ -518,8 +526,21 @@ closure is blocked.
 
 ```bash
 python3 docstar.py check --preset gmgn-v1 --corpus <corpus>
-python3 docstar.py brief <task-id> --preset gmgn-v1 --json --corpus <corpus>
+python3 docstar.py brief <task-id> --baseline <baseline-anchor> --preset gmgn-v1 --json --corpus <corpus>
 ```
+
+When commit-bound `brief` is available, run-task uses it as the required starting evidence
+bundle and verifies that `context_manifest.corpus_revision` is the resolved baseline commit.
+The bundle reduces repeated discovery; it is not a reading restriction. An agent may follow
+omitted/boundary pointers, issue narrower DocStar queries, or read exact source ranges whenever
+the bundle is insufficient, conflicting, or does not cover code and runtime evidence.
+
+CodeGraph remains a separate optional code-navigation layer. In an indexed repository, the
+Coder queries it at the baseline, the Reviewer independently queries it at the candidate, and
+the Verifier uses it only when a failure or coverage question requires call-path navigation.
+If index-to-commit identity is not proven, CodeGraph is only a locator. Exact checked-out
+source, Git diff, tests, and real execution remain evidence. GMGN requires no CodeGraph engine
+or storage changes.
 
 When DocStar is absent, perform equivalent file/link/table checks with repository-native
 commands. Never claim a gate ran when the tool was unavailable.

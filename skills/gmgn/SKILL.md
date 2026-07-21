@@ -178,7 +178,10 @@ Publication is separate from acceptance. Route an accepted immutable anchor to `
 which reuses anchored review and verification evidence. A tag, upload, authentication retry,
 or local reinstall does not rerun closure. A release-only version or metadata commit may cite
 the accepted anchor through an explicit allowed-diff equivalence record and machine checks;
-any semantic delta returns only its impact cone to the appropriate authority.
+any semantic delta returns only its impact cone to the appropriate authority. Historical
+closed state without a provable accepted anchor is not a release input: record an adoption
+baseline, create current review and verification evidence, and obtain new owner acceptance
+before returning to `release`; never guess the missing anchor.
 
 A closed foundation or M0 Milestone is a historical declaration about its closing anchor, not
 a promise that its technical selection can never change. An M0-originated Design, Decision, or

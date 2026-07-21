@@ -335,6 +335,83 @@ def validate_docstar_adapter(errors: list[str]) -> None:
         errors.append("DocStar conventions 不得把普通 Requirements 小节整体当成需求 AC")
 
 
+def validate_evidence_context_contract(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    run_task = parsed.get("run-task", ("", ""))[1]
+    write_task = parsed.get("write-task", ("", ""))[1]
+    release = parsed.get("release", ("", ""))[1]
+
+    require_section_tokens(
+        errors,
+        run_task,
+        "## Dispatch context for every lane",
+        (
+            "docstar brief <card_id> --baseline <baseline_anchor> --preset gmgn-v1 --json",
+            "required starting context when DocStar is available",
+            "context_manifest.corpus_revision",
+            "resolved full commit SHA",
+            "starting evidence bundle, not a reading prohibition",
+            "`omitted`", "`boundary_pointers`", "directly read targeted source files",
+            "do not blindly reread already covered spans",
+            "Coder queries CodeGraph at `baseline_anchor`",
+            "Reviewer independently queries CodeGraph at `candidate_anchor`",
+            "Verifier uses CodeGraph only on demand",
+            "navigation evidence", "exact Git diff", "stale or mismatched",
+        ),
+        "run-task 基线证据上下文契约缺失",
+    )
+    require_tokens(
+        errors,
+        (REFERENCES / "en" / "dispatch-and-handoff.md").read_text(encoding="utf-8"),
+        (
+            "--baseline <baseline_anchor>", "manifest SHA", "starting evidence bundle",
+            "does not prohibit targeted source reads", "CodeGraph", "locator",
+        ),
+        "英文派发证据上下文契约缺失",
+    )
+    require_tokens(
+        errors,
+        (REFERENCES / "zh-CN" / "dispatch-and-handoff.md").read_text(encoding="utf-8"),
+        (
+            "--baseline <baseline_anchor>", "manifest SHA", "起始证据包",
+            "不禁止定向读取原文", "CodeGraph", "定位工具",
+        ),
+        "中文派发证据上下文契约缺失",
+    )
+    require_section_tokens(
+        errors,
+        write_task,
+        "## Legacy Task migration",
+        (
+            "Do not invent a historical commit", "adoption_baseline",
+            "current clean commit", "does not prove historical approval",
+            "closed historical cards remain closed", "must not be reopened",
+            "active card without usable anchors", "full review and verification",
+            "not reusable acceptance or release evidence",
+        ),
+        "write-task 无历史锚迁移契约缺失",
+    )
+    require_section_tokens(
+        errors,
+        release,
+        "## Missing historical acceptance anchor",
+        (
+            "Never fabricate or infer `accepted_anchor`", "adoption baseline",
+            "historical closed status", "not reusable release evidence",
+            "full required review", "verification", "new owner acceptance",
+        ),
+        "release 无历史 accepted anchor 契约缺失",
+    )
+    role_contracts = (
+        (ROOT / "agents" / "coder.md", ("query CodeGraph from the checked-out `baseline_anchor`", "targeted source reads")),
+        (ROOT / "agents" / "reviewer.md", ("independently query CodeGraph at the checked-out `candidate_anchor`", "exact Git diff")),
+        (ROOT / "agents" / "verifier.md", ("Use CodeGraph only on demand", "test evidence")),
+    )
+    for path, tokens in role_contracts:
+        require_tokens(errors, path.read_text(encoding="utf-8"), tokens, str(path))
+
+
 def validate_lane_registry(errors: list[str]) -> None:
     try:
         text = LANE_REGISTRY.read_text(encoding="utf-8")
@@ -2339,6 +2416,7 @@ def main() -> int:
     validate_document_pairs(errors)
     validate_telemetry_contract(errors, parsed)
     validate_docstar_adapter(errors)
+    validate_evidence_context_contract(errors, parsed)
     validate_lane_registry(errors)
     validate_controlled_change_protocol(errors, parsed)
     validate_milestone_scope_protocol(errors, parsed)

@@ -28,8 +28,19 @@ English: [../en/dispatch-and-handoff.md](../en/dispatch-and-handoff.md)
 对 `run-task`，经过 Critic 与主编排者评审的 `Task.md` 任务卡是唯一静态执行权威。精确的任务卡与
 权威锚已经满足本契约的静态部分，不把卡片正文复制成另一份 prompt 或文档。最小派发只补当前角色
 与身份模式、权威仓库或 corpus 指针、运行态、lane/workspace/anchor 事实、权限、禁区和回传门禁；
-可以附带同一基线的 DocStar brief 作为派生索引。这不是逐 agent 的 `Handoff`；GMGN Handoff 只在
+DocStar 可用时必须附带已核验的同一基线 brief 作为派生索引；不可用时附降级记录和定向读取指针。
+这不是逐 agent 的 `Handoff`；GMGN Handoff 只在
 关账后，或不跨越活动 owner-bound lane 的会话边界记录接手态。
+
+run-task lane 先解析不可变基线 commit；DocStar 支持时，用
+`--baseline <baseline_anchor>` 生成 brief，并在派发前核对 manifest SHA 等于该完整 commit。
+brief 是起始证据包，不禁止定向读取原文。证据缺失或冲突时，接收者可以沿
+`omitted`／`boundary_pointers`、运行更窄的 DocStar 查询，或直接读取精确文件和行区间。
+DocStar 缺失或失败要记录降级原因，再改用定向读取。
+
+CodeGraph 是代码关系的定位工具，不是证据权威。存在 `.codegraph/` 时，Coder 在基线使用，
+Reviewer 在候选锚独立使用，Verifier 只在失败或覆盖范围不明确时按需使用。索引无法证明对应当前
+commit 时，只把结果当定位线索，并回到已检出源码、Git diff 与测试核验。
 
 新建或恢复 run-task 的 Coder、Reviewer、Verifier 时，不继承父会话历史。Codex 暴露
 历史 schema 时设置 `fork_turns="none"`；暴露布尔 schema 时设置 `fork_context=false`，或在平台

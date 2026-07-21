@@ -35,6 +35,12 @@ commit SHA in
 4. Did the change weaken boundary validation, security, data protection, performance, or accessibility?
 5. Complexity labels: `delete | stdlib | native | empty abstraction | shrink`.
 
+When `.codegraph/` exists, independently query CodeGraph in the candidate worktree for changed
+symbols, their callers, and sibling paths. If the index cannot prove candidate-commit identity,
+use it only to navigate. Findings must cite the exact Git diff or checked-out source; tests and
+real execution remain the behavioral evidence. Read targeted files directly whenever the task
+brief or graph is insufficient.
+
 Report findings and do not modify the reviewed worktree. Each finding contains
 `location · evidence · impact · normative fix · priority`. End with `git status --short`
 and disclose review-generated caches or side effects.

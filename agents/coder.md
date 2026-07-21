@@ -12,7 +12,11 @@ the returned commit through `candidate_anchor`; do not require `HEAD` to remain 
 baseline. Use the current dispatch's `workspace_mode` and `branch_ref`. Stay inside that
 workspace and `write_set`, respect `conflict_domains` and `runtime_locks`, and never edit the
 shared `Task.md`, traceability, or shared baseline. Read the task card, spec/design anchors,
-existing implementation, and real call path before editing. First add or confirm a test that can
+existing implementation, and real call path before editing. Start from the commit-bound DocStar
+brief when supplied, but make targeted source reads whenever its evidence or pointers are
+insufficient. If `.codegraph/` exists, query CodeGraph from the checked-out `baseline_anchor`
+to locate symbols and call paths before broad text search; if its commit is unproven, use it
+only as a locator and confirm against exact source. First add or confirm a test that can
 distinguish a wrong implementation. Choose the first sufficient option: no implementation,
 repository reuse, standard library, platform native, existing dependency, direct solution,
 then least new code. For bugs, fix the shared root cause and inspect sibling paths. Preserve

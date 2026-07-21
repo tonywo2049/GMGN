@@ -123,11 +123,14 @@ refresh plus machine checks without reapproval.
 When an existing `Task.md` already mixes current authority with accumulated history:
 
 1. Bind `legacy_task_anchor` to the pre-migration commit, content hash, or equivalent immutable
-   version before editing. It remains the source for history that cannot be assigned safely.
+   version before editing when that version is discoverable. Do not invent a historical commit,
+   backdate a current commit, or infer an approval anchor from prose. If no historical version
+   can be proven, create an `adoption_baseline` at the current clean commit after reviewing the
+   imported current projection. This records when GMGN adopted the state; it does not prove historical approval.
 2. Reconstruct only the current normative projection: canonical rows, current dependencies,
    status, blocker, anchors, evidence, traceability, and log pointers. If current meaning is
    uncertain, treat the migration as a semantic revision and use the normal Critic loop.
-3. For each previously executed card, create its per-card log and append one
+3. When `legacy_task_anchor` exists, for each previously executed card create its per-card log and append one
    `legacy-migration` event that cites `legacy_task_anchor` and exact source locations. Copy or
    summarize only facts that are unambiguously owned by that `card_id`; do not invent event
    order, timestamps, evidence, or outcomes. Use the same seven-key frontmatter and exact
@@ -136,11 +139,20 @@ When an existing `Task.md` already mixes current authority with accumulated hist
    Keep a single compact pointer in the migrated Task or Handoff; do not copy it into a new
    project-wide or Milestone-wide live log, and do not use it as current authority.
 5. Cut over Task, per-card links, current traceability, and migration record in one checked
-   batch. Verify the new current projection against the old anchor and keep unrelated cards
-   unchanged.
+   batch. Verify the new current projection against the old anchor or `adoption_baseline` and
+   keep unrelated cards unchanged.
 
-If DocStar is available, run `brief <task-id> --preset gmgn-v1 --json` on a representative
-card; otherwise inspect all fixed table columns manually. DocStar reports structural IDs and
+When only an `adoption_baseline` exists, closed historical cards remain closed and must not be
+reopened merely to manufacture missing history. Preserve their known current state plus the
+explicit missing-history limitation; do not synthesize per-card events or acceptance evidence.
+An active card without usable anchors is re-anchored at the adoption baseline and must receive
+full review and verification before its next acceptance or closure. Pre-adoption commands,
+summaries, or outcomes that lack an accepted anchor remain descriptive context and are not
+reusable acceptance or release evidence.
+
+If DocStar is available, run
+`brief <task-id> --baseline <adoption-or-legacy-commit> --preset gmgn-v1 --json` on a
+representative card; otherwise inspect all fixed table columns manually. DocStar reports structural IDs and
 edges; it does not decide Milestone ownership, dependency legality, or closure eligibility.
 
 ## Exit

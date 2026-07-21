@@ -92,6 +92,70 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("SemVer 2.0", result.stdout)
 
+    def test_rejects_run_task_brief_without_commit_baseline(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "docstar brief <card_id> --baseline <baseline_anchor> --preset gmgn-v1 --json",
+            "docstar brief <card_id> --preset gmgn-v1 --json",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 基线证据上下文契约缺失", result.stdout)
+
+    def test_rejects_docstar_brief_as_reading_prohibition(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "starting evidence bundle, not a reading prohibition",
+            "complete context that prohibits further reading",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 基线证据上下文契约缺失", result.stdout)
+
+    def test_rejects_role_specific_codegraph_timing_regression(self) -> None:
+        mutations = (
+            ("agents/coder.md", "query CodeGraph from the checked-out `baseline_anchor`", "query CodeGraph from any worktree"),
+            ("agents/reviewer.md", "independently\nquery CodeGraph at the checked-out `candidate_anchor`", "reuse the Coder's CodeGraph output"),
+            ("agents/verifier.md", "Use CodeGraph only on demand", "Always use CodeGraph"),
+        )
+        for relative_path, old, new in mutations:
+            with self.subTest(path=relative_path):
+                path = self.root / relative_path
+                original = path.read_text(encoding="utf-8")
+                path.write_text(self.replace_required(original, old, new), encoding="utf-8")
+                result = self.run_validator()
+                path.write_text(original, encoding="utf-8")
+                self.assertEqual(result.returncode, 1)
+                self.assertIn(relative_path, result.stdout)
+
+    def test_rejects_fabricated_legacy_commit(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Do not invent a historical commit",
+            "Invent a historical commit when none is available",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task 无历史锚迁移契约缺失", result.stdout)
+
+    def test_rejects_inferred_historical_accepted_anchor(self) -> None:
+        path = self.root / "skills" / "release" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Never fabricate or infer `accepted_anchor`",
+            "Infer `accepted_anchor` from closed status",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("release 无历史 accepted anchor 契约缺失", result.stdout)
+
     def test_rejects_release_repeating_closure_review_for_exact_anchor(self) -> None:
         path = self.root / "skills" / "release" / "SKILL.md"
         text = self.replace_required(

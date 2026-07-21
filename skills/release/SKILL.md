@@ -14,6 +14,16 @@ owner authorization for every external write. If the proposed release contains a
 change not covered by that evidence, stop and route only the affected content through `gmgn`;
 do not publish first or repeat all closure work by default.</HARD-GATE>
 
+## Missing historical acceptance anchor
+
+Never fabricate or infer `accepted_anchor` from a historical closed status, tag, prose summary,
+or unanchored test output. For a repository adopted without usable history, record the current
+clean commit as an adoption baseline and its missing-history limitation. That baseline is not
+reusable release evidence. Prepare an immutable current candidate, run the full required review
+and verification for its actual release scope and environment, obtain new owner acceptance,
+and only then use the resulting anchor as `accepted_anchor`. Historical closed records remain
+closed; this recovery creates present evidence and does not rewrite their history.
+
 ## 1. Bind reusable evidence
 
 Record a release evidence tuple in the existing release record, Handoff, or CI provenance;

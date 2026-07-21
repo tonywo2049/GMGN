@@ -32,10 +32,23 @@ For `run-task`, the critic-reviewed `Task.md` card is the only static execution 
 An exact card and authority anchor satisfies the static part of this contract; do not copy the
 card into another prompt or document. The minimal dispatch adds only the current role and
 identity mode, authority repository or corpus pointer, runtime state, lane/workspace/anchor
-facts, permissions, prohibitions, and return gate. A same-baseline DocStar brief may accompany
-those pointers as a derived index. This dispatch is not a per-agent `Handoff`; GMGN Handoff is
+facts, permissions, prohibitions, and return gate. A verified same-baseline DocStar brief
+accompanies those pointers as a derived index when available; otherwise the dispatch records
+the degradation and targeted-read pointers. This dispatch is not a per-agent `Handoff`; GMGN Handoff is
 the receiving-state artifact used after closure or at a session boundary that does not cross
 active owner-bound lanes.
+
+For a run-task lane, resolve the immutable baseline commit and, when supported, produce the
+brief with `--baseline <baseline_anchor>`. Check that its manifest SHA equals that resolved
+commit before dispatch. The brief is a starting evidence bundle; it does not prohibit targeted
+source reads. A recipient may follow `omitted`/`boundary_pointers`, issue narrower DocStar
+queries, or read exact files and line ranges when required evidence is missing or conflicting.
+Record a missing/failed DocStar command as a degradation and use direct targeted reads.
+
+CodeGraph is a locator for code relationships, not evidence authority. When `.codegraph/`
+exists, the Coder uses it at the baseline, the Reviewer independently uses it at the candidate,
+and the Verifier uses it only after a failure or unresolved coverage question. If index-to-commit
+identity is not proven, confirm every result in the checked-out source, Git diff, and tests.
 
 Start or resume a run-task Coder, Reviewer, or Verifier without parent conversation
 history. Where the historical Codex schema is exposed, set `fork_turns="none"`; where the

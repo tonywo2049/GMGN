@@ -47,6 +47,34 @@ set `fork_context=false` or omit it when false is the documented default. Never 
 `fork_turns="all"` or `fork_context=true` for a run-task role. Resuming a recorded identity may
 retain that same agent's own history; it must not import the scheduler's transcript.
 
+Resolve `baseline_anchor` to its full commit SHA before preparing context. The same-baseline
+brief is required starting context when DocStar is available and supports commit-bound briefs:
+
+`docstar brief <card_id> --baseline <baseline_anchor> --preset gmgn-v1 --json --corpus <corpus>`
+
+Require `context_manifest.corpus_revision` to equal the resolved full commit SHA. A mismatch,
+unresolvable card, unsupported flag, or failed command is an explicit degradation: do not pass
+the stale bundle; record the reason and use targeted reads from the checked-out exact baseline.
+GMGN remains usable when DocStar is absent.
+
+The brief is a starting evidence bundle, not a reading prohibition. Coder, Reviewer, and
+Verifier may use DocStar `id`/`doc`/`trace`, follow `omitted` or `boundary_pointers`, and
+directly read targeted source files and line ranges when required source is absent, ambiguous,
+conflicts with another source, or code/runtime evidence is outside the document graph. They
+do not blindly reread already covered spans; every extra read answers a named unresolved
+question.
+
+If the assigned repository root contains `.codegraph/` and CodeGraph is usable, the Coder
+queries CodeGraph at `baseline_anchor` before grep/find or broad source reading to locate the
+implementation and real call paths. The Reviewer independently queries CodeGraph at
+`candidate_anchor` for changed symbols, callers, and sibling paths. The Verifier uses
+CodeGraph only on demand after a failure or when coverage cannot otherwise be established.
+CodeGraph output is navigation evidence, not acceptance evidence. If the index cannot prove it
+matches the exact checked-out commit, treat it as stale or mismatched and use it only as a
+locator; confirm every claim against exact Git diff, source, and test evidence. CodeGraph being
+absent or insufficient permits targeted source reads and does not authorize broad corpus
+ingestion.
+
 A primary session bound as `coder_ref` is a lifecycle identity, not a Coder-agent dispatch, so
 it retains its own conversation context. The reviewed card remains its only static execution
 authority; chat context may help interpret the work but cannot add scope, dependencies, or
@@ -55,8 +83,9 @@ acceptance meaning.
 Each minimal runtime dispatch cites the exact `card_id`, Task/spec/Design authority anchors,
 and authority repository or corpus, then adds only facts that do not exist until execution:
 role and identity mode, runtime state, lane/workspace/anchor facts, permissions, prohibitions,
-and the current return gate. It may attach the same-baseline DocStar brief as a derived index,
-but does not restate the card. The dispatch is not a new `Handoff` artifact. If a required
+and the current return gate. It attaches the verified same-baseline DocStar brief as a derived
+index when available, or the recorded degradation and targeted-read pointers otherwise; it
+does not restate the card. The dispatch is not a new `Handoff` artifact. If a required
 instruction,
 owner ruling, scope boundary, or acceptance condition exists only in chat, the card is not
 ready; stop the affected lane and return to `write-task` rather than inheriting the transcript.
@@ -85,8 +114,8 @@ dispatch instruction. If the owner explicitly authorizes multiple Milestones, cr
 execution sets and preserve each card's single owning Milestone.
 
 For every in-set card, read its `depends_on`, spec/Design anchors, failing test, `write_set`,
-`conflict_domains`, and `runtime_locks`. Use `docstar brief <card_id> --preset gmgn-v1 --json`
-when available; otherwise read those sources directly. Treat DocStar IDs and edges as structural
+`conflict_domains`, and `runtime_locks`. Use the commit-bound brief required by the dispatch
+context section when available; otherwise read those sources directly. Treat DocStar IDs and edges as structural
 measurements only. Validate cross-Milestone edges against ROADMAP, Goal, and the owning Task:
 an already planned upstream prerequisite may gate readiness but is never executed implicitly;
 a downstream reverse dependency returns to `write-task` and does not start downstream work.

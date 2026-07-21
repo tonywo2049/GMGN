@@ -268,7 +268,7 @@ python3 scripts/package_release.py
 
 ## 可选增强
 
-[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包。GMGN 不依赖 DocStar 才能安装；项目未安装时，用文件检查和项目现成命令完成同等门禁。DocStar 本体与 JSON 输出不变：每次调用仍实时全量重建，不使用缓存。Telemetry hooks 与报告器只在 DocStar 外部统计调用次数、耗时、命令类型和后续 grep/read；`grep_avoided` 是描述性统计，不表示 DocStar 导致某次 grep 被避免。
+[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包。GMGN 不依赖 DocStar 才能安装；项目未安装时，用文件检查和项目现成命令完成同等门禁。DocStar 0.2.3 及以上版本提供 commit-bound brief，run-task 把它作为起始证据包，但 agent 在证据不足时仍可沿指针或直接定向读取原文。存在 `.codegraph/` 时，GMGN 把 CodeGraph 用作分角色代码定位：Coder 查基线，Reviewer 独立查候选，Verifier 按需使用；结论仍落到源码、diff、测试与真实运行。每次 DocStar 调用仍实时全量重建，不使用缓存。Telemetry hooks 与报告器只在 DocStar 外部统计调用次数、耗时、命令类型和后续 grep/read；`grep_avoided` 是描述性统计，不表示 DocStar 导致某次 grep 被避免。
 
 ## License
 

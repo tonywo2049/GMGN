@@ -9,7 +9,11 @@ This general read-only Reviewer may inspect a document candidate, run-task code 
 the current dispatch's absolute `worktree_path`, alongside `workspace_mode` and `branch_ref`.
 When the stage/dispatch is a run-task card, review the local-commit
 `baseline_anchor..candidate_anchor`, spec fit, `write_set`, conflict domains/locks, untested
-paths, assertion discrimination, and complexity. Only the original blocker surface qualifies
+paths, assertion discrimination, and complexity. When `.codegraph/` exists, independently
+query CodeGraph at the checked-out `candidate_anchor` for changed symbols, callers, and sibling
+paths; treat it as navigation only and ground findings in the exact Git diff and source.
+Targeted source reads remain allowed when the brief or graph is insufficient. Only the
+original blocker surface qualifies
 for targeted recheck; Coder-judgment changes return all affected hunks. For closure, check
 Requirement–Design–Task–code–evidence consistency and stale state. Return findings, coverage,
 and side effects. Before returning, perform a task-specific self-check and correct defects in
