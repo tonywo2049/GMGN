@@ -29,6 +29,15 @@ GREP_COMMANDS = {"egrep", "fgrep", "grep", "rg", "ripgrep"}
 SHELL_COMMANDS = {"bash", "dash", "sh", "zsh"}
 SUCCESS_WORDS = {"completed", "ok", "passed", "success", "succeeded"}
 FAILURE_WORDS = {"error", "failed", "failure", "timed_out", "timeout"}
+WAIT_TOOLS = {"wait_agent", "wait_agents", "wait_threads"}
+SPAWN_TOOLS = {"agent", "spawn", "spawn_agent"}
+SEND_TOOLS = {
+    "followup_task",
+    "send_message",
+    "send_message_to_agent",
+    "send_message_to_thread",
+}
+OBSERVE_TOOLS = {"list_agents", "list_threads", "read_thread"}
 PYTHON_EXECUTABLE = re.compile(r"python(?:3(?:\.\d+)*)?\Z", re.IGNORECASE)
 PYTHON_OPTIONS = {"-B", "-E", "-I", "-O", "-OO", "-P", "-s", "-S", "-u"}
 PYTHON_VALUE_OPTIONS = {"-W", "-X", "--check-hash-based-pycs"}
@@ -315,11 +324,24 @@ def is_bash_tool(tool_name: Any) -> bool:
     }
 
 
-def is_agent_tool(tool_name: Any) -> bool:
+def agent_action(tool_name: Any) -> Optional[str]:
     if not isinstance(tool_name, str):
-        return False
-    normalized = tool_name.casefold().replace("::", ".")
-    return normalized == "agent" or normalized.endswith("spawn_agent")
+        return None
+    normalized = tool_name.casefold().replace("::", ".").replace("__", ".")
+    leaf = normalized.rsplit(".", 1)[-1]
+    if leaf in WAIT_TOOLS:
+        return "wait"
+    if leaf in SPAWN_TOOLS:
+        return "spawn"
+    if leaf in SEND_TOOLS:
+        return "send"
+    if leaf in OBSERVE_TOOLS:
+        return "observe"
+    return None
+
+
+def is_agent_tool(tool_name: Any) -> bool:
+    return agent_action(tool_name) is not None
 
 
 def is_skill_tool(tool_name: Any) -> bool:
@@ -399,6 +421,40 @@ def extract_success(payload: dict, tool_output: Any, exit_code: Optional[int]) -
     return None
 
 
+def extract_wait_result(tool_output: Any, success: Optional[bool]) -> str:
+    if success is False:
+        return "error"
+    for normalized_name in ("timedout", "timeout"):
+        raw = find_value(tool_output, normalized_name)
+        if raw is True:
+            return "timeout"
+        if raw is False:
+            return "update"
+    if isinstance(tool_output, str):
+        normalized = tool_output.casefold()
+    else:
+        try:
+            normalized = json.dumps(
+                tool_output,
+                ensure_ascii=False,
+                sort_keys=True,
+            ).casefold()
+        except (TypeError, ValueError):
+            normalized = str(tool_output).casefold()
+    if re.search(r"\b(?:interrupted|cancelled|canceled)\b", normalized):
+        return "interrupted"
+    if (
+        "wait completed" in normalized
+        or "has updates" in normalized
+        or "agent updates" in normalized
+        or "new user input" in normalized
+    ):
+        return "update"
+    if re.search(r"\b(?:wait(?:ing)?[ _-]?)?timed[ _-]?out\b", normalized):
+        return "timeout"
+    return "unknown"
+
+
 def extract_skill_name(tool_input: Any) -> Optional[str]:
     direct = get_value(tool_input, "skill_name", "skillName", "skill", "name", default=MISSING)
     return safe_token(direct, 128)
@@ -465,13 +521,19 @@ def build_record(payload: dict, now: Optional[datetime] = None) -> dict[str, Any
             record["skill_name"] = skill_name
     elif is_agent_tool(raw_tool_name):
         record["classification"] = "agent"
-        record.update(extract_semantic_ids(tool_input))
-        fork_context = extract_fork_context(tool_input)
-        if fork_context is not None:
-            record["fork_context"] = fork_context
-        fork_turns = extract_fork_turns(tool_input)
-        if fork_turns is not None:
-            record["fork_turns"] = fork_turns
+        action = agent_action(raw_tool_name)
+        if action is not None:
+            record["agent_action"] = action
+        if action == "spawn":
+            record.update(extract_semantic_ids(tool_input))
+            fork_context = extract_fork_context(tool_input)
+            if fork_context is not None:
+                record["fork_context"] = fork_context
+            fork_turns = extract_fork_turns(tool_input)
+            if fork_turns is not None:
+                record["fork_turns"] = fork_turns
+        elif action == "wait":
+            record["wait_result"] = extract_wait_result(tool_output, success)
     elif is_skill_tool(raw_tool_name):
         record["classification"] = "skill_load"
         skill_name = extract_skill_name(tool_input)

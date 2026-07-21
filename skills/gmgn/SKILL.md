@@ -23,6 +23,12 @@ counts, status, classifications, fork policy, and structured correlation IDs. Te
 never blocks routing or delivery and never changes a gate. Run `telemetry/report.py`
 only when the user explicitly requests a retrospective.
 
+For waits, retain only a normalized result and correlation metadata, never agent message text.
+Retrospectives report outcome/state-change counts, consecutive timeout and wait-storm signals,
+and actual cumulative-token deltas linked to post-wait model reactivation. When native
+turn/call linkage is absent, label this `session_sequence_delta` and expose matched/eligible
+coverage instead of claiming exact native attribution.
+
 Telemetry does not change DocStar or its JSON output. DocStar keeps a fresh full rebuild on
 every invocation with no cache; hooks and reporters measure calls, elapsed time, command type,
 and later grep/read outside DocStar. `grep_avoided` does not claim causation.
@@ -65,9 +71,12 @@ state. Keep the node record and identity refs until `node-complete`.
   `critic_ref`. When `author_ref` is the primary session, it applies accepted findings
   directly; a delegated Author and Critic communicate only through the orchestrator.
 - `run-task` maintains a rolling ready set for the recorded target Milestone and one lane per
-  owned card. Each lane has its own Coder,
-  Reviewer, and Verifier identities; fixes, affected review, and affected verification return
-  to those same agents. The primary orchestrator serially owns the integration queue, shared
+  owned card. Each lane has one bound Coder identity plus independent Reviewer and Verifier
+  identities; fixes, affected review, and affected verification return to those same identities.
+  When no implementation lane can currently run in parallel with useful orchestrator work,
+  the primary session may explicitly bind itself as that lane's `coder_ref` before writing.
+  It must not take over a lane already assigned to another Coder, and Reviewer and Verifier
+  remain independent. The primary orchestrator serially owns the integration queue, shared
   baseline, `Task.md`, per-card execution logs, and traceability.
 - `close-milestone` dispatches target-scoped independent verification, a closure Author, a
   combined Critic/Reviewer, then has the primary orchestrator integrate after owner acceptance.
@@ -116,6 +125,15 @@ registry, integration queue, and shared baseline. A worker cannot mutate registr
 recursively create main tasks, adjudicate, accept, integrate, edit `Task.md`, push, or publish.
 Group waits dynamically by runtime capacity, wake on any completion, and refill immediately.
 Without authorization or capabilities, use rolling dispatch in the current task.
+
+For current-task agents, use one event-driven `wait_agent` covering any live agent only after
+all ready dispatches, primary-Coder work, integration, state refresh, and local checks are
+exhausted. Use the longest platform-safe wait allowed by the surface's user-update and
+liveness limits; never turn a fixed short timeout into a polling interval. A timeout is only a
+liveness checkpoint: do not automatically run `list_agents`, probe a worktree, or call
+`wait_agent` again. Resume useful local work or yield, and send one targeted status request
+only after a task-derived liveness threshold is crossed. Workers push material events—blocker,
+candidate, review, verification, or completion—rather than periodic heartbeats.
 
 A lane also records `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
 `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
@@ -175,7 +193,7 @@ the smallest authority/acceptance condition, implementation, test, independent r
 same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
 milestone initiation, scope expansion, or closure authority.
 
-<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may be the recorded writer for WhitePaper, ROADMAP, Goal, Requirement, Design, or Task, but it must make that writer choice explicit before writing, preserve the independent Critic, and must not silently take over work already assigned to another writer. It must not perform Coder, Reviewer, or Verifier work in place of those independent roles. The primary orchestrator must itself integrate every accepted candidate, serialize shared-baseline writes, refresh Task/log/traceability state, and preserve the verified candidate meaning; this responsibility must not be delegated. Semantic ambiguity, source repair, or conflict resolution requiring implementation judgment returns to the recorded writer/Coder. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may be the recorded writer for WhitePaper, ROADMAP, Goal, Requirement, Design, or Task, but it must make that writer choice explicit before writing, preserve the independent Critic, and must not silently take over work already assigned to another writer. It may act as the recorded Coder only when the lane cannot currently execute in parallel with useful orchestrator work, after explicitly binding the primary session as `coder_ref`, and without taking over an assigned lane; independent Reviewer and Verifier work must never be replaced. The primary orchestrator must itself integrate every accepted candidate, serialize shared-baseline writes, refresh Task/log/traceability state, and preserve the verified candidate meaning; this responsibility must not be delegated. Semantic ambiguity, source repair, or conflict resolution requiring implementation judgment returns to the recorded writer/Coder. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

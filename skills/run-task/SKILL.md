@@ -12,7 +12,9 @@ all machine tokens and IDs unchanged.
 
 The primary orchestrator keeps the run state, per-card lanes, identity refs, adjudication,
 acceptance, merge control, integration queue, shared baseline, and shared ledger. It does not
-write implementation, repair findings, or run verification in place of a Verifier.
+replace an available parallel Coder, an independent Reviewer, or an independent Verifier. When
+no implementation lane can currently run in parallel with useful orchestrator work, it may
+explicitly bind itself as one lane's Coder under the rules below.
 
 ## Telemetry boundary
 
@@ -23,6 +25,12 @@ metadata: opaque IDs, byte counts, status, classifications, fork policy, and str
 correlation IDs. The scheduler never uses telemetry for readiness, review
 authorization, acceptance, integration, or card closure. Telemetry failure never blocks
 delivery. Run `telemetry/report.py` only when the user explicitly requests a retrospective.
+
+Wait observation stores only normalized outcome and correlation metadata, never agent message
+text. A retrospective may report outcomes, state-change counts, consecutive timeouts,
+wait-storm signals, and actual cumulative-token deltas associated with post-wait model
+reactivation. If native turn/call linkage is unavailable, it labels the association
+`session_sequence_delta` with matched/eligible coverage rather than claiming exact attribution.
 
 Telemetry does not change DocStar or its JSON output. Every DocStar call remains a fresh full
 rebuild with no cache. Hooks and reporters measure calls, elapsed time, command type, and later
@@ -38,6 +46,11 @@ the historical schema, set `fork_turns="none"`; on a surface with the current bo
 set `fork_context=false` or omit it when false is the documented default. Never use
 `fork_turns="all"` or `fork_context=true` for a run-task role. Resuming a recorded identity may
 retain that same agent's own history; it must not import the scheduler's transcript.
+
+A primary session bound as `coder_ref` is a lifecycle identity, not a Coder-agent dispatch, so
+it retains its own conversation context. The reviewed card remains its only static execution
+authority; chat context may help interpret the work but cannot add scope, dependencies, or
+acceptance meaning.
 
 Each minimal runtime dispatch cites the exact `card_id`, Task/spec/Design authority anchors,
 and authority repository or corpus, then adds only facts that do not exist until execution:
@@ -84,6 +97,14 @@ immediately instead of waiting for a card or wave to close. Concurrency is
 never hard-code a number. A slow or blocked lane does not stop unrelated lanes. When capacity
 is lower than the ready set, choose by dependency topology and then stable `card_id` order.
 
+If this calculation leaves no implementation lane that can run in parallel with useful
+orchestrator work—for example, there is one ready lane, every other lane conflicts on an
+exclusive domain, or no separate writer slot can be obtained—the primary session may be the
+Coder for exactly one ready lane. Record that no-parallelism reason, bind the primary session
+as `coder_ref` before any implementation write, and use the same isolated workspace and
+candidate-anchor gates as any Coder. Do not take over a lane already bound to another Coder.
+This exception never combines Coder with Reviewer or Verifier; both remain independent.
+
 On Codex, first fill the current task's actual subagent capacity. If ready cards remain, use
 cross-task fan-out only when the owner explicitly authorized it for this run and the surface
 provides `create_thread`, `list_threads`, `read_thread`, `wait_threads`, and
@@ -111,14 +132,25 @@ registry, `integration_queue_ref`, and `shared_baseline_anchor`. A worker must n
 mutate the registry, recursively create main tasks, adjudicate findings, accept a candidate,
 integrate, edit shared `Task.md` or traceability, push, publish, or accept a second lane.
 
-Only after all currently allowed creation requests have been issued may the scheduler block in
-`wait_threads`. When active workers exceed one call's runtime target limit, partition them by
-that observed capability rather than a method constant. If parallel waits are supported, wait
-on all groups concurrently. Otherwise take a `timeoutMs: 0` snapshot of every group, then rotate
-bounded short waits across groups so none starves. Wake on any completion, update global state,
-and immediately refill local or worker capacity. `list_threads` and `read_thread` are collision
-diagnostics, not a lock. Without the required capability or run-scoped authorization, keep
-rolling within the current task; do not infer or hard-code a subagent or wait-target limit.
+Only after all currently allowed creation requests and useful local work have been exhausted
+may the scheduler block in `wait_threads`. When active workers exceed one call's runtime target
+limit, partition them by that observed capability rather than a method constant. If parallel
+waits are supported, wait on all groups concurrently. Otherwise take one `timeoutMs: 0`
+snapshot when the grouping changes, then block on one group with the longest platform-safe
+wait and rotate only after a real timeout. A timeout is a liveness checkpoint, not a reason to
+automatically run `list_threads`/`read_thread` and wait again. Wake on any material update,
+update global state, and immediately refill local or worker capacity. Workers push blockers,
+candidates, review, verification, and completion; they do not send periodic heartbeats.
+`list_threads` and `read_thread` are collision diagnostics, not polling or a lock. Without the
+required capability or run-scoped authorization, keep rolling within the current task; do not
+infer or hard-code a subagent, wait-target, or polling interval limit.
+
+Within the current task, call one `wait_agent` covering any live agent only when no ready
+dispatch, primary-Coder work, integration, state refresh, or local check remains. Use the
+longest platform-safe interval allowed by user-update and liveness limits. After a timeout,
+resume useful work or yield; do not automatically chain `list_agents`, worktree/status probes,
+and another `wait_agent`. Send one targeted status request only when a task-derived liveness
+threshold has actually been crossed.
 
 ## 2. Provision one isolated workspace per card
 
@@ -195,8 +227,10 @@ ready set.
 
 ## 3. Run each card lane independently
 
-At `workspace-prepared`, dispatch a new Coder for exactly that approved card and retain its
-`coder_ref`. Require allowed paths, failing-first discrimination, the first sufficient
+At `workspace-prepared`, select the Coder for exactly that approved card and retain its
+`coder_ref`: dispatch a new Coder when safe parallel execution is available, or use the
+already-bound primary session only under the no-parallelism rule in section 1. Require allowed
+paths, failing-first discrimination, the first sufficient
 implementation, real-call-path evidence, and no edits to shared `Task.md`, traceability, or
 the shared baseline. At `coder-returned`, reject incomplete or out-of-scope work to the same
 Coder. Otherwise the Coder stages and commits only this card's `write_set` in its assigned

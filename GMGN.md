@@ -37,13 +37,17 @@ GMGN defines six execution-separated roles and one optional audit role.
   produces a real isolation, specialization, or parallelism benefit. These are judgment
   inputs, not eligibility gates; the primary orchestrator owns the writer choice. It also
   applies accepted mechanical propagation, serializes shared-baseline writes, and refreshes
-  `Task.md`, per-card execution logs, and traceability without replacing the recorded
-  writer/Coder, independent review, or verification.
+  `Task.md`, per-card execution logs, and traceability. When no implementation lane can
+  currently run in parallel with useful orchestrator work, it may explicitly bind itself as
+  one lane's Coder before writing; it never takes over a lane already assigned to another
+  Coder or replaces independent review or verification.
 - **Author** is an optional delegated writer. It creates or revises one document artifact
   against a content contract, chooses the document structure, and self-checks before return.
   A document stage does not require an Author-agent dispatch when the primary orchestrator is
   the recorded writer.
 - **Coder** implements one approved task card and returns code, tests, and replayable evidence.
+  This is normally a delegated agent, but may be the primary session under the explicit
+  no-parallelism rule.
 - **Critic/reviewer** tries to falsify an anchored artifact and must be independent of its
   actual writer/Coder. It reports findings and never edits the reviewed work.
 - **Verifier** independently executes tests, gates, and real product paths at an anchored
@@ -84,7 +88,10 @@ per conversation. Its `lane_key` is the combination of `project_scope_id` and `c
 `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
 and `shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`.
 The primary orchestrator that owns `owner_thread_id` and `owner_run_id` also owns the shared
-integration queue.
+integration queue. Bind `coder_ref` to the actual writer before implementation. Use the
+primary session only when no implementation lane can currently run in parallel with useful
+orchestrator work; record that reason, keep the lane isolated, and preserve independent
+Reviewer and Verifier identities.
 
 The normal card path is `ready-to-dispatch → workspace-prepared → coder-active →
 coder-returned → candidate-awaiting-anchor → candidate-anchored → review-authorized →
@@ -141,9 +148,14 @@ scheduler performs `claim → bind-coder → verify`, then activates that same C
 worker. It remains the only owner of the global ready set, lane registry, integration queue,
 and shared baseline. Workers cannot mutate the registry, create more main tasks, adjudicate,
 accept, integrate, edit `Task.md`, push, or publish. Dynamically group waits by runtime tool
-capacity, wait for any completion, and refill immediately. Without the capabilities or
-run-scoped authorization, keep rolling within the current task; never hard-code a platform
-slot or wait-target count.
+capacity. Use the longest platform-safe blocking wait after useful local work is exhausted;
+a timeout is only a liveness checkpoint and never triggers an automatic list/read/wait loop.
+Workers push material lifecycle events instead of periodic heartbeats. Within the current task,
+one event-driven `wait_agent` covers any live agent; do not chain `list_agents`, status/worktree
+probes, and another wait after timeout. Send one targeted status request only after a
+task-derived liveness threshold is crossed. Refill immediately on any material update. Without
+the capabilities or run-scoped authorization, keep rolling within the current task; never
+hard-code a platform slot, wait-target count, or polling interval.
 
 Each parallel writing lane uses an explicitly provisioned worktree at an absolute
 `worktree_path`, with either detached `HEAD` or a unique `branch_ref`; the same branch must not
@@ -474,6 +486,13 @@ byte counts, status, classifications, fork policy, and structured correlation ID
 failure never blocks delivery or changes a workflow gate. Run
 `telemetry/report.py` only when the user explicitly requests a retrospective; its output is
 evidence for that retrospective, not a state transition.
+
+For agent waits, retain only normalized outcome and correlation metadata, never message text.
+The retrospective reports update/timeout/state-change counts, consecutive-timeout and wait-storm
+signals, and actual cumulative-token deltas associated with model reactivation after a wait.
+When the platform omits native turn/call linkage, label the association
+`session_sequence_delta` with matched/eligible coverage; never present it as exact native
+attribution.
 
 External observation does not change DocStar or its JSON output. DocStar keeps a fresh full
 rebuild on every invocation, with no cache. Hooks and reporters measure outside DocStar: call

@@ -276,7 +276,7 @@ class TelemetryReportTests(unittest.TestCase):
                 "wait_agent",
                 {"ids": ["child-session"], "timeout_ms": 2000},
             ),
-            self.output("2026-07-20T00:00:09.500Z", "wait", {"success": True}),
+            self.output("2026-07-20T00:00:09.500Z", "wait", "Wait timed out."),
             self.call(
                 "2026-07-20T00:00:10Z",
                 "send",
@@ -700,6 +700,9 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertEqual(gmgn["wait_calls"], 1)
         self.assertEqual(gmgn["send_calls"], 1)
         self.assertEqual(gmgn["wait_duration_ms"], 1500)
+        self.assertEqual(gmgn["wait"]["result_counts"]["timeout"], 1)
+        self.assertEqual(gmgn["wait"]["max_consecutive_timeouts"], 1)
+        self.assertFalse(gmgn["wait"]["wait_storm_detected"])
         self.assertEqual(
             gmgn["fork_context_counts"],
             {"none": 1, "all": 0, "false": 1, "true": 0, "unspecified": 0},
@@ -718,6 +721,105 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertEqual(docstar["follow_up"][0]["window"], 3)
         self.assertIsNone(docstar["grep_avoided"])
         self.assertEqual(docstar["causal_status"], "causal_not_measured")
+
+    def test_wait_results_storms_and_reactivation_tokens(self) -> None:
+        entries = [
+            {
+                "timestamp": "2026-07-20T01:00:00Z",
+                "type": "session_meta",
+                "payload": {"id": "wait-session"},
+            },
+            event(
+                "2026-07-20T01:00:00Z",
+                "task_started",
+                turn_id="wait-turn",
+                started_at=1784509200,
+            ),
+            self.call(
+                "2026-07-20T01:00:01Z",
+                "wait-1",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output("2026-07-20T01:00:02Z", "wait-1", "Wait timed out."),
+            self.token_count("2026-07-20T01:00:02.100Z", 100, 80, 10, 2, 110),
+            self.call(
+                "2026-07-20T01:00:03Z",
+                "wait-2",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T01:00:04Z",
+                "wait-2",
+                {"timed_out": True},
+            ),
+            self.token_count("2026-07-20T01:00:04.100Z", 200, 160, 20, 4, 220),
+            self.call(
+                "2026-07-20T01:00:05Z",
+                "wait-3",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output("2026-07-20T01:00:06Z", "wait-3", "Wait completed."),
+            self.token_count("2026-07-20T01:00:06.100Z", 300, 240, 30, 6, 330),
+            self.call(
+                "2026-07-20T01:00:07Z",
+                "send-after-wait",
+                "send_message",
+                {"target": "agent-1", "message": self.private_prompt},
+            ),
+            self.output(
+                "2026-07-20T01:00:07.100Z",
+                "send-after-wait",
+                {"success": True},
+            ),
+            self.token_count("2026-07-20T01:00:07.200Z", 400, 320, 40, 8, 440),
+            event(
+                "2026-07-20T01:00:08Z",
+                "task_complete",
+                turn_id="wait-turn",
+                completed_at=1784509208,
+            ),
+        ]
+        self.write_session("rollout-wait-session", entries)
+
+        run = self.build_report("wait-session")["runs"][0]
+        wait = run["gmgn"]["wait"]
+        self.assertEqual(
+            wait["result_counts"],
+            {
+                "update": 1,
+                "timeout": 2,
+                "interrupted": 0,
+                "error": 0,
+                "unknown": 0,
+            },
+        )
+        self.assertEqual(
+            wait["state_change_counts"],
+            {"changed": 1, "unchanged": 2, "unknown": 0},
+        )
+        self.assertEqual(wait["max_consecutive_timeouts"], 2)
+        self.assertEqual(wait["wait_storm_count"], 1)
+        self.assertTrue(wait["wait_storm_detected"])
+        self.assertEqual(
+            wait["reactivation"],
+            {
+                "tokens": {
+                    "input": 300,
+                    "cached": 240,
+                    "output": 30,
+                    "reasoning": 6,
+                    "total": 330,
+                },
+                "matched_waits": 3,
+                "eligible_waits": 3,
+                "coverage": "observed",
+                "source": "session_jsonl_unstable_fallback",
+                "linkage": "session_sequence_delta",
+            },
+        )
 
     def test_missing_sessions_and_no_descendants(self) -> None:
         report = self.build_report(
@@ -911,18 +1013,31 @@ class TelemetryReportTests(unittest.TestCase):
             "".join(json.dumps(record) + "\n" for record in records),
             encoding="utf-8",
         )
-        hook = {
-            "schema_version": "gmgn-hook-event-v1",
-            "timestamp": "2026-07-20T00:00:01.500Z",
-            "event": "PreToolUse",
-            "session_id": "flat-session",
-            "tool_name": "Agent",
-            "tool_use_id": "agent-call",
-            "classification": "agent",
-            "fork_context": False,
-        }
+        hooks = [
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:01.500Z",
+                "event": "PreToolUse",
+                "session_id": "flat-session",
+                "tool_name": "Agent",
+                "tool_use_id": "agent-call",
+                "classification": "agent",
+                "fork_context": False,
+            },
+            {
+                "schema_version": "gmgn-hook-event-v1",
+                "timestamp": "2026-07-20T00:00:02Z",
+                "event": "PostToolUse",
+                "session_id": "flat-session",
+                "tool_name": "wait_agent",
+                "tool_use_id": "wait-call",
+                "classification": "agent",
+                "agent_action": "wait",
+                "wait_result": "timeout",
+            },
+        ]
         (data_dir / "hooks-2026-07-20.jsonl").write_text(
-            json.dumps(hook) + "\n",
+            "".join(json.dumps(hook) + "\n" for hook in hooks),
             encoding="utf-8",
         )
         from telemetry.report import build_report, render_human
@@ -933,9 +1048,14 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertEqual(run["api_calls"]["success"], 1)
         self.assertEqual(run["api_calls"]["failure"], 1)
         self.assertEqual(run["gmgn"]["spawn_calls"], 1)
+        self.assertEqual(run["gmgn"]["wait_calls"], 1)
+        self.assertEqual(run["gmgn"]["wait"]["result_counts"]["timeout"], 1)
+        self.assertEqual(run["gmgn"]["wait"]["reactivation"]["coverage"], "unknown")
         self.assertIsNone(run["actual_tokens"]["input"])
         self.assertIsNone(run["timing"]["completed_turn_duration_ms"])
-        self.assertIn("wait unknown", render_human({"runs": [run]}))
+        human = render_human({"runs": [run]})
+        self.assertIn("wait 1（unknown ms）", human)
+        self.assertIn("timeout 1", human)
 
     def test_structured_identifiers_ignore_adversarial_prompt_text(self) -> None:
         run = self.build_report("root-session")["runs"][0]

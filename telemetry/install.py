@@ -30,6 +30,7 @@ DEFAULT_MAX_CONCURRENT_REQUESTS = 8
 HOOK_EVENTS = (
     ("SessionStart", None),
     ("PostToolUse", "^Bash$"),
+    ("PostToolUse", "^(?:wait_agent|wait_agents|wait_threads)$"),
     ("PreToolUse", "^Agent$"),
     ("SubagentStart", None),
     ("SubagentStop", None),

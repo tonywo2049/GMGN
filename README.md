@@ -77,13 +77,17 @@ Critic/Reviewer. If a platform cannot resume that identity, GMGN records an expl
 replacement and repeats a full review when the reviewer changes.
 
 `run-task` continuously fills available capacity from a dependency-aware ready set; it does
-not wait for one card to close before starting another independent card. Each card keeps its
-own Coder, Reviewer, Verifier, and explicitly provisioned worktree. Worktrees prevent agents
+not wait for one card to close before starting another independent card. Each card keeps one
+bound Coder identity, an independent Reviewer, an independent Verifier, and an explicitly
+provisioned worktree. When no implementation lane can run in parallel with useful orchestrator
+work, the primary session may be that Coder after explicit binding. Worktrees prevent agents
 from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
 runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
 and traceability. Each Coder returns a local commit containing only its card write set. Integration
 first verifies an isolated temporary combination; only success atomically advances the shared
 baseline. A card closes only after post-integration verification and ledger refresh there.
+Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
+timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling loop.
 
 The reviewed `Task.md` card is the static authority for each implementation lane. Run-task
 roles receive the exact card/authority pointers plus current lane facts, not the parent
@@ -237,21 +241,27 @@ OTLP/HTTP JSON at `/v1/logs`. Before writing, it converts known Codex events to 
 metadata allowlist; raw OTLP bodies are not stored. The resulting records provide actual API
 attempts, native tool-result durations, and task token counters when Codex emits those fields;
 traces and metrics are explicitly disabled. After installation, inspect and trust the selected
-user-level hooks in Codex `/hooks`.
+user-level hooks in Codex `/hooks`. Wait hooks reduce outputs to a privacy-safe
+`update | timeout | interrupted | error | unknown` result; they never retain an agent message.
 
 ### Privacy and reports
 
 Codex uses `log_user_prompt=false`. The Collector drops prompts, commands, tool output, error
 messages, host and user identity, credentials, and unknown fields. User-level hooks run for
-configured session/subagent lifecycle events and matched Bash/Agent events. They store only
+configured session/subagent lifecycle events and matched Bash/Agent/wait events. They store only
 timestamps, opaque session/turn/tool IDs, model, hashed project path, byte counts,
-success/exit status, classifications, fork policy, and structured GMGN correlation IDs. Models
+success/exit status, classifications, wait outcome, fork policy, and structured GMGN correlation IDs. Models
 do not manually write telemetry logs or put them in prompts, `Task.md`, or `Handoff`.
 
 Run the report command only for a user-requested retrospective. It prefers Collector and hook
 records, then fills missing fields from session JSONL as an explicitly labelled `unstable
 fallback`. Every metric reports its source and coverage. Missing actual token data is
-`unknown`, not zero. Per-tool/skill input/output token counts remain estimates. After
+`unknown`, not zero. The report exposes wait outcomes, state-change/timeout counts, maximum
+consecutive timeouts, wait-storm count, and actual cumulative-token deltas associated with
+model reactivation after a wait result. Because current session token events do not carry a
+tool call ID, that last association is labelled `session_sequence_delta` and reports
+matched/eligible coverage instead of claiming exact native linkage. Per-tool/skill input/output
+token counts remain estimates. After
 installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/report.py`.
 `--json` changes report format only.
 

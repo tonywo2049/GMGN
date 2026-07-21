@@ -52,11 +52,14 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 
 原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。同一节点内，修改回到原 Author / Coder，blocker 定向复核回到原 Critic / Reviewer；平台无法恢复身份时显式替换，审查角色变更后重做完整审查。
 
-`run-task` 按依赖 ready set 持续补满可用槽位，不等上一卡关账才启动下一张独立卡。每卡保留独立
-Coder、Reviewer、Verifier 和显式 provision 的 worktree。Worktree 能防止 agent 互相覆盖文件与
+`run-task` 按依赖 ready set 持续补满可用槽位，不等上一卡关账才启动下一张独立卡。每卡保留一个
+已绑定 Coder 身份、独立 Reviewer、独立 Verifier 和显式 provision 的 worktree。当前没有实现 lane
+能与有用的主编排工作并行时，主 session 可在显式绑定后承担 Coder。Worktree 能防止 agent 互相覆盖文件与
 index，但不能解决 merge、语义、接口或共享运行资源冲突。主 session 串行拥有共享基线、
 `Task.md` 和追踪矩阵。每个 Coder 回传只包含本卡写集的本地 commit；集成先验证隔离临时组合，
 只有成功才原子推进共享基线。任务卡完成集成后验证和台账刷新才关账。
+Agent 等待采用事件驱动：先做完有用本地工作，只发起一次平台允许的最长安全等待，把超时只当存活
+检查点，禁止把 status/list/wait 串成轮询循环。
 
 每条实现 lane 都以已评审的 `Task.md` 任务卡为静态权威。run-task 角色只接收精确任务卡/权威指针
 与当前 lane 事实，不继承父会话，也不再复制一份逐 agent handoff。
@@ -212,19 +215,23 @@ python3 telemetry/report.py <session-id...> [--json]
 保持常驻，通过 `/v1/logs` 接收 Codex 原生 OTLP/HTTP JSON 日志。落盘前只把已知 Codex
 事件转换为严格的元数据白名单，不保存原始 OTLP body。记录可提供 actual 的 API 尝试、
 原生 tool-result 耗时，以及 Codex 实际发出的任务 token 计数；trace 和 metrics 明确关闭。
-安装后在 Codex `/hooks` 中检查并信任这些选定的用户级 hooks。
+安装后在 Codex `/hooks` 中检查并信任这些选定的用户级 hooks。等待 hook 只把输出归一为隐私安全的
+`update | timeout | interrupted | error | unknown`，不保存 agent 消息。
 
 ### 隐私与报告
 
 Codex 使用 `log_user_prompt=false`。Collector 丢弃 prompt、命令、tool 输出、错误正文、
 主机与用户身份、凭据和未知字段。用户级 hooks 只在已配置的 session/subagent 生命周期事件
-和匹配的 Bash/Agent 事件上运行，记录时间、不可读的 session/turn/tool ID、模型、项目路径
-哈希、输入输出字节数、成功/退出状态、分类、fork policy 与结构化 GMGN 关联 ID。模型不手工
+和匹配的 Bash/Agent/wait 事件上运行，记录时间、不可读的 session/turn/tool ID、模型、项目路径
+哈希、输入输出字节数、成功/退出状态、分类、等待结果、fork policy 与结构化 GMGN 关联 ID。模型不手工
 写 telemetry 日志，也不把日志放进 prompt、`Task.md` 或 `Handoff`。
 
 只有用户要求复盘时才运行报告命令。报告优先使用 Collector 与 hook 记录，再从 session JSONL
 补缺，并明确标注 `unstable fallback`；每个指标都报告来源与 coverage。actual token 缺失时显示
-`unknown`，不能写成 0；per-tool/skill I/O token 仍是 estimates。安装后也可运行
+`unknown`，不能写成 0。报告给出等待结果、状态变化/超时数、最大连续超时、等待风暴数，以及等待
+结果触发模型重激活时关联到的 actual 累计 token 差值。当前 session token 事件没有 tool call ID，
+所以该关联明确标为 `session_sequence_delta`，同时报告 matched/eligible coverage，不冒充原生精确
+关联；per-tool/skill I/O token 仍是 estimates。安装后也可运行
 `~/.codex/gmgn-telemetry/bin/report.py`。`--json` 只改变报告格式。
 
 ## 仓库结构

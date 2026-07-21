@@ -850,6 +850,25 @@ class HookTests(unittest.TestCase):
         self.assertNotIn("FAKE-CARD", serialized)
         self.assertNotIn("MESSAGE-CARD", serialized)
 
+    def test_wait_hook_records_result_without_output(self) -> None:
+        secret = "private-agent-update"
+        self.run_hook(
+            {
+                "hookEventName": "PostToolUse",
+                "sessionId": "session-wait",
+                "turnId": "turn-wait",
+                "toolName": "collaboration.wait_agent",
+                "toolUseId": "wait-use",
+                "toolInput": {"timeout_ms": 30000},
+                "toolResponse": {"summary": secret, "timed_out": True},
+            }
+        )
+        record = self.read_records()[-1]
+        self.assertEqual(record["classification"], "agent")
+        self.assertEqual(record["agent_action"], "wait")
+        self.assertEqual(record["wait_result"], "timeout")
+        self.assertNotIn(secret, json.dumps(record, ensure_ascii=False))
+
     def test_daily_rotation_retention_and_permissions(self) -> None:
         now = self.hook.utc_now()
         expired = self.output_dir / f"hooks-{(now.date() - timedelta(days=2)).isoformat()}.jsonl"

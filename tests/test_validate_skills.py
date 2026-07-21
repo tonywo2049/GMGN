@@ -1011,11 +1011,11 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("agents/author.md 关账风险披露", result.stdout)
 
-    def test_rejects_orchestrator_taking_over_execution(self) -> None:
+    def test_rejects_unconditional_primary_coder_takeover(self) -> None:
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(path.read_text(encoding="utf-8"),
-            "It does not\nwrite implementation",
-            "It\nwrites implementation",
+            "When\nno implementation lane can currently run in parallel with useful orchestrator work, it may\nexplicitly bind itself as one lane's Coder under the rules below.",
+            "It may always bind itself as any lane's Coder.",
         )
         path.write_text(text, encoding="utf-8")
 

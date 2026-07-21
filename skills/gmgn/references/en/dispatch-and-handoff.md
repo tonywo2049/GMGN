@@ -66,8 +66,10 @@ needed `author_ref` or `critic_ref`. An implementation lane records exactly
 and `owner_run_id` owns the shared integration queue. Task planning also states `depends_on`
 and the semantic owner.
 `owner_thread_id` is the main task that owns the writer lane, `owner_run_id` is the scheduler
-run holding the claim, and `coder_ref` is that lane's writer agent; these identities are not
-interchangeable. `run_id` remains execution provenance and is not a uniqueness key.
+run holding the claim, and `coder_ref` is that lane's actual writer: normally a delegated
+Coder, or the primary session under the no-parallelism rule. These identities are not
+interchangeable. `run_id` remains execution provenance and is not a uniqueness key. Bind the
+actual Coder before writing and never silently take over a lane already bound to another one.
 
 For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, record the writer choice before
 writing begins. `author_ref` identifies either the primary session or a delegated Author
@@ -249,7 +251,9 @@ after every lane owned by that session reaches `node-complete` and is released.
 - **Coder** implements exactly one approved card in its recorded workspace, stays within
   `write_set`, and stages/commits only that set on detached `HEAD` or its unique branch. It
   returns a resolvable local commit SHA as immutable `candidate_anchor`; remote writes and
-  unrelated paths are forbidden.
+  unrelated paths are forbidden. The primary session may hold this identity for one lane only
+  when no implementation lane can currently run in parallel with useful orchestrator work;
+  that does not waive isolation, anchoring, independent review, or independent verification.
 - **Reviewer** is a general read-only reviewer for an anchored document, code, or milestone
   closure increment. When the active dispatch is a run-task card, it reviews
   `baseline_anchor..candidate_anchor` only after exact `review-authorized`, and applies the card
@@ -288,11 +292,21 @@ after every lane owned by that session reaches `node-complete` and is released.
   and shared-baseline owner. Workers cannot mutate the registry, recursively create
   main tasks, adjudicate, accept, integrate, edit shared `Task.md` or traceability, push, or
   publish. When workers exceed one `wait_threads` call's runtime target limit, group them by the
-  observed capability. Wait on groups concurrently when supported; otherwise take
-  `timeoutMs: 0` snapshots of every group and rotate bounded waits. Wake on any completion and
-  refill immediately. Without capability or run-scoped authorization, degrade to rolling
-  dispatch in the current task. Never encode a current/default subagent or wait-target count as
-  a method constant.
+  observed capability. Wait on groups concurrently when supported; otherwise take one
+  `timeoutMs: 0` snapshot when grouping changes, block with the longest platform-safe wait, and
+  rotate only after a real timeout. A timeout is a liveness checkpoint, not an instruction to
+  automatically list/read tasks and wait again. Wake on a material update and refill
+  immediately. Workers push blockers, candidates, review, verification, and completion rather
+  than periodic heartbeats. Without capability or run-scoped authorization, degrade to rolling
+  dispatch in the current task. Never encode a current/default subagent count, wait-target
+  count, or polling interval as a method constant.
+
+  For current-task agents, use one event-driven `wait_agent` covering any live agent only after
+  ready dispatch, primary-Coder work, integration, state refresh, and local checks are
+  exhausted. Use the longest platform-safe wait allowed by the surface's user-update and
+  liveness limits. After a timeout, resume useful local work or yield; never automatically
+  chain `list_agents`, status/worktree probes, and another `wait_agent`. Send one targeted
+  status request only after a task-derived liveness threshold is crossed.
 - **Claude Code:** ordinary subagents share the primary session's current working directory and
   do not share a scheduler DAG or automatic ready set. The main session issues named `Agent`
   calls for every ready item up to the actual platform capacity before waiting, waits for any

@@ -106,6 +106,8 @@ HOOK_ALLOWED_FIELDS = {
     "success",
     "exit_code",
     "classification",
+    "agent_action",
+    "wait_result",
     "docstar_subcommand",
     "skill_name",
     "card_id",
@@ -137,6 +139,7 @@ SKILL_PATH = re.compile(
 MARKDOWN_PATH = re.compile(r"\.m(?:arkdown|d)(?:\b|$)", re.IGNORECASE)
 
 WAIT_TOOLS = {"wait", "wait_agent", "wait_agents", "wait_threads"}
+WAIT_RESULT_VALUES = ("update", "timeout", "interrupted", "error", "unknown")
 AGENT_TOOLS = {
     "create_thread",
     "followup_task",
@@ -259,12 +262,20 @@ class _RawCall:
         }
 
 
+@dataclass(frozen=True)
+class _TokenSnapshot:
+    sequence: int
+    turn_key: str
+    values: Mapping[str, Optional[int]]
+
+
 @dataclass
 class _SessionData:
     descriptor: _SessionDescriptor
     calls: List[_RawCall]
     child_ids: List[str]
     actual_tokens: Dict[str, Optional[int]]
+    token_snapshots: List[_TokenSnapshot]
     malformed_lines: int
     unpaired_calls: int
     completed_turn_duration_ms: int
@@ -773,6 +784,7 @@ def _load_session(descriptor: _SessionDescriptor) -> _SessionData:
     child_ids: List[str] = []
     child_seen: Set[str] = set()
     actual_tokens = _empty_tokens()
+    token_snapshots: List[_TokenSnapshot] = []
     malformed_lines = 0
     current_turn_id: Optional[str] = None
     turn_segment = 0
@@ -792,6 +804,7 @@ def _load_session(descriptor: _SessionDescriptor) -> _SessionData:
             calls=[],
             child_ids=[],
             actual_tokens=actual_tokens,
+            token_snapshots=[],
             malformed_lines=1,
             unpaired_calls=0,
             completed_turn_duration_ms=0,
@@ -873,6 +886,13 @@ def _load_session(descriptor: _SessionDescriptor) -> _SessionData:
                 usage = _token_usage(payload)
                 if usage is not None:
                     actual_tokens = usage
+                    token_snapshots.append(
+                        _TokenSnapshot(
+                            sequence=sequence,
+                            turn_key=current_turn_key,
+                            values=dict(usage),
+                        )
+                    )
                 continue
 
             if payload_type == "task_complete":
@@ -917,6 +937,7 @@ def _load_session(descriptor: _SessionDescriptor) -> _SessionData:
         calls=calls,
         child_ids=child_ids,
         actual_tokens=actual_tokens,
+        token_snapshots=token_snapshots,
         malformed_lines=malformed_lines,
         unpaired_calls=unpaired_calls,
         completed_turn_duration_ms=sum(completed_turns.values()),
@@ -1232,6 +1253,231 @@ def _gmgn_kind(call: _RawCall) -> Optional[str]:
     return None
 
 
+def _decoded_output(value: Any) -> Any:
+    if not isinstance(value, str):
+        return value
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        return value
+
+
+def _nested_values(value: Any, normalized_names: Set[str]) -> List[Any]:
+    result: List[Any] = []
+    stack = [_decoded_output(value)]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, dict):
+            for key, child in current.items():
+                normalized = re.sub(r"[^a-z0-9]", "", str(key).casefold())
+                if normalized in normalized_names:
+                    result.append(child)
+                if isinstance(child, (dict, list)):
+                    stack.append(child)
+        elif isinstance(current, list):
+            stack.extend(current)
+    return result
+
+
+def _wait_result(call: _RawCall) -> str:
+    if call.output is None:
+        return "unknown"
+    if _infer_success(call.status, call.output) is False:
+        return "error"
+
+    value = _decoded_output(call.output.value)
+    timed_out = _nested_values(value, {"timedout", "timeout"})
+    if any(candidate is True for candidate in timed_out):
+        return "timeout"
+    if any(candidate is False for candidate in timed_out):
+        return "update"
+
+    text_value = call.output.value
+    if not isinstance(text_value, str):
+        try:
+            text_value = json.dumps(text_value, ensure_ascii=False, sort_keys=True)
+        except (TypeError, ValueError):
+            text_value = str(text_value)
+    normalized = text_value.casefold()
+    if re.search(r"\b(?:interrupted|cancelled|canceled)\b", normalized):
+        return "interrupted"
+    if (
+        "wait completed" in normalized
+        or "has updates" in normalized
+        or "agent updates" in normalized
+        or "new user input" in normalized
+    ):
+        return "update"
+    if re.search(r"\b(?:wait(?:ing)?[ _-]?)?timed[ _-]?out\b", normalized):
+        return "timeout"
+    return "unknown"
+
+
+def _token_delta(
+    baseline: Mapping[str, Optional[int]],
+    current: Mapping[str, Optional[int]],
+) -> Dict[str, Optional[int]]:
+    result: Dict[str, Optional[int]] = {}
+    for field_name in TOKEN_FIELDS:
+        before = baseline.get(field_name)
+        after = current.get(field_name)
+        result[field_name] = (
+            after - before
+            if before is not None and after is not None and after >= before
+            else None
+        )
+    return result
+
+
+def _token_snapshot_changed(
+    baseline: Mapping[str, Optional[int]],
+    current: Mapping[str, Optional[int]],
+) -> bool:
+    return any(
+        baseline.get(field_name) != current.get(field_name)
+        for field_name in TOKEN_FIELDS
+    )
+
+
+def _wait_reactivation_metrics(
+    calls: Sequence[_RawCall],
+    sessions: Sequence[_SessionData],
+) -> Dict[str, Any]:
+    waits = [call for call in calls if _gmgn_kind(call) == "wait"]
+    eligible = sum(call.output is not None for call in waits)
+    snapshots_by_session = {
+        session.descriptor.session_id: sorted(
+            session.token_snapshots,
+            key=lambda snapshot: snapshot.sequence,
+        )
+        for session in sessions
+    }
+    deltas: List[Dict[str, Optional[int]]] = []
+    for call in waits:
+        if call.output is None:
+            continue
+        snapshots = snapshots_by_session.get(call.session_id, [])
+        baseline_index: Optional[int] = None
+        for index, snapshot in enumerate(snapshots):
+            if snapshot.sequence > call.output.sequence and snapshot.turn_key == call.turn_key:
+                baseline_index = index
+                break
+        if baseline_index is None:
+            continue
+        baseline = snapshots[baseline_index]
+        for snapshot in snapshots[baseline_index + 1 :]:
+            if snapshot.turn_key != call.turn_key:
+                continue
+            if not _token_snapshot_changed(baseline.values, snapshot.values):
+                continue
+            delta = _token_delta(baseline.values, snapshot.values)
+            if any(value is not None and value > 0 for value in delta.values()):
+                deltas.append(delta)
+            break
+
+    tokens: Dict[str, Optional[int]] = {}
+    for field_name in TOKEN_FIELDS:
+        values = [delta[field_name] for delta in deltas]
+        tokens[field_name] = (
+            sum(value for value in values if value is not None)
+            if values and all(value is not None for value in values)
+            else None
+        )
+    matched = len(deltas)
+    if not waits:
+        coverage = "not_applicable"
+    elif eligible and matched == eligible:
+        coverage = "observed"
+    elif matched:
+        coverage = "partial"
+    else:
+        coverage = "unknown"
+    return {
+        "tokens": tokens,
+        "matched_waits": matched,
+        "eligible_waits": eligible,
+        "coverage": coverage,
+        "source": SOURCE if matched else "unknown",
+        "linkage": "session_sequence_delta" if matched else "unavailable",
+    }
+
+
+def _wait_result_metrics(results: Sequence[str]) -> Dict[str, Any]:
+    result_counts = {value: 0 for value in WAIT_RESULT_VALUES}
+    max_streak = 0
+    current_streak = 0
+    storm_count = 0
+    for result in results:
+        if result not in result_counts:
+            result = "unknown"
+        result_counts[result] += 1
+        if result == "timeout":
+            current_streak += 1
+            max_streak = max(max_streak, current_streak)
+            if current_streak == 2:
+                storm_count += 1
+        else:
+            current_streak = 0
+    state_changes = {
+        "changed": result_counts["update"],
+        "unchanged": result_counts["timeout"],
+        "unknown": sum(
+            result_counts[value]
+            for value in ("interrupted", "error", "unknown")
+        ),
+    }
+    return {
+        "result_counts": result_counts,
+        "state_change_counts": state_changes,
+        "max_consecutive_timeouts": max_streak,
+        "wait_storm_count": storm_count,
+        "wait_storm_detected": storm_count > 0,
+    }
+
+
+def _merge_wait_result_metrics(
+    summaries: Sequence[Mapping[str, Any]],
+) -> Dict[str, Any]:
+    merged = _wait_result_metrics([])
+    for summary in summaries:
+        for key, value in summary["result_counts"].items():
+            merged["result_counts"][key] += value
+        for key, value in summary["state_change_counts"].items():
+            merged["state_change_counts"][key] += value
+        merged["max_consecutive_timeouts"] = max(
+            merged["max_consecutive_timeouts"],
+            summary["max_consecutive_timeouts"],
+        )
+        merged["wait_storm_count"] += summary["wait_storm_count"]
+    merged["wait_storm_detected"] = merged["wait_storm_count"] > 0
+    return merged
+
+
+def _wait_metrics(
+    calls: Sequence[_RawCall],
+    sessions: Sequence[_SessionData],
+) -> Dict[str, Any]:
+    waits = [call for call in calls if _gmgn_kind(call) == "wait"]
+    waits_by_session: Dict[str, List[_RawCall]] = defaultdict(list)
+    for call in waits:
+        waits_by_session[call.session_id].append(call)
+    summaries = [
+        _wait_result_metrics(
+            [
+                _wait_result(call)
+                for call in sorted(
+                    session_waits,
+                    key=lambda item: item.sequence,
+                )
+            ]
+        )
+        for session_waits in waits_by_session.values()
+    ]
+    result = _merge_wait_result_metrics(summaries)
+    result["reactivation"] = _wait_reactivation_metrics(calls, sessions)
+    return result
+
+
 def _fork_context_bucket(arguments: Any) -> str:
     mapping = _argument_mapping(arguments)
     if "fork_context" in mapping:
@@ -1277,7 +1523,10 @@ def _extract_identifiers(arguments: Any) -> Dict[str, List[str]]:
     return result
 
 
-def _gmgn_metrics(calls: Sequence[_RawCall]) -> Dict[str, Any]:
+def _gmgn_metrics(
+    calls: Sequence[_RawCall],
+    sessions: Sequence[_SessionData] = (),
+) -> Dict[str, Any]:
     spawn_calls = 0
     wait_calls = 0
     send_calls = 0
@@ -1309,6 +1558,7 @@ def _gmgn_metrics(calls: Sequence[_RawCall]) -> Dict[str, Any]:
         "wait_calls": wait_calls,
         "send_calls": send_calls,
         "wait_duration_ms": wait_duration_ms,
+        "wait": _wait_metrics(calls, sessions),
         "fork_context_counts": fork_counts,
         "identifiers": identifiers,
     }
@@ -1790,19 +2040,24 @@ def _hook_gmgn_metrics(
     groups: Sequence[Tuple[str, Set[str], Optional[_SessionData]]],
     telemetry: _TelemetryStore,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Set[str]]:
+    fallback_sessions = [
+        session for _, _, session in groups if session is not None
+    ]
     all_fallback_calls = [
         call
         for _, _, session in groups
         if session is not None
         for call in session.calls
     ]
-    fallback_all = _gmgn_metrics(all_fallback_calls)
+    fallback_all = _gmgn_metrics(all_fallback_calls, fallback_sessions)
     spawn_calls = 0
     fork_counts = {value: 0 for value in FORK_CONTEXT_VALUES}
     identifiers = {field_name: [] for field_name in IDENTIFIER_FIELDS}
     identifier_seen = {field_name: set() for field_name in IDENTIFIER_FIELDS}
     hook_sessions = 0
     spawn_fallback_sessions = 0
+    hook_wait_summaries: List[Dict[str, Any]] = []
+    hook_wait_count = 0
 
     def add_identifiers(source: Mapping[str, Sequence[str]]) -> None:
         for field_name in IDENTIFIER_FIELDS:
@@ -1813,14 +2068,37 @@ def _hook_gmgn_metrics(
 
     for group in groups:
         hooks = _group_hook_events(group, telemetry)
-        if hooks:
-            hook_sessions += 1
+        if group[2] is None:
+            hook_wait_results = []
             for hook in hooks:
                 tool = _tool_leaf(str(hook.fields.get("tool_name", "")))
-                if hook.fields.get("classification") != "agent":
+                action = hook.fields.get("agent_action")
+                if action != "wait" and tool not in {
+                    "wait_agent",
+                    "wait_agents",
+                    "wait_threads",
+                }:
                     continue
-                if tool not in SPAWN_TOOLS and tool != "agent":
-                    continue
+                wait_result = str(hook.fields.get("wait_result", "unknown"))
+                hook_wait_results.append(
+                    wait_result if wait_result in WAIT_RESULT_VALUES else "unknown"
+                )
+            if hook_wait_results:
+                hook_wait_count += len(hook_wait_results)
+                hook_wait_summaries.append(
+                    _wait_result_metrics(hook_wait_results)
+                )
+
+        spawn_hooks = []
+        for hook in hooks:
+            tool = _tool_leaf(str(hook.fields.get("tool_name", "")))
+            if hook.fields.get("classification") != "agent":
+                continue
+            if tool in SPAWN_TOOLS or tool == "agent":
+                spawn_hooks.append(hook)
+        if spawn_hooks:
+            hook_sessions += 1
+            for hook in spawn_hooks:
                 spawn_calls += 1
                 fork_counts[_hook_fork_bucket(hook)] += 1
                 explicit = {field_name: [] for field_name in IDENTIFIER_FIELDS}
@@ -1845,6 +2123,21 @@ def _hook_gmgn_metrics(
         fallback_fields.update({"gmgn.wait_calls", "gmgn.send_calls"})
     if spawn_fallback_sessions:
         fallback_fields.add("gmgn.spawn_calls")
+    wait_metrics = (
+        fallback_all["wait"] if all_fallback_calls else _wait_metrics([], [])
+    )
+    wait_summary = _merge_wait_result_metrics(
+        [wait_metrics, *hook_wait_summaries]
+    )
+    wait_summary["reactivation"] = wait_metrics["reactivation"]
+    wait_metrics = wait_summary
+    if hook_wait_count:
+        wait_metrics["reactivation"]["eligible_waits"] += hook_wait_count
+        wait_metrics["reactivation"]["coverage"] = (
+            "partial"
+            if wait_metrics["reactivation"]["matched_waits"]
+            else "unknown"
+        )
     if hook_sessions and spawn_fallback_sessions:
         spawn_source = HOOK_SOURCE + "+" + SOURCE
         spawn_coverage = "mixed"
@@ -1857,22 +2150,40 @@ def _hook_gmgn_metrics(
     else:
         spawn_source = "unknown"
         spawn_coverage = "unknown"
+    if all_fallback_calls and hook_wait_count:
+        wait_source = SOURCE + "+" + HOOK_SOURCE
+    elif all_fallback_calls:
+        wait_source = SOURCE
+    elif hook_wait_count:
+        wait_source = HOOK_SOURCE
+    else:
+        wait_source = "unknown"
     result = {
         "spawn_calls": spawn_calls if spawn_source != "unknown" else None,
-        "wait_calls": fallback_all["wait_calls"] if all_fallback_calls else None,
+        "wait_calls": (
+            fallback_all["wait_calls"] + hook_wait_count
+            if wait_source != "unknown"
+            else None
+        ),
         "send_calls": fallback_all["send_calls"] if all_fallback_calls else None,
         "wait_duration_ms": (
-            fallback_all["wait_duration_ms"] if all_fallback_calls else None
+            fallback_all["wait_duration_ms"]
+            if all_fallback_calls and not hook_wait_count
+            else None
         ),
+        "wait": wait_metrics,
         "fork_context_counts": fork_counts,
         "identifiers": identifiers,
         "metric_sources": {
             "spawn_calls": spawn_source,
             "fork_context_counts": spawn_source,
             "identifiers": spawn_source,
-            "wait_calls": SOURCE if all_fallback_calls else "unknown",
+            "wait_calls": wait_source,
             "send_calls": SOURCE if all_fallback_calls else "unknown",
-            "wait_duration_ms": SOURCE if all_fallback_calls else "unknown",
+            "wait_duration_ms": (
+                SOURCE if all_fallback_calls and not hook_wait_count else "unknown"
+            ),
+            "wait": wait_source,
         },
     }
     coverage = _coverage(
@@ -2440,7 +2751,7 @@ def _build_run(
         },
         "tool_calls": [call.public() for call in calls],
         "skills": _skill_metrics(sessions),
-        "gmgn": _gmgn_metrics(calls),
+        "gmgn": _gmgn_metrics(calls, sessions),
         "docstar": _docstar_metrics(calls, follow_window),
         "data_quality": {
             "malformed_lines": malformed_lines,
@@ -2534,6 +2845,8 @@ def render_human(report: Mapping[str, Any]) -> str:
         actual = run["actual_tokens"]
         estimated = run["estimated_tool_io_tokens"]
         gmgn = run["gmgn"]
+        wait = gmgn["wait"]
+        wait_reactivation = wait["reactivation"]
         docstar = run["docstar"]
         quality = run["data_quality"]
         coverage = run["coverage"]
@@ -2590,6 +2903,28 @@ def render_human(report: Mapping[str, Any]) -> str:
                     _human_value(gmgn["wait_calls"]),
                     _human_value(gmgn["wait_duration_ms"]),
                     _human_value(gmgn["send_calls"]),
+                ),
+                "  等待结果：update {0}，timeout {1}，unknown/error/interrupted {2}；最大连续超时 {3}；等待风暴 {4}".format(
+                    wait["result_counts"]["update"],
+                    wait["result_counts"]["timeout"],
+                    (
+                        wait["result_counts"]["unknown"]
+                        + wait["result_counts"]["error"]
+                        + wait["result_counts"]["interrupted"]
+                    ),
+                    wait["max_consecutive_timeouts"],
+                    wait["wait_storm_count"],
+                ),
+                "  等待重激活 token：input {0}，cached {1}，output {2}，reasoning {3}，total {4}；matched {5}/{6}；coverage {7}；linkage {8}".format(
+                    _human_value(wait_reactivation["tokens"]["input"]),
+                    _human_value(wait_reactivation["tokens"]["cached"]),
+                    _human_value(wait_reactivation["tokens"]["output"]),
+                    _human_value(wait_reactivation["tokens"]["reasoning"]),
+                    _human_value(wait_reactivation["tokens"]["total"]),
+                    wait_reactivation["matched_waits"],
+                    wait_reactivation["eligible_waits"],
+                    wait_reactivation["coverage"],
+                    wait_reactivation["linkage"],
                 ),
                 "  DocStar：{0} 次；grep/read {1}；DocStar follow-up grep/read {2}；{3}".format(
                     _human_value(docstar["calls"]),
