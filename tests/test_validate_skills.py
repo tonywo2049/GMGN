@@ -92,6 +92,46 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("SemVer 2.0", result.stdout)
 
+    def test_rejects_release_repeating_closure_review_for_exact_anchor(self) -> None:
+        path = self.root / "skills" / "release" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Do not dispatch another closure Author",
+            "Dispatch another closure Author",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("release 证据复用契约缺失", result.stdout)
+
+    def test_rejects_unconditional_full_regression_on_release_retry(self) -> None:
+        path = self.root / "skills" / "release" / "SKILL.md"
+        text = path.read_text(encoding="utf-8") + (
+            "\nEvery release retry must rerun full regression and combined review.\n"
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("发布不得无条件重做关账审查", result.stdout)
+
+    def test_rejects_mechanical_release_without_allowed_diff_record(self) -> None:
+        path = self.root / "GMGN.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "the exact\n`allowed_diff`",
+            "a general\ndiff summary",
+        )
+        path.write_text(text, encoding="utf-8")
+
+        result = self.run_validator()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("GMGN.md 发布证据复用语义缺失", result.stdout)
+
     def test_rejects_malformed_openai_yaml(self) -> None:
         path = self.root / "skills" / "gmgn" / "agents" / "openai.yaml"
         path.write_text(

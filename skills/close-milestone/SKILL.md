@@ -105,11 +105,18 @@ version anchor to the owner. Only after explicit acceptance, set state to `accep
 The orchestrator checks disk and evidence, then marks `node-complete`. Do not push, publish,
 deploy, or release unless separately authorized.
 
+Closure evidence is reusable and remains bound to this immutable closing anchor. A later tag,
+package, upload, deployment handoff, authentication retry, or local installation must not
+redispatch the closure Author, combined Critic/Reviewer, or closure Verifier merely because it
+is a release operation. Route an authorized release through `release`; that skill validates
+the artifact delta and regenerates only evidence whose inputs changed.
+
 ## Exit
 
 Update the target ROADMAP row with closure evidence and the receiving state. Downstream
-Milestones retain their own states and closure gates. **REQUIRED next skill:
-`roadmap`** for maintenance or the next milestone.
+Milestones retain their own states and closure gates. If the owner authorizes distribution,
+**REQUIRED next skill: `release`**. Otherwise use **REQUIRED next skill: `roadmap`** for
+maintenance or the next milestone.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

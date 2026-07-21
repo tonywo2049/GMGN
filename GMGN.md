@@ -347,6 +347,30 @@ Closure has three disciplines:
 Immediately after closure, write receiving state for the next operator. A closed milestone
 without a current handoff is not operationally closed.
 
+### 3.2 Reuse accepted evidence for release
+
+Acceptance and release are separate events. Acceptance decides whether an immutable candidate
+is fit; release distributes it. Bind review and verification evidence to the accepted anchor,
+their checked scope, required test plan, execution environment, and packaging inputs. One
+unchanged semantic candidate receives one closure verification and combined review. A later
+tag, upload, authentication retry, or installation consumes that evidence rather than
+recreating it.
+
+When the release anchor equals the accepted anchor, reuse the accepted review, regression,
+E2E, structural, and closure evidence. When it differs only by an explicitly allowed
+meaning-preserving release delta, record both anchors, `semantic_delta: none`, the exact
+`allowed_diff`, and `approval_inherited_from`; prove that diff mechanically and rerun only the
+affected version, artifact, or installation checks. A release retry with unchanged inputs
+does not invalidate any evidence.
+
+If source behavior, specification meaning, acceptance, scope, design intent, execution
+authority, required test plan, target environment, or packaging inputs change, invalidate
+only the evidence that depends on that input. Route semantic impact back to its authority;
+rerun artifact or environment checks when only those inputs changed. Full regression, E2E,
+combined review, DocStar, and closure authoring are not publication rituals and must not be
+repeated without an invalidated dependency. External publication or deployment still needs
+separate owner authorization.
+
 ## 4. Six workflow laws
 
 1. **Classify before locating.** Decide whether a new file is requirement/design/execution/

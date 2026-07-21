@@ -54,6 +54,7 @@ EXPECTED_TRIGGERS = {
     "write-task": ("task cards", "implementation", "拆任务", "任务卡"),
     "run-task": ("bug fix", "code", "修 bug", "写代码"),
     "close-milestone": ("full regression", "closure", "关账", "回归"),
+    "release": ("tag", "package", "发布", "重试"),
 }
 
 FORBIDDEN_TRIGGER_OVERLAPS = {
@@ -63,7 +64,7 @@ FORBIDDEN_TRIGGER_OVERLAPS = {
 
 CHAIN = [
     "brainstorm", "roadmap", "write-goal", "write-requirement", "write-design",
-    "write-task", "run-task", "close-milestone",
+    "write-task", "run-task", "close-milestone", "release",
 ]
 TELEMETRY_COMMANDS = (
     "python3 telemetry/install.py --dry-run",
@@ -2147,6 +2148,114 @@ def validate_self_check_and_risk_disclosure(
             errors.append(f"{path}: 固定 Reflection 规则回退 {found}")
 
 
+def validate_release_evidence_reuse(
+    errors: list[str], parsed: dict[str, tuple[str, str]]
+) -> None:
+    release = parsed.get("release", ("", ""))[1]
+    router = parsed.get("gmgn", ("", ""))[1]
+    close = parsed.get("close-milestone", ("", ""))[1]
+    method_en = (ROOT / "GMGN.md").read_text(encoding="utf-8")
+    method_zh = (ROOT / "GMGN.zh-CN.md").read_text(encoding="utf-8")
+
+    require_section_tokens(
+        errors,
+        release,
+        "## 1. Bind reusable evidence",
+        (
+            "accepted_anchor", "release_anchor", "review evidence reference",
+            "verification evidence reference", "semantic_delta", "allowed_diff",
+            "packaging recipe anchor", "target distribution environment",
+        ),
+        "release 证据绑定契约缺失",
+    )
+    require_section_tokens(
+        errors,
+        release,
+        "## 2. Classify the release delta",
+        (
+            "Exact-anchor release", "Do not dispatch another closure Author",
+            "do not rerun those gates", "Mechanical equivalent",
+            "approval_inherited_from", "Semantic delta", "Invalidate only the affected",
+            "When the delta's meaning is uncertain",
+        ),
+        "release 证据复用契约缺失",
+    )
+    require_section_tokens(
+        errors,
+        release,
+        "## 3. Verify the artifact boundary",
+        (
+            "worktree is clean", "version declarations agree", "artifact member allowlist",
+            "record the checksum", "deterministic packaging", "installation or startup smoke",
+            "Do not rerun full regression", "Rerun an item only when",
+        ),
+        "release 发布物边界契约缺失",
+    )
+    require_section_tokens(
+        errors,
+        release,
+        "## 4. Publish and reconcile idempotently",
+        (
+            "explicit", "After every write, read the remote state back",
+            "partial release", "create only missing ones", "conflicting tag",
+        ),
+        "release 幂等发布契约缺失",
+    )
+
+    require_section_tokens(
+        errors,
+        router,
+        "## Route by observable state",
+        (
+            "not yet received owner-accepted closure", "already accepted", "tagging",
+            "packaging", "publication", "`release`",
+        ),
+        "gmgn 缺 accepted-anchor release 路由",
+    )
+    require_tokens(
+        errors,
+        close,
+        (
+            "Closure evidence is reusable", "Route an authorized release through `release`",
+            "must not\nredispatch the closure Author", "regenerates only evidence whose inputs changed",
+        ),
+        "close-milestone 缺发布证据交接",
+    )
+    require_section_tokens(
+        errors,
+        method_en,
+        "### 3.2 Reuse accepted evidence for release",
+        (
+            "Acceptance and release are separate events", "One\nunchanged semantic candidate",
+            "allowed_diff", "approval_inherited_from", "does not invalidate any evidence",
+            "invalidate\nonly the evidence", "must not be\nrepeated without an invalidated dependency",
+        ),
+        "GMGN.md 发布证据复用语义缺失",
+    )
+    require_section_tokens(
+        errors,
+        method_zh,
+        "### 3.6 发布复用已接受证据",
+        (
+            "验收与发布是两个事件", "只做一次关账\n验证与组合审查",
+            "allowed_diff", "approval_inherited_from", "发布重试不使任何证据失效",
+            "依赖该输入的证据失效", "没有证据依赖失效\n就不得重复",
+        ),
+        "GMGN.zh-CN.md 发布证据复用语义缺失",
+    )
+
+    forbidden = (
+        r"Every release(?: retry)? must rerun full regression",
+        r"Every release requires (?:a )?full regression",
+        r"每次发布[^。\n]{0,40}完整回归",
+        r"每次发布[^。\n]{0,40}组合审查",
+    )
+    for name, text in (("release", release), ("gmgn", router), ("close-milestone", close)):
+        found = [pattern for pattern in forbidden if re.search(pattern, text, re.I)]
+        if found:
+            errors.append(f"{name}: 发布不得无条件重做关账审查 {found}")
+
+
 def main() -> int:
     errors: list[str] = []
     parsed: dict[str, tuple[str, str]] = {}
@@ -2176,6 +2285,7 @@ def main() -> int:
     validate_task_execution_log_contract(errors, parsed)
     validate_agent_lifecycle(errors, parsed)
     validate_self_check_and_risk_disclosure(errors, parsed)
+    validate_release_evidence_reuse(errors, parsed)
 
     for name, triggers in EXPECTED_TRIGGERS.items():
         if name not in parsed:
@@ -2199,6 +2309,8 @@ def main() -> int:
             errors.append(f"{current}: 未指向下一环 {following}")
     if "close-milestone" in parsed and "roadmap" not in parsed["close-milestone"][1]:
         errors.append("close-milestone 后未回到 roadmap 维护态")
+    if "release" in parsed and "roadmap" not in parsed["release"][1]:
+        errors.append("release 后未回到 roadmap 维护态")
 
     if "write-task" in parsed:
         task_body = parsed["write-task"][1]

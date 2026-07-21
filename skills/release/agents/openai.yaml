@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release / 版本发布"
+  short_description: "Publish an accepted anchor without repeating closure review / 复用已接受锚的证据完成发布，不重复关账审查"
+  default_prompt: "Use $release to package and publish the accepted candidate with reusable anchored evidence. / 请用 $release 复用锚定证据打包并发布已接受候选。"

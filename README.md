@@ -11,7 +11,8 @@ nature: descriptive
 **GM, GN.** Good morning, good night.
 
 GMGN is an agentic software-delivery workflow for **Codex (CLI/Desktop)** and
-**Claude Code**. Nine composable skills move work from an idea to a closed milestone.
+**Claude Code**. Ten composable skills move work from an idea to a closed milestone and then
+publish an accepted anchor without repeating closure review.
 Hard gates prevent skipped stages, independent review reduces shared blind spots, and
 replayable commands bind completion claims to evidence.
 
@@ -26,6 +27,7 @@ idea
                             → write-task
                             → run-task
                             → close-milestone
+                            → release (when distribution is authorized)
                             → roadmap (next milestone)
 ```
 
@@ -61,7 +63,7 @@ the Author chooses the structure.
 
 | Capability | Codex | Claude Code |
 |---|---|---|
-| Nine shared skills | Supported | Supported |
+| Ten shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
 | Code review | `/review`; CLI: `codex review --uncommitted/--commit/--base` | Independent read-only reviewer; `/code-review` only for an authorized GitHub PR |
 | Runtime verification | Project tests, startup, and E2E commands | Project commands; `/verify` where available |
@@ -208,6 +210,7 @@ claude plugin marketplace remove GMGN --scope user
 | “Break the design into task cards.” | `write-task` | Task.md |
 | “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review and verification evidence |
 | “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, closure record |
+| “Publish the accepted version / retry its release.” | `release` | Reused acceptance evidence, deterministic artifact, tag and release |
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 
 Small bug fixes and narrow one-step changes may use the controlled bypass; they do not
@@ -255,7 +258,7 @@ installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/repo
 ## Repository layout
 
 ```text
-skills/                         nine cross-platform skills
+skills/                         ten cross-platform skills
   */agents/openai.yaml          Codex display metadata and default prompts
   gmgn/references/{en,zh-CN}/   mirrored machine/dispatch contracts and checklists
 agents/                         Claude Code plugin subagent roles

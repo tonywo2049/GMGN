@@ -38,7 +38,8 @@ and later grep/read outside DocStar. `grep_avoided` does not claim causation.
 | Requirement reviewed; Design absent or changing | `write-design` |
 | Design reviewed; Task absent or changing | `write-task` |
 | One or more confirmed cards in the target Milestone execution set are ready or one of its lanes remains active | `run-task` |
-| All target Milestone cards closed on one shared baseline, its integration entries empty, its traceability full | `close-milestone` |
+| All target Milestone cards are closed on one shared baseline and traceability is full, but that Milestone has not yet received owner-accepted closure | `close-milestone` |
+| An immutable candidate is already accepted and the owner requests tagging, packaging, publication, deployment handoff, or local installation | `release` |
 
 Before `write-goal` and throughout every later Milestone skill, record `target_milestone_id`
 and every available Goal, Requirement, Design, and Task authority anchor for that Milestone.
@@ -70,6 +71,11 @@ state. Keep the node record and identity refs until `node-complete`.
   `Task.md`, per-card execution logs, and traceability.
 - `close-milestone` dispatches target-scoped independent verification, a closure Author, a
   combined Critic/Reviewer, and an Integrator after owner acceptance.
+- `release` consumes review, verification, and acceptance evidence already bound to an
+  immutable anchor. An exact-anchor release or an explicitly equivalent mechanical release
+  does not dispatch another closure Author, combined Critic/Reviewer, or closure Verifier.
+  Only evidence invalidated by changed content, test plan, environment, or packaging inputs is
+  regenerated.
 - A platform that cannot resume an identity enters `agent-unavailable`; replacement is
   explicit, and replacing a Critic or Reviewer requires a full review.
 
@@ -149,6 +155,12 @@ appropriate to that authority only when the change alters a decision or reasonab
 understanding. Meaning-preserving mechanical changes use same-batch refresh and machine
 checks without reapproval. An explicit equivalence record may let the new anchor retain the
 document approval state by citing the old approved anchor; this is not a new approval.
+
+Publication is separate from acceptance. Route an accepted immutable anchor to `release`,
+which reuses anchored review and verification evidence. A tag, upload, authentication retry,
+or local reinstall does not rerun closure. A release-only version or metadata commit may cite
+the accepted anchor through an explicit allowed-diff equivalence record and machine checks;
+any semantic delta returns only its impact cone to the appropriate authority.
 
 A closed foundation or M0 Milestone is a historical declaration about its closing anchor, not
 a promise that its technical selection can never change. An M0-originated Design, Decision, or
