@@ -1282,8 +1282,6 @@ def _nested_values(value: Any, normalized_names: Set[str]) -> List[Any]:
 def _wait_result(call: _RawCall) -> str:
     if call.output is None:
         return "unknown"
-    if _infer_success(call.status, call.output) is False:
-        return "error"
 
     value = _decoded_output(call.output.value)
     timed_out = _nested_values(value, {"timedout", "timeout"})
@@ -1312,6 +1310,8 @@ def _wait_result(call: _RawCall) -> str:
         return "update"
     if re.search(r"\b(?:wait(?:ing)?[ _-]?)?timed[ _-]?out\b", normalized):
         return "timeout"
+    if _infer_success(call.status, call.output) is False:
+        return "error"
     return "unknown"
 
 

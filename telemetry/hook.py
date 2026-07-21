@@ -422,8 +422,6 @@ def extract_success(payload: dict, tool_output: Any, exit_code: Optional[int]) -
 
 
 def extract_wait_result(tool_output: Any, success: Optional[bool]) -> str:
-    if success is False:
-        return "error"
     for normalized_name in ("timedout", "timeout"):
         raw = find_value(tool_output, normalized_name)
         if raw is True:
@@ -454,6 +452,8 @@ def extract_wait_result(tool_output: Any, success: Optional[bool]) -> str:
         return "update"
     if re.search(r"\b(?:wait(?:ing)?[ _-]?)?timed[ _-]?out\b", normalized):
         return "timeout"
+    if success is False:
+        return "error"
     return "unknown"
 
 

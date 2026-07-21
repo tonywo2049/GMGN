@@ -883,6 +883,19 @@ class HookTests(unittest.TestCase):
         self.assertEqual(invalid["agent_action"], "wait")
         self.assertEqual(invalid["wait_result"], "error")
 
+        self.run_hook(
+            {
+                "hookEventName": "PostToolUse",
+                "sessionId": "session-wait",
+                "toolName": "wait_agent",
+                "toolUseId": "wait-status-timeout",
+                "toolResponse": {"status": "timed_out"},
+            }
+        )
+        timed_out = self.read_records()[-1]
+        self.assertFalse(timed_out["success"])
+        self.assertEqual(timed_out["wait_result"], "timeout")
+
     def test_daily_rotation_retention_and_permissions(self) -> None:
         now = self.hook.utc_now()
         expired = self.output_dir / f"hooks-{(now.date() - timedelta(days=2)).isoformat()}.jsonl"

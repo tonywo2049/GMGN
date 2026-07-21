@@ -839,12 +839,25 @@ class TelemetryReportTests(unittest.TestCase):
                 "wait-error",
                 "timeout_ms must be at least 10000",
             ),
+            self.call(
+                "2026-07-20T02:00:02Z",
+                "wait-timeout-status",
+                "wait_agent",
+                {"timeout_ms": 30000},
+            ),
+            self.output(
+                "2026-07-20T02:00:03Z",
+                "wait-timeout-status",
+                {"status": "timed_out"},
+            ),
         ]
         self.write_session("rollout-wait-error-session", entries)
 
         wait = self.build_report("wait-error-session")["runs"][0]["gmgn"]["wait"]
         self.assertEqual(wait["result_counts"]["error"], 1)
+        self.assertEqual(wait["result_counts"]["timeout"], 1)
         self.assertEqual(wait["state_change_counts"]["unknown"], 1)
+        self.assertEqual(wait["state_change_counts"]["unchanged"], 1)
         self.assertEqual(wait["reactivation"]["coverage"], "unknown")
 
     def test_missing_sessions_and_no_descendants(self) -> None:
