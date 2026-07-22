@@ -35,6 +35,12 @@ execution link replaces the old value; it never appends history.
 
 ## Decompose work
 
+Within the approved Design, optimize decomposition for useful independent execution. Give each
+task one primary responsibility and one independently decidable, testable result. Minimize
+unnecessary task dependencies, shared writes, and runtime conflicts so work with no real
+dependency can run in parallel. The objective is useful parallelism, not more task cards. Never
+invent empty wrappers, fake interfaces, or new design decisions merely to increase concurrency.
+
 - Split at an independent proof boundary, not by file count, chronology, or a final product
   qualification. One task has one primary semantic owner and one independently decidable
   result; one AC may map to several tasks.
@@ -45,8 +51,9 @@ execution link replaces the old value; it never appends history.
   disabled, or fail-closed, with that containment proved by its later Card TDD contract.
 - Continue splitting when a task still combines separable responsibilities, unrelated
   failure causes, independent modules, or qualification with implementation.
-- Stop when a smaller unit would not have an independently testable result, would create an
-  empty wrapper or fake interface, or would leave required responsibility without an owner.
+- Stop when a smaller unit would not have an independently testable result, would leave
+  required responsibility without an owner, or would add more coordination cost than
+  isolation benefit.
 - `prerequisite` forms an acyclic DAG. Add only real data, interface, or authority
   dependencies. Order interface/schema work before consumers; do not serialize independent
   work for convenience.

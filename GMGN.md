@@ -80,6 +80,13 @@ It also contains the AC-to-task mapping and Milestone-level execution pointers. 
 contain TDD cases, commands, write sets, locks, blockers, candidate anchors, review rounds,
 verification evidence, or progress history.
 
+Within the approved Design, Task decomposition targets useful independent execution. Give each
+task one primary responsibility and an independently decidable result; minimize unnecessary
+dependencies, shared writes, and runtime conflicts so work with no real dependency can run in
+parallel. Optimize useful parallelism, not task count. Do not invent empty wrapper tasks, fake
+interfaces, or new design decisions merely to create concurrency, and stop when coordination
+cost exceeds the isolation benefit.
+
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
 

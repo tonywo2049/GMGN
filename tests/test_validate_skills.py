@@ -70,6 +70,16 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
 
+    def test_rejects_missing_task_decomposition_objective(self) -> None:
+        self.replace(
+            "skills/write-task/SKILL.md",
+            "The objective is useful parallelism, not more task cards.",
+            "The objective is to create as many task cards as possible.",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task 紧凑索引契约", result.stdout)
+
     def test_rejects_missing_roadmap_acceptance_picture(self) -> None:
         self.replace(
             "skills/roadmap/SKILL.md",

@@ -114,6 +114,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "The TDD contract belongs in `Card.md`, not Task",
         "`execution_log` link to its sibling `Log.md`",
         "latest_event",
+        "minimize unnecessary task dependencies, shared writes, and runtime conflicts",
+        "The objective is useful parallelism, not more task cards",
+        "Never invent empty wrappers, fake interfaces, or new design decisions",
+        "more coordination cost than isolation benefit",
     ), "write-task 紧凑索引契约", errors)
     require(run_task, (
         "`execution/<card_id>/Card.md` first",

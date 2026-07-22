@@ -64,6 +64,11 @@ WhitePaper → ROADMAP → Goal → Requirement → Design → Task
 它还保存 AC→Task 映射和 Milestone 级执行指针；不保存 TDD、命令、write set、锁、blocker、候选锚、
 审查轮次、验证证据或推进历史。
 
+Task 拆分只能在已批准 Design 内优化有效的独立执行：每张卡只有一个主要责任和一个可独立判定的
+结果；尽量减少不必要的依赖、共享写入和运行冲突，使没有真实依赖的任务能够并行。目标是提高有效
+并行度，不是增加卡片数量。不得为了并行制造空壳任务、虚假接口或新的设计决定；协调成本高于隔离
+收益时停止拆分。
+
 负责人确认执行集后，`run-task` 在派 Coder 前为每个选中任务只创建两份文件：
 
 - `execution/<card_id>/Card.md`：规范性的稳定执行/TDD 契约，精确链接 Task/Requirement/Design，
