@@ -244,6 +244,12 @@ traces and metrics are explicitly disabled. After installation, inspect and trus
 user-level hooks in Codex `/hooks`. Wait hooks reduce outputs to a privacy-safe
 `update | timeout | interrupted | error | unknown` result; they never retain an agent message.
 
+With the default loopback host, open `http://127.0.0.1:4318/` for the local read-only
+dashboard. It lists observed sessions and renders task duration, actual task tokens, tool and
+skill profiles, GMGN orchestration, DocStar activity, source coverage, and data quality. The
+dashboard uses only bundled static assets, makes no external requests, and serves a bounded
+privacy-safe projection rather than prompts, commands, tool output, or raw session records.
+
 ### Privacy and reports
 
 Codex uses `log_user_prompt=false`. The Collector drops prompts, commands, tool output, error
@@ -283,7 +289,7 @@ agents/                         Claude Code plugin subagent roles
 .agents/plugins/                Codex marketplace manifest
 tests/                          structure, language, platform, and package checks
 scripts/package_release.py      deterministic ZIP and SHA-256 builder
-telemetry/                      bundled optional Codex Collector, hooks, installer, and reporter
+telemetry/                      bundled Collector, hooks, installer, reporter, and local dashboard
 GMGN.md                         normative methodology
 ```
 

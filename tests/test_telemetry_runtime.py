@@ -54,6 +54,7 @@ class CollectorTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
+        self.codex_home = Path(self.temporary.name) / "codex"
         self.data_dir = Path(self.temporary.name) / "otel"
         self.server = None
         self.thread = None
@@ -75,6 +76,7 @@ class CollectorTests(unittest.TestCase):
             "max_data_bytes": 1024 * 1024,
             "read_timeout_seconds": 1.0,
             "max_concurrent_requests": 4,
+            "codex_home": self.codex_home,
         }
         options.update(overrides)
         self.data_dir = Path(options["data_dir"])
@@ -99,9 +101,12 @@ class CollectorTests(unittest.TestCase):
         path: str,
         body: bytes = b"",
         content_type: str = "application/json",
+        extra_headers: dict[str, str] | None = None,
     ) -> tuple[int, bytes, dict[str, str]]:
         connection = http.client.HTTPConnection(self.host, self.port, timeout=5)
         headers = {"Content-Type": content_type} if body else {}
+        if extra_headers:
+            headers.update(extra_headers)
         connection.request(method, path, body=body, headers=headers)
         response = connection.getresponse()
         payload = response.read()
@@ -179,6 +184,94 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(json.loads(body), {})
         self.assertEqual(self.records(), [])
+
+    def test_dashboard_assets_session_index_and_report_api(self) -> None:
+        dashboard_data = self.codex_home / "gmgn-telemetry" / "data"
+        self.start_server(data_dir=dashboard_data, codex_home=self.codex_home)
+
+        status, body, headers = self.request("GET", "/")
+        self.assertEqual(status, 200)
+        self.assertIn(b"GMGN Telemetry", body)
+        self.assertEqual(headers["content-type"], "text/html; charset=utf-8")
+        self.assertIn("default-src 'none'", headers["content-security-policy"])
+        self.assertEqual(headers["x-frame-options"], "DENY")
+
+        for path, content_type in (
+            ("/assets/dashboard.css", "text/css; charset=utf-8"),
+            ("/assets/dashboard.js", "text/javascript; charset=utf-8"),
+        ):
+            status, asset, asset_headers = self.request("GET", path)
+            self.assertEqual(status, 200)
+            self.assertTrue(asset)
+            self.assertEqual(asset_headers["content-type"], content_type)
+            if path.endswith(".css"):
+                self.assertIn(b"[hidden]", asset)
+
+        private_text = "dashboard-private-command"
+        record = self.log_record(
+            attributes={
+                "tool_name": "exec_command",
+                "call_id": "dashboard-call",
+                "duration_ms": 125,
+                "success": True,
+                "output_length": 64,
+                "command": private_text,
+            }
+        )
+        payload = self.logs_payload([record])
+        status, _, _ = self.post_json("/v1/logs", payload)
+        self.assertEqual(status, 200)
+
+        status, body, _ = self.request("GET", "/api/sessions")
+        self.assertEqual(status, 200)
+        index = json.loads(body)
+        self.assertEqual(index["schema_version"], "gmgn.telemetry.sessions.v1")
+        self.assertEqual(index["total_sessions"], 1)
+        self.assertEqual(index["sessions"][0]["session_id"], "conversation-123")
+
+        status, body, _ = self.request(
+            "GET",
+            "/api/report?session_id=conversation-123&descendants=true&follow_window=5",
+        )
+        self.assertEqual(status, 200)
+        dashboard = json.loads(body)
+        self.assertEqual(dashboard["schema_version"], "gmgn.telemetry.dashboard.v1")
+        self.assertEqual(dashboard["run"]["tool_call_count"], 1)
+        self.assertEqual(dashboard["run"]["tool_summary"][0]["duration_ms"], 125)
+        self.assertNotIn(private_text, body.decode("utf-8"))
+
+        for path in (
+            "/api/report",
+            "/api/report?session_id=bad%20id",
+            "/api/report?session_id=conversation-123&unknown=true",
+            "/api/report?session_id=conversation-123&follow_window=" + "9" * 5000,
+            "/api/sessions?limit=10",
+        ):
+            status, _, _ = self.request("GET", path)
+            self.assertEqual(status, 400)
+
+        status, _, _ = self.request(
+            "GET",
+            "/api/sessions",
+            extra_headers={"Host": "example.test"},
+        )
+        self.assertEqual(status, 404)
+
+    def test_dashboard_host_checks_fail_closed(self) -> None:
+        self.assertTrue(self.collector.is_loopback_host("127.0.0.1"))
+        self.assertTrue(self.collector.is_loopback_host("::1"))
+        self.assertTrue(self.collector.is_loopback_request_host("localhost:4318"))
+        self.assertTrue(self.collector.is_loopback_request_host("[::1]:4318"))
+        for value in (None, "", "0.0.0.0:4318", "example.test", "[invalid"):
+            self.assertFalse(self.collector.is_loopback_request_host(value))
+
+        self.start_server(host="0.0.0.0")
+        status, _, _ = self.request(
+            "GET",
+            "/api/sessions",
+            extra_headers={"Host": "127.0.0.1"},
+        )
+        self.assertEqual(status, 404)
 
     def test_flat_schema_drops_sensitive_and_unknown_fields(self) -> None:
         secrets = {
@@ -1123,16 +1216,20 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("--output-dir", expected_command)
         self.assertIn("--retention-days 7", expected_command)
 
-        for name in ("collector.py", "hook.py", "install.py", "report.py"):
+        for name in self.installer.RUNTIME_NAMES:
             installed = self.layout.bin_dir / name
             self.assertTrue(installed.is_file())
             self.assertEqual(installed.read_bytes(), (ROOT / "telemetry" / name).read_bytes())
+            expected_mode = 0o700 if name in self.installer.SCRIPT_NAMES else 0o600
+            self.assertEqual(stat.S_IMODE(installed.stat().st_mode), expected_mode)
 
         with self.layout.plist_path.open("rb") as handle:
             launch_agent = plistlib.load(handle)
         arguments = launch_agent["ProgramArguments"]
         self.assertEqual(arguments[0], str(self.python_path))
         self.assertEqual(arguments[1], str(self.layout.bin_dir / "collector.py"))
+        self.assertIn("--codex-home", arguments)
+        self.assertIn(str(self.codex_home), arguments)
         for value in (
             "--max-body-bytes",
             "4096",
@@ -1308,6 +1405,7 @@ class InstallerTests(unittest.TestCase):
             "9",
         )
         self.assertIn("report.py", dry_run.stdout)
+        self.assertIn("dashboard.html", dry_run.stdout)
         self.assertIn("/custom/python3.13", dry_run.stdout)
         self.assertIn("--output-dir", dry_run.stdout)
         self.assertIn("--retention-days 9", dry_run.stdout)

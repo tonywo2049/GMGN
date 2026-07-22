@@ -218,6 +218,11 @@ python3 telemetry/report.py <session-id...> [--json]
 安装后在 Codex `/hooks` 中检查并信任这些选定的用户级 hooks。等待 hook 只把输出归一为隐私安全的
 `update | timeout | interrupted | error | unknown`，不保存 agent 消息。
 
+使用默认本机监听地址时，打开 `http://127.0.0.1:4318/` 即可进入只读仪表盘。页面列出已观测
+任务，并展示任务时长、实际任务 Token、工具与 Skill、GMGN 编排、DocStar 活动、数据来源
+覆盖和数据质量。页面只使用发布包内的静态资源，不访问外网，也不返回 prompt、命令、工具
+输出或原始 session 记录。
+
 ### 隐私与报告
 
 Codex 使用 `log_user_prompt=false`。Collector 丢弃 prompt、命令、tool 输出、错误正文、
@@ -250,7 +255,7 @@ agents/                     Claude Code 插件 subagent 角色
 .agents/plugins/            Codex marketplace 清单
 tests/                      结构、触发、双平台与发布包校验
 scripts/package_release.py  可复现发布包与 SHA-256 生成器
-telemetry/                  发布包内置的可选 Codex Collector、hooks、安装器与报告器
+telemetry/                  发布包内置的 Collector、hooks、安装器、报告器与本地仪表盘
 GMGN.md                     工作流原理与条款权威
 ```
 

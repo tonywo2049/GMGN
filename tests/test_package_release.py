@@ -28,6 +28,9 @@ REQUIRED_TELEMETRY_FILES = {
     "telemetry/hook.py",
     "telemetry/install.py",
     "telemetry/report.py",
+    "telemetry/dashboard.html",
+    "telemetry/dashboard.css",
+    "telemetry/dashboard.js",
 }
 
 

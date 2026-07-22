@@ -15,6 +15,8 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set, 
 
 
 SCHEMA_VERSION = "gmgn.telemetry.report.v1"
+DASHBOARD_SCHEMA_VERSION = "gmgn.telemetry.dashboard.v1"
+SESSION_INDEX_SCHEMA_VERSION = "gmgn.telemetry.sessions.v1"
 SOURCE = "session_jsonl_unstable_fallback"
 OTEL_SOURCE = "collector_otel"
 HOOK_SOURCE = "gmgn_hook"
@@ -23,6 +25,14 @@ OTEL_ENVELOPE_VERSION = "gmgn-otel-envelope-v1"
 OTEL_EVENT_VERSION = "gmgn-otel-event-v1"
 HOOK_EVENT_VERSION = "gmgn-hook-event-v1"
 DEFAULT_FOLLOW_WINDOW = 5
+DEFAULT_RECENT_TOOL_LIMIT = 100
+MAX_RECENT_TOOL_LIMIT = 500
+DASHBOARD_TOOL_SUMMARY_LIMIT = 100
+DASHBOARD_SKILL_LIMIT = 200
+DASHBOARD_DOCSTAR_FOLLOW_UP_LIMIT = 200
+DASHBOARD_DOCSTAR_COMMAND_LIMIT = 100
+DASHBOARD_IDENTIFIER_LIMIT = 200
+DASHBOARD_MISSING_SESSION_LIMIT = 200
 ESTIMATED_CHARACTERS_PER_TOKEN = 4
 
 TOKEN_FIELDS = ("input", "cached", "output", "reasoning", "total")
@@ -3009,6 +3019,312 @@ def build_report(
             "missing_sessions": missing_sessions,
             "source": report_source,
         },
+    }
+
+
+def list_observed_sessions(
+    *,
+    codex_home: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """List privacy-safe sessions observed by the local Collector or hooks."""
+    home = Path(
+        codex_home
+        if codex_home is not None
+        else os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))
+    ).expanduser()
+    telemetry = _TelemetryStore(home)
+    session_index = _SessionIndex(home)
+    sessions: List[Dict[str, Any]] = []
+    session_ids = sorted(
+        set(telemetry.otel_by_session) | set(telemetry.hooks_by_session)
+    )
+    for session_id in session_ids:
+        otel_events = telemetry.otel_by_session.get(session_id, [])
+        hook_events = telemetry.hooks_by_session.get(session_id, [])
+        timestamps = [
+            (event.timestamp_ms, event.timestamp)
+            for event in [*otel_events, *hook_events]
+            if event.timestamp_ms is not None
+        ]
+        timestamps.sort(key=lambda item: item[0])
+        model_candidates = [
+            (event.timestamp_ms, _identifier(event.attributes.get("model")))
+            for event in otel_events
+        ] + [
+            (event.timestamp_ms, _identifier(event.fields.get("model")))
+            for event in hook_events
+        ]
+        models = [
+            (timestamp_ms if timestamp_ms is not None else float("-inf"), model)
+            for timestamp_ms, model in model_candidates
+            if model is not None
+        ]
+        models.sort(key=lambda item: item[0])
+        descriptor = session_index.resolve(session_id)
+        if otel_events and hook_events:
+            source = OTEL_SOURCE + "+" + HOOK_SOURCE
+        elif otel_events:
+            source = OTEL_SOURCE
+        else:
+            source = HOOK_SOURCE
+        sessions.append(
+            {
+                "session_id": session_id,
+                "first_seen": timestamps[0][1] if timestamps else None,
+                "last_seen": timestamps[-1][1] if timestamps else None,
+                "model": models[-1][1] if models else None,
+                "is_subagent": descriptor.is_subagent if descriptor is not None else None,
+                "otel_records": len(otel_events),
+                "hook_records": len(hook_events),
+                "source": source,
+            }
+        )
+    sessions.sort(
+        key=lambda item: (
+            item["last_seen"] is not None,
+            item["last_seen"] or "",
+            item["session_id"],
+        ),
+        reverse=True,
+    )
+    return {
+        "schema_version": SESSION_INDEX_SCHEMA_VERSION,
+        "generated_at": _format_timestamp(datetime.now(timezone.utc).timestamp() * 1000),
+        "sessions": sessions,
+        "data_quality": {
+            "malformed_telemetry_lines": telemetry.malformed_lines,
+        },
+    }
+
+
+def _dashboard_tool_summary(calls: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
+    grouped: Dict[Tuple[str, str], List[Mapping[str, Any]]] = defaultdict(list)
+    for call in calls:
+        tool = _identifier(call.get("tool")) or "unknown"
+        category = _identifier(call.get("category")) or "other"
+        grouped[(tool, category)].append(call)
+
+    result: List[Dict[str, Any]] = []
+    for (tool, category), tool_calls in grouped.items():
+        durations = [
+            value
+            for value in (call.get("duration_ms") for call in tool_calls)
+            if isinstance(value, int) and not isinstance(value, bool)
+        ]
+        successes = [
+            value for value in (call.get("success") for call in tool_calls)
+            if isinstance(value, bool)
+        ]
+        input_tokens = [
+            value
+            for value in (call.get("estimated_input_tokens") for call in tool_calls)
+            if isinstance(value, int) and not isinstance(value, bool)
+        ]
+        output_tokens = [
+            value
+            for value in (call.get("estimated_output_tokens") for call in tool_calls)
+            if isinstance(value, int) and not isinstance(value, bool)
+        ]
+        result.append(
+            {
+                "tool": tool,
+                "category": category,
+                "calls": len(tool_calls),
+                "duration_ms": sum(durations) if len(durations) == len(tool_calls) else None,
+                "average_duration_ms": (
+                    int(round(sum(durations) / len(durations))) if durations else None
+                ),
+                "success": sum(successes) if len(successes) == len(tool_calls) else None,
+                "failure": (
+                    sum(not value for value in successes)
+                    if len(successes) == len(tool_calls)
+                    else None
+                ),
+                "estimated_input_tokens": (
+                    sum(input_tokens) if len(input_tokens) == len(tool_calls) else None
+                ),
+                "estimated_output_tokens": (
+                    sum(output_tokens) if len(output_tokens) == len(tool_calls) else None
+                ),
+            }
+        )
+    result.sort(
+        key=lambda item: (
+            item["calls"],
+            item["duration_ms"] if item["duration_ms"] is not None else -1,
+            item["tool"],
+        ),
+        reverse=True,
+    )
+    return result
+
+
+def build_dashboard_report(
+    session_id: str,
+    *,
+    codex_home: Optional[Path] = None,
+    include_descendants: bool = True,
+    follow_window: int = DEFAULT_FOLLOW_WINDOW,
+    recent_tool_limit: int = DEFAULT_RECENT_TOOL_LIMIT,
+) -> Dict[str, Any]:
+    """Build a bounded, privacy-safe report for the local dashboard."""
+    if _identifier(session_id) is None:
+        raise ValueError("invalid session ID")
+    if not 1 <= recent_tool_limit <= MAX_RECENT_TOOL_LIMIT:
+        raise ValueError("recent_tool_limit out of range")
+    report = build_report(
+        [session_id],
+        codex_home=codex_home,
+        include_descendants=include_descendants,
+        follow_window=follow_window,
+    )
+    run = report["runs"][0]
+    calls = run["tool_calls"]
+    full_tool_summary = _dashboard_tool_summary(calls)
+    full_skills = run["skills"]
+    gmgn = dict(run["gmgn"])
+    gmgn_identifiers = gmgn.get("identifiers", {})
+    limited_identifiers: Dict[str, List[Any]] = {}
+    identifier_truncation: Dict[str, int] = {}
+    if isinstance(gmgn_identifiers, Mapping):
+        for field_name, values in gmgn_identifiers.items():
+            entries = list(values) if isinstance(values, list) else []
+            limited_identifiers[field_name] = entries[:DASHBOARD_IDENTIFIER_LIMIT]
+            identifier_truncation[field_name] = max(
+                0,
+                len(entries) - DASHBOARD_IDENTIFIER_LIMIT,
+            )
+    gmgn["identifiers"] = limited_identifiers
+
+    docstar = dict(run["docstar"])
+    docstar_follow_up = docstar.get("follow_up", [])
+    follow_up_entries = (
+        list(docstar_follow_up) if isinstance(docstar_follow_up, list) else []
+    )
+    docstar["follow_up"] = follow_up_entries[:DASHBOARD_DOCSTAR_FOLLOW_UP_LIMIT]
+    docstar_commands = docstar.get("commands", {})
+    command_entries = (
+        list(docstar_commands.items())
+        if isinstance(docstar_commands, Mapping)
+        else []
+    )
+    command_entries.sort(
+        key=lambda item: (
+            item[1] if isinstance(item[1], int) else -1,
+            str(item[0]),
+        ),
+        reverse=True,
+    )
+    docstar["commands"] = dict(command_entries[:DASHBOARD_DOCSTAR_COMMAND_LIMIT])
+
+    run_quality = dict(run["data_quality"])
+    run_missing = run_quality.get("missing_sessions", [])
+    run_missing_entries = list(run_missing) if isinstance(run_missing, list) else []
+    run_quality["missing_sessions"] = run_missing_entries[
+        :DASHBOARD_MISSING_SESSION_LIMIT
+    ]
+    report_quality = dict(report["data_quality"])
+    report_missing = report_quality.get("missing_sessions", [])
+    report_missing_entries = (
+        list(report_missing) if isinstance(report_missing, list) else []
+    )
+    report_quality["missing_sessions"] = report_missing_entries[
+        :DASHBOARD_MISSING_SESSION_LIMIT
+    ]
+    recent_calls = sorted(
+        calls,
+        key=lambda call: (
+            call.get("start") is not None,
+            call.get("start") or "",
+            call.get("session_id") or "",
+            call.get("call_id") or "",
+        ),
+        reverse=True,
+    )[:recent_tool_limit]
+    safe_recent_calls = [
+        {
+            "session_id": call.get("session_id"),
+            "tool": call.get("tool"),
+            "category": call.get("category"),
+            "start": call.get("start"),
+            "duration_ms": call.get("duration_ms"),
+            "success": call.get("success"),
+            "estimated_input_tokens": call.get("estimated_input_tokens"),
+            "estimated_output_tokens": call.get("estimated_output_tokens"),
+        }
+        for call in recent_calls
+    ]
+    coverage = run["coverage"]
+    dashboard_run = {
+        key: run[key]
+        for key in (
+            "requested_id",
+            "session_id",
+            "source",
+            "timing",
+            "session_counts",
+            "actual_tokens",
+            "estimated_tool_io_tokens",
+            "api_calls",
+            "native_tool_results",
+            "coverage",
+            "sources",
+        )
+    }
+    dashboard_run.update(
+        {
+            "tool_call_count": (
+                len(calls)
+                if coverage["tool_calls"]["coverage"] != "unknown"
+                else None
+            ),
+            "skill_call_count": (
+                len(full_skills)
+                if coverage["skills"]["coverage"] != "unknown"
+                else None
+            ),
+            "gmgn": gmgn,
+            "docstar": docstar,
+            "skills": full_skills[:DASHBOARD_SKILL_LIMIT],
+            "data_quality": run_quality,
+            "tool_summary": full_tool_summary[:DASHBOARD_TOOL_SUMMARY_LIMIT],
+            "recent_tool_calls": safe_recent_calls,
+            "truncation": {
+                "tool_summary": max(
+                    0,
+                    len(full_tool_summary) - DASHBOARD_TOOL_SUMMARY_LIMIT,
+                ),
+                "skills": max(0, len(full_skills) - DASHBOARD_SKILL_LIMIT),
+                "docstar_follow_up": max(
+                    0,
+                    len(follow_up_entries) - DASHBOARD_DOCSTAR_FOLLOW_UP_LIMIT,
+                ),
+                "docstar_commands": max(
+                    0,
+                    len(command_entries) - DASHBOARD_DOCSTAR_COMMAND_LIMIT,
+                ),
+                "gmgn_identifiers": identifier_truncation,
+                "run_missing_sessions": max(
+                    0,
+                    len(run_missing_entries) - DASHBOARD_MISSING_SESSION_LIMIT,
+                ),
+                "report_missing_sessions": max(
+                    0,
+                    len(report_missing_entries) - DASHBOARD_MISSING_SESSION_LIMIT,
+                ),
+            },
+        }
+    )
+    return {
+        "schema_version": DASHBOARD_SCHEMA_VERSION,
+        "generated_at": _format_timestamp(datetime.now(timezone.utc).timestamp() * 1000),
+        "configuration": {
+            "include_descendants": include_descendants,
+            "follow_window": follow_window,
+            "recent_tool_limit": recent_tool_limit,
+        },
+        "run": dashboard_run,
+        "data_quality": report_quality,
     }
 
 

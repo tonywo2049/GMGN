@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GMGN Telemetry</title>
+  <link rel="stylesheet" href="/assets/dashboard.css">
+  <script src="/assets/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="GMGN Telemetry 首页">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>
+        <strong>GMGN Telemetry</strong>
+        <small>本地任务观测</small>
+      </span>
+    </a>
+    <div class="topbar-actions">
+      <span class="service-state" id="service-state">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="service-state-text">正在连接</span>
+      </span>
+      <button class="button button-secondary" id="refresh-button" type="button">刷新数据</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="任务列表">
+      <div class="sidebar-heading">
+        <div>
+          <p class="eyebrow">Sessions</p>
+          <h1>任务</h1>
+        </div>
+        <span class="count-badge" id="session-count">0</span>
+      </div>
+
+      <form class="session-form" id="session-form">
+        <label for="session-input">直接查看 Session ID</label>
+        <div class="input-row">
+          <input id="session-input" name="session_id" autocomplete="off" spellcheck="false" placeholder="输入 Session ID">
+          <button class="icon-button" type="submit" aria-label="打开 Session">→</button>
+        </div>
+      </form>
+
+      <div class="sidebar-filter">
+        <label class="search-field" for="session-search">
+          <span aria-hidden="true">⌕</span>
+          <input id="session-search" type="search" autocomplete="off" placeholder="筛选任务">
+        </label>
+        <label class="toggle-row" for="show-subagents">
+          <span>显示 Subagent</span>
+          <input id="show-subagents" type="checkbox">
+        </label>
+      </div>
+
+      <div class="session-list" id="session-list" aria-live="polite"></div>
+      <p class="sidebar-footnote">数据仅从本机脱敏 Collector 和 Hook 读取。</p>
+    </aside>
+
+    <main class="main-content">
+      <section class="empty-state" id="empty-state">
+        <div class="empty-graphic" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <p class="eyebrow">Local observability</p>
+        <h2>选择一个任务查看完整指标</h2>
+        <p>包含任务时长、Token、工具、Skill、GMGN、DocStar 和数据覆盖情况。</p>
+      </section>
+
+      <section class="loading-state" id="loading-state" hidden aria-live="polite">
+        <span class="loader" aria-hidden="true"></span>
+        <p>正在生成任务报告…</p>
+      </section>
+
+      <section class="error-state" id="error-state" hidden aria-live="assertive">
+        <p class="eyebrow">Report unavailable</p>
+        <h2>暂时无法生成报告</h2>
+        <p id="error-message">请稍后重试。</p>
+      </section>
+
+      <article class="dashboard" id="dashboard" hidden>
+        <header class="report-header">
+          <div>
+            <p class="eyebrow" id="report-source">Telemetry report</p>
+            <h2 id="report-title">任务报告</h2>
+            <p class="session-id" id="report-session-id"></p>
+          </div>
+          <div class="report-controls">
+            <label class="toggle-row" for="include-descendants">
+              <span>包含 Subagent</span>
+              <input id="include-descendants" type="checkbox" checked>
+            </label>
+            <span class="generated-at" id="generated-at"></span>
+          </div>
+        </header>
+
+        <section class="metric-grid" id="metric-grid" aria-label="核心指标"></section>
+
+        <div class="content-grid content-grid-wide">
+          <section class="panel token-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Token usage</p>
+                <h3>Token 构成</h3>
+              </div>
+              <span class="panel-note">任务实际值</span>
+            </div>
+            <div class="bar-chart" id="token-chart"></div>
+          </section>
+
+          <section class="panel source-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Coverage</p>
+                <h3>数据来源</h3>
+              </div>
+            </div>
+            <div class="source-list" id="source-list"></div>
+          </section>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel accent-panel accent-gmgn">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Orchestration</p>
+                <h3>GMGN</h3>
+              </div>
+              <span class="panel-icon">G</span>
+            </div>
+            <div class="mini-metrics" id="gmgn-metrics"></div>
+          </section>
+
+          <section class="panel accent-panel accent-docstar">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Documentation</p>
+                <h3>DocStar</h3>
+              </div>
+              <span class="panel-icon">D</span>
+            </div>
+            <div class="mini-metrics" id="docstar-metrics"></div>
+            <p class="causal-note" id="docstar-note"></p>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Tool profile</p>
+              <h3>工具调用分布</h3>
+            </div>
+            <span class="panel-note">Token 为估算值</span>
+          </div>
+          <div class="tool-bars" id="tool-bars"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>工具</th>
+                  <th>分类</th>
+                  <th>次数</th>
+                  <th>总耗时</th>
+                  <th>平均耗时</th>
+                  <th>估算 Token</th>
+                </tr>
+              </thead>
+              <tbody id="tool-summary-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Skill profile</p>
+              <h3>Skill 调用</h3>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Skill</th>
+                  <th>加载耗时</th>
+                  <th>观察跨度</th>
+                  <th>上下文 Token</th>
+                  <th>关联方式</th>
+                </tr>
+              </thead>
+              <tbody id="skill-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Recent activity</p>
+              <h3>最近工具调用</h3>
+            </div>
+            <span class="panel-note">最多显示 100 条</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>工具</th>
+                  <th>分类</th>
+                  <th>耗时</th>
+                  <th>状态</th>
+                  <th>估算 Token</th>
+                </tr>
+              </thead>
+              <tbody id="recent-tool-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="quality-strip" id="quality-strip"></section>
+      </article>
+    </main>
+  </div>
+</body>
+</html>

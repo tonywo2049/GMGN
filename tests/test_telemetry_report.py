@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1277,6 +1278,118 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertIn("estimate", human)
         self.assertIn("DocStar follow-up grep/read", human)
         self.assertIn("causal_not_measured", human)
+
+    def test_dashboard_index_and_report_are_bounded_and_privacy_safe(self) -> None:
+        self._write_primary_telemetry_fixture()
+        from telemetry.report import build_dashboard_report, list_observed_sessions
+
+        index = list_observed_sessions(codex_home=self.codex_home)
+        sessions = {item["session_id"]: item for item in index["sessions"]}
+        self.assertEqual(index["schema_version"], "gmgn.telemetry.sessions.v1")
+        self.assertIn("root-session", sessions)
+        self.assertIn("child-session", sessions)
+        self.assertFalse(sessions["root-session"]["is_subagent"])
+        self.assertFalse(sessions["child-session"]["is_subagent"])
+        self.assertGreater(sessions["root-session"]["otel_records"], 0)
+        self.assertGreater(sessions["root-session"]["hook_records"], 0)
+
+        dashboard = build_dashboard_report(
+            "root-session",
+            codex_home=self.codex_home,
+            recent_tool_limit=2,
+        )
+        run = dashboard["run"]
+        self.assertEqual(dashboard["schema_version"], "gmgn.telemetry.dashboard.v1")
+        self.assertEqual(run["session_id"], "root-session")
+        self.assertEqual(len(run["recent_tool_calls"]), 2)
+        self.assertGreater(run["tool_call_count"], 2)
+        summary = {item["tool"]: item for item in run["tool_summary"]}
+        self.assertIn("exec_command", summary)
+        self.assertGreater(summary["exec_command"]["calls"], 0)
+        self.assertEqual(run["truncation"]["tool_summary"], 0)
+        self.assertEqual(run["truncation"]["skills"], 0)
+        serialized = json.dumps(dashboard, ensure_ascii=False)
+        for secret in (
+            self.private_prompt,
+            self.private_arguments,
+            self.private_output,
+            "password=hunter2",
+            "api_key=secret",
+            "bearer-token",
+        ):
+            self.assertNotIn(secret, serialized)
+
+        with self.assertRaisesRegex(ValueError, "invalid session ID"):
+            build_dashboard_report("bad session id", codex_home=self.codex_home)
+        with self.assertRaisesRegex(ValueError, "recent_tool_limit"):
+            build_dashboard_report(
+                "root-session",
+                codex_home=self.codex_home,
+                recent_tool_limit=501,
+            )
+
+    def test_dashboard_projection_caps_unbounded_collections(self) -> None:
+        import telemetry.report as report_module
+
+        raw_report = self.build_report("root-session")
+        run = raw_report["runs"][0]
+        run["tool_calls"] = [
+            {
+                "session_id": "root-session",
+                "call_id": f"call-{index}",
+                "tool": f"tool-{index}",
+                "category": "other",
+                "start": f"2026-07-20T00:{index % 60:02d}:00Z",
+                "end": None,
+                "duration_ms": index,
+                "success": True,
+                "estimated_input_tokens": 1,
+                "estimated_output_tokens": 1,
+            }
+            for index in range(150)
+        ]
+        run["skills"] = [
+            {"skill": f"skill-{index}"}
+            for index in range(250)
+        ]
+        run["gmgn"]["identifiers"] = {
+            "card_id": [f"CARD-{index}" for index in range(250)],
+        }
+        run["docstar"]["follow_up"] = [
+            {"grep_read_calls": 1}
+            for _ in range(250)
+        ]
+        run["docstar"]["commands"] = {
+            f"command-{index}": index
+            for index in range(150)
+        }
+        run["data_quality"]["missing_sessions"] = [
+            f"missing-{index}"
+            for index in range(250)
+        ]
+        raw_report["data_quality"]["missing_sessions"] = list(
+            run["data_quality"]["missing_sessions"]
+        )
+
+        with mock.patch.object(report_module, "build_report", return_value=raw_report):
+            dashboard = report_module.build_dashboard_report("root-session")
+
+        projected = dashboard["run"]
+        self.assertEqual(len(projected["tool_summary"]), 100)
+        self.assertEqual(len(projected["skills"]), 200)
+        self.assertEqual(len(projected["gmgn"]["identifiers"]["card_id"]), 200)
+        self.assertEqual(len(projected["docstar"]["follow_up"]), 200)
+        self.assertEqual(len(projected["docstar"]["commands"]), 100)
+        self.assertEqual(len(projected["data_quality"]["missing_sessions"]), 200)
+        self.assertEqual(len(dashboard["data_quality"]["missing_sessions"]), 200)
+        self.assertEqual(projected["truncation"]["tool_summary"], 50)
+        self.assertEqual(projected["truncation"]["skills"], 50)
+        self.assertEqual(projected["truncation"]["docstar_follow_up"], 50)
+        self.assertEqual(projected["truncation"]["docstar_commands"], 50)
+        self.assertEqual(
+            projected["truncation"]["gmgn_identifiers"]["card_id"],
+            50,
+        )
 
 
 if __name__ == "__main__":

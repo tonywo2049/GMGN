@@ -47,6 +47,9 @@ REQUIRED_PACKAGE_FILES = (
     Path("telemetry/hook.py"),
     Path("telemetry/install.py"),
     Path("telemetry/report.py"),
+    Path("telemetry/dashboard.html"),
+    Path("telemetry/dashboard.css"),
+    Path("telemetry/dashboard.js"),
 )
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 

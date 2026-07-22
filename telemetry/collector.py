@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import importlib.util
+import ipaddress
 import json
 import math
 import os
@@ -11,9 +13,10 @@ from pathlib import Path
 import re
 import socket
 import stat
+import sys
 import threading
 from typing import Any, Optional, cast
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 
 DEFAULT_HOST = "127.0.0.1"
@@ -24,6 +27,9 @@ DEFAULT_MAX_WRITE_BYTES = 256 * 1024
 DEFAULT_MAX_DATA_BYTES = 100 * 1024 * 1024
 DEFAULT_READ_TIMEOUT_SECONDS = 5.0
 DEFAULT_MAX_CONCURRENT_REQUESTS = 8
+DEFAULT_DASHBOARD_SESSION_LIMIT = 500
+DEFAULT_DASHBOARD_FOLLOW_WINDOW = 5
+MAX_DASHBOARD_FOLLOW_WINDOW = 1000
 SCHEMA_VERSION = "gmgn-otel-event-v1"
 LOGS_PATH = "/v1/logs"
 DATED_JSONL = re.compile(r"(?:^|\D)(\d{4}-\d{2}-\d{2})(?:\D|$)")
@@ -112,6 +118,17 @@ BUSY_RESPONSE = (
     b"Cache-Control: no-store\r\n"
     b"Connection: close\r\n\r\n{}"
 )
+DASHBOARD_ASSETS = {
+    "/": ("dashboard.html", "text/html; charset=utf-8"),
+    "/dashboard": ("dashboard.html", "text/html; charset=utf-8"),
+    "/assets/dashboard.css": ("dashboard.css", "text/css; charset=utf-8"),
+    "/assets/dashboard.js": ("dashboard.js", "text/javascript; charset=utf-8"),
+}
+DASHBOARD_CSP = (
+    "default-src 'none'; script-src 'self'; style-src 'self'; "
+    "connect-src 'self'; img-src 'self' data:; base-uri 'none'; "
+    "form-action 'none'; frame-ancestors 'none'"
+)
 
 
 class RequestValidationError(ValueError):
@@ -123,6 +140,10 @@ class WriteLimitExceeded(ValueError):
 
 
 class DataQuotaExceeded(OSError):
+    pass
+
+
+class DashboardBusy(RuntimeError):
     pass
 
 
@@ -509,6 +530,106 @@ class JsonlStore:
                 os.close(descriptor)
 
 
+def is_loopback_host(host: str) -> bool:
+    if host.casefold() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def is_loopback_request_host(value: Optional[str]) -> bool:
+    if not value:
+        return False
+    try:
+        hostname = urlsplit("//" + value).hostname
+    except ValueError:
+        return False
+    return hostname is not None and is_loopback_host(hostname)
+
+
+class DashboardService:
+    def __init__(
+        self,
+        codex_home: Path,
+        asset_dir: Path,
+        report_path: Path,
+        enabled: bool,
+    ) -> None:
+        self.codex_home = Path(codex_home).expanduser()
+        self.asset_dir = Path(asset_dir)
+        self.report_path = Path(report_path)
+        self.enabled = enabled
+        self.asset_cache: dict[str, bytes] = {}
+        self.asset_lock = threading.Lock()
+        self.report_lock = threading.Lock()
+        self.module_lock = threading.Lock()
+        self.report_module: Any = None
+
+    def asset(self, path: str) -> Optional[tuple[bytes, str]]:
+        if not self.enabled or path not in DASHBOARD_ASSETS:
+            return None
+        filename, content_type = DASHBOARD_ASSETS[path]
+        with self.asset_lock:
+            body = self.asset_cache.get(filename)
+            if body is None:
+                try:
+                    body = (self.asset_dir / filename).read_bytes()
+                except OSError:
+                    return None
+                self.asset_cache[filename] = body
+        return body, content_type
+
+    def _module(self) -> Any:
+        with self.module_lock:
+            if self.report_module is not None:
+                return self.report_module
+            module_name = "_gmgn_dashboard_report_{0}".format(
+                abs(hash(str(self.report_path.resolve())))
+            )
+            specification = importlib.util.spec_from_file_location(
+                module_name,
+                self.report_path,
+            )
+            if specification is None or specification.loader is None:
+                raise RuntimeError("dashboard report module unavailable")
+            module = importlib.util.module_from_spec(specification)
+            sys.modules[module_name] = module
+            try:
+                specification.loader.exec_module(module)
+            except BaseException:
+                sys.modules.pop(module_name, None)
+                raise
+            self.report_module = module
+            return module
+
+    def sessions(self) -> dict[str, Any]:
+        document = self._module().list_observed_sessions(codex_home=self.codex_home)
+        sessions = document.get("sessions", [])
+        document["total_sessions"] = len(sessions)
+        document["sessions"] = sessions[:DEFAULT_DASHBOARD_SESSION_LIMIT]
+        return document
+
+    def report(
+        self,
+        session_id: str,
+        include_descendants: bool,
+        follow_window: int,
+    ) -> dict[str, Any]:
+        if not self.report_lock.acquire(blocking=False):
+            raise DashboardBusy("dashboard report already running")
+        try:
+            return self._module().build_dashboard_report(
+                session_id,
+                codex_home=self.codex_home,
+                include_descendants=include_descendants,
+                follow_window=follow_window,
+            )
+        finally:
+            self.report_lock.release()
+
+
 class CollectorServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
@@ -520,11 +641,13 @@ class CollectorServer(ThreadingHTTPServer):
         max_body_bytes: int,
         read_timeout_seconds: float,
         max_concurrent_requests: int,
+        dashboard: DashboardService,
     ) -> None:
         self.store = store
         self.max_body_bytes = max_body_bytes
         self.read_timeout_seconds = read_timeout_seconds
         self.request_slots = threading.BoundedSemaphore(max_concurrent_requests)
+        self.dashboard = dashboard
         super().__init__(server_address, CollectorHandler)
 
     def process_request(self, request: Any, client_address: Any) -> None:
@@ -562,21 +685,115 @@ class CollectorHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args: Any) -> None:
         return
 
-    def send_json(self, status_code: int) -> None:
-        body = b"{}"
+    def send_body(self, status_code: int, body: bytes, content_type: str) -> None:
         self.send_response(status_code)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Security-Policy", DASHBOARD_CSP)
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
         self.wfile.write(body)
 
+    def send_json(self, status_code: int, document: Any = None) -> None:
+        body = json.dumps(
+            {} if document is None else document,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        self.send_body(status_code, body, "application/json")
+
+    def dashboard_report(self, query: str) -> None:
+        try:
+            parameters = parse_qs(
+                query,
+                keep_blank_values=True,
+                strict_parsing=True,
+                max_num_fields=8,
+            )
+        except ValueError:
+            self.send_json(400)
+            return
+        if set(parameters) - {"session_id", "descendants", "follow_window"}:
+            self.send_json(400)
+            return
+        session_values = parameters.get("session_id", [])
+        if len(session_values) != 1:
+            self.send_json(400)
+            return
+        descendant_values = parameters.get("descendants", ["true"])
+        if len(descendant_values) != 1 or descendant_values[0] not in {"true", "false"}:
+            self.send_json(400)
+            return
+        follow_values = parameters.get(
+            "follow_window",
+            [str(DEFAULT_DASHBOARD_FOLLOW_WINDOW)],
+        )
+        maximum_follow_digits = len(str(MAX_DASHBOARD_FOLLOW_WINDOW))
+        if (
+            len(follow_values) != 1
+            or re.fullmatch(
+                rf"[0-9]{{1,{maximum_follow_digits}}}",
+                follow_values[0],
+            )
+            is None
+        ):
+            self.send_json(400)
+            return
+        follow_window = int(follow_values[0])
+        if follow_window > MAX_DASHBOARD_FOLLOW_WINDOW:
+            self.send_json(400)
+            return
+        try:
+            document = self.collector.dashboard.report(
+                session_values[0],
+                descendant_values[0] == "true",
+                follow_window,
+            )
+        except DashboardBusy:
+            self.send_json(503)
+            return
+        except ValueError:
+            self.send_json(400)
+            return
+        except (OSError, RuntimeError, TypeError):
+            self.send_json(500)
+            return
+        self.send_json(200, document)
+
     def do_GET(self) -> None:
-        path = urlsplit(self.path).path
+        parsed = urlsplit(self.path)
+        path = parsed.path
         if path == "/healthz":
             self.send_json(200)
-        else:
+            return
+        if (
+            not self.collector.dashboard.enabled
+            or not is_loopback_request_host(self.headers.get("Host"))
+        ):
             self.send_json(404)
+            return
+        if path == "/api/sessions":
+            if parsed.query:
+                self.send_json(400)
+                return
+            try:
+                self.send_json(200, self.collector.dashboard.sessions())
+            except (OSError, RuntimeError, TypeError):
+                self.send_json(500)
+            return
+        if path == "/api/report":
+            self.dashboard_report(parsed.query)
+            return
+        asset = self.collector.dashboard.asset(path)
+        if asset is not None:
+            body, content_type = asset
+            self.send_body(200, body, content_type)
+            return
+        self.send_json(404)
 
     def do_POST(self) -> None:
         path = urlsplit(self.path).path
@@ -658,6 +875,9 @@ def create_server(
     max_data_bytes: int = DEFAULT_MAX_DATA_BYTES,
     read_timeout_seconds: float = DEFAULT_READ_TIMEOUT_SECONDS,
     max_concurrent_requests: int = DEFAULT_MAX_CONCURRENT_REQUESTS,
+    codex_home: Optional[Path] = None,
+    dashboard_dir: Optional[Path] = None,
+    report_path: Optional[Path] = None,
 ) -> CollectorServer:
     if not 0 <= port <= 65535:
         raise ValueError("port out of range")
@@ -673,12 +893,25 @@ def create_server(
         max_write_bytes,
         max_data_bytes,
     )
+    resolved_codex_home = (
+        Path(codex_home).expanduser()
+        if codex_home is not None
+        else default_codex_home()
+    )
+    runtime_dir = Path(__file__).resolve().parent
+    dashboard = DashboardService(
+        codex_home=resolved_codex_home,
+        asset_dir=Path(dashboard_dir) if dashboard_dir is not None else runtime_dir,
+        report_path=Path(report_path) if report_path is not None else runtime_dir / "report.py",
+        enabled=is_loopback_host(host),
+    )
     return CollectorServer(
         (host, port),
         store,
         max_body_bytes,
         read_timeout_seconds,
         max_concurrent_requests,
+        dashboard,
     )
 
 
@@ -703,16 +936,20 @@ def valid_port(value: str) -> int:
     return parsed
 
 
-def default_data_dir() -> Path:
+def default_codex_home() -> Path:
     configured = os.environ.get("CODEX_HOME")
-    codex_home = Path(configured).expanduser() if configured else Path.home() / ".codex"
-    return codex_home / "gmgn-telemetry" / "data"
+    return Path(configured).expanduser() if configured else Path.home() / ".codex"
+
+
+def default_data_dir() -> Path:
+    return default_codex_home() / "gmgn-telemetry" / "data"
 
 
 def parse_args(arguments: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Local allowlisted Codex OTLP collector")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=valid_port, default=DEFAULT_PORT)
+    parser.add_argument("--codex-home", type=Path, default=default_codex_home())
     parser.add_argument("--data-dir", type=Path, default=default_data_dir())
     parser.add_argument(
         "--retention-days",
@@ -759,6 +996,7 @@ def main(arguments: Optional[list[str]] = None) -> int:
         max_data_bytes=options.max_data_bytes,
         read_timeout_seconds=options.read_timeout_seconds,
         max_concurrent_requests=options.max_concurrent_requests,
+        codex_home=options.codex_home,
     )
     try:
         server.serve_forever()

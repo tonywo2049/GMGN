@@ -19,6 +19,8 @@ from typing import Any, Optional
 LABEL = "com.gmgn.codex-telemetry"
 PLIST_NAME = f"{LABEL}.plist"
 SCRIPT_NAMES = ("collector.py", "hook.py", "install.py", "report.py")
+ASSET_NAMES = ("dashboard.html", "dashboard.css", "dashboard.js")
+RUNTIME_NAMES = SCRIPT_NAMES + ASSET_NAMES
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 4318
 DEFAULT_RETENTION_DAYS = 30
@@ -134,6 +136,8 @@ def render_launch_agent(
             host,
             "--port",
             str(port),
+            "--codex-home",
+            str(layout.codex_home),
             "--data-dir",
             str(layout.data_dir),
             "--retention-days",
@@ -191,13 +195,14 @@ def atomic_write(path: Path, data: bytes, mode: int) -> None:
 
 def copy_scripts(source_dir: Path, layout: Layout) -> None:
     ensure_directory(layout.bin_dir, 0o700)
-    for name in SCRIPT_NAMES:
+    for name in RUNTIME_NAMES:
         source = source_dir / name
         destination = layout.bin_dir / name
+        mode = 0o700 if name in SCRIPT_NAMES else 0o600
         if source.resolve() == destination.resolve():
-            destination.chmod(0o700)
+            destination.chmod(mode)
             continue
-        atomic_write(destination, source.read_bytes(), 0o700)
+        atomic_write(destination, source.read_bytes(), mode)
 
 
 def load_hooks(path: Path) -> dict[str, Any]:
@@ -521,7 +526,7 @@ def dry_run_output(
             f"Would remove {layout.plist_path}\n"
         )
     copied = "\n".join(
-        f"Would copy {name} to {layout.bin_dir / name}" for name in SCRIPT_NAMES
+        f"Would copy {name} to {layout.bin_dir / name}" for name in RUNTIME_NAMES
     )
     return (
         f"{copied}\n"
