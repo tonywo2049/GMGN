@@ -5,14 +5,15 @@ description: "Use first to route workflow-driven project work: new projects, pro
 
 # GMGN router: repository state → next stage
 
-Use this skill to locate the stage, then invoke the specialized skill. The normative method is
-[GMGN.md](../../GMGN.md); Chinese is [GMGN.zh-CN.md](../../GMGN.zh-CN.md).
+Use this skill to locate the stage, then invoke the specialized skill. The English-only
+normative method is [GMGN.md](../../GMGN.md).
 
 ## Language and contract
 
 Infer `en` or `zh-CN` from approved project documents, then the user's language. Keep machine
-tokens and IDs in English. Load the matching layout-free writing contract when writing:
-[English](references/en/writing-contract.md) | [中文](references/zh-CN/writing-contract.md).
+tokens and IDs in English. Load the English-only layout-free
+[writing contract](references/en/writing-contract.md) when writing; artifact prose may still
+use the active project locale.
 
 ## Route by observable state
 
@@ -34,8 +35,7 @@ owner authorizes several Milestones, keep separate execution sets and closure de
 
 ## Roles and fresh-agent dispatch
 
-Use the locale-matched [dispatch contract](references/en/dispatch-and-handoff.md) or
-[中文契约](references/zh-CN/dispatch-and-handoff.md).
+Use the English-only [dispatch contract](references/en/dispatch-and-handoff.md).
 
 The primary orchestrator keeps context, selects the stage, prepares briefs, adjudicates
 findings, integrates accepted candidates, and updates shared state. It is not a delegated
@@ -44,8 +44,10 @@ uses its complete context best; otherwise it delegates a bounded Author.
 
 Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use. Prepare
 the full role brief before creation, start with no parent or earlier-agent history, accept one
-bounded return, and retire the agent. A revision, retry, recheck, or later verification uses a
-new brief and new agent. Never resume or repurpose a returned role.
+bounded return, and retire the agent. A later authoring or coding attempt, separately scoped
+semantic or implementation change, or later verification uses a new brief and new agent.
+Critic and Reviewer are not redispatched to recheck fixes from their completed round. Never
+resume or repurpose a returned role.
 
 Fresh identity does not require a full role set after each edit. Select roles by impact:
 
@@ -56,18 +58,23 @@ Fresh identity does not require a full role set after each edit. Select roles by
 | Executable result, environment, or package input | Verifier after review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
-Freeze a candidate before review. Collect all active Critic and Reviewer findings before
-changing it; the primary orchestrator adjudicates once and batches accepted blockers. A fresh
-recheck role is dispatched only for affected scope. Non-blocking suggestions do not reopen an
-otherwise acceptable candidate. Do not dispatch a Verifier while relevant review blockers
-remain.
+Freeze a candidate before review. Each semantic change batch or task execution uses
+`review_policy: single-pass`: at most one Critic/Reviewer round; both roles may run in that
+round when both surfaces changed. Collect all active findings before changing the candidate.
+The primary orchestrator adjudicates once,
+batches accepted blockers, checks their resolution, and runs affected machine checks. Do not
+send the fixes to another Critic or Reviewer. If a fix expands authority, scope, or behavior
+beyond the accepted findings, split it into a separately scoped change. Record the reviewed
+anchor, findings and rulings, exact fix delta, and post-fix checks at the final anchor.
+Non-blocking suggestions do not reopen an otherwise acceptable candidate. Do not dispatch a
+Verifier while accepted review blockers remain unresolved.
 
 ## Document nodes
 
 The primary session or a fresh Author creates one candidate, self-checks it, and anchors it.
-Every semantic candidate receives one fresh independent Critic. If blockers are accepted, the
-primary session fixes them directly or uses a fresh Author, then a fresh Critic checks only the
-affected semantic surface when the boundary is provable. The primary orchestrator performs
+Every semantic change batch receives one fresh independent Critic. If blockers are accepted,
+the primary session fixes them directly or uses a fresh Author, then checks each resolution
+and runs affected machine checks without another Critic. The primary orchestrator performs
 mechanical propagation, links, machine checks, and integration. Do not create an Integrator
 agent.
 
@@ -83,12 +90,14 @@ each selected task:
 
 Run-task continuously fills a dependency-aware ready set. Concurrent writing lanes are
 isolated; a single non-colliding writer may use the verified current workspace. Each Coder
-attempt is fresh. A returned candidate is anchored before a fresh Reviewer sees it.
-Accepted fixes use another fresh Coder and only affected review roles. The final combination is
-either a frozen sole-writer candidate already based on the unchanged shared baseline or an
-isolated-lane candidate mechanically applied to a temporary workspace. One fresh Verifier
-checks that final candidate when executable evidence is required. Do not repeat the same
-verification before and after clean mechanical integration without a recorded risk reason.
+attempt is fresh. Apply an isolated-lane candidate to the temporary combination and resolve
+any judgment-required conflict before freezing the task execution's one Reviewer candidate.
+Reserve its shared baseline and integration position until integration or abandonment.
+Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
+primary orchestrator checks their resolution and runs affected machine checks. One fresh
+Verifier checks the resulting final candidate when executable evidence is required. Do not
+repeat the same verification before and after clean mechanical integration without a recorded
+risk reason.
 
 When no implementation lane can run in parallel with useful orchestrator work, the primary
 session may serve as one lane's Coder. It cannot take over an assigned lane and

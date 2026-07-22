@@ -10,8 +10,6 @@ nature: normative
 
 # Preflight checklist
 
-中文版本：[../zh-CN/preflight-checklist.md](../zh-CN/preflight-checklist.md)
-
 For each unresolved item record its evidence and owner; a checkbox alone is not evidence.
 
 1. **Question** — What one question does this run answer, and what output would not support

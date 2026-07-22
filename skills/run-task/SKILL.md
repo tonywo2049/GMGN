@@ -1,6 +1,6 @@
 ---
 name: run-task
-description: "Use when one or more approved Task.md rows are confirmed: materialize per-card execution contracts, run every ready implementation task through bounded writer lanes, review affected diffs, verify the final candidate once by default, integrate, and close. 已确认任务集后创建单卡 Card/Log、滚动并行开发、按影响复审、默认只验证最终候选一次并关账。"
+description: "Use when one or more approved Task.md rows are confirmed: materialize per-card execution contracts, run every ready implementation task through bounded writer lanes, review each task execution once, verify the final candidate once by default, integrate, and close. 已确认任务集后创建单卡 Card/Log、滚动并行开发、每个任务执行只审一轮、默认只验证最终候选一次并关账。"
 ---
 
 # Run confirmed task cards
@@ -12,8 +12,7 @@ and per-card execution documents. It may be the Coder for one task only when no 
 implementation work can run in parallel with orchestration; independent review and required
 verification remain separate.
 
-Use the locale-matched [dispatch contract](../gmgn/references/en/dispatch-and-handoff.md) or
-[中文契约](../gmgn/references/zh-CN/dispatch-and-handoff.md).
+Use the English-only [dispatch contract](../gmgn/references/en/dispatch-and-handoff.md).
 
 ## 1. Materialize execution documents
 
@@ -71,8 +70,10 @@ creating it, prepare a complete brief containing:
 - checks to run and evidence required for return.
 
 Create a new agent without parent or earlier-agent conversation history. One return ends that
-agent. Any revision, retry, recheck, or later verification gets a new agent and a new brief.
-Fresh identity does not mean every role is dispatched after every change.
+agent. A later writing attempt, separately scoped semantic or implementation change, or later
+verification gets a new agent and a new brief. Critic and Reviewer are not redispatched to
+recheck fixes from their completed round. Fresh identity does not mean every role is dispatched
+after every change.
 
 Use a commit-bound DocStar brief when available and verified against the exact baseline; treat
 it as an index, not authority. Use CodeGraph as a locator only when its index matches or can be
@@ -103,11 +104,17 @@ timed out without an unambiguous agent state, or received lifecycle events confl
 query again until a material lifecycle event, candidate, blocker, or scheduling condition
 changes. No periodic list interval is configured or inferred.
 
-## 5. Review a frozen candidate
+## 5. Review the final useful candidate once
 
-Before independent review, the writer completes its self-check, required machine checks, and
-immutable candidate anchor. Once review begins, freeze that candidate. Do not edit it while
-review roles are active merely because the orchestrator notices another ordinary issue.
+Before independent review, the writer completes its self-check and required machine checks.
+The primary orchestrator mechanically applies an isolated-lane candidate to a temporary
+combination based on the current shared baseline. A frozen single-writer candidate already
+based on the unchanged shared baseline is itself the combination. Resolve an unclean
+application or judgment-required conflict with a fresh Coder before freezing the immutable
+review candidate. Reserve that shared baseline and integration position until the candidate
+integrates or is abandoned; other Coder work may continue, but it cannot advance the reserved
+baseline. Once review begins, do not edit the candidate while review roles are active merely
+because the orchestrator notices another ordinary issue.
 
 Select roles by impact:
 
@@ -120,21 +127,21 @@ Select roles by impact:
 
 Critic and Reviewer may run together when both surfaces changed. Collect every active review
 return before editing. The primary orchestrator adjudicates once, rejects scope expansion,
-and batches accepted blocker fixes into one revision. A fresh replacement role checks only
-its affected scope when the brief proves the boundary; otherwise it checks the full applicable
-surface. Do not dispatch an unchanged role. Non-blocking suggestions do not reopen the
-candidate.
+and batches accepted blocker fixes into one revision. Each task execution uses
+`review_policy: single-pass` and has at most this one Critic/Reviewer round. The primary
+orchestrator checks each resolution and runs affected machine checks; do not dispatch another
+Critic or Reviewer to recheck the fixes. A fix that
+expands authority, scope, or behavior beyond the accepted findings becomes a separately scoped
+change. Record the reviewed anchor, complete findings and rulings, exact fix delta, and
+post-fix checks at the final anchor. Non-blocking suggestions do not reopen the candidate.
 
 ## 6. Verify once at the final useful boundary
 
 Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. Coder test output
 is implementation evidence; it is not independent verification.
 
-For an isolated lane, the primary orchestrator mechanically applies the review-cleared
-candidate to a temporary workspace based on the current shared baseline. A frozen single-writer
-candidate already based on the unchanged shared baseline is itself the final combination and
-does not need another copy. Then dispatch one fresh Verifier when executable evidence is
-required. The Verifier runs the Card's targeted,
+After the one review round, the fixed temporary combination is the final candidate. Dispatch
+one fresh Verifier when executable evidence is required. The Verifier runs the Card's targeted,
 negative, integration/startup/E2E, and project gates that are actually required, and returns
 commands, environment, exit codes, limitations, and side effects. A skipped or unavailable
 required command is not a pass.
@@ -145,16 +152,19 @@ integration decision itself needs independent runtime evidence, an external muta
 or environment makes evidence non-transferable, the baseline/test inputs changed materially,
 or project policy explicitly requires dual verification. Record the reason.
 
-If review finds a blocker, no Verifier is dispatched. If verification fails, record the
-failure in Log, create a fresh Coder for the fix, review only the changed implementation scope
-with a fresh Reviewer, and dispatch the next fresh Verifier only after review clears again.
+While any accepted review blocker remains unresolved at the final anchor, no Verifier is
+dispatched. Once the primary orchestrator records every ruling and resolution, verification
+may proceed without a second review. If verification fails, record the failure in Log, create
+a fresh Coder for the fix, check the resolution and affected machine checks without another
+Reviewer, then dispatch the next fresh Verifier. If the fix expands authority, scope, or
+behavior beyond the reviewed task, route it as a separately scoped change.
 
 ## 7. Integrate and close
 
 Only the primary orchestrator writes the temporary combination, shared baseline, Task status,
-Card/Log state, and traceability. A clean mechanical application needs no Coder. A conflict or
-judgment-required resolution creates a fresh Coder and returns the resulting diff through the
-affected review and verification gates.
+Card/Log state, and traceability. Combination conflicts are resolved before the task's one
+review round. A post-review fix uses a fresh Coder when needed, then runs affected machine
+checks and required verification without another Reviewer.
 
 After the final candidate clears required review and any required verification:
 

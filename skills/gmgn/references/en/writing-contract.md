@@ -10,14 +10,13 @@ nature: normative
 
 # GMGN writing contract
 
-中文版本：[../zh-CN/writing-contract.md](../zh-CN/writing-contract.md)
-
 ## 1. Language and frontmatter
 
 Select `en` or `zh-CN` from the existing project and the user's request. Prose uses that
-language; machine fields, enums, filenames, IDs, commands, and Task headers below do not.
-Keep translated mirrors in separate locale roots so duplicate IDs are not scanned as one
-corpus.
+language; machine fields, enums, filenames, IDs, commands, and Task headers below do not. A
+project artifact chain normally uses one active locale. If a project independently requires
+translated artifact chains, keep them in separate locale roots so duplicate IDs are not
+scanned as one corpus.
 
 Every GMGN-managed document starts with these seven keys:
 
@@ -67,6 +66,11 @@ Approval and acceptance bind an immutable commit, content hash, or equivalent ve
 Editing a file does not move that decision. WhitePaper and ROADMAP need owner approval;
 Goal, Requirement, Design, and Task need independent Critic review plus primary-orchestrator
 acceptance; Milestone closure needs owner acceptance.
+
+Each semantic change batch receives at most one Critic round. When accepted findings are fixed
+after that review, the final accepted anchor records the reviewed anchor, complete findings and
+rulings, exact fix delta, and post-fix machine checks. The fixes are not sent to a second
+Critic.
 
 ## 3. Controlled changes
 

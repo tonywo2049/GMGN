@@ -9,10 +9,9 @@ description: "Use after owner approval of the WhitePaper to create or maintain t
 
 ## Language and contract
 
-Use the active locale and the matching layout-free
-[English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) contract. Use `ROADMAP.md`,
-`type: roadmap`, `nature: normative`, and `status: draft` until approved.
+Use the active locale for artifact prose and the English-only layout-free
+[writing contract](../gmgn/references/en/writing-contract.md). Use `ROADMAP.md`, `type:
+roadmap`, `nature: normative`, and `status: draft` until approved.
 
 ## Create
 
@@ -55,8 +54,9 @@ Use the active locale and the matching layout-free
 2. The writer self-checks before return. A delegated Author ends after that return; missing
    inputs or later revision use the primary session or a fresh Author with a new brief.
 3. Freeze the candidate and dispatch one fresh independent Critic from a prepared brief.
-   Collect all findings before editing, adjudicate once, and batch accepted blocker fixes. A
-   semantic recheck uses a fresh Critic only for affected scope; unchanged roles are not sent.
+   Collect all findings before editing, adjudicate once, and batch accepted blocker fixes.
+   Check each resolution and run affected machine checks; do not dispatch a second Critic to
+   recheck this round's fixes.
 4. With no blocker, owner approval binds the candidate anchor. The primary orchestrator applies
    accepted mechanical reciprocal links, state, and evidence pointers, then runs machine checks.
 
@@ -88,7 +88,7 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 ## Exit
 
 For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
-locale-matched dispatch contract, present remaining material risks or that none are known,
+English-only dispatch contract, present remaining material risks or that none are known,
 obtain owner approval with a version anchor, and integrate only when required by workspace
 topology. A mechanical maintenance batch needs machine checks but no
 new approval. When the owner explicitly starts a target Milestone, **REQUIRED next skill:

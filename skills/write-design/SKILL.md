@@ -9,10 +9,9 @@ description: "Use after Requirement review to create or change Design.md: system
 
 ## Language and contract
 
-Use the Requirement locale and the matching layout-free
-[English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename
-`Design.md`, `type: design`, and `nature: normative`.
+Use the Requirement locale for artifact prose and the English-only layout-free
+[writing contract](../gmgn/references/en/writing-contract.md). Keep filename `Design.md`,
+`type: design`, and `nature: normative`.
 
 ## Writer content and self-check
 
@@ -40,9 +39,10 @@ complete brief and creates one fresh Author when the bounded handoff creates
 real value. The writer self-checks before return; a delegated Author ends on return, so later
 correction uses the primary session or a fresh Author with a new brief. Freeze the candidate
 and dispatch one fresh independent Critic from a prepared brief. Collect all findings before
-editing, adjudicate once, and batch accepted blocker fixes. A semantic recheck uses a fresh
-Critic only for affected scope. With no blocker, the primary orchestrator reviews the anchored
-candidate, applies accepted mechanical mappings, links, and state, then runs machine checks.
+editing, adjudicate once, and batch accepted blocker fixes. The primary orchestrator checks
+each resolution without dispatching a second Critic. With no accepted blocker unresolved, it
+reviews the anchored candidate, applies accepted mechanical mappings, links, and state, then
+runs machine checks.
 
 ## Controlled revision
 
@@ -67,7 +67,7 @@ refresh plus machine checks without reapproval.
 
 Require the recorded writer to reconcile the affected mapping in both directions: no orphan
 design and no unmapped R-AC. For creation or a semantic revision, run the fresh-agent
-writer/Critic loop using the locale-matched dispatch contract; tell the Critic to emphasize
+writer/Critic loop using the English-only dispatch contract; tell the Critic to emphasize
 feasibility, upstream/downstream consistency, and overdesign. Obtain primary-orchestrator
 review and integrate only when required by workspace topology. Creation then uses **REQUIRED next skill:
 `write-task`**. A revision returns to the stage that raised it and continues through the

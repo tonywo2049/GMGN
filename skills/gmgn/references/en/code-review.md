@@ -10,8 +10,6 @@ nature: normative
 
 # Code-review contract: native entry and shared checks
 
-中文版本：[../zh-CN/code-review.md](../zh-CN/code-review.md)
-
 ## 1. Select the surface
 
 - Codex Desktop: `/review`.
@@ -46,10 +44,16 @@ Report findings and do not modify the reviewed worktree. Each finding contains
 `location · evidence · impact · normative fix · priority`. End with `git status --short`
 and disclose review-generated caches or side effects.
 
-Apply a review-cleared isolated-lane candidate to a temporary combination. A frozen sole-writer
-candidate already based on the unchanged shared baseline is the combination. If application is
-not clean, dependency/specification meaning is invalid, or Coder judgment changes the diff,
-prepare a brief and create a fresh Reviewer for the affected diff. A targeted recheck is valid only when the
-brief proves the original accepted blocker, exact changed diff, unchanged surrounding
-evidence, and boundary; otherwise review all applicable hunks. Verification starts only after
-review blockers clear and defaults to the final combined candidate.
+Apply the self-checked isolated-lane candidate to a temporary combination before review. A
+frozen sole-writer candidate already based on the unchanged shared baseline is the
+combination. Resolve an unclean application or judgment-required conflict with a fresh Coder,
+then freeze the final review candidate. Reserve its shared baseline and integration position
+until integration or abandonment, so the candidate cannot become stale after review. Each task
+execution uses `review_policy: single-pass` and has at most one Reviewer round.
+After that round, the primary orchestrator adjudicates once, batches accepted fixes, checks
+each resolution against its finding, and runs affected machine checks. Do not dispatch another
+Reviewer to recheck those fixes. A fix that changes dependency/specification meaning or
+expands behavior beyond the accepted findings becomes a separately scoped change. Verification
+starts after accepted blockers are resolved and defaults to the final combined candidate. The
+final anchor records the reviewed anchor, findings and rulings, exact fix delta, and post-fix
+checks.

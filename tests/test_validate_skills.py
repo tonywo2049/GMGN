@@ -130,6 +130,53 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行与验证契约", result.stdout)
 
+    def test_rejects_second_review_pass(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\nAfter fixes, dispatch another fresh Reviewer.\n",
+            encoding="utf-8",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("单轮审查契约含二次复核指令", result.stdout)
+
+    def test_rejects_markdown_role_review_policy_drift(self) -> None:
+        self.replace(
+            "agents/reviewer.md",
+            "review_policy: single-pass",
+            "review_policy: multi-pass",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agents/reviewer.md", result.stdout)
+
+    def test_rejects_codex_role_review_policy_drift(self) -> None:
+        self.replace(
+            ".codex/agents/critic.toml",
+            "review_policy: single-pass",
+            "review_policy: multi-pass",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn(".codex/agents/critic.toml", result.stdout)
+
+    def test_rejects_translated_normative_mirror(self) -> None:
+        path = self.root / "skills" / "gmgn" / "references" / "zh-CN"
+        path.mkdir(parents=True)
+        (path / "writing-contract.md").write_text("duplicate\n", encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("规范文档必须只保留英文单一权威", result.stdout)
+
+    def test_rejects_any_non_english_normative_root(self) -> None:
+        path = self.root / "skills" / "gmgn" / "references" / "fr"
+        path.mkdir(parents=True)
+        (path / "writing-contract.md").write_text("duplicate\n", encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("规范文档必须只保留英文单一权威", result.stdout)
+
     def test_rejects_old_docstar_adapter(self) -> None:
         path = self.root / ".docstar/conventions/conventions.json"
         value = json.loads(path.read_text(encoding="utf-8"))

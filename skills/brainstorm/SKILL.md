@@ -9,10 +9,9 @@ description: "Use when a WhitePaper does not exist, needs a major rethink, or an
 
 ## Language and contract
 
-Use the active project/user locale. Load the matching layout-free
-[English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) contract. The WhitePaper uses
-`type: whitepaper`, `nature: normative`, and stable English frontmatter tokens.
+Use the active project/user locale for artifact prose. Load the English-only layout-free
+[writing contract](../gmgn/references/en/writing-contract.md). The WhitePaper uses `type:
+whitepaper`, `nature: normative`, and stable English frontmatter tokens.
 
 ## Working rhythm
 
@@ -53,7 +52,8 @@ Do not introduce R-AC IDs or quantitative requirement criteria here.
    one candidate. A delegated Author ends after its return.
 3. Prepare one brief and create one fresh independent Critic. Collect its full review before
    editing. The primary orchestrator adjudicates once and applies accepted findings directly
-   or uses a fresh Author. Only a changed semantic surface gets a fresh Critic recheck.
+   or uses a fresh Author, then checks each resolution and runs affected machine checks. Do
+   not dispatch a second Critic to recheck this round's fixes.
 4. With no blocker, present the anchored candidate and remaining material risks—or that none
    are known—to the owner. After approval, apply mechanical links and state, then run machine
    checks.

@@ -15,7 +15,7 @@ ALLOWED_PREFIXES = (
     ".agents/", ".claude-plugin/", ".codex-plugin/", ".docstar/", "agents/", "skills/",
     "telemetry/",
 )
-ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "GMGN.zh-CN.md", "LICENSE"}
+ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "LICENSE"}
 VERSION_PATHS = (
     Path(".codex-plugin/plugin.json"),
     Path(".claude-plugin/plugin.json"),
@@ -119,7 +119,8 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("agents/critic.md", names)
             self.assertIn("agents/verifier.md", names)
             self.assertIn("README.zh-CN.md", names)
-            self.assertIn("GMGN.zh-CN.md", names)
+            self.assertNotIn("GMGN.zh-CN.md", names)
+            self.assertFalse(any("/references/zh-CN/" in name for name in names))
             self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
             self.assertIn("`execution/<card_id>/Card.md` first", run_task_skill)
@@ -214,6 +215,20 @@ class PackageReleaseTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 1)
             self.assertIn("发布包缺少 telemetry 运行文件", result.stderr)
+            self.assert_no_release_artifacts(output_dir)
+
+    def test_archive_rejects_non_english_normative_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            translated = copied_root / "skills" / "gmgn" / "references" / "fr"
+            translated.mkdir(parents=True)
+            (translated / "writing-contract.md").write_text("duplicate\n", encoding="utf-8")
+            output_dir = Path(temporary) / "dist"
+
+            result = self.run_copied_packager(copied_root, output_dir)
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("规范文档必须只保留英文单一权威", result.stderr)
             self.assert_no_release_artifacts(output_dir)
 
     def test_default_mode_accepts_clean_tree_and_rejects_dirty_tree(self) -> None:

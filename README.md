@@ -49,15 +49,16 @@ GMGN has one workflow, not separate English and Chinese plugins.
 - Human prose and headings use `en` or `zh-CN`.
 - Filenames, IDs, commands, frontmatter keys, enum values, and task-table headers stay
   stable English machine tokens.
-- Public repository documents use English-primary files plus `.zh-CN.md` mirrors.
+- Public normative documents use English as their single source; only the README keeps an
+  English/Chinese pair.
 - A project artifact chain normally uses one active locale. If a project requires two
   translated chains, validate each locale tree separately to avoid duplicate IDs.
 
-The shared machine contract is in
-[`skills/gmgn/references/en/writing-contract.md`](skills/gmgn/references/en/writing-contract.md)
-and its [Chinese mirror](skills/gmgn/references/zh-CN/writing-contract.md). GMGN does not
-ship document-layout templates. Each stage skill defines required content and self-checks;
-the Author chooses the structure.
+The shared machine contract is
+[`skills/gmgn/references/en/writing-contract.md`](skills/gmgn/references/en/writing-contract.md).
+GMGN does not ship translated normative mirrors or document-layout templates. Each stage skill
+defines required content and self-checks; the Author chooses the structure and may write
+project artifacts in the active locale.
 
 ## Supported surfaces
 
@@ -73,9 +74,10 @@ Native review does not replace execution. GMGN still requires project tests and 
 replayable verification path. In Codex, a custom review prompt and scope flags are
 mutually exclusive; after review, check `git status --short` for generated side effects.
 Every delegated role receives a complete brief before creation, returns once, and is retired.
-Later authoring, coding, criticism, review, or verification uses a fresh agent without parent
-or earlier-agent history. Fresh identity does not mean every role reruns: only roles whose
-evidence surface changed are dispatched.
+Later authoring, coding, or verification uses a fresh agent without parent or earlier-agent
+history. Each semantic change batch or task execution gets at most one Critic/Reviewer round;
+accepted fixes are checked by the primary orchestrator and are not sent back for a second
+review pass.
 
 `run-task` continuously fills available capacity from a dependency-aware ready set. `Task.md`
 keeps task division, AC mapping, dependencies, macro status, and execution pointers. Each
@@ -88,10 +90,12 @@ from overwriting the same files/index, but do not solve merge, semantic, interfa
 runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
 and traceability. A delegated Coder returns a local commit containing only its prepared write
 scope; a primary-session sole Coder may freeze and hash its exact diff. An isolated-lane
-candidate is applied to a temporary combination, while a sole-writer candidate already based
-on the unchanged shared baseline is the final combination. After review blockers clear, one
-fresh Verifier checks it when executable evidence is required. Clean mechanical integration does not
-cause identical tests to run twice. Only success atomically advances the shared baseline.
+candidate is applied to a temporary combination before its one review round, while a
+sole-writer candidate already based on the unchanged shared baseline is the combination.
+After accepted findings are fixed, one fresh Verifier checks the final candidate when
+executable evidence is required. Review fixes are not re-reviewed, and clean mechanical
+integration does not cause identical tests to run twice. Only success atomically advances the
+shared baseline.
 Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
 timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
 loop. Use one `list_agents` snapshot only for a scheduling decision, an ambiguous post-timeout
@@ -290,7 +294,7 @@ installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/repo
 ```text
 skills/                         ten cross-platform skills
   */agents/openai.yaml          Codex display metadata and default prompts
-  gmgn/references/{en,zh-CN}/   mirrored machine/dispatch contracts and checklists
+  gmgn/references/en/           English normative contracts and checklists
 agents/                         Claude Code plugin subagent roles
 .docstar/conventions/           DocStar-compatible GMGN convention set
 .codex-plugin/plugin.json       Codex plugin manifest

@@ -38,7 +38,6 @@ PACKAGE_PATHS = (
     "README.md",
     "README.zh-CN.md",
     "GMGN.md",
-    "GMGN.zh-CN.md",
     "LICENSE",
 )
 REQUIRED_PACKAGE_FILES = (
@@ -54,7 +53,28 @@ REQUIRED_PACKAGE_FILES = (
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 
 
+def validate_normative_layout(root: Path = ROOT) -> None:
+    methodology = root / "GMGN.md"
+    references = root / "skills/gmgn/references"
+    english_references = references / "en"
+    if not methodology.is_file() or not english_references.is_dir():
+        raise ValueError("英文规范权威缺失: GMGN.md 或 skills/gmgn/references/en")
+
+    extra_methodologies = sorted(
+        path.relative_to(root).as_posix() for path in root.glob("GMGN.*.md")
+    )
+    extra_reference_roots = sorted(
+        path.relative_to(root).as_posix()
+        for path in references.iterdir()
+        if path.name != "en"
+    )
+    extras = extra_methodologies + extra_reference_roots
+    if extras:
+        raise ValueError(f"规范文档必须只保留英文单一权威: {extras}")
+
+
 def release_files() -> list[Path]:
+    validate_normative_layout(ROOT)
     result = subprocess.run(
         [
             "git",

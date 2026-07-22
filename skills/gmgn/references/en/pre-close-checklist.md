@@ -10,8 +10,6 @@ nature: normative
 
 # Pre-close checklist
 
-中文版本：[../zh-CN/pre-close-checklist.md](../zh-CN/pre-close-checklist.md)
-
 1. **Boundary** — Are the target Milestone and its Goal/Requirement/Design/Task anchors fixed,
    without a cross-Milestone reference expanding scope?
 2. **Acceptance picture** — Does every ROADMAP acceptance scenario trace through Goal slices

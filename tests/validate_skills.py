@@ -10,7 +10,7 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from package_release import release_metadata
+from package_release import release_metadata, validate_normative_layout
 
 
 SKILLS = {
@@ -25,7 +25,34 @@ CORE_FILES = (
     Path("skills/write-task/SKILL.md"),
     Path("skills/run-task/SKILL.md"),
     Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
-    Path("skills/gmgn/references/zh-CN/dispatch-and-handoff.md"),
+)
+REVIEW_POLICY_FILES = (
+    Path("GMGN.md"),
+    Path("skills/gmgn/SKILL.md"),
+    Path("skills/run-task/SKILL.md"),
+    Path("skills/release/SKILL.md"),
+    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
+    Path("skills/gmgn/references/en/code-review.md"),
+    Path("agents/coder.md"),
+    Path("agents/critic.md"),
+    Path("agents/reviewer.md"),
+    Path(".codex/agents/coder.toml"),
+    Path(".codex/agents/critic.toml"),
+    Path(".codex/agents/reviewer.toml"),
+)
+FORBIDDEN_SECOND_REVIEW_FRAGMENTS = (
+    "a semantic recheck uses a fresh critic",
+    "re-review only changed semantic scope",
+    "a fresh replacement role checks only",
+    "review only the changed implementation scope with a fresh reviewer",
+    "later semantic/diff recheck uses a fresh agent",
+    "any required recheck uses a fresh agent",
+    "create a fresh reviewer for the affected diff",
+    "accepted fixes use another fresh coder and only affected review roles",
+    "dispatch another fresh reviewer",
+    "后续复核新建 critic",
+    "定向复核只在",
+    "后续审查新建 reviewer",
 )
 
 
@@ -92,7 +119,6 @@ def validate_core_contract(errors: list[str]) -> None:
     write_task = read(CORE_FILES[1])
     run_task = read(CORE_FILES[2])
     dispatch_en = read(CORE_FILES[3])
-    dispatch_zh = read(CORE_FILES[4])
     roadmap = read("skills/roadmap/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
@@ -100,8 +126,11 @@ def validate_core_contract(errors: list[str]) -> None:
     require(gmgn, (
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
         "Prepare the full role brief before creation",
-        "Collect all active Critic and Reviewer findings before changing it",
-        "Do not dispatch a Verifier while relevant review blockers remain",
+        "Collect all active findings before changing the candidate",
+        "Each semantic change batch or task execution uses `review_policy: single-pass`",
+        "Do not send the fixes to another Critic or Reviewer",
+        "Record the reviewed anchor, findings and rulings, exact fix delta, and post-fix checks",
+        "Do not dispatch a Verifier while accepted review blockers remain unresolved",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
@@ -124,9 +153,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "`execution/<card_id>/Log.md` second",
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
         "Collect every active review return before editing",
-        "Do not dispatch an unchanged role",
+        "Each task execution uses `review_policy: single-pass`",
+        "do not dispatch another Critic or Reviewer to recheck the fixes",
+        "Reserve that shared baseline and integration position",
         "Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain",
-        "does not need another copy",
+        "itself the combination",
         "dispatch one fresh Verifier when executable evidence is required",
         "An additional pre-integration Verifier is allowed only",
         "Use one `list_agents` snapshot only",
@@ -136,18 +167,14 @@ def validate_core_contract(errors: list[str]) -> None:
         "One dispatch, one fresh agent",
         "Prepare the brief before creating the agent",
         "One return ends the agent",
-        "Collect every active review return before editing",
+        "collect every active return before editing",
+        "Each semantic change batch or task execution uses `review_policy: single-pass`",
+        "Do not send fixes from that round to another Critic or Reviewer",
+        "The final anchor records the reviewed anchor",
         "one fresh Verifier on the final candidate when executable evidence is required",
         "Do not query again until a material lifecycle event",
         "There is no periodic list interval",
     ), "英文派发契约", errors)
-    require(dispatch_zh, (
-        "一次派发，一个全新 agent",
-        "创建 agent 前准备完整 brief",
-        "一次回传即结束",
-        "才调用一次 `list_agents` 获取状态快照",
-        "不存在定时查询周期",
-    ), "中文派发契约", errors)
     require(roadmap, (
         "Milestone acceptance picture",
         "high-level end-to-end or integration scenarios",
@@ -169,6 +196,39 @@ def validate_core_contract(errors: list[str]) -> None:
     authority = "\n".join(read(path) for path in CORE_FILES)
     if OLD_TASK_HEADER in authority:
         errors.append("核心规则仍含旧 Task 表头")
+
+
+def validate_normative_language_layout(errors: list[str]) -> None:
+    try:
+        validate_normative_layout(ROOT)
+    except ValueError as exc:
+        errors.append(str(exc))
+    if not (ROOT / "README.zh-CN.md").is_file():
+        errors.append("README.zh-CN.md 必须保留")
+
+
+def validate_review_policy(errors: list[str]) -> None:
+    for relative in REVIEW_POLICY_FILES:
+        try:
+            text = read(relative)
+        except AssertionError as exc:
+            errors.append(str(exc))
+            continue
+        require(text, ("review_policy: single-pass",), str(relative), errors)
+
+    policy_surfaces = [ROOT / "GMGN.md"]
+    policy_surfaces.extend((ROOT / "skills").rglob("*.md"))
+    policy_surfaces.extend((ROOT / "agents").glob("*.md"))
+    policy_surfaces.extend((ROOT / ".codex/agents").glob("*.toml"))
+    combined = "\n".join(
+        path.read_text(encoding="utf-8") for path in policy_surfaces if path.is_file()
+    ).casefold()
+    conflicts = [
+        fragment for fragment in FORBIDDEN_SECOND_REVIEW_FRAGMENTS
+        if fragment.casefold() in combined
+    ]
+    if conflicts:
+        errors.append(f"单轮审查契约含二次复核指令: {conflicts}")
 
 
 def validate_roles(errors: list[str]) -> None:
@@ -248,6 +308,8 @@ def main() -> int:
     validate_release(errors)
     validate_skills(errors)
     validate_core_contract(errors)
+    validate_normative_language_layout(errors)
+    validate_review_policy(errors)
     validate_roles(errors)
     validate_docstar_adapter(errors)
     validate_relative_links(errors)

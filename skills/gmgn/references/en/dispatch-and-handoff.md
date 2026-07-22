@@ -10,16 +10,16 @@ nature: normative
 
 # Dispatch and fresh-agent contract
 
-中文版本：[../zh-CN/dispatch-and-handoff.md](../zh-CN/dispatch-and-handoff.md)
-
 This contract defines required facts, not a fill-in prompt or a separate Handoff document.
 
 ## One dispatch, one fresh agent
 
 Every delegated `author | coder | critic | reviewer | verifier | researcher` is created for
 one bounded dispatch without parent or earlier-agent conversation history. One return ends the
-agent. Never resume, reactivate, repurpose, or send later work to a returned agent. A revision,
-retry, recheck, or later verification creates another agent from another prepared brief.
+agent. Never resume, reactivate, repurpose, or send later work to a returned agent. A later
+authoring or coding attempt, separately scoped semantic or implementation change, or later
+verification creates another agent from another prepared brief. Critic and Reviewer are not
+redispatched to recheck fixes from their completed round.
 
 The primary orchestrator is persistent coordination authority, not a delegated agent. It may
 write specification documents directly when it holds the clearest context and may act as one
@@ -73,16 +73,19 @@ A writing return identifies one immutable `candidate_anchor`, changed files, com
 deviations, and material unresolved risks. Recheck the workspace and candidate on return.
 Reject an unanchored, wrong-workspace, stale-authority, or out-of-scope candidate before review.
 
-## Freeze and review rounds
+## Freeze and the single review round
 
 The writer completes its self-check and machine checks before the candidate is frozen for
-independent review. Once Critic or Reviewer work starts, collect every active review return
-before editing. The primary orchestrator adjudicates once and batches accepted blocker fixes.
-
-Any required recheck uses a fresh agent. Its brief may narrow the check only when it proves the
-old finding, exact changed diff, unchanged surrounding evidence, and impact boundary; otherwise
-the new agent checks the full applicable surface. Unchanged roles are not dispatched.
-Non-blocking suggestions do not reopen a candidate.
+independent review. Each semantic change batch or task execution uses
+`review_policy: single-pass`: at most one Critic/Reviewer round; both roles may run in that
+round when both evidence surfaces changed. Once review starts, collect every active return
+before editing. The primary orchestrator
+adjudicates once, batches accepted blocker fixes, checks each resolution against its finding,
+and runs the affected machine checks. Do not send fixes from that round to another Critic or
+Reviewer. If a fix expands authority, scope, or behavior beyond the accepted findings, split
+it into a separately scoped change instead of treating it as a recheck. Non-blocking
+suggestions do not reopen a candidate. The final anchor records the reviewed anchor, complete
+findings and rulings, exact fix delta, and post-fix checks.
 
 Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. Use one fresh
 Verifier on the final candidate when executable evidence is required. A second verification
@@ -95,7 +98,8 @@ mechanical integration is not additional evidence.
 - **Critic** is read-only. Every finding gives location, evidence, impact, required correction,
   and blocker level; it does not become a second author.
 - **Coder** implements one Card attempt, stays inside its write set, produces discriminating
-  tests, and returns one local candidate commit. A later fix uses a fresh Coder.
+  tests, and returns one local candidate commit. A later fix uses a fresh Coder but does not
+  trigger another Reviewer in the same task execution.
 - **Reviewer** is read-only. It checks the anchored implementation diff, spec fit, untested
   paths, assertion discrimination, side effects, and avoidable complexity.
 - **Verifier** does not edit product meaning or source. It returns exact commands, environment,

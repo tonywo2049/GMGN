@@ -10,16 +10,16 @@ nature: normative
 
 # Pre-merge checklist
 
-中文版本：[../zh-CN/pre-merge-checklist.md](../zh-CN/pre-merge-checklist.md)
-
-1. **Candidate identity** — Does the reviewed candidate resolve from the expected baseline,
+1. **Candidate identity** — Does the review candidate resolve from the expected baseline,
    workspace, task, and prepared write boundary?
 2. **Scope** — Are interfaces, callers, migrations, documentation, and interacting tasks in
    the impact boundary?
-3. **Review barrier** — Were all active Critic/Reviewer findings collected and blockers cleared
-   before any Verifier dispatch?
+3. **Single review barrier** — Was the one Critic/Reviewer round completed, every finding
+   collected, and each accepted blocker resolved before any Verifier dispatch, without a
+   second review pass?
 4. **Final combination** — Is this either an isolated-lane candidate applied to the current
-   shared baseline or a frozen sole-writer candidate already based on that unchanged baseline?
+   reserved shared baseline or a frozen sole-writer candidate already based on that unchanged
+   baseline, with the reviewed anchor and post-review fix delta recorded?
 5. **Verification boundary** — Is one fresh Verifier checking the final combination when
    executable evidence is required? If another boundary exists, is its risk reason recorded?
 6. **No downgrade** — Were tests removed, assertions weakened, errors swallowed, or real paths
@@ -31,5 +31,6 @@ nature: normative
 9. **Overdesign** — Can anything be deleted, replaced by standard/native behavior, or shrunk?
 
 Run repository checks such as `git diff --check` and `git status --short` in the temporary
-combination. Only the review-cleared and, when required, independently verified combination
-may advance the shared baseline. Refresh Task/Card/Log and traceability in that candidate.
+combination. Only the reviewed, blocker-resolved and, when required, independently verified
+combination may advance the shared baseline. Refresh Task/Card/Log and traceability in that
+candidate.

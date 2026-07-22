@@ -38,6 +38,10 @@ do not create a new document when an existing authority can hold it:
 - packaging recipe anchor and target distribution environment.
 
 Review evidence remains reusable while the reviewed content and review scope are unchanged.
+It is never regenerated for the same accepted change batch: `review_policy: single-pass`.
+Missing or failed required review evidence blocks release of that accepted anchor. A content or
+scope change is a separately scoped change with a new candidate and accepted anchor, not a
+review retry.
 Verification evidence remains reusable while the accepted content, required test plan, and
 target execution environment are unchanged. Artifact evidence remains reusable only for the
 same release anchor, packaging recipe, and artifact inputs. Accessible evidence is required;
@@ -50,9 +54,10 @@ Choose exactly one path:
 1. **Exact-anchor release.** `release_anchor == accepted_anchor`. Before reuse, compare the
    reviewed content and scope, required test plan, target execution environment, and every
    other recorded evidence-validity input. Only when those inputs are unchanged, reuse the
-   accepted review, regression, E2E, DocStar, and closure evidence. If an input changed,
-   invalidate and regenerate only evidence that depends on it. Do not dispatch another closure Author,
-   combined Critic/Reviewer, or closure Verifier unless that role's evidence was invalidated.
+   accepted review, regression, E2E, DocStar, and closure evidence. If required review evidence
+   is missing or failed, stop; do not dispatch another Critic or Reviewer for this anchor. If
+   reviewed content or scope changed, use the semantic-delta path. Regenerate only invalidated
+   verification, structural, environment, or artifact evidence.
 2. **Mechanical equivalent.** The release anchor differs only by an explicit allowlist such
    as version manifests, checksums, generated release metadata, or meaning-preserving links.
    Record old and new anchors, `semantic_delta: none`, `allowed_diff`, and
@@ -61,7 +66,8 @@ Choose exactly one path:
 3. **Semantic delta.** Source behavior, specification meaning, acceptance, scope, design
    intent, execution authority, or user-visible obligations changed. Invalidate only the
    affected review and verification evidence, route that impact cone to its authority, and
-   resume release after a new accepted anchor exists.
+   resume release after a separately scoped change has its own single review round and a new
+   accepted anchor. This cannot be used to recheck fixes from the original review round.
 
 Changing a packaging recipe, signing method, dependency lock, target platform, or deployment
 configuration invalidates the corresponding artifact or environment checks. It does not by
@@ -81,9 +87,10 @@ Run only checks required by the selected path and repository policy:
 - run the installation or startup smoke path for the distributed form when applicable;
 - check whether the remote tag, release, and assets already exist before writing.
 
-Do not rerun full regression, E2E, combined review, DocStar, or closure authoring merely
-because a tag, upload, authentication step, or local installation is retried. Rerun an item
-only when its evidence-validity inputs changed or its earlier result is missing or failed.
+Do not rerun full regression, E2E, DocStar, or closure authoring merely because a tag, upload,
+authentication step, or local installation is retried. Never rerun Critic or Reviewer for the
+same accepted change batch. Rerun verification, structural, environment, or artifact checks
+only when their evidence-validity inputs changed or their earlier result is missing or failed.
 
 ## 4. Publish and reconcile idempotently
 

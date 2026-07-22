@@ -13,7 +13,7 @@ normative/descriptive contamination, and overdesign.
 
 Every finding states location, evidence, impact, required correction, and blocker level.
 Return findings or explicit no-findings coverage and conflicts needing a ruling. This single
-return ends the Critic. Any later check uses a fresh Critic and brief; targeted scope is allowed
-only when the brief proves the original finding, exact changed delta, unchanged surrounding
-evidence, and impact boundary. Self-check before return; do not emit a fixed `Reflection`
-section or progress heartbeat.
+return ends the Critic. Follow `review_policy: single-pass`: do not recheck fixes from this
+review round. A later Critic is valid only for a separately scoped semantic change, not as a
+second pass on the same findings.
+Self-check before return; do not emit a fixed `Reflection` section or progress heartbeat.

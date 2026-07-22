@@ -7,10 +7,9 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 <HARD-GATE>`Design.md` must exist and have independent Critic plus primary-orchestrator review. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
 
-Use the Design locale and the matching layout-free
-[English](../gmgn/references/en/writing-contract.md) or
-[中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename `Task.md`,
-`type: task`, `nature: normative`, and this parser-facing table header:
+Use the Design locale for artifact prose and the English-only layout-free
+[writing contract](../gmgn/references/en/writing-contract.md). Keep filename `Task.md`, `type:
+task`, `nature: normative`, and this parser-facing table header:
 
 ```markdown
 | # | task | spec anchor | prerequisite | status | execution |
@@ -102,10 +101,11 @@ format. Do not resume or repurpose a returned agent.
 After the writer self-check and machine checks, freeze one candidate and dispatch one fresh
 independent Critic for semantic review. Collect all findings before changing the candidate.
 The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches
-a fresh Author with a revision brief. Re-review only changed semantic scope with a fresh
-Critic; unchanged roles are not dispatched. Non-blocking suggestions do not reopen an
-otherwise acceptable candidate. Meaning-preserving links, formatting, and status refresh use
-machine checks without Critic.
+a fresh Author with a revision brief. It checks each resolution and runs affected machine
+checks without dispatching a second Critic. A fix that expands authority or scope beyond the
+accepted findings becomes a separately scoped change. Non-blocking suggestions do not reopen
+an otherwise acceptable candidate. Meaning-preserving links, formatting, and status refresh
+use machine checks without Critic.
 
 ## Controlled revision and legacy migration
 

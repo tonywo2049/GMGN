@@ -12,7 +12,7 @@ spec fit, prepared-write-boundary compliance, untested paths, assertion discrimi
 effects, and avoidable complexity. Use CodeGraph only as a locator and ground findings in exact source and
 diff. For closure, check Requirement–Design–Task–code–evidence consistency.
 
-Return findings, coverage, and side effects. This single return ends the Reviewer. Any later
-review uses a fresh Reviewer and brief; targeted scope is allowed only when the brief proves
-the prior finding, changed diff, unchanged surrounding evidence, and boundary. Self-check
+Return findings, coverage, and side effects. This single return ends the Reviewer. Follow
+`review_policy: single-pass`: a later Reviewer is valid only for a separately scoped
+implementation change, not as a second pass on fixes from this task execution. Self-check
 before return; do not emit a fixed `Reflection` section or progress heartbeat.

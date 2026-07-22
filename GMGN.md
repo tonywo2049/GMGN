@@ -10,8 +10,6 @@ nature: normative
 
 # GMGN: a lightweight engineering method for agent collaboration
 
-中文版本：[GMGN.zh-CN.md](GMGN.zh-CN.md)
-
 GMGN coordinates one accountable human owner, one primary AI orchestrator, and short-lived
 task agents. It addresses two risks:
 
@@ -39,10 +37,11 @@ current task does not need.
 - **Verifier** independently executes the required checks against one fixed candidate.
 
 Every delegated agent is single-use. Prepare its complete brief before creation, give it one
-bounded objective, accept one return, and retire it. A revision, retry, recheck, or later
-verification uses a new agent and new brief without parent or earlier-agent conversation
-history. The primary orchestrator is not a delegated agent and remains the integration owner;
-there is no Integrator-agent role.
+bounded objective, accept one return, and retire it. A later authoring or coding attempt,
+separately scoped semantic or implementation change, or later verification uses a new agent
+and new brief without parent or earlier-agent conversation history. Critic and Reviewer are
+not redispatched to recheck fixes from their completed round. The primary orchestrator is not
+a delegated agent and remains the integration owner; there is no Integrator-agent role.
 
 ## 2. Authority and document chain
 
@@ -110,10 +109,15 @@ Freeze a candidate before independent checks. Select roles by what changed:
 | executable result, environment, or package input | fresh Verifier after review clears |
 | equivalent links, formatting, pointers, or status | machine checks only |
 
-Critic and Reviewer findings are collected before any edit. The primary orchestrator
-adjudicates once and batches accepted blocker fixes. Recheck only changed scope when the new
-brief proves the boundary; do not dispatch unchanged roles. Non-blocking suggestions do not
-reopen an otherwise acceptable candidate.
+Each semantic change batch or task execution uses `review_policy: single-pass`: at most one
+independent Critic/Reviewer round. When both surfaces changed, both roles may run in that same
+round. Collect every finding
+before editing. The primary orchestrator adjudicates once, batches accepted blocker fixes,
+checks each resolution against the finding, and runs the affected machine checks. Do not send
+those fixes to another Critic or Reviewer. A fix that expands authority, scope, or behavior
+beyond the accepted findings becomes a separately scoped change rather than a review recheck.
+The final anchor records the reviewed anchor, complete findings and rulings, exact fix delta,
+and post-fix checks. Non-blocking suggestions do not reopen an otherwise acceptable candidate.
 
 Do not dispatch a Verifier while relevant review blockers remain. By default, first create the
 final temporary combined candidate, then use one fresh Verifier there. Do not repeat the same
@@ -136,12 +140,16 @@ at a time. The Coder writes only the allowed scope in its prepared brief and ret
 immutable local candidate. The primary orchestrator owns Task/Card/Log runtime state, the
 integration queue, and the shared baseline.
 
-After review clears, the primary orchestrator mechanically applies an isolated-lane candidate
-to a temporary combination. A frozen sole-writer candidate already based on the unchanged
-shared baseline is itself the final combination and needs no copy. A clean application needs
-no Coder. A conflict or judgment-required resolution uses a fresh Coder and returns through
-only the affected review and verification gates. An unverified executable combination never
-becomes the shared baseline.
+The primary orchestrator mechanically applies each self-checked isolated-lane candidate to a
+temporary combination before that task execution's one review round. A frozen sole-writer
+candidate already based on the unchanged shared baseline is itself the combination and needs
+no copy. A clean application needs no Coder. Resolve a conflict or judgment-required
+combination with a fresh Coder before freezing the review candidate. Reserve that shared
+baseline and integration position until the candidate integrates or is abandoned, so it
+cannot become stale after its only review round. Other Coder work may continue, but it cannot
+advance that reserved baseline. After the review round, batch accepted fixes without another
+Critic or Reviewer, run affected machine checks, and use the required verification gates. An
+unverified executable combination never becomes the shared baseline.
 
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
 event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a

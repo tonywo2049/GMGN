@@ -47,9 +47,11 @@ information. It does not mark the Milestone closed before owner acceptance.
 Freeze the candidate after writer self-check and machine checks. Prepare one brief and create a
 fresh independent combined Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
 consistency and closure meaning. Collect the full review before editing. The primary
-orchestrator adjudicates once and batches accepted blockers; later semantic/diff recheck uses a
-fresh agent only for affected scope. Non-blocking suggestions do not reopen closure. Present
-the candidate for owner acceptance only when required evidence and review have no blocker.
+orchestrator adjudicates once, batches accepted blockers, checks each resolution, and runs
+affected machine checks without dispatching another Critic or Reviewer. A fix that expands
+authority, scope, or closure meaning becomes a separately scoped change. Non-blocking
+suggestions do not reopen closure. Present the candidate for owner acceptance only when
+required evidence exists and no accepted review blocker remains unresolved.
 
 ## Structural checks
 
