@@ -177,6 +177,17 @@ def resolve_candidate(worktree_path: Path, candidate_anchor: str) -> str:
     ).stdout.decode().strip()
 
 
+def require_head_anchor(worktree_path: Path, expected_anchor: str) -> str:
+    expected = resolve_candidate(worktree_path, expected_anchor)
+    head = run_git(worktree_path, ["rev-parse", "HEAD"]).stdout.decode().strip()
+    if head != expected:
+        raise RegistryError(
+            "candidate_mismatch",
+            f"HEAD {head} does not equal candidate_anchor {expected}",
+        )
+    return expected
+
+
 def empty_registry(project_scope_id: str) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
@@ -350,6 +361,14 @@ def assert_bound_identity(
             "ownership_mismatch",
             "coder_ref does not match the active writer claim",
         )
+    registered_coder_epoch = lane.get("coder_epoch")
+    if registered_coder_epoch is None and registered_coder is not None:
+        registered_coder_epoch = 1
+    if args.coder_epoch != registered_coder_epoch:
+        raise RegistryError(
+            "ownership_mismatch",
+            "coder_epoch does not match the active writer generation",
+        )
     return worktree_path
 
 
@@ -408,10 +427,12 @@ def claim(
             "owner_run_id": owner_run_id,
             "ownership_epoch": epoch,
             "coder_ref": None,
+            "coder_epoch": 0,
             "worktree_path": str(worktree_path),
             "repository_identity": repository_identity,
             "baseline_anchor": baseline_commit,
             "candidate_anchor": None,
+            "candidate_coder_epoch": None,
             "state": "claimed",
             "active": True,
             "claimed_at": timestamp,
@@ -436,11 +457,51 @@ def bind_coder(
         if lane.get("coder_ref") not in (None, coder_ref):
             raise RegistryError("coder_already_bound", "lane already has a different coder_ref")
         lane["coder_ref"] = coder_ref
+        if lane.get("coder_epoch") in (None, 0):
+            lane["coder_epoch"] = 1
         lane["state"] = "coder-active"
         lane["updated_at"] = utc_now()
         return {"lane": lane}
 
     return atomic_mutation(project_root, project_scope_id, "bind-coder", mutate)
+
+
+def rotate_coder(
+    args: argparse.Namespace, project_root: Path, project_scope_id: str
+) -> dict[str, Any]:
+    card_id = require_value(args.card_id, "card_id")
+    new_coder_ref = require_value(args.new_coder_ref, "new_coder_ref")
+    candidate_anchor = require_value(args.candidate_anchor, "candidate_anchor")
+
+    def mutate(registry: dict[str, Any]) -> dict[str, Any]:
+        lane = get_lane(registry, card_id)
+        worktree_path = assert_bound_identity(lane, args)
+        if lane.get("state") != "candidate-anchored":
+            raise RegistryError(
+                "candidate_not_anchored",
+                "rotate-coder requires the current candidate to be anchored",
+            )
+        registered_candidate = require_value(
+            lane.get("candidate_anchor"), "registered candidate_anchor"
+        )
+        expected_candidate = require_head_anchor(worktree_path, candidate_anchor)
+        if expected_candidate != registered_candidate:
+            raise RegistryError(
+                "candidate_mismatch",
+                "candidate_anchor does not match the lane's current candidate",
+            )
+        if new_coder_ref == lane.get("coder_ref"):
+            raise RegistryError(
+                "coder_unchanged",
+                "new_coder_ref must identify a fresh Coder thread",
+            )
+        lane["coder_ref"] = new_coder_ref
+        lane["coder_epoch"] = int(lane.get("coder_epoch") or 1) + 1
+        lane["state"] = "coder-active"
+        lane["updated_at"] = utc_now()
+        return {"lane": lane}
+
+    return atomic_mutation(project_root, project_scope_id, "rotate-coder", mutate)
 
 
 def verify(
@@ -471,6 +532,7 @@ def anchor(
         worktree_path = assert_bound_identity(lane, args)
         resolved = resolve_candidate(worktree_path, candidate_anchor)
         lane["candidate_anchor"] = resolved
+        lane["candidate_coder_epoch"] = lane.get("coder_epoch") or 1
         lane["state"] = "candidate-anchored"
         lane["updated_at"] = utc_now()
         return {"lane": lane}
@@ -557,6 +619,7 @@ def add_identity_arguments(
     parser.add_argument("--worktree-path", required=True)
     if include_coder_ref:
         parser.add_argument("--coder-ref", required=True)
+        parser.add_argument("--coder-epoch", required=True, type=int)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -581,6 +644,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_identity_arguments(bind_parser, include_coder_ref=False)
     bind_parser.add_argument("--coder-ref", required=True)
+
+    rotate_parser = commands.add_parser(
+        "rotate-coder", help="replace a completed Coder attempt at an anchored candidate"
+    )
+    add_identity_arguments(rotate_parser)
+    rotate_parser.add_argument("--new-coder-ref", required=True)
+    rotate_parser.add_argument("--candidate-anchor", required=True)
 
     verify_parser = commands.add_parser("verify", help="verify active lane ownership")
     add_identity_arguments(verify_parser)
@@ -616,6 +686,7 @@ def main() -> int:
         handlers = {
             "claim": claim,
             "bind-coder": bind_coder,
+            "rotate-coder": rotate_coder,
             "verify": verify,
             "anchor": anchor,
             "release": release,
