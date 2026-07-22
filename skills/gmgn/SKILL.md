@@ -1,6 +1,7 @@
 ---
 name: gmgn
 description: "Use first to route workflow-driven project work: new projects, product ideas, research, feature development, bug fixes, refactors, WhitePaper, ROADMAP, PRD, requirements, design, task docs, coding delegation, launch, release, acceptance, or closure. 凡要按流程推进研发、调研、功能、修 bug、重构、写白皮书/ROADMAP/PRD/需求/设计/任务、派活、上线发布、验收关账，或用户说按 GMGN/下一步做什么时使用。"
+assurance_policy: gmgn-assurance-v1
 ---
 
 # GMGN router: repository state → next stage
@@ -54,8 +55,8 @@ Fresh identity does not require a full role set after each edit. Select roles by
 | Changed surface | Independent role |
 |---|---|
 | WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | Critic |
-| Implementation or test-code diff | Reviewer |
-| Executable result, environment, or package input | Verifier after review blockers clear |
+| Implementation or test-code diff, including deterministic local execution | Reviewer |
+| Recorded trigger from the [assurance policy](references/en/assurance-policy.json) | Verifier after review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
 Freeze a candidate before review. Each semantic change batch or task execution uses
@@ -66,8 +67,15 @@ batches accepted blockers, checks their resolution, and runs affected machine ch
 send the fixes to another Critic or Reviewer. If a fix expands authority, scope, or behavior
 beyond the accepted findings, split it into a separately scoped change. Record the reviewed
 anchor, findings and rulings, exact fix delta, and post-fix checks at the final anchor.
-Non-blocking suggestions do not reopen an otherwise acceptable candidate. Do not dispatch a
-Verifier while accepted review blockers remain unresolved.
+Non-blocking suggestions do not reopen an otherwise acceptable candidate. The Reviewer runs
+the prepared deterministic local checks and returns the commands and results with its code
+findings. After accepted fixes, the primary orchestrator checks the fix delta and reruns
+affected machine checks without another independent round.
+
+A fresh Verifier is exceptional, not default. Classify the final candidate from the assurance
+policy as `not-required` or `required:<trigger>`. Do not dispatch a Verifier while accepted
+review blockers remain unresolved; when required, bind its evidence to the blocker-resolved
+final candidate.
 
 ## Document nodes
 
@@ -94,14 +102,14 @@ attempt is fresh. Apply an isolated-lane candidate to the temporary combination 
 any judgment-required conflict before freezing the task execution's one Reviewer candidate.
 Reserve its shared baseline and integration position until integration or abandonment.
 Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
-primary orchestrator checks their resolution and runs affected machine checks. One fresh
-Verifier checks the resulting final candidate when executable evidence is required. Do not
-repeat the same verification before and after clean mechanical integration without a recorded
-risk reason.
+primary orchestrator checks their resolution and runs affected machine checks. Dispatch a
+fresh Verifier on the resulting final candidate only for the exceptional risk triggers above.
+Do not repeat the same verification before and after clean mechanical integration without a
+recorded risk reason.
 
 When no implementation lane can run in parallel with useful orchestrator work, the primary
 session may serve as one lane's Coder. It cannot take over an assigned lane and
-cannot replace independent review or required verification.
+cannot replace independent review or risk-triggered verification.
 
 Agent waiting is event-driven: exhaust useful work, wait once with the longest safe interval,
 and treat timeout as a liveness checkpoint rather than a polling trigger. A `list_agents`

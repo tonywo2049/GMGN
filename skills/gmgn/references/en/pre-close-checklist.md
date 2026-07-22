@@ -6,6 +6,7 @@ downstream: none
 status: approved
 type: design
 nature: normative
+assurance_policy: gmgn-assurance-v1
 ---
 
 # Pre-close checklist
@@ -19,8 +20,9 @@ nature: normative
    authority anchor?
 4. **Evidence** — Does every retained criterion have a replayable command or real execution
    path, including relevant negative behavior?
-5. **Independent challenge** — Are required Critic/Reviewer blockers clear and is final
-   executable verification current where needed?
+5. **Independent challenge** — Are required Critic/Reviewer blockers clear, are Reviewer
+   execution results or post-fix machine checks current, and is any risk-triggered
+   final-candidate verification current?
 6. **State** — Do Task macro status, Card contract, closed Log snapshot/latest event,
    traceability, ROADMAP, and the closing anchor agree?
 7. **Integration** — Are target tasks closed on one shared baseline with no owned integration

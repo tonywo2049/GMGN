@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import re
 import sys
+import tomllib
 from urllib.parse import unquote
 
 
@@ -40,19 +41,22 @@ REVIEW_POLICY_FILES = (
     Path(".codex/agents/critic.toml"),
     Path(".codex/agents/reviewer.toml"),
 )
-FORBIDDEN_SECOND_REVIEW_FRAGMENTS = (
-    "a semantic recheck uses a fresh critic",
-    "re-review only changed semantic scope",
-    "a fresh replacement role checks only",
-    "review only the changed implementation scope with a fresh reviewer",
-    "later semantic/diff recheck uses a fresh agent",
-    "any required recheck uses a fresh agent",
-    "create a fresh reviewer for the affected diff",
-    "accepted fixes use another fresh coder and only affected review roles",
-    "dispatch another fresh reviewer",
-    "后续复核新建 critic",
-    "定向复核只在",
-    "后续审查新建 reviewer",
+ASSURANCE_POLICY_PATH = Path("skills/gmgn/references/en/assurance-policy.json")
+ASSURANCE_BINDING_FILES = (
+    Path("GMGN.md"),
+    Path("skills/gmgn/SKILL.md"),
+    Path("skills/run-task/SKILL.md"),
+    Path("skills/close-milestone/SKILL.md"),
+    Path("skills/release/SKILL.md"),
+    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
+    Path("skills/gmgn/references/en/code-review.md"),
+    Path("skills/gmgn/references/en/pre-merge-checklist.md"),
+    Path("skills/gmgn/references/en/pre-close-checklist.md"),
+    Path("skills/gmgn/references/en/writing-contract.md"),
+    Path("agents/reviewer.md"),
+    Path("agents/verifier.md"),
+    Path(".codex/agents/reviewer.toml"),
+    Path(".codex/agents/verifier.toml"),
 )
 
 
@@ -122,6 +126,8 @@ def validate_core_contract(errors: list[str]) -> None:
     roadmap = read("skills/roadmap/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
+    release = read("skills/release/SKILL.md")
+    pre_merge = read("skills/gmgn/references/en/pre-merge-checklist.md")
 
     require(gmgn, (
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
@@ -131,6 +137,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not send the fixes to another Critic or Reviewer",
         "Record the reviewed anchor, findings and rulings, exact fix delta, and post-fix checks",
         "Do not dispatch a Verifier while accepted review blockers remain unresolved",
+        "The Reviewer runs the prepared deterministic local checks",
+        "A fresh Verifier is exceptional, not default",
+        "After accepted fixes, the primary orchestrator checks the fix delta and reruns affected machine checks without another independent round",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
@@ -158,7 +167,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Reserve that shared baseline and integration position",
         "Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain",
         "itself the combination",
-        "dispatch one fresh Verifier when executable evidence is required",
+        "The Reviewer also runs the prepared deterministic local",
+        "A fresh Verifier is exceptional, not default",
+        "Classify the final candidate from the assurance policy",
         "An additional pre-integration Verifier is allowed only",
         "Use one `list_agents` snapshot only",
         "No periodic list interval is configured or inferred",
@@ -171,7 +182,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Each semantic change batch or task execution uses `review_policy: single-pass`",
         "Do not send fixes from that round to another Critic or Reviewer",
         "The final anchor records the reviewed anchor",
-        "one fresh Verifier on the final candidate when executable evidence is required",
+        "The Reviewer runs the prepared deterministic local checks",
+        "A fresh Verifier is exceptional, not default",
+        "Classify the final candidate from the assurance policy",
         "Do not query again until a material lifecycle event",
         "There is no periodic list interval",
     ), "英文派发契约", errors)
@@ -189,9 +202,19 @@ def validate_core_contract(errors: list[str]) -> None:
     ), "requirement 验收追踪契约", errors)
     require(close_milestone, (
         "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",
-        "covers every ROADMAP acceptance scenario",
+        "every ROADMAP acceptance scenario",
         "ROADMAP acceptance-scenario links to accepted evidence",
     ), "milestone 验收关账契约", errors)
+    require(pre_merge, (
+        "`not-required` or `required:<trigger>`",
+        "Missing required evidence blocks integration",
+        "blocker-resolved final combination",
+    ), "合并前双向验证门禁", errors)
+    require(release, (
+        "`required:final-artifact-or-installation`",
+        "dispatch one fresh Verifier before external writes",
+        "Missing or failed required Verifier evidence blocks publication",
+    ), "发布制品独立验证门禁", errors)
 
     authority = "\n".join(read(path) for path in CORE_FILES)
     if OLD_TASK_HEADER in authority:
@@ -207,7 +230,62 @@ def validate_normative_language_layout(errors: list[str]) -> None:
         errors.append("README.zh-CN.md 必须保留")
 
 
-def validate_review_policy(errors: list[str]) -> None:
+def validate_assurance_policy(errors: list[str]) -> dict[str, object] | None:
+    try:
+        policy = json.loads(read(ASSURANCE_POLICY_PATH))
+    except (AssertionError, json.JSONDecodeError) as exc:
+        errors.append(f"{ASSURANCE_POLICY_PATH}: assurance policy 无效 ({exc})")
+        return None
+    if not isinstance(policy, dict):
+        errors.append(f"{ASSURANCE_POLICY_PATH}: 顶层必须是对象")
+        return None
+
+    schema_version = policy.get("schema_version")
+    policy_id = policy.get("policy_id")
+    review = policy.get("review")
+    reviewer = policy.get("reviewer")
+    verifier = policy.get("verifier")
+    if schema_version != "gmgn.assurance-policy.v1":
+        errors.append(f"{ASSURANCE_POLICY_PATH}: schema_version 无效")
+    if not isinstance(policy_id, str) or re.fullmatch(r"[a-z0-9][a-z0-9-]*", policy_id) is None:
+        errors.append(f"{ASSURANCE_POLICY_PATH}: policy_id 无效")
+    if not isinstance(review, dict) or (
+        review.get("policy") != "single-pass"
+        or review.get("rounds_per_change") != 1
+        or review.get("post_fix_independent_recheck") is not False
+        or review.get("post_fix_owner") != "primary-orchestrator"
+        or review.get("post_fix_evidence") != "affected-machine-checks"
+    ):
+        errors.append(f"{ASSURANCE_POLICY_PATH}: 单轮审查与修复后证据策略无效")
+    if not isinstance(reviewer, dict) or (
+        reviewer.get("execution") != "deterministic-local"
+        or reviewer.get("candidate_integrity") != "head-and-diff-unchanged"
+    ):
+        errors.append(f"{ASSURANCE_POLICY_PATH}: Reviewer 执行或候选完整性策略无效")
+    if not isinstance(verifier, dict) or verifier.get("default") is not False:
+        errors.append(f"{ASSURANCE_POLICY_PATH}: Verifier 必须是非默认角色")
+    else:
+        classification = verifier.get("classification")
+        triggers = verifier.get("triggers")
+        if verifier.get("candidate") != "blocker-resolved-final" or classification != {
+            "not_required": "not-required", "required_prefix": "required:",
+        }:
+            errors.append(f"{ASSURANCE_POLICY_PATH}: Verifier 候选或分类策略无效")
+        if (
+            not isinstance(triggers, list)
+            or not triggers
+            or any(
+                not isinstance(trigger, str)
+                or re.fullmatch(r"[a-z0-9][a-z0-9-]*", trigger) is None
+                for trigger in triggers
+            )
+            or len(triggers) != len(set(triggers))
+        ):
+            errors.append(f"{ASSURANCE_POLICY_PATH}: Verifier triggers 必须是唯一的 kebab-case token")
+    return policy
+
+
+def validate_review_policy(errors: list[str], policy: dict[str, object] | None) -> None:
     for relative in REVIEW_POLICY_FILES:
         try:
             text = read(relative)
@@ -215,20 +293,22 @@ def validate_review_policy(errors: list[str]) -> None:
             errors.append(str(exc))
             continue
         require(text, ("review_policy: single-pass",), str(relative), errors)
-
-    policy_surfaces = [ROOT / "GMGN.md"]
-    policy_surfaces.extend((ROOT / "skills").rglob("*.md"))
-    policy_surfaces.extend((ROOT / "agents").glob("*.md"))
-    policy_surfaces.extend((ROOT / ".codex/agents").glob("*.toml"))
-    combined = "\n".join(
-        path.read_text(encoding="utf-8") for path in policy_surfaces if path.is_file()
-    ).casefold()
-    conflicts = [
-        fragment for fragment in FORBIDDEN_SECOND_REVIEW_FRAGMENTS
-        if fragment.casefold() in combined
-    ]
-    if conflicts:
-        errors.append(f"单轮审查契约含二次复核指令: {conflicts}")
+    if policy is None or not isinstance(policy.get("policy_id"), str):
+        return
+    policy_id = policy["policy_id"]
+    for relative in ASSURANCE_BINDING_FILES:
+        try:
+            if relative.suffix == ".toml":
+                config = tomllib.loads(read(relative))
+                instructions = config.get("developer_instructions")
+                if not isinstance(instructions, str) or (
+                    f"assurance_policy: {policy_id}" not in instructions
+                ):
+                    errors.append(f"{relative}: assurance policy 绑定缺失或漂移")
+            elif frontmatter(relative).get("assurance_policy") != policy_id:
+                errors.append(f"{relative}: assurance policy 绑定缺失或漂移")
+        except (AssertionError, tomllib.TOMLDecodeError) as exc:
+            errors.append(f"{relative}: assurance policy 绑定不可读 ({exc})")
 
 
 def validate_roles(errors: list[str]) -> None:
@@ -240,8 +320,44 @@ def validate_roles(errors: list[str]) -> None:
             fields = frontmatter(markdown)
             if fields.get("name") != role:
                 errors.append(f"{markdown}: name 不一致")
+            toml_text = read(toml)
+            try:
+                config = tomllib.loads(toml_text)
+            except tomllib.TOMLDecodeError as exc:
+                errors.append(f"{toml}: TOML 无效 ({exc})")
+                continue
+            required_types = {
+                "name": str,
+                "description": str,
+                "sandbox_mode": str,
+                "developer_instructions": str,
+            }
+            for key, expected_type in required_types.items():
+                if not isinstance(config.get(key), expected_type):
+                    errors.append(f"{toml}: {key} 必须是 {expected_type.__name__}")
+            if config.get("sandbox_mode") not in {"read-only", "workspace-write"}:
+                errors.append(f"{toml}: sandbox_mode 无效")
             require(text, ("prepared", "brief", "single return ends"), str(markdown), errors)
-            require(read(toml), ("brief", "唯一一次回传后结束"), str(toml), errors)
+            require(toml_text, ("brief", "唯一一次回传后结束"), str(toml), errors)
+            if role == "reviewer":
+                require(text, (
+                    "deterministic local checks",
+                    "exact commands, environment, exit codes",
+                    "Any tracked change or anchor/hash drift invalidates the review",
+                ), str(markdown), errors)
+                require(toml_text, (
+                    "确定性本地测试计划", "原样命令", "任何 tracked 变化或锚/哈希漂移均使本轮无效",
+                ), str(toml), errors)
+                if config.get("sandbox_mode") != "workspace-write":
+                    errors.append(f"{toml}: Reviewer 运行本地检查需要 workspace-write")
+            if role == "verifier":
+                require(text, (
+                    "required:<trigger>",
+                    "Ordinary deterministic local checks belong to the Reviewer",
+                ), str(markdown), errors)
+                require(toml_text, (
+                    "required:<trigger>", "普通确定性本地检查归 Reviewer",
+                ), str(toml), errors)
             if len(text.splitlines()) > 80:
                 errors.append(f"{markdown}: 角色契约超过 80 行")
         except AssertionError as exc:
@@ -305,11 +421,12 @@ def validate_relative_links(errors: list[str]) -> None:
 
 def main() -> int:
     errors: list[str] = []
+    policy = validate_assurance_policy(errors)
     validate_release(errors)
     validate_skills(errors)
     validate_core_contract(errors)
     validate_normative_language_layout(errors)
-    validate_review_policy(errors)
+    validate_review_policy(errors, policy)
     validate_roles(errors)
     validate_docstar_adapter(errors)
     validate_relative_links(errors)

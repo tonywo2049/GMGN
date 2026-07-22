@@ -66,18 +66,20 @@ project artifacts in the active locale.
 |---|---|---|
 | Ten shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
-| Code review | `/review`; CLI: `codex review --uncommitted/--commit/--base` | Independent read-only reviewer; `/code-review` only for an authorized GitHub PR |
-| Runtime verification | Project tests, startup, and E2E commands | Project commands; `/verify` where available |
+| Code review and deterministic local checks | `/review`; CLI: `codex review --uncommitted/--commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
+| Risk-triggered final verification | Project package, installation, startup, E2E, or external-environment commands | Project commands; `/verify` where available |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-Native review does not replace execution. GMGN still requires project tests and a
-replayable verification path. In Codex, a custom review prompt and scope flags are
-mutually exclusive; after review, check `git status --short` for generated side effects.
+The Reviewer combines code judgment with the prepared deterministic local execution. In
+Codex, a custom review prompt and scope flags are mutually exclusive; after review, check
+`git status --short` for generated side effects.
 Every delegated role receives a complete brief before creation, returns once, and is retired.
 Later authoring, coding, or verification uses a fresh agent without parent or earlier-agent
 history. Each semantic change batch or task execution gets at most one Critic/Reviewer round;
 accepted fixes are checked by the primary orchestrator and are not sent back for a second
-review pass.
+independent round. A separate Verifier is exceptional: classify it from the
+[`gmgn-assurance-v1` policy](skills/gmgn/references/en/assurance-policy.json) as
+`not-required` or `required:<trigger>`, and run it only when required.
 
 `run-task` continuously fills available capacity from a dependency-aware ready set. `Task.md`
 keeps task division, AC mapping, dependencies, macro status, and execution pointers. Each
@@ -92,10 +94,11 @@ and traceability. A delegated Coder returns a local commit containing only its p
 scope; a primary-session sole Coder may freeze and hash its exact diff. An isolated-lane
 candidate is applied to a temporary combination before its one review round, while a
 sole-writer candidate already based on the unchanged shared baseline is the combination.
-After accepted findings are fixed, one fresh Verifier checks the final candidate when
-executable evidence is required. Review fixes are not re-reviewed, and clean mechanical
-integration does not cause identical tests to run twice. Only success atomically advances the
-shared baseline.
+The Reviewer runs the prepared deterministic local checks in the same round. After accepted
+findings are fixed, the primary orchestrator checks the exact fix delta and reruns affected
+machine checks without another independent pass. Only a recorded risk trigger adds a fresh
+Verifier on the final candidate. Clean mechanical integration does not cause identical tests
+to run twice. Only success atomically advances the shared baseline.
 Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
 timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
 loop. Use one `list_agents` snapshot only for a scheduling decision, an ambiguous post-timeout
@@ -344,8 +347,9 @@ For run-task dispatch, DocStar 0.2.3 or later provides a commit-bound brief as t
 evidence bundle.
 It does not forbid an agent from following pointers or reading exact source ranges when more
 evidence is needed. If `.codegraph/` exists, GMGN also uses CodeGraph as a role-specific code
-locator—baseline for Coder, candidate for Reviewer, and on demand for Verifier—while grounding
-claims in source, diffs, tests, and real execution.
+locator—baseline for Coder, candidate plus deterministic local checks for Reviewer, and the
+final candidate on demand for a risk-triggered Verifier—while grounding claims in source,
+diffs, tests, and real execution.
 
 ## License
 

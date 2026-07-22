@@ -1,6 +1,7 @@
 ---
 name: run-task
-description: "Use when one or more approved Task.md rows are confirmed: materialize per-card execution contracts, run every ready implementation task through bounded writer lanes, review each task execution once, verify the final candidate once by default, integrate, and close. 已确认任务集后创建单卡 Card/Log、滚动并行开发、每个任务执行只审一轮、默认只验证最终候选一次并关账。"
+description: "Use when one or more approved Task.md rows are confirmed: materialize per-card execution contracts, run every ready implementation task through bounded writer lanes, review code and deterministic local execution once, add separate final-candidate verification only for explicit risk triggers, integrate, and close. 已确认任务集后创建单卡 Card/Log、滚动并行开发、由 Reviewer 一轮完成代码审查与确定性本地检查，仅在风险触发时单独验证最终候选并关账。"
+assurance_policy: gmgn-assurance-v1
 ---
 
 # Run confirmed task cards
@@ -9,8 +10,8 @@ description: "Use when one or more approved Task.md rows are confirmed: material
 
 The primary orchestrator owns scheduling, adjudication, shared state, integration, Task status,
 and per-card execution documents. It may be the Coder for one task only when no useful
-implementation work can run in parallel with orchestration; independent review and required
-verification remain separate.
+implementation work can run in parallel with orchestration; it cannot replace the independent
+Reviewer or any risk-triggered Verifier.
 
 Use the English-only [dispatch contract](../gmgn/references/en/dispatch-and-handoff.md).
 
@@ -121,8 +122,8 @@ Select roles by impact:
 | changed surface | required independent role |
 |---|---|
 | specification or document meaning | fresh Critic |
-| implementation diff or test code | fresh Reviewer |
-| executable behavior, test result, environment, or package input | fresh Verifier, but only after review blockers clear |
+| implementation diff or test code, including deterministic local execution | fresh Reviewer |
+| recorded trigger from the [assurance policy](../gmgn/references/en/assurance-policy.json) | fresh Verifier, but only after review blockers clear |
 | formatting, links, pointers, or equivalent mechanical state | machine checks only |
 
 Critic and Reviewer may run together when both surfaces changed. Collect every active review
@@ -135,14 +136,23 @@ expands authority, scope, or behavior beyond the accepted findings becomes a sep
 change. Record the reviewed anchor, complete findings and rulings, exact fix delta, and
 post-fix checks at the final anchor. Non-blocking suggestions do not reopen the candidate.
 
-## 6. Verify once at the final useful boundary
+The Reviewer also runs the prepared deterministic local targeted, negative, integration, and
+project checks that fit its environment. It returns exact commands, environment, exit codes,
+limitations, and side effects together with its findings. A skipped or unavailable required
+Reviewer command is not a pass. If no accepted blocker changes the candidate, this execution
+evidence belongs to the final candidate. After accepted fixes, the primary orchestrator checks
+the exact fix delta and reruns every affected machine check without another independent round.
 
-Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. Coder test output
-is implementation evidence; it is not independent verification.
+## 6. Add a separate Verifier only for risk triggers
 
-After the one review round, the fixed temporary combination is the final candidate. Dispatch
-one fresh Verifier when executable evidence is required. The Verifier runs the Card's targeted,
-negative, integration/startup/E2E, and project gates that are actually required, and returns
+Ordinary deterministic local execution belongs to the Reviewer; Coder test output remains
+supporting implementation evidence. A fresh Verifier is exceptional, not default. Classify the
+final candidate from the assurance policy as `not-required` or `required:<trigger>` and record
+that classification in Log.
+
+Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. When a trigger
+exists, dispatch one fresh Verifier after the fixed temporary combination becomes the final
+candidate. It runs only the non-transferable or explicitly independent plan and returns exact
 commands, environment, exit codes, limitations, and side effects. A skipped or unavailable
 required command is not a pass.
 
@@ -152,19 +162,18 @@ integration decision itself needs independent runtime evidence, an external muta
 or environment makes evidence non-transferable, the baseline/test inputs changed materially,
 or project policy explicitly requires dual verification. Record the reason.
 
-While any accepted review blocker remains unresolved at the final anchor, no Verifier is
-dispatched. Once the primary orchestrator records every ruling and resolution, verification
-may proceed without a second review. If verification fails, record the failure in Log, create
-a fresh Coder for the fix, check the resolution and affected machine checks without another
-Reviewer, then dispatch the next fresh Verifier. If the fix expands authority, scope, or
-behavior beyond the reviewed task, route it as a separately scoped change.
+If risk-triggered verification fails, record the failure in Log, create a fresh Coder for the
+fix, check the resolution and affected machine checks without another Reviewer, then dispatch
+a fresh Verifier because the required final-candidate evidence was invalidated. If the fix
+expands authority, scope, or behavior beyond the reviewed task, route it as a separately scoped
+change.
 
 ## 7. Integrate and close
 
 Only the primary orchestrator writes the temporary combination, shared baseline, Task status,
 Card/Log state, and traceability. Combination conflicts are resolved before the task's one
 review round. A post-review fix uses a fresh Coder when needed, then runs affected machine
-checks and required verification without another Reviewer.
+checks and any risk-triggered verification without another Reviewer.
 
 After the final candidate clears required review and any required verification:
 

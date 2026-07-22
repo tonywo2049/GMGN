@@ -6,6 +6,7 @@ downstream: [writing contract](skills/gmgn/references/en/writing-contract.md), [
 status: approved
 type: whitepaper
 nature: normative
+assurance_policy: gmgn-assurance-v1
 ---
 
 # GMGN: a lightweight engineering method for agent collaboration
@@ -33,8 +34,10 @@ current task does not need.
 - **Author** writes one delegated document candidate.
 - **Coder** implements one bounded Card attempt.
 - **Critic** independently challenges document meaning.
-- **Reviewer** independently reviews implementation or test-code diffs.
-- **Verifier** independently executes the required checks against one fixed candidate.
+- **Reviewer** independently reviews implementation or test-code diffs and runs the prepared
+  deterministic local checks against that frozen candidate.
+- **Verifier** independently executes checks against one fixed final candidate only when the
+  [assurance policy](skills/gmgn/references/en/assurance-policy.json) records a trigger.
 
 Every delegated agent is single-use. Prepare its complete brief before creation, give it one
 bounded objective, accept one return, and retire it. A later authoring or coding attempt,
@@ -105,8 +108,8 @@ Freeze a candidate before independent checks. Select roles by what changed:
 | Changed surface | Independent check |
 |---|---|
 | WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | fresh Critic |
-| implementation or test-code diff | fresh Reviewer |
-| executable result, environment, or package input | fresh Verifier after review clears |
+| implementation or test-code diff, including deterministic local execution | fresh Reviewer |
+| recorded trigger from the assurance policy | fresh Verifier after review clears |
 | equivalent links, formatting, pointers, or status | machine checks only |
 
 Each semantic change batch or task execution uses `review_policy: single-pass`: at most one
@@ -119,14 +122,16 @@ beyond the accepted findings becomes a separately scoped change rather than a re
 The final anchor records the reviewed anchor, complete findings and rulings, exact fix delta,
 and post-fix checks. Non-blocking suggestions do not reopen an otherwise acceptable candidate.
 
-Do not dispatch a Verifier while relevant review blockers remain. By default, first create the
-final temporary combined candidate, then use one fresh Verifier there. Do not repeat the same
-verification at lane and integration boundaries. A second boundary needs a recorded reason,
-such as non-transferable environment evidence, changed baseline/test inputs, an integration
-decision that itself needs runtime proof, or an explicit project policy.
+The Reviewer runs the prepared deterministic local checks as part of its single return and
+reports exact commands, environment, exit codes, limitations, and side effects. After accepted
+findings are fixed, the primary orchestrator checks the exact fix delta and reruns affected
+machine checks; this does not trigger another independent review or verification round.
 
-A simple mechanical or documentation-only change may need no Verifier. Verification exists to
-independently establish executable evidence, not to complete a role checklist.
+A fresh Verifier is exceptional, not default. Classify the final candidate against the
+assurance policy as `not-required` or `required:<trigger>`. Do not dispatch a Verifier while
+relevant review blockers remain. When required, run it once against the blocker-resolved final
+candidate and bind its evidence there. Verification is an evidence activity, not a mandatory
+agent stage.
 
 ## 5. Task execution and integration
 
@@ -148,8 +153,9 @@ combination with a fresh Coder before freezing the review candidate. Reserve tha
 baseline and integration position until the candidate integrates or is abandoned, so it
 cannot become stale after its only review round. Other Coder work may continue, but it cannot
 advance that reserved baseline. After the review round, batch accepted fixes without another
-Critic or Reviewer, run affected machine checks, and use the required verification gates. An
-unverified executable combination never becomes the shared baseline.
+Critic or Reviewer, run affected machine checks, and use any risk-triggered verification gate.
+A combination missing required review or risk-triggered evidence never becomes the shared
+baseline.
 
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
 event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a
@@ -180,8 +186,9 @@ test plan, environment, and package inputs are unchanged. Tagging, upload retrie
 installation are not reasons to repeat Milestone closure.
 
 For a narrow bug or one-step mechanical change, identify the smallest authority and acceptance
-condition, implement it, independently review the diff, verify executable behavior only when
-needed, and refresh state. Do not fabricate the full document chain.
+condition, implement it, independently review the diff and deterministic local behavior, add
+separate final-candidate verification only when a risk trigger requires it, and refresh state.
+Do not fabricate the full document chain.
 
 ## 7. Tools and anti-overdesign boundary
 

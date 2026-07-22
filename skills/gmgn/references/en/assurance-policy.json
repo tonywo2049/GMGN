@@ -1,0 +1,34 @@
+{
+  "schema_version": "gmgn.assurance-policy.v1",
+  "policy_id": "gmgn-assurance-v1",
+  "review": {
+    "policy": "single-pass",
+    "rounds_per_change": 1,
+    "post_fix_independent_recheck": false,
+    "post_fix_owner": "primary-orchestrator",
+    "post_fix_evidence": "affected-machine-checks"
+  },
+  "reviewer": {
+    "required_for": [
+      "implementation-diff",
+      "test-code-diff"
+    ],
+    "execution": "deterministic-local",
+    "candidate_integrity": "head-and-diff-unchanged"
+  },
+  "verifier": {
+    "default": false,
+    "candidate": "blocker-resolved-final",
+    "classification": {
+      "not_required": "not-required",
+      "required_prefix": "required:"
+    },
+    "triggers": [
+      "external-mutable-environment",
+      "final-artifact-or-installation",
+      "reviewer-unavailable-real-startup-or-e2e",
+      "high-risk-behavior",
+      "explicit-independent-execution-requirement"
+    ]
+  }
+}

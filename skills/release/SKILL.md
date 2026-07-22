@@ -1,6 +1,7 @@
 ---
 name: release
 description: "Use after a candidate is already accepted to prepare or retry a version tag, deterministic package, checksum, GitHub/GitLab release, publication, deployment handoff, or local plugin update without repeating milestone closure. 已接受候选需要打 tag、生成发布包与校验和、创建或重试版本发布、交付部署或更新本地插件时使用；复用已绑定锚的验收证据，不重复里程碑关账。"
+assurance_policy: gmgn-assurance-v1
 ---
 
 # Release an accepted anchor
@@ -31,8 +32,9 @@ Record a release evidence tuple in the existing release record, Handoff, or CI p
 do not create a new document when an existing authority can hold it:
 
 - `accepted_anchor` and `release_anchor`;
-- approval or acceptance reference, applicable review evidence, and required verification
-  evidence or an explicit `not-required` classification;
+- approval or acceptance reference, applicable review evidence, and a classification from the
+  [assurance policy](../gmgn/references/en/assurance-policy.json): `not-required` or
+  `required:<trigger>`, plus current evidence for every required trigger;
 - `semantic_delta`, with `none` only when established rather than assumed;
 - exact `allowed_diff` when the release anchor differs from the accepted anchor;
 - packaging recipe anchor and target distribution environment.
@@ -76,7 +78,15 @@ meaning is uncertain, use the semantic path.
 
 ## 3. Verify the artifact boundary
 
-Run only checks required by the selected path and repository policy:
+The primary orchestrator first builds the release artifact, records its release anchor,
+packaging recipe, member identity, and checksum, then freezes those inputs. Classify that
+frozen release candidate with the assurance policy. A distributed archive, package,
+installation, or startup path is `required:final-artifact-or-installation`; dispatch one fresh
+Verifier before external writes. It independently checks the frozen artifact and any applicable
+installation/startup path. `not-required` is valid only when no policy trigger exists.
+
+The primary orchestrator and any required Verifier run only checks required by the selected
+path and repository policy:
 
 - prove the worktree is clean and the release anchor is immutable and locally available;
 - prove all version declarations agree and the requested tag names that version;
@@ -86,6 +96,10 @@ Run only checks required by the selected path and repository policy:
 - rebuild when deterministic packaging is promised and compare bytes;
 - run the installation or startup smoke path for the distributed form when applicable;
 - check whether the remote tag, release, and assets already exist before writing.
+
+Bind the Verifier's exact commands, environment, results, limitations, and artifact checksum to
+the release anchor. Missing or failed required Verifier evidence blocks publication; it does
+not trigger another Critic or Reviewer.
 
 Do not rerun full regression, E2E, DocStar, or closure authoring merely because a tag, upload,
 authentication step, or local installation is retried. Never rerun Critic or Reviewer for the

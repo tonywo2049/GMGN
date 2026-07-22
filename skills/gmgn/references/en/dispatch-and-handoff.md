@@ -6,6 +6,7 @@ downstream: [GMGN router](../../SKILL.md), [code review](code-review.md)
 status: approved
 type: task
 nature: normative
+assurance_policy: gmgn-assurance-v1
 ---
 
 # Dispatch and fresh-agent contract
@@ -30,8 +31,9 @@ Fresh identity is not a reason to dispatch every role. Select a role only when i
 surface changed:
 
 - semantic document change → Critic;
-- implementation or test-code diff → Reviewer;
-- executable behavior, result, environment, or package input → Verifier after review clears;
+- implementation or test-code diff, including deterministic local execution → Reviewer;
+- recorded trigger from the [assurance policy](assurance-policy.json) → Verifier after review
+  clears;
 - equivalent mechanical links, formatting, pointers, and status → machine checks.
 
 ## Prepare the brief before creating the agent
@@ -87,10 +89,15 @@ it into a separately scoped change instead of treating it as a recheck. Non-bloc
 suggestions do not reopen a candidate. The final anchor records the reviewed anchor, complete
 findings and rulings, exact fix delta, and post-fix checks.
 
-Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. Use one fresh
-Verifier on the final candidate when executable evidence is required. A second verification
-boundary requires a recorded risk reason; repeating identical tests before and after clean
-mechanical integration is not additional evidence.
+The Reviewer runs the prepared deterministic local checks and returns exact commands,
+environment, exit codes, limitations, and side effects together with code findings. After
+accepted fixes, the primary orchestrator checks the exact fix delta and reruns affected machine
+checks without another independent round.
+
+A fresh Verifier is exceptional, not default. Classify the final candidate from the assurance
+policy as `not-required` or `required:<trigger>`. Do not dispatch it while relevant Critic or
+Reviewer blockers remain. When required, bind its evidence to the blocker-resolved final
+candidate. Repeating identical tests at another boundary is not additional evidence.
 
 ## Role returns
 
@@ -100,10 +107,13 @@ mechanical integration is not additional evidence.
 - **Coder** implements one Card attempt, stays inside its write set, produces discriminating
   tests, and returns one local candidate commit. A later fix uses a fresh Coder but does not
   trigger another Reviewer in the same task execution.
-- **Reviewer** is read-only. It checks the anchored implementation diff, spec fit, untested
-  paths, assertion discrimination, side effects, and avoidable complexity.
-- **Verifier** does not edit product meaning or source. It returns exact commands, environment,
-  exit codes, limitations, and side effects from the assigned final candidate.
+- **Reviewer** does not intentionally edit workspace files. It checks the anchored
+  implementation diff, spec fit, untested paths, assertion discrimination, side effects, and
+  avoidable complexity, then runs the prepared deterministic local checks. It prefers a
+  disposable copy for commands that write and proves HEAD, frozen diff/content hash, and
+  tracked status are unchanged before returning.
+- **Verifier** is a risk-triggered final-candidate role. It does not edit product meaning or
+  source and returns exact evidence for the non-transferable or explicitly independent plan.
 - **Researcher** distinguishes direct observation, sourced fact, and inference. Research does
   not become authority without orchestrator adjudication.
 

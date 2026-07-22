@@ -120,6 +120,45 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行与验证契约", result.stdout)
 
+    def test_rejects_missing_required_verifier_gate(self) -> None:
+        self.replace(
+            "skills/gmgn/references/en/pre-merge-checklist.md",
+            "Missing required evidence blocks integration",
+            "Missing required evidence may be ignored",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("合并前双向验证门禁", result.stdout)
+
+    def test_rejects_release_without_artifact_verifier(self) -> None:
+        self.replace(
+            "skills/release/SKILL.md",
+            "dispatch one fresh\nVerifier before external writes",
+            "continue before external writes",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("发布制品独立验证门禁", result.stdout)
+
+    def test_rejects_reviewer_without_deterministic_execution(self) -> None:
+        self.replace(
+            "agents/reviewer.md",
+            "exact commands, environment, exit codes",
+            "a summary only",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agents/reviewer.md", result.stdout)
+
+    def test_rejects_default_verifier_policy(self) -> None:
+        path = self.root / "skills/gmgn/references/en/assurance-policy.json"
+        value = json.loads(path.read_text(encoding="utf-8"))
+        value["verifier"]["default"] = True
+        path.write_text(json.dumps(value), encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Verifier 必须是非默认角色", result.stdout)
+
     def test_rejects_unbatched_review_loop(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
@@ -130,16 +169,58 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行与验证契约", result.stdout)
 
-    def test_rejects_second_review_pass(self) -> None:
-        path = self.root / "skills" / "run-task" / "SKILL.md"
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "\nAfter fixes, dispatch another fresh Reviewer.\n",
-            encoding="utf-8",
+    def test_rejects_second_review_pass_policy(self) -> None:
+        path = self.root / "skills/gmgn/references/en/assurance-policy.json"
+        value = json.loads(path.read_text(encoding="utf-8"))
+        value["review"]["post_fix_independent_recheck"] = True
+        path.write_text(json.dumps(value), encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("单轮审查与修复后证据策略无效", result.stdout)
+
+    def test_rejects_assurance_policy_binding_drift(self) -> None:
+        surfaces = (
+            "skills/close-milestone/SKILL.md",
+            "skills/gmgn/references/en/code-review.md",
+            "agents/verifier.md",
+            ".codex/agents/reviewer.toml",
+        )
+        for relative in surfaces:
+            with self.subTest(relative=relative):
+                copied_root = Path(self.temporary.name) / relative.replace("/", "-")
+                shutil.copytree(self.root, copied_root)
+                path = copied_root / relative
+                path.write_text(
+                    path.read_text(encoding="utf-8").replace(
+                        "assurance_policy: gmgn-assurance-v1",
+                        "assurance_policy: legacy-policy",
+                        1,
+                    ),
+                    encoding="utf-8",
+                )
+                result = subprocess.run(
+                    ["python3", "tests/validate_skills.py"], cwd=copied_root,
+                    text=True, capture_output=True,
+                )
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("assurance policy 绑定", result.stdout)
+
+    def test_rejects_invalid_codex_role_toml(self) -> None:
+        path = self.root / ".codex/agents/reviewer.toml"
+        path.write_text(path.read_text(encoding="utf-8") + "\ninvalid = [\n", encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("TOML", result.stdout)
+
+    def test_rejects_wrong_codex_role_field_type(self) -> None:
+        self.replace(
+            ".codex/agents/verifier.toml",
+            'sandbox_mode = "workspace-write"',
+            "sandbox_mode = 1",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("单轮审查契约含二次复核指令", result.stdout)
+        self.assertIn("sandbox_mode", result.stdout)
 
     def test_rejects_markdown_role_review_policy_drift(self) -> None:
         self.replace(

@@ -1,6 +1,7 @@
 ---
 name: close-milestone
 description: "Use when every target-milestone task is closed and traceability is full to reconcile scope, run any still-required milestone regression/E2E, independently review the closure candidate, obtain owner acceptance, and backfill ROADMAP plus any needed receiver handoff. 目标 Milestone 自有任务全部关账后做范围核对、仍必需的回归/E2E、关账审查与负责人验收。"
+assurance_policy: gmgn-assurance-v1
 ---
 
 # Close a milestone
@@ -22,16 +23,18 @@ stay in each card's Log.
 
 ## Reuse evidence before rerunning it
 
-Do not dispatch a Verifier merely because closure started. Reuse verification evidence when it
-is bound to the exact closing anchor and already covers every ROADMAP acceptance scenario, the
-Milestone's required regression, real end-to-end or integration path, relevant
-negative/recovery outcomes, environment, and limitations.
+Do not dispatch a Verifier merely because closure started. Reuse Reviewer execution, post-fix
+machine checks, and any risk-triggered verification when they are bound to the exact closing
+anchor and already cover every ROADMAP acceptance scenario, the Milestone's required
+regression, real end-to-end or integration path, relevant negative/recovery outcomes,
+environment, and limitations.
 
-If any required closure evidence is missing, stale, environment-specific, or explicitly
-mandated at Milestone scope, prepare a complete brief and create one fresh Verifier. It runs
-only the missing or invalidated plan and returns exact commands, environment, revision, exit
-codes, results, limitations, and side effects. A skipped or unavailable required command is not
-a pass. The single return ends that Verifier.
+Put missing or stale deterministic local checks in the closure Reviewer's prepared plan.
+Classify any remaining final-candidate evidence with the
+[assurance policy](../gmgn/references/en/assurance-policy.json). Create one fresh Verifier only
+for `required:<trigger>`; it runs only that policy-triggered plan and returns exact commands,
+environment, revision, exit codes, results, limitations, and side effects. A skipped or
+unavailable required command is not a pass. The single return ends that Verifier.
 
 ## Closure candidate and review
 
@@ -46,7 +49,8 @@ information. It does not mark the Milestone closed before owner acceptance.
 
 Freeze the candidate after writer self-check and machine checks. Prepare one brief and create a
 fresh independent combined Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
-consistency and closure meaning. Collect the full review before editing. The primary
+consistency, closure meaning, and any missing deterministic local checks. Collect the full
+review before editing. The primary
 orchestrator adjudicates once, batches accepted blockers, checks each resolution, and runs
 affected machine checks without dispatching another Critic or Reviewer. A fix that expands
 authority, scope, or closure meaning becomes a separately scoped change. Non-blocking

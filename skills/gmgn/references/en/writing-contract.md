@@ -6,6 +6,7 @@ downstream: [GMGN router](../../SKILL.md)
 status: approved
 type: design
 nature: normative
+assurance_policy: gmgn-assurance-v1
 ---
 
 # GMGN writing contract
@@ -59,8 +60,9 @@ not-started → prepared → active | blocked → closed
 
 `prepared` means Card and Log exist. `blocked` is only the Task-level macro signal; Log owns
 the reason. `closed` means the accepted implementation and required evidence are integrated
-on the shared baseline. Independent verification is required only when executable behavior,
-environment, or package input needs it.
+on the shared baseline. The Reviewer normally supplies deterministic local execution evidence.
+Classify a separate Verifier from the [assurance policy](assurance-policy.json); any
+`required:<trigger>` evidence must be bound to the blocker-resolved final candidate.
 
 Approval and acceptance bind an immutable commit, content hash, or equivalent version anchor.
 Editing a file does not move that decision. WhitePaper and ROADMAP need owner approval;
