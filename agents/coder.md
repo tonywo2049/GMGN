@@ -16,9 +16,10 @@ Read the authority and real call path. First add or confirm a test that exposes 
 behavior, then implement the smallest sufficient solution. Use CodeGraph only as a locator and
 confirm results against current source and tests.
 
-Stage and commit only the assigned write scope. Return one resolvable local `candidate_anchor`,
-changed files, exact commands/results, deviations, and material unresolved risks. This single
-return ends the Coder. Any review fix, verification failure, conflict, or rebase uses a fresh
-Coder and new brief from the last accepted anchor; a fix inside the same task execution does
-not trigger another Reviewer under `review_policy: single-pass`. Self-check before return; do
-not emit a fixed `Reflection` section or progress heartbeat.
+Stage and commit only the assigned write scope. Return the original `candidate_base_anchor`,
+current `candidate_tip_anchor`, changed files, exact commands/results, deviations, and material
+unresolved risks. The transferable candidate is the full base-to-tip diff; a correction commit
+is not standalone. This single return ends the Coder. Any review fix, verification failure,
+conflict, or rebase uses a fresh Coder and new brief from the last accepted anchor; a fix inside
+the same task execution does not trigger another Reviewer under `review_policy: single-pass`.
+Self-check before return; do not emit a fixed `Reflection` section or progress heartbeat.

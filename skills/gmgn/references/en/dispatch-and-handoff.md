@@ -41,7 +41,8 @@ surface changed:
 Every brief contains:
 
 1. `dispatch_id`, role, one bounded objective, and required return shape;
-2. exact authority, baseline, candidate, and relevant evidence anchors;
+2. exact authority, baseline, candidate, and relevant evidence anchors; a Coder brief also
+   names the original `candidate_base_anchor` and current `candidate_tip_anchor`;
 3. required context pointers and the named questions unresolved by that context;
 4. repository/workspace facts, write permissions, allowed paths, and prohibitions;
 5. prior accepted findings or failures only when they affect this dispatch;
@@ -71,9 +72,12 @@ Use an independent worktree for concurrent writers. A worktree isolates files an
 it does not solve semantic, interface, merge, or shared-resource conflicts. In a shared
 workspace, parallel agents return proposals only and one recorded writer applies them.
 
-A writing return identifies one immutable `candidate_anchor`, changed files, commands/results,
-deviations, and material unresolved risks. Recheck the workspace and candidate on return.
-Reject an unanchored, wrong-workspace, stale-authority, or out-of-scope candidate before review.
+A writing return identifies the original `candidate_base_anchor`, current
+`candidate_tip_anchor`, changed files, commands/results, deviations, and material unresolved
+risks. The transferable candidate is the full `candidate_base_anchor..candidate_tip_anchor`
+diff; a correction commit is not a standalone candidate. Recheck the workspace and candidate on
+return. Reject an unanchored, wrong-workspace, stale-authority, or out-of-scope candidate before
+review.
 
 ## Freeze and the single review round
 
@@ -105,15 +109,16 @@ candidate. Repeating identical tests at another boundary is not additional evide
 - **Critic** is read-only. Every finding gives location, evidence, impact, required correction,
   and blocker level; it does not become a second author.
 - **Coder** implements one Card attempt, stays inside its write set, produces discriminating
-  tests, and returns one local candidate commit. A later fix uses a fresh Coder but does not
-  trigger another Reviewer in the same task execution.
+  tests, and returns the candidate base and current tip for the complete diff. A later fix uses
+  a fresh Coder but does not trigger another Reviewer in the same task execution.
 - **Reviewer** does not intentionally edit workspace files. It checks the anchored
   implementation diff, spec fit, untested paths, assertion discrimination, side effects, and
   avoidable complexity, then runs the prepared deterministic local checks. It prefers a
   disposable copy for commands that write and proves HEAD, frozen diff/content hash, and
   tracked status are unchanged before returning.
-- **Verifier** is a risk-triggered final-candidate role. It does not edit product meaning or
-  source and returns exact evidence for the non-transferable or explicitly independent plan.
+- **Verifier** is a risk-triggered final-candidate role. It leaves every tracked file unchanged
+  on both pass and failure and returns exact evidence for the non-transferable or explicitly
+  independent plan. Evidence generation or refresh runs before this independent check.
 - **Researcher** distinguishes direct observation, sourced fact, and inference. Research does
   not become authority without orchestrator adjudication.
 
@@ -132,6 +137,8 @@ could change the decision, acceptance, or downstream work.
 - Wait only after useful dispatch, local checks, state refresh, and integration work are
   exhausted. Use one longest-safe event wait. A timeout is a liveness checkpoint, not a reason
   to start a list/status/wait polling loop.
+- A long-running primary session sends no heartbeat when observable state is unchanged. It
+  updates only for material progress, a blocker, a decision request, or the final result.
 - On Codex, use one `list_agents` snapshot only when a scheduling/capacity decision needs
   current state, a wait timed out without an unambiguous agent state, or received lifecycle
   events conflict. Do not query again until a material lifecycle event, candidate, blocker, or

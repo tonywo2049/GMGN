@@ -31,6 +31,23 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertIn(old, text)
         path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
+    def run_isolated_mutation(
+        self, relative: str, old: str, new: str,
+    ) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "repo"
+            shutil.copytree(
+                ROOT, root, ignore=shutil.ignore_patterns(".git", "__pycache__", "dist"),
+            )
+            path = root / relative
+            text = path.read_text(encoding="utf-8")
+            self.assertIn(old, text)
+            path.write_text(text.replace(old, new, 1), encoding="utf-8")
+            return subprocess.run(
+                ["python3", "tests/validate_skills.py"], cwd=root,
+                text=True, capture_output=True,
+            )
+
     def test_clean_tree_passes(self) -> None:
         result = self.run_validator()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -110,6 +127,104 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("gmgn 路由契约", result.stdout)
 
+    def test_rejects_unchanged_state_primary_heartbeat(self) -> None:
+        self.replace(
+            "skills/gmgn/SKILL.md",
+            "must not send a progress update while observable state is unchanged",
+            "may send a progress heartbeat while state is unchanged",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("gmgn 路由契约", result.stdout)
+
+    def test_rejects_tip_only_candidate_application(self) -> None:
+        self.replace(
+            "skills/run-task/SKILL.md",
+            "Never apply only the last",
+            "Apply only the last",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 执行与验证契约", result.stdout)
+
+    def test_rejects_candidate_and_evidence_contract_drift(self) -> None:
+        cases = (
+            (
+                "skills/run-task/SKILL.md",
+                "The transferable candidate is the complete\n`candidate_base_anchor..candidate_tip_anchor` diff",
+                "The transferable candidate is the tip commit",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "A changed commit SHA alone\ndoes not invalidate review or execution evidence",
+                "A changed commit SHA always invalidates evidence",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Ignore Task\nstatus, descriptive Log content, and unrelated task rows",
+                "Bind evidence to the entire Task file",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "An `execution` pointer change is\nequivalent only when it resolves to the same normative Card",
+                "Any execution pointer change is equivalent",
+            ),
+            (
+                "skills/gmgn/SKILL.md",
+                "Each semantic change batch or task execution uses\n`review_policy: single-pass`",
+                "The entire primary session uses\n`review_policy: single-pass`",
+            ),
+            (
+                "agents/reviewer.md",
+                "Any tracked change or\nanchor/hash drift invalidates the review",
+                "Tracked changes may be retained after review",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative, old=old):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_role_rule_outside_developer_instructions(self) -> None:
+        cases = (
+            (
+                ".codex/agents/coder.toml",
+                "回传原始 candidate_base_anchor 与当前 candidate_tip_anchor；可转移候选是完整 base-to-tip diff，修订提交不可单独应用。",
+            ),
+            (
+                ".codex/agents/reviewer.toml",
+                "candidate_base_anchor 到 candidate_tip_anchor 的完整 diff",
+            ),
+            (
+                ".codex/agents/verifier.toml",
+                "成功或失败后的任何 tracked 变化都使验证无效。",
+            ),
+        )
+        for relative, rule in cases:
+            with self.subTest(relative=relative):
+                with tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary) / "repo"
+                    shutil.copytree(
+                        ROOT, root,
+                        ignore=shutil.ignore_patterns(".git", "__pycache__", "dist"),
+                    )
+                    path = root / relative
+                    text = path.read_text(encoding="utf-8")
+                    self.assertIn(rule, text)
+                    instructions_at = text.index('developer_instructions = """')
+                    before = text[:instructions_at]
+                    after = text[instructions_at:].replace(rule, "允许相反行为。", 1)
+                    description_at = before.index('description = "') + len('description = "')
+                    before = before[:description_at] + rule + " " + before[description_at:]
+                    path.write_text(before + after, encoding="utf-8")
+                    checked = subprocess.run(
+                        ["python3", "tests/validate_skills.py"], cwd=root,
+                        text=True, capture_output=True,
+                    )
+                    self.assertEqual(
+                        checked.returncode, 1, checked.stdout + checked.stderr,
+                    )
+
     def test_rejects_verifier_before_review_clear(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
@@ -119,6 +234,16 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行与验证契约", result.stdout)
+
+    def test_rejects_verifier_that_changes_tracked_files(self) -> None:
+        self.replace(
+            "agents/verifier.md",
+            "Any tracked change invalidates verification on both pass and failure",
+            "Tracked changes may be accepted after verification",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("agents/verifier.md", result.stdout)
 
     def test_rejects_missing_required_verifier_gate(self) -> None:
         self.replace(

@@ -30,7 +30,9 @@ current task does not need.
   briefs, adjudicates findings, integrates accepted work, and updates shared state. It may
   directly write WhitePaper, ROADMAP, Goal, Requirement, Design, and Task when that is the
   clearest use of context. It may act as one Coder only when no implementation lane can run
-  in parallel with useful orchestration work.
+  in parallel with useful orchestration work. During long-running work, it must not send a
+  progress update while observable state is unchanged; update only for material progress, a
+  blocker, a decision request, or the final result.
 - **Author** writes one delegated document candidate.
 - **Coder** implements one bounded Card attempt.
 - **Critic** independently challenges document meaning.
@@ -125,7 +127,10 @@ and post-fix checks. Non-blocking suggestions do not reopen an otherwise accepta
 The Reviewer runs the prepared deterministic local checks as part of its single return and
 reports exact commands, environment, exit codes, limitations, and side effects. After accepted
 findings are fixed, the primary orchestrator checks the exact fix delta and reruns affected
-machine checks; this does not trigger another independent review or verification round.
+machine checks; this does not trigger another independent review or verification round. The
+Reviewer and Verifier only check evidence: on both pass and failure, every tracked file must
+remain unchanged. Evidence generation or refresh belongs to the Coder or primary orchestrator
+before the independent check.
 
 A fresh Verifier is exceptional, not default. Classify the final candidate against the
 assurance policy as `not-required` or `required:<trigger>`. Do not dispatch a Verifier while
@@ -142,19 +147,27 @@ Concurrency is determined by real capacity; GMGN defines no fixed agent count or
 Concurrent writers use isolated worktrees or equivalent workspaces. A single writer may use a
 verified current workspace when no other writer can collide with it. One task has one writer
 at a time. The Coder writes only the allowed scope in its prepared brief and returns an
-immutable local candidate. The primary orchestrator owns Task/Card/Log runtime state, the
-integration queue, and the shared baseline.
+immutable local candidate with its original base and current tip. The transferable candidate is
+the complete `candidate_base_anchor..candidate_tip_anchor` diff, not just the tip commit. The
+primary orchestrator owns Task/Card/Log runtime state, the integration queue, and the shared
+baseline.
 
 The primary orchestrator mechanically applies each self-checked isolated-lane candidate to a
-temporary combination before that task execution's one review round. A frozen sole-writer
-candidate already based on the unchanged shared baseline is itself the combination and needs
-no copy. A clean application needs no Coder. Resolve a conflict or judgment-required
+temporary combination before that task execution's one review round. Apply the complete diff or
+its complete ordered commit chain; never apply only the last correction commit. A frozen
+sole-writer candidate already based on the unchanged shared baseline is itself the combination
+and needs no copy. A clean application needs no Coder. Resolve a conflict or judgment-required
 combination with a fresh Coder before freezing the review candidate. Reserve that shared
-baseline and integration position until the candidate integrates or is abandoned, so it
-cannot become stale after its only review round. Other Coder work may continue, but it cannot
-advance that reserved baseline. After the review round, batch accepted fixes without another
-Critic or Reviewer, run affected machine checks, and use any risk-triggered verification gate.
-A combination missing required review or risk-triggered evidence never becomes the shared
+baseline and integration position until the candidate integrates or is abandoned, so it cannot
+become stale after its only review round. Other Coder work may continue, but it cannot advance
+that reserved baseline. A changed commit SHA alone does not invalidate evidence after a clean
+mechanical application; compare the relevant source, build inputs, and normative task content.
+Task status, descriptive Log content, and unrelated task rows do not by themselves invalidate
+task-authority evidence. An `execution` pointer change is equivalent only when it resolves to
+the same normative Card, or when that Card's authority anchors, completion criterion, and TDD
+contract are unchanged. After the review round, batch accepted fixes without another Critic or
+Reviewer, run affected machine checks, and use any risk-triggered verification gate. A
+combination missing required review or risk-triggered evidence never becomes the shared
 baseline.
 
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one

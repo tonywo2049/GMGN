@@ -65,7 +65,8 @@ Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is sing
 creating it, prepare a complete brief containing:
 
 - `dispatch_id`, role, one bounded objective, and return format;
-- authority and immutable baseline/candidate anchors;
+- authority, immutable baseline/candidate anchors, and for a Coder the original
+  `candidate_base_anchor` plus current `candidate_tip_anchor`;
 - exact workspace, allowed write scope, permissions, and prohibitions;
 - only the required Card/current Log context and relevant accepted findings or failures;
 - checks to run and evidence required for return.
@@ -92,10 +93,13 @@ unresolvable candidate before review or integration.
 A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
 `Task.md`, Card/Log runtime state, the integration queue, or remote state. It first establishes
 a discriminating RED test, implements the smallest sufficient change, and runs the Card checks.
-A delegated isolated Coder returns one local candidate commit. When the primary orchestrator is
-the sole Coder in the verified current workspace, it may instead freeze and hash the exact diff
-for review. A correction always uses a fresh delegated Coder, or a newly frozen primary-Coder
-attempt, starting from the last accepted anchor.
+A delegated isolated Coder returns the original `candidate_base_anchor` and current
+`candidate_tip_anchor`. The transferable candidate is the complete
+`candidate_base_anchor..candidate_tip_anchor` diff. A correction advances the tip but does not
+replace the original base or become a standalone candidate. When the primary orchestrator is
+the sole Coder in the verified current workspace, it may instead freeze and hash the same full
+diff for review. A correction always uses a fresh delegated Coder, or a newly frozen
+primary-Coder attempt, starting from the last accepted anchor.
 
 Within the current task, wait only after ready dispatch, primary-Coder work, integration,
 state refresh, and local checks are exhausted. Use one event-driven longest-safe wait. A
@@ -103,19 +107,31 @@ timeout is a liveness checkpoint; do not turn list/status/wait into a polling lo
 `list_agents` snapshot only when a scheduling/capacity decision needs current state, a wait
 timed out without an unambiguous agent state, or received lifecycle events conflict. Do not
 query again until a material lifecycle event, candidate, blocker, or scheduling condition
-changes. No periodic list interval is configured or inferred.
+changes. No periodic list interval is configured or inferred. A long-running primary session
+sends no heartbeat when state is unchanged; it reports only material progress, a blocker, a
+decision request, or the final result.
 
 ## 5. Review the final useful candidate once
 
 Before independent review, the writer completes its self-check and required machine checks.
-The primary orchestrator mechanically applies an isolated-lane candidate to a temporary
-combination based on the current shared baseline. A frozen single-writer candidate already
-based on the unchanged shared baseline is itself the combination. Resolve an unclean
-application or judgment-required conflict with a fresh Coder before freezing the immutable
-review candidate. Reserve that shared baseline and integration position until the candidate
-integrates or is abandoned; other Coder work may continue, but it cannot advance the reserved
-baseline. Once review begins, do not edit the candidate while review roles are active merely
-because the orchestrator notices another ordinary issue.
+The primary orchestrator mechanically applies the complete
+`candidate_base_anchor..candidate_tip_anchor` diff, or its complete ordered commit chain, to a
+temporary combination based on the current shared baseline. Never apply only the last
+correction commit. A frozen single-writer candidate already based on the unchanged shared
+baseline is itself the combination. Resolve an unclean application or judgment-required
+conflict with a fresh Coder before freezing the immutable review candidate. Reserve that shared
+baseline and integration position until the candidate integrates or is abandoned; other Coder
+work may continue, but it cannot advance the reserved baseline. Once review begins, do not edit
+the candidate while review roles are active merely because the orchestrator notices another
+ordinary issue.
+
+A clean mechanical application may produce a different commit SHA. A changed commit SHA alone
+does not invalidate review or execution evidence; compare the relevant source and build inputs.
+For task authority, compare the task definition, spec anchor, and prerequisite. Ignore Task
+status, descriptive Log content, and unrelated task rows. An `execution` pointer change is
+equivalent only when it resolves to the same normative Card, or when that Card's authority
+anchors, completion criterion, and TDD contract are unchanged. If any relevant content changed
+or equivalence cannot be proved, the existing evidence is not transferable.
 
 Select roles by impact:
 
@@ -154,7 +170,9 @@ Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. Wh
 exists, dispatch one fresh Verifier after the fixed temporary combination becomes the final
 candidate. It runs only the non-transferable or explicitly independent plan and returns exact
 commands, environment, exit codes, limitations, and side effects. A skipped or unavailable
-required command is not a pass.
+required command is not a pass. The Verifier must leave every tracked file unchanged on both
+pass and failure. A command that generates or refreshes oracle, evidence, or attempt files is
+run beforehand by the Coder or primary orchestrator, not by the Verifier.
 
 Do not separately verify the lane candidate and then repeat the same verification after clean
 mechanical integration. An additional pre-integration Verifier is allowed only when the

@@ -140,6 +140,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "The Reviewer runs the prepared deterministic local checks",
         "A fresh Verifier is exceptional, not default",
         "After accepted fixes, the primary orchestrator checks the fix delta and reruns affected machine checks without another independent round",
+        "must not send a progress update while observable state is unchanged",
+        "`candidate_base_anchor..candidate_tip_anchor`",
+        "never apply only the last correction commit",
+        "A changed commit SHA alone does not invalidate evidence",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
@@ -171,6 +175,13 @@ def validate_core_contract(errors: list[str]) -> None:
         "A fresh Verifier is exceptional, not default",
         "Classify the final candidate from the assurance policy",
         "An additional pre-integration Verifier is allowed only",
+        "The transferable candidate is the complete\n`candidate_base_anchor..candidate_tip_anchor` diff",
+        "Never apply only the last",
+        "A changed commit SHA alone\ndoes not invalidate review or execution evidence",
+        "Ignore Task\nstatus, descriptive Log content, and unrelated task rows",
+        "An `execution` pointer change is",
+        "The Verifier must leave every tracked file unchanged",
+        "sends no heartbeat when state is unchanged",
         "Use one `list_agents` snapshot only",
         "No periodic list interval is configured or inferred",
     ), "run-task 执行与验证契约", errors)
@@ -185,6 +196,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "The Reviewer runs the prepared deterministic local checks",
         "A fresh Verifier is exceptional, not default",
         "Classify the final candidate from the assurance policy",
+        "`candidate_base_anchor..candidate_tip_anchor`",
+        "a correction commit is not a standalone candidate",
+        "leaves every tracked file unchanged",
+        "sends no heartbeat when observable state is unchanged",
         "Do not query again until a material lifecycle event",
         "There is no periodic list interval",
     ), "英文派发契约", errors)
@@ -209,6 +224,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "`not-required` or `required:<trigger>`",
         "Missing required evidence blocks integration",
         "blocker-resolved final combination",
+        "`candidate_base_anchor..candidate_tip_anchor`",
+        "Task status, descriptive Log content, and unrelated rows",
+        "If the execution pointer changed",
+        "leave tracked files unchanged on both pass and failure",
     ), "合并前双向验证门禁", errors)
     require(release, (
         "`required:final-artifact-or-installation`",
@@ -335,18 +354,24 @@ def validate_roles(errors: list[str]) -> None:
             for key, expected_type in required_types.items():
                 if not isinstance(config.get(key), expected_type):
                     errors.append(f"{toml}: {key} 必须是 {expected_type.__name__}")
+            instructions = config.get("developer_instructions")
+            if not isinstance(instructions, str):
+                instructions = ""
             if config.get("sandbox_mode") not in {"read-only", "workspace-write"}:
                 errors.append(f"{toml}: sandbox_mode 无效")
             require(text, ("prepared", "brief", "single return ends"), str(markdown), errors)
-            require(toml_text, ("brief", "唯一一次回传后结束"), str(toml), errors)
+            require(instructions, ("brief", "唯一一次回传后结束"), str(toml), errors)
             if role == "reviewer":
                 require(text, (
                     "deterministic local checks",
                     "exact commands, environment, exit codes",
                     "Any tracked change or anchor/hash drift invalidates the review",
+                    "candidate_base_anchor",
+                    "candidate_tip_anchor",
                 ), str(markdown), errors)
-                require(toml_text, (
+                require(instructions, (
                     "确定性本地测试计划", "原样命令", "任何 tracked 变化或锚/哈希漂移均使本轮无效",
+                    "candidate_base_anchor", "candidate_tip_anchor", "不得只审最后一个修订提交",
                 ), str(toml), errors)
                 if config.get("sandbox_mode") != "workspace-write":
                     errors.append(f"{toml}: Reviewer 运行本地检查需要 workspace-write")
@@ -354,9 +379,20 @@ def validate_roles(errors: list[str]) -> None:
                 require(text, (
                     "required:<trigger>",
                     "Ordinary deterministic local checks belong to the Reviewer",
+                    "Any tracked change invalidates verification on both pass and failure",
                 ), str(markdown), errors)
-                require(toml_text, (
+                require(instructions, (
                     "required:<trigger>", "普通确定性本地检查归 Reviewer",
+                    "成功或失败后的任何 tracked 变化都使验证无效",
+                    "生成或刷新 oracle、evidence、attempt",
+                ), str(toml), errors)
+            if role == "coder":
+                require(text, (
+                    "candidate_base_anchor", "candidate_tip_anchor",
+                    "correction commit\nis not standalone",
+                ), str(markdown), errors)
+                require(instructions, (
+                    "candidate_base_anchor", "candidate_tip_anchor", "修订提交不可单独应用",
                 ), str(toml), errors)
             if len(text.splitlines()) > 80:
                 errors.append(f"{markdown}: 角色契约超过 80 行")

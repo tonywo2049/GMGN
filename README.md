@@ -90,10 +90,15 @@ may use the verified current workspace. When no implementation lane can run in p
 useful orchestrator work, the primary session may be that Coder. Worktrees prevent agents
 from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
 runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
-and traceability. A delegated Coder returns a local commit containing only its prepared write
-scope; a primary-session sole Coder may freeze and hash its exact diff. An isolated-lane
-candidate is applied to a temporary combination before its one review round, while a
-sole-writer candidate already based on the unchanged shared baseline is the combination.
+and traceability. A delegated Coder returns the original candidate base and current tip for the
+complete base-to-tip diff; the last correction commit is never applied alone. A primary-session
+sole Coder may freeze and hash its exact diff. An isolated-lane candidate is applied to a
+temporary combination before its one review round, while a sole-writer candidate already based
+on the unchanged shared baseline is the combination. A changed commit SHA alone does not
+invalidate evidence after clean mechanical application; relevant content does. Task status,
+descriptive Log content, and unrelated rows do not by themselves invalidate evidence. An
+execution-pointer change is equivalent only when it resolves to the same normative Card or
+preserves that Card's authority anchors, completion criterion, and TDD contract.
 The Reviewer runs the prepared deterministic local checks in the same round. After accepted
 findings are fixed, the primary orchestrator checks the exact fix delta and reruns affected
 machine checks without another independent pass. Only a recorded risk trigger adds a fresh
@@ -104,7 +109,9 @@ timeout only as a liveness checkpoint, and never turn status/list/wait calls int
 loop. Use one `list_agents` snapshot only for a scheduling decision, an ambiguous post-timeout
 state, or conflicting lifecycle events; do not query again before material state changes.
 There is no periodic list interval. Agent progress remains local to its thread; only material
-lifecycle events notify the orchestrator.
+lifecycle events notify the orchestrator. A long-running primary session sends no unchanged-
+state heartbeat; it updates only for material progress, a blocker, a decision request, or the
+final result.
 
 The reviewed `Task.md` row selects the work; its materialized `Card.md` is the static execution
 and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and

@@ -41,7 +41,9 @@ Use the English-only [dispatch contract](references/en/dispatch-and-handoff.md).
 The primary orchestrator keeps context, selects the stage, prepares briefs, adjudicates
 findings, integrates accepted candidates, and updates shared state. It is not a delegated
 agent. It may directly write WhitePaper, ROADMAP, Goal, Requirement, Design, or Task when that
-uses its complete context best; otherwise it delegates a bounded Author.
+uses its complete context best; otherwise it delegates a bounded Author. During long-running
+work, it must not send a progress update while observable state is unchanged; update only for
+material progress, a blocker, a decision request, or the final result.
 
 Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use. Prepare
 the full role brief before creation, start with no parent or earlier-agent history, accept one
@@ -98,9 +100,16 @@ each selected task:
 
 Run-task continuously fills a dependency-aware ready set. Concurrent writing lanes are
 isolated; a single non-colliding writer may use the verified current workspace. Each Coder
-attempt is fresh. Apply an isolated-lane candidate to the temporary combination and resolve
-any judgment-required conflict before freezing the task execution's one Reviewer candidate.
-Reserve its shared baseline and integration position until integration or abandonment.
+attempt is fresh. Treat the full `candidate_base_anchor..candidate_tip_anchor` diff as the
+candidate. Apply that full diff or its complete ordered commit chain to the temporary
+combination; never apply only the last correction commit. Resolve any judgment-required
+conflict before freezing the task execution's one Reviewer candidate. Reserve its shared
+baseline and integration position until integration or abandonment. A changed commit SHA alone
+does not invalidate evidence after clean mechanical application; compare relevant content and
+ignore Task status, descriptive Log content, and unrelated task rows when deciding
+task-authority equivalence. An execution-pointer change is equivalent only when it resolves to
+the same normative Card, or when that Card's authority anchors, completion criterion, and TDD
+contract are unchanged.
 Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
 primary orchestrator checks their resolution and runs affected machine checks. Dispatch a
 fresh Verifier on the resulting final candidate only for the exceptional risk triggers above.
@@ -116,8 +125,10 @@ and treat timeout as a liveness checkpoint rather than a polling trigger. A `lis
 snapshot is allowed only when a scheduling/capacity decision needs current state, a wait timed
 out without an unambiguous agent state, or received lifecycle events conflict. One call serves
 one decision point; do not query again until a material lifecycle event, candidate, blocker, or
-scheduling condition changes. There is no periodic list interval. Telemetry is out-of-band
-observation and never changes routing, readiness, acceptance, or closure.
+scheduling condition changes. There is no periodic list interval. A long-running primary
+session sends no heartbeat when state is unchanged; it reports only material progress, a
+blocker, a decision request, or the final result. Telemetry is out-of-band observation and never
+changes routing, readiness, acceptance, or closure.
 
 ## Controlled-change routing
 

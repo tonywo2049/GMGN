@@ -26,9 +26,10 @@ assurance_policy: gmgn-assurance-v1
 
 Before review, record `git rev-parse --show-toplevel`, HEAD, the frozen diff/content hash, and
 tracked status; require the resolved path to equal the absolute workspace in the dispatch.
-Review the exact candidate named by the brief: normally `baseline_anchor..candidate_anchor`, or
-a captured diff with a recorded content hash for a sole-writer current workspace. Freeze that
-workspace during review; never review whichever mutable diff happens to be open.
+Review the exact candidate named by the brief: normally the complete
+`candidate_base_anchor..candidate_tip_anchor` diff, or a captured diff with a recorded content
+hash for a sole-writer current workspace. Freeze that workspace during review; never review
+whichever mutable diff happens to be open or only the last correction commit.
 
 1. Does the task-card diff satisfy its spec anchor, prepared write boundary, and any declared
    shared-resource constraint?
@@ -53,12 +54,18 @@ required command is not a pass. Each finding contains
 `location · evidence · impact · normative fix · priority`. End with `git status --short` and
 disclose review-generated caches or other side effects.
 
-Apply the self-checked isolated-lane candidate to a temporary combination before review. A
-frozen sole-writer candidate already based on the unchanged shared baseline is the
-combination. Resolve an unclean application or judgment-required conflict with a fresh Coder,
-then freeze the final review candidate. Reserve its shared baseline and integration position
-until integration or abandonment, so the candidate cannot become stale after review. Each task
-execution uses `review_policy: single-pass` and has at most one Reviewer round.
+Apply the complete self-checked isolated-lane diff or its complete ordered commit chain to a
+temporary combination before review; never apply only the last correction commit. A frozen
+sole-writer candidate already based on the unchanged shared baseline is the combination.
+Resolve an unclean application or judgment-required conflict with a fresh Coder, then freeze the
+final review candidate. Reserve its shared baseline and integration position until integration
+or abandonment, so the candidate cannot become stale after review. A changed commit SHA alone
+does not invalidate evidence after a clean application; compare relevant source, build inputs,
+and normative task content. Task status, descriptive Log content, and unrelated rows do not by
+themselves invalidate evidence. An execution-pointer change is equivalent only when it resolves
+to the same normative Card or preserves that Card's authority anchors, completion criterion,
+and TDD contract. Each task execution uses `review_policy: single-pass` and has at most one
+Reviewer round.
 After that round, the primary orchestrator adjudicates once, batches accepted fixes, checks
 each resolution against its finding, and runs affected machine checks. Do not dispatch another
 Reviewer to recheck those fixes. A fix that changes dependency/specification meaning or

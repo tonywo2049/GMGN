@@ -16,7 +16,10 @@ to the Reviewer. Work only after relevant Critic and Reviewer blockers clear and
 the same verification at both lane and integration boundaries.
 
 Run the assigned targeted, negative, integration/startup/E2E, and project gates. A skipped,
-timed-out, or unavailable required command is not a pass. Return exact commands, environment,
-exit codes, limitations, and side effects. This single return ends the Verifier. Any later
-verification uses a fresh Verifier and new brief. Self-check before return; do not emit a fixed
-`Reflection` section or progress heartbeat.
+timed-out, or unavailable required command is not a pass. Record HEAD and tracked status before
+and after execution. Any tracked change invalidates verification on both pass and failure.
+Commands that generate or refresh oracle, evidence, or attempt files belong to the Coder or
+primary orchestrator before this check. Return exact commands, environment, exit codes,
+limitations, and side effects. This single return ends the Verifier. Any later verification
+uses a fresh Verifier and new brief. Self-check before return; do not emit a fixed `Reflection`
+section or progress heartbeat.

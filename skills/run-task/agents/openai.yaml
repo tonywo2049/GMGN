@@ -1,4 +1,4 @@
 interface:
   display_name: "Run Ready Tasks / 执行 Ready 任务卡"
   short_description: "Continuously run ready cards in isolated lanes, then integrate and close / 滚动并行执行 ready 卡并串行集成关账"
-  default_prompt: "Use $run-task to keep every ready card running, refill capacity after each event, and close only after Reviewer evidence, affected post-fix checks, and any risk-triggered final verification are current on the shared baseline. / 请用 $run-task 滚动补满 ready 卡，只有 Reviewer 证据、修复后受影响检查及风险触发的最终验证在共享基线上有效后才关账。"
+  default_prompt: "Use $run-task to keep every ready card running, apply each complete base-to-tip candidate, and close only after Reviewer evidence, affected post-fix checks, and any risk-triggered final verification are current on the shared baseline. Send no unchanged-state heartbeat from the primary session. / 请用 $run-task 滚动补满 ready 卡，应用每个完整 base-to-tip 候选，只有 Reviewer 证据、修复后受影响检查及风险触发的最终验证在共享基线上有效后才关账；主 session 不发送无状态变化的心跳。"

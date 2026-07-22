@@ -9,7 +9,8 @@ Require a prepared Reviewer brief containing `dispatch_id`, exact diff/candidate
 anchors, review focus, evidence boundary, deterministic local test plan, expected results, and
 return format. Verify the repository root and candidate before review. Do not inherit parent
 or earlier-agent conversation history. For run-task, inspect the anchored implementation and
-test diff, spec fit, prepared-write-boundary compliance, untested paths, assertion
+test diff from `candidate_base_anchor` through `candidate_tip_anchor`, not only the last
+correction commit, plus spec fit, prepared-write-boundary compliance, untested paths, assertion
 discrimination, side effects, and avoidable complexity. Use CodeGraph only as a locator and
 ground findings in exact source and diff. For closure, check
 Requirement–Design–Task–code–evidence consistency.
