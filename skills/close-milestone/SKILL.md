@@ -1,129 +1,80 @@
 ---
 name: close-milestone
-description: "Use when every target-milestone card is closed and its traceability is full to perform required or target-required full regression/E2E, combined review, milestone/stage/version closure, launch readiness, or ROADMAP backfill. 目标 Milestone 自有任务卡已关账且追踪完整后，用于阶段/版本收尾、关账验收、所需回归/E2E、准备上线或 ROADMAP 回填；普通单卡收尾不触发。"
+description: "Use when every target-milestone task is closed and traceability is full to reconcile scope, run any still-required milestone regression/E2E, independently review the closure candidate, obtain owner acceptance, and backfill ROADMAP plus any needed receiver handoff. 目标 Milestone 自有任务全部关账后做范围核对、仍必需的回归/E2E、关账审查与负责人验收。"
 ---
 
 # Close a milestone
 
-<HARD-GATE>Every hard gate is scoped to the recorded `target_milestone_id`: every card owned by that Milestone must be `closed` on the same `shared_baseline_anchor`; the target Milestone integration queue must be empty; no lane owned by it may be active, `rebase-required`, or `integration-conflict`; every target-Milestone AC must have a task, test, and evidence row; and every executed card must link its own closed descriptive execution log. At the closing shared-baseline anchor, its `latest_event` must resolve inside that log to the final closure event; that event records the verified combined candidate and preceding shared anchor, and its evidence/current pointers match the Task card. Downstream work, lanes, documents, confirmations, TODOs, or evidence gaps do not block unless they prove that this target Milestone still has an undecided or unproved in-scope criterion. Otherwise return to `run-task` or revise an invalid reverse dependency through `write-task`. If closure review exposes a changed in-scope premise, withhold closure and route to its authority. Closure is an owner-accepted, version-anchored declaration; do not infer it from green unit tests.</HARD-GATE>
+<HARD-GATE>Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC must map to a task and evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final event. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
 
-## Establish evidence first
+## Reconcile the closing anchor
 
-The primary orchestrator records `target_milestone_id` plus its Goal/Requirement/Design/Task
-anchors, proves that Milestone's integration entries are empty, reconciles every lane it owns
-to the same `shared_baseline_anchor`, verifies that every executed card has a real
-`execution_log` link to its own closed descriptive log and a resolvable `latest_event` aligned
-with the card's current closure evidence, records that value as the closing anchor, and dispatches an
-independent Verifier as
-`verifier-active`; it does not run closure evidence in place of that agent. The Verifier must:
+The primary orchestrator records the Goal/Requirement/Design/Task anchors and checks:
 
-- receive and verify the current dispatch's `workspace_mode`, absolute `worktree_path`, and
-  `branch_ref`; these workspace facts are not permanently bound to its identity;
+- all target tasks and their execution pointers;
+- Card completion contracts against Log current evidence;
+- AC → task → test → evidence coverage;
+- no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
+- known debt and material risk are classified without silently waiving an AC.
 
-- run the complete regression required by the target Milestone at the closing revision;
-- run target-milestone startup/E2E through the real product path, including required negative
-  and recovery cases;
-- record exact commands, environment, revision, exit codes, result summaries, and limitations;
-- return as `verifier-returned` without changing source code or product meaning.
+Task remains a compact macro index. Detailed commands, anchors, blockers, and event history
+stay in each card's Log.
 
-After evidence returns, dispatch a closure Author and retain `author_ref`. The Author prepares
-the anchored closure candidate: scope reconciliation, evidence map, known debt, remaining
-material risks or an explicit none-known statement, proposed Handoff, and proposed state
-changes. Each reported risk includes its impact, evidence strength, and cheapest next
-falsification step; a none-known statement cites supporting closure evidence. The Author
-chooses the document structure and must not mark anything closed before owner acceptance.
+## Reuse evidence before rerunning it
 
-## Three closure disciplines
+Do not dispatch a Verifier merely because closure started. Reuse verification evidence when it
+is bound to the exact closing anchor and already covers the Milestone's required regression,
+real path, negative/recovery cases, environment, and limitations.
 
-1. Scope: every target-Milestone AC is completed with evidence, or is first removed or
-   reassigned by a controlled semantic change at a new authority anchor with Requirement,
-   Task, and matrix synchronized. A `deferred` label, TODO, or Handoff alone never waives an AC
-   that remains in target scope; downstream-only items may be non-blocking only after that
-   ownership check.
-2. Evidence: every target-Milestone closure criterion has a replayable real verification path.
-3. State: the target Task, matrix, ROADMAP row, Decision, version anchors, and Handoff refresh
-   together. `Task.md` remains a current snapshot: closed cards retain closure evidence and
-   per-card log pointers, while superseded execution narratives remain only in those logs.
-4. Integration: no accepted branch owned by the target Milestone remains outside the shared
-   baseline and no lane or lock it owns remains active. An unrelated resource conflict may
-   delay a mechanical integration or state-refresh action, but it does not alter semantic
-   closure eligibility.
+If any required closure evidence is missing, stale, environment-specific, or explicitly
+mandated at Milestone scope, prepare a complete brief and create one fresh Verifier. It runs
+only the missing or invalidated plan and returns exact commands, environment, revision, exit
+codes, results, limitations, and side effects. A skipped or unavailable required command is not
+a pass. The single return ends that Verifier.
 
-## Author and combined-review loop
+## Closure candidate and review
 
-At `author-returned`, reject incomplete or premature state changes to the same Author as
-`author-rework`; otherwise create `candidate-anchored`. Dispatch an independent combined
-Critic/Reviewer across Requirement, Design, Task, code, evidence, and the closure candidate;
-retain its identity ref. At return, the orchestrator adjudicates findings, resumes the same
-closure Author in `author-revising`, and sends blocker fixes to the same Critic/Reviewer for
-targeted recheck. Replacing that reviewer requires a full combined review. Enter
-`acceptance-ready` only when verification and combined review have no unresolved blocker.
+The primary session normally writes the closure candidate because it owns the complete
+Milestone state. Delegate only when a bounded Author handoff has real value; prepare its full
+brief before creating that fresh single-use Author.
 
-## Upstream change during closure
+The candidate contains scope reconciliation, evidence map, controlled debt, remaining
+material risks or a supported none-known statement, proposed state changes, and a Handoff plan
+only when a receiving operator lacks an existing authority for needed information. It does not
+mark the Milestone closed before owner acceptance.
 
-If closing evidence reveals that approved WhitePaper, ROADMAP, Goal, Requirement, Design, or
-Task meaning must change, record the old anchor, semantic delta, and impact cone, then use the
-router's controlled-change route. First decide whether the finding changes a target-Milestone
-criterion. A downstream implementation or confirmation question becomes a non-blocking TODO or
-Handoff with receiving Milestone/owner, question, trigger, possible impact or default
-assumption; it does not withhold target closure. Pause or revise only affected criteria, cards,
-documents, tests, and evidence. After the new authority anchor receives its required review or approval,
-rerun affected verification plus any full-regression or E2E gate independently required for
-closure, then resume the same closure Author. Do not repeat unrelated authoring stages. Meaning-preserving mechanical changes need
-same-batch refresh and machine checks without reapproval.
+Freeze the candidate after writer self-check and machine checks. Prepare one brief and create a
+fresh independent combined Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
+consistency and closure meaning. Collect the full review before editing. The primary
+orchestrator adjudicates once and batches accepted blockers; later semantic/diff recheck uses a
+fresh agent only for affected scope. Non-blocking suggestions do not reopen closure. Enter
+Present the candidate for owner acceptance only when required evidence and review have no blocker.
 
-## Machine checks and checklist
+## Structural checks
 
-Have the Verifier run `check --preset gmgn-v1 --json` and relevant gates when DocStar is
-available. DocStar IDs, edges, `brief`, `check`, and `verify` are structural measurements; they
-do not decide Milestone ownership, dependency legality, or closure eligibility. Verify
-DocStar `classification_complete` as a structural result, but do not treat it as proof that
-GMGN semantic scope classification is complete. Record every finding with evidence and exactly
-one GMGN classification: `target-scoped | candidate-introduced-or-polluted |
-external-pre-existing`. A non-zero gate finding in either of the first two classes blocks. Use
-`external-pre-existing` as debt only when evidence proves both that it is outside the target
-scope and that it predates the closing candidate. If evidence cannot prove
-`external-pre-existing`, scope classification is incomplete and closure is blocked. A tool
-execution failure or unparseable result also blocks because measurement did not complete. When
-DocStar is absent, run equivalent repository link/table checks and disclose that substitution. The closure Author completes the locale-matched
-`pre-close-checklist.md` against the Verifier's evidence; the combined reviewer challenges it.
+Use DocStar `check`/`verify` when available and classify introduced findings. DocStar measures
+links, entities, and structure; it does not decide scope ownership or semantic closure. A tool
+failure, unparseable result, or target-scoped unresolved finding blocks. When DocStar is absent,
+run equivalent repository link/table checks and record the substitution.
 
-## Presentation and close
+## Owner acceptance and integration
 
-Present scope, evidence, known debt, remaining material risks—or that none are known—and the
-version anchor to the owner. Only after explicit acceptance, set state to `accepted`; the
-primary orchestrator then performs the following mechanical integration work:
+Present scope, evidence, debt, risks, and immutable closing anchor. Only explicit owner
+acceptance authorizes the primary orchestrator to:
 
-- set the target Milestone and its normative chain to `closed` where appropriate;
-- create/update Handoff with `type: handoff`, `nature: descriptive`, one-line state,
-  baseline, completed work, non-blocking downstream TODOs, risks, authority pointers, and next
-  command; in the same batch, persist the release evidence tuple: `accepted_anchor`, owner
-  acceptance reference, review evidence reference and scope, verification evidence reference,
-  required test plan, target execution environment, disclosed remaining material risks, and
-  their immutable or repository-relative evidence locations;
-- if DocStar uses a project classification mapping, reuse a registered type/token;
-- refresh ROADMAP, Task, matrix, Decision, version anchors, execution-log links, and evidence
-  pointers in the same batch; reject a project-wide or Milestone-wide combined execution log,
-  then prepare or create the topic commit under repository policy.
+- close the target Milestone and its appropriate normative chain;
+- create/update Handoff only when a receiver needs one, using the accepted anchor, acceptance
+  reference, applicable evidence, environment, risks, authority pointers, and next command;
+- refresh ROADMAP, Task macro states, AC traceability, execution links, and version anchors;
+- run final diff/link/repository checks and create the local closure commit under project policy.
 
-The orchestrator checks disk and evidence, then marks `node-complete`. Do not push, publish,
-deploy, or release unless separately authorized.
-
-Closure evidence is reusable and remains bound to this immutable closing anchor. A later tag,
-package, upload, deployment handoff, authentication retry, or local installation must not
-redispatch the closure Author, combined Critic/Reviewer, or closure Verifier merely because it
-is a release operation. Route an authorized release through `release`; that skill validates
-the artifact delta and regenerates only evidence whose inputs changed.
+Do not create an Integrator agent. Do not push, publish, deploy, or release without separate
+authorization. `release` reuses exact-anchor acceptance, review, and verification evidence and
+regenerates only evidence invalidated by changed packaging or environment inputs.
 
 ## Exit
 
-Update the target ROADMAP row with closure evidence and the receiving state. Downstream
-Milestones retain their own states and closure gates. If the owner authorizes distribution,
-**REQUIRED next skill: `release`**. Otherwise use **REQUIRED next skill: `roadmap`** for
-maintenance or the next milestone.
-
-Before every substantive return, perform a task-specific self-check and correct defects. Do
-not output a fixed `Reflection` section. Disclose only material unresolved risks that could
-change the conclusion, decision, acceptance, or downstream work; otherwise omit the
-disclosure. Approval, acceptance, and closure always state remaining material risks or that
-none are known.
+If distribution is authorized, use **REQUIRED next skill: `release`**. Otherwise return to
+`roadmap` maintenance or the next Milestone. Before every substantive return, perform a
+task-specific self-check and correct defects. Do not output a fixed `Reflection` section;
+disclose only unresolved material risk.

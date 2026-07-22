@@ -21,9 +21,9 @@ Use the Requirement locale and the matching layout-free
 - Map every R-AC to modules, interfaces, data, failure paths, and verification points.
 - Define trust boundaries, input validation, concurrency/ordering, migration, rollback,
   observability, security, accessibility, and performance only where the requirements demand them.
-- Record important choices and rejected alternatives. An authoritative decision must include
-  a stable ID, trigger and old anchor, ruling, rationale, conditions, owner, propagation
-  targets, and new version anchor; superseding decisions cite the old ID instead of rewriting it.
+- Record choices whose alternatives or rollback matter. Give an authoritative decision a
+  stable ID, ruling, rationale, conditions, owner, and any superseded decision instead of
+  rewriting history.
 - For each external input, cache restore, migration import, permission boundary, human entry,
   or model-output acceptance point, record the real source authority, validation, observable
   failure behavior, negative evidence, and owner. “Validated upstream” is not a source.
@@ -35,16 +35,14 @@ new structure lacks a current R-AC.
 
 ## Writer and critic loop
 
-At `ready-to-dispatch`, record the Requirement anchor, select the actual writer, and bind
-`author_ref`. The primary session may write directly, or an Author may be delegated with the
-content and self-check above when the bounded handoff creates real value. At `author-returned`,
-return missing or out-of-scope work to the same recorded writer as `author-rework`; otherwise
-enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
-findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
-same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
-anchored candidate. The primary orchestrator applies accepted mechanical mappings, links,
-state, and commit material, including across an integration boundary, and runs machine checks. Finish at
-`node-complete`.
+Record the Requirement anchor. The primary session may write directly, or it prepares a
+complete brief and creates one fresh Author when the bounded handoff creates
+real value. The writer self-checks before return; a delegated Author ends on return, so later
+correction uses the primary session or a fresh Author with a new brief. Freeze the candidate
+and dispatch one fresh independent Critic from a prepared brief. Collect all findings before
+editing, adjudicate once, and batch accepted blocker fixes. A semantic recheck uses a fresh
+Critic only for affected scope. With no blocker, the primary orchestrator reviews the anchored
+candidate, applies accepted mechanical mappings, links, and state, then runs machine checks.
 
 ## Controlled revision
 
@@ -68,7 +66,7 @@ refresh plus machine checks without reapproval.
 ## Exit
 
 Require the recorded writer to reconcile the affected mapping in both directions: no orphan
-design and no unmapped R-AC. For creation or a semantic revision, run the identity-preserving
+design and no unmapped R-AC. For creation or a semantic revision, run the fresh-agent
 writer/Critic loop using the locale-matched dispatch contract; tell the Critic to emphasize
 feasibility, upstream/downstream consistency, and overdesign. Obtain primary-orchestrator
 review and integrate only when required by workspace topology. Creation then uses **REQUIRED next skill:

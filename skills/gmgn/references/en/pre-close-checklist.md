@@ -1,7 +1,7 @@
 ---
 locale: en
-purpose: Check real evidence, trust surfaces, orthogonal review, residual risk, invariants, and state consistency before irreversible closure.
-upstream: [GMGN §3](../../../../GMGN.md)
+purpose: Check scope, evidence, state, risk, and acceptance before Milestone closure.
+upstream: [GMGN](../../../../GMGN.md)
 downstream: none
 status: approved
 type: design
@@ -12,39 +12,22 @@ nature: normative
 
 中文版本：[../zh-CN/pre-close-checklist.md](../zh-CN/pre-close-checklist.md)
 
-1. **Target boundary** — Are `target_milestone_id`, its Goal/Requirement/Design/Task anchors,
-   owned cards, closing anchor, and target-scoped finding set recorded? Did any cross-Milestone
-   reference improperly expand execution or closure scope?
-2. **Reality coverage** — Does every target-Milestone closure criterion have a real test,
-   startup, or E2E path and exact command?
-3. **Trust surfaces closed** — Was each target Design acceptance point's source, validation,
-   failure behavior, owner, and negative evidence replayed?
-4. **Orthogonal challenge** — Did at least one critic, reviewer, or external source use a frame independent of the author?
-5. **Residual risk** — Which unresolved risk could still change closure; what is its impact,
-   evidence strength, and cheapest next falsification step? If none is known, is that stated
-   without inventing one?
-6. **Invariant family** — Does each target-level invariant have positive and negative evidence, not only a happy path?
-7. **Text and state consistency** — Were the target Task, matrix, ROADMAP row, Decision,
-   Handoff, and version anchors refreshed together? Does each executed card link its own closed
-   descriptive execution log, with only current state and closure evidence retained in Task?
-   At the closing shared-baseline anchor, does `latest_event` resolve to that log's final
-   closure event? Does the event record the verified combined candidate and preceding shared
-   anchor, with evidence/current pointers matching the Task card?
-8. **Integration convergence** — Are the target Milestone's integration entries empty, are
-   there no active, `rebase-required`, or `integration-conflict` lanes or held locks it owns,
-   and are all its cards closed on one `shared_baseline_anchor`?
-9. **Downstream debt** — Is every downstream-only question a non-blocking TODO/Handoff with
-   receiving Milestone/owner, trigger, possible impact, and default assumption where useful?
-   Was any still-in-scope AC mislabeled `deferred` instead of being completed or removed/
-   reassigned through a controlled semantic change at a new authority anchor?
-10. **Structural measurement boundary** — Is every DocStar finding recorded with evidence and
-    exactly one GMGN classification: `target-scoped | candidate-introduced-or-polluted |
-    external-pre-existing`? Was `external-pre-existing` used only when both external scope and
-    a pre-candidate anchor were proved? If not, is scope classification incomplete and closure
-    blocked rather than the finding recorded as debt? DocStar `classification_complete` alone
-    does not answer these questions.
+1. **Boundary** — Are the target Milestone and its Goal/Requirement/Design/Task anchors fixed,
+   without a cross-Milestone reference expanding scope?
+2. **Criteria** — Is every in-scope AC completed, or semantically removed/reassigned at a new
+   authority anchor?
+3. **Evidence** — Does every retained criterion have a replayable command or real execution
+   path, including relevant negative behavior?
+4. **Independent challenge** — Are required Critic/Reviewer blockers clear and is final
+   executable verification current where needed?
+5. **State** — Do Task macro status, Card contract, closed Log snapshot/latest event,
+   traceability, ROADMAP, and the closing anchor agree?
+6. **Integration** — Are target tasks closed on one shared baseline with no owned integration
+   entry or lock left active?
+7. **Findings and risk** — Are material structural findings classified as target blockers or
+   proved pre-existing external debt, and are remaining risks stated without invention?
+8. **Acceptance** — Is owner acceptance bound to the exact closing anchor?
 
-Any unresolved target blocker, `target-scoped` finding, `candidate-introduced-or-polluted`
-finding, or incomplete scope classification blocks closure. A proved `external-pre-existing`
-finding does not.
-Only after owner acceptance may the target state become `closed`.
+Any unresolved target blocker or unclassified material finding blocks closure. A separate
+Handoff is required only when a receiving operator needs information not already owned by an
+existing authority.

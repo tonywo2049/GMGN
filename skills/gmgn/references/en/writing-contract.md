@@ -1,6 +1,6 @@
 ---
 locale: en
-purpose: Define the machine fields, states, filenames, IDs, and parser surfaces shared by English and Chinese GMGN documents without prescribing document layout.
+purpose: Define the stable machine fields, states, filenames, IDs, and parser surfaces shared by English and Chinese GMGN documents.
 upstream: [GMGN methodology](../../../../GMGN.md)
 downstream: [GMGN router](../../SKILL.md)
 status: approved
@@ -12,19 +12,14 @@ nature: normative
 
 中文版本：[../zh-CN/writing-contract.md](../zh-CN/writing-contract.md)
 
-## 1. One workflow, two human languages
+## 1. Language and frontmatter
 
-Select `en` or `zh-CN` from the existing project and the user's request. Headings and
-prose use that language. The machine fields, enums, filenames, IDs, commands, and task
-headers below are never translated. Do not maintain separate skills.
+Select `en` or `zh-CN` from the existing project and the user's request. Prose uses that
+language; machine fields, enums, filenames, IDs, commands, and Task headers below do not.
+Keep translated mirrors in separate locale roots so duplicate IDs are not scanned as one
+corpus.
 
-One specification chain normally has one active locale. If translated mirrors are
-required, place them in separate locale roots and validate each root separately. Scanning
-two trees with the same IDs as one DocStar corpus creates duplicate definitions.
-
-## 2. Frontmatter
-
-Every normative document starts with:
+Every GMGN-managed document starts with these seven keys:
 
 ```yaml
 ---
@@ -38,203 +33,123 @@ nature: normative
 ---
 ```
 
-Fixed keys: `locale | purpose | upstream | downstream | status | type | nature`.
-
 - `locale`: `en | zh-CN`
 - `status`: `draft | pending-approval | approved | closed`
-- `type`: `whitepaper | roadmap | goal | requirement | design | task | execution-log | research | decision | retrospective | handoff`
+- `type`: `whitepaper | roadmap | goal | requirement | design | task | task-card |
+  execution-log | research | decision | retrospective | handoff`
 - `nature`: `normative | descriptive`
 
-`normative` means downstream work depends on the document and changes must propagate.
-`descriptive` records facts or process and does not establish a gate. Repository guides
-may use an extension `type`; project specification chains may not.
+Use `upstream: none` for a root and `downstream: none` until the downstream file exists.
+Replace `none` with a real relative link in the same checked batch that creates the file.
+Normative content owns meaning; descriptive content records observations and never creates
+scope or approval.
 
-Use `upstream: none` for a chain root and `downstream: none` until the downstream file
-exists; replace it with a real link in the same batch that creates the file. Do not disguise
-plain text as a link.
+## 2. States and anchors
 
-## 3. Do not mix the two state machines
-
-Normative document approval state:
+Normative document state is:
 
 ```text
 draft → pending-approval → approved → closed
 ```
 
-A descriptive record does not acquire approval or normative authority. It may use
-`draft → closed` to mean that recording is active and then stopped; this is not an approval
-transition. An execution log follows this descriptive lifecycle.
-
-Milestone, slice, and task work state:
+Task work state is:
 
 ```text
-not-started → initiated → in-progress → closed
+not-started → prepared → active | blocked → closed
 ```
 
-For a task card, `initiated` means its execution lane has been claimed, and `in-progress`
-covers coding through integration. Review or verification of an isolated branch may make the
-runtime candidate `accepted`, but never makes the task `closed`. `closed` requires integration
-into the recorded `shared_baseline_anchor`, successful post-integration verification, and
-same-batch refresh of `Task.md`, traceability, and evidence by the primary orchestrator.
-The card Coder stages and commits only its `write_set` in the assigned detached-HEAD or
-unique-branch worktree and returns a resolvable local commit SHA as immutable
-`candidate_anchor`; local commits are allowed and remote writes are not.
+`prepared` means Card and Log exist. `blocked` is only the Task-level macro signal; Log owns
+the reason. `closed` means the accepted implementation and required evidence are integrated
+on the shared baseline. Independent verification is required only when executable behavior,
+environment, or package input needs it.
 
-Integration first creates a temporary combined `candidate_anchor` from the clean current
-shared baseline. Verification failure or merge/cherry-pick conflict discards or aborts that
-candidate and leaves the preceding `shared_baseline_anchor` clean and unchanged. Only a
-verified combined candidate plus mechanical ledger refresh may atomically advance the shared
-anchor; an unverified combination is not a baseline.
+Approval and acceptance bind an immutable commit, content hash, or equivalent version anchor.
+Editing a file does not move that decision. WhitePaper and ROADMAP need owner approval;
+Goal, Requirement, Design, and Task need independent Critic review plus primary-orchestrator
+acceptance; Milestone closure needs owner acceptance.
 
-After restoring that preceding clean anchor, the primary orchestrator may create a separate state-only
-candidate containing the per-card failure event and current Task blocker. It contains no failed
-implementation. Only after link, diff, and repository-required document checks may that
-descriptive-only commit advance `shared_baseline_anchor`; the failed implementation candidate
-never does. Existing lanes retain their recorded baseline provenance and are not rebased for
-this mechanical documentation advance alone.
+## 3. Controlled changes
 
-The owner approves WhitePaper and ROADMAP. The primary orchestrator reviews Goal,
-Requirement, Design, and Task after an independent critic. The owner accepts milestone
-closure. Every approval binds a commit, content hash, or equivalent version anchor.
+Change only the authority that owns the meaning:
 
-### 3.1 Controlled changes after approval
-
-Workflow nodes are not one-way. If downstream work exposes an upstream defect or changed
-premise, return to the document that is the single authority for that meaning:
-
-| Meaning owned by | Revision route |
+| authority | route |
 |---|---|
-| WhitePaper | `brainstorm` revision mode |
-| ROADMAP | `roadmap` maintenance mode |
-| Goal | `write-goal` revision mode |
-| Requirement or R-AC | `write-requirement` revision mode |
-| Design | `write-design` revision mode |
-| Task | `write-task` revision mode |
+| WhitePaper | `brainstorm` revision |
+| ROADMAP | `roadmap` maintenance |
+| Goal | `write-goal` revision |
+| Requirement or AC | `write-requirement` revision |
+| Design | `write-design` revision |
+| Task | `write-task` revision |
 
-A **semantic change** can alter a decision or a reasonable reader's understanding of scope,
-obligation, acceptance meaning, design intent, or execution authority. It receives the review
-or approval appropriate to that authority at a new version anchor. The old approval remains
-attached to the old anchor; it never moves implicitly to the edited file.
+A semantic change can alter scope, obligation, acceptance meaning, design intent, or execution
+authority. It gets the review or approval appropriate to that authority at a new anchor. A
+mechanical change preserves meaning, such as formatting, links, mirrored status, or generated
+metadata; it needs affected machine checks, not automatic semantic reapproval.
 
-A **mechanical change** preserves meaning: for example, a rename, move, link, formatting,
-hash, or mirrored status update. File-content change alone does not require reapproval.
-Refresh every affected representation in the same batch and run machine checks. If the
-checks pass and the change record explicitly establishes semantic equivalence, the new anchor
-may retain the document's approval state by citing the old approved anchor; this is not a new
-approval. If the classification is uncertain, treat the change as semantic.
+Propagate only the impact cone. Record the trigger, old anchor, classification, exact delta,
+affected IDs/files/tests/evidence, required review, and new anchor in the owning authority or
+an existing linked decision record. Do not add an empty change-log section or copy the record
+into every affected document.
 
-After either kind, propagate only through the impact cone: affected upstream/downstream
-links, IDs, mappings, documents, tasks, tests, evidence, and state. Review, approve, and
-verify only affected content. Returning to an authority does not rerun unrelated stages.
+## 4. Stable names and Task surface
 
-For a semantic revision, add or update a change record in the authority or its linked decision
-log. A mechanical batch may keep one batch-level equivalence record; do not edit every
-affected document solely to add history. Do not add an empty record to a newly created
-document:
-
-| item | required content |
-|---|---|
-| trigger | why the approved baseline is insufficient |
-| old anchor | the version to which existing approval still applies |
-| classification | `semantic` or `mechanical`, with rationale |
-| authority and delta | the single authority and exact meaning changed |
-| impact cone | affected IDs, documents, work, tests, evidence, and state |
-| review or approval | who must review or approve this version, or why none is needed |
-| new anchor and checks | the resulting version plus propagation and verification evidence |
-
-## 4. Stable names and identifiers
-
-- Project level: `WhitePaper.md`, `ROADMAP.md`
-- Milestone level: `Goal.md`, `Requirement.md`, `Design.md`, `Task.md`
-- Per-card process record: `execution/<card_id>.md`
+- Project: `WhitePaper.md`, `ROADMAP.md`
+- Milestone: `Goal.md`, `Requirement.md`, `Design.md`, `Task.md`
+- Card: `execution/<card_id>/Card.md`
+- Runtime record: `execution/<card_id>/Log.md`
 - Milestones: `M1`, `M2`, ...
 - Requirements: `R1`, `R2`, ...
-- Acceptance criteria: `R1-AC1`, `R1-AC2`, ...
-- Tasks: `M1-T1`, `M1-T2`, ...; a single-milestone local corpus may use `T1`
+- ACs: `R1-AC1`, `R1-AC2`, ...
+- Tasks: `M1-T1`, `M1-T2`, ...; a single-Milestone corpus may use `T1`
 
-Never renumber an ID after downstream references exist. Keep a tombstone or decision
-pointer when removing one.
+Never renumber an ID after downstream references exist. Keep a tombstone or decision pointer
+when removing one.
 
-Task-table headers are fixed English tokens:
+The parser-facing Task header is fixed:
 
 ```markdown
-| # | task | spec anchor | prerequisite | failing test | status |
+| # | task | spec anchor | prerequisite | status | execution |
 |---|---|---|---|---|---|
-| **M1-T1** | <task> | R1-AC1 | none | `test_name` | not-started |
+| **M1-T1** | <independently decidable result> | R1-AC1 | none | not-started | none |
 ```
 
-This is the shared GMGN/DocStar parsing surface. Chinese documents use the same headers.
-Each card also exposes a stable Markdown anchor keyed by the same task ID so its execution log
-can link to the exact card without imposing a surrounding section layout.
+Chinese documents use the same header. Keep a separate `| AC | task |` mapping. Task owns task
+division, spec anchors, the dependency DAG, macro status, execution pointers, and the few
+Milestone-level pointers needed to schedule and integrate. It does not contain TDD cases,
+commands, write sets, locks, blockers, candidate anchors, evidence, or progress history.
+Replace current values; do not append execution narrative.
 
-The fixed six columns do not carry the complete execution contract. Card content keyed by the
-same stable task ID also records `depends_on`, `write_set`, `conflict_domains`,
-`runtime_locks`, the semantic owner, `execution_log`, and `latest_event`. Use
-`execution_log: none` and `latest_event: none` before the first durable execution event;
-create `execution/<card_id>.md` on that event and replace both values with real relative links
-in the same state-refresh batch. These facts do not change the DocStar table schema.
-If `workspace_mode: shared` cannot independently anchor each writer, parallel workers return
-proposals/patches and one recorded writer serially applies and anchors them.
+## 5. Card and Log
 
-`Task.md` is the normative current execution snapshot. Keep only facts needed to decide current
-scope, readiness, ownership, status, blockers, anchors, evidence, and closure. For single-card
-execution, resolve the exact card, its directly gating card rows, affected AC traceability rows,
-and the target Milestone's current shared-baseline and integration-queue pointers; do not ingest
-the whole file or unrelated closed cards by default. Replace superseded state instead of
-appending progress narratives. A closed card
-keeps its stable row, closure result, current evidence, and `execution_log` pointer; its past
-attempts do not remain in `Task.md`.
+After the owner confirms the execution set, `run-task` creates exactly two files per selected
+task before Coder dispatch:
 
-Each `execution/<card_id>.md` uses all seven fixed frontmatter keys. `locale` matches Task;
-`purpose` names the card and says that the file records its execution history; `upstream` is a
-real relative link to the exact stable card anchor in `Task.md`; `downstream: none` remains
-until a real consumer exists; `status: draft` applies while active; `type: execution-log`; and
-`nature: descriptive`. Set `status: closed` when its card closes. Its event body is an
-append-only per-card record of durable status transitions,
-candidate and baseline anchors,
-review and verification rounds, commands, results, limitations, integration attempts,
-conflicts, and superseded states. Each event has a stable `event_id`, a `previous_event` link
-or `none`, and links to its evidence; the Task card's `latest_event` points to the newest event.
-For resume, retry, audit, or closure, extract that anchored event and follow only links needed
-for the unresolved cycle instead of ingesting the whole log. Correct a past event with a later
-correction entry rather than rewriting history. Fixed frontmatter and current pointers are
-mechanical metadata and may be refreshed; past event bodies may not. Do not combine all cards
-into a project-wide or Milestone-wide log.
-The log never owns scope, requirements, design, dependencies, completion criteria, current
-status, or closure. Any event that changes such meaning must be promoted to the correct
-normative authority through its controlled-change route before affected work continues.
+- `Card.md` is normative. Its frontmatter uses `type: task-card`, links upstream to the exact
+  Task row and downstream to `Log.md`. Its minimum stable contract is outcome, Requirement and
+  Design anchors, completion criterion, TDD contract, and
+  `execution_log: [Log.md](Log.md)`.
+- `Log.md` is descriptive. Its frontmatter uses `type: execution-log` and links upstream to
+  Card. It contains a replaceable current snapshot and append-only events. The snapshot has
+  `latest_event: [<event_id>](#<event_id>)`; each event has a stable ID, result, and evidence
+  needed to replay or understand the decision.
 
-## 5. Content contract, not layout template
+Add scope exclusions or an allowed path/write set when they materially bound a delegated
+writer. Add conflict domains or runtime locks only when a real shared-resource collision
+exists. Task remains the dependency authority; Card links to the Task row instead of copying
+its prerequisite DAG.
 
-GMGN does not prescribe section names, order, or prose shape. The active stage skill is the
-authority for what an artifact must answer and what its writer must self-check. For
-WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, the primary orchestrator selects the
-actual writer: itself when its context makes direct authorship the clearest and least wasteful
-path, or a delegated Author when bounded isolation, specialization, or parallelism creates
-real value. Bind `author_ref` to that writer and keep the independent Critic separate from it.
-Do not recreate a copy-ready skeleton in project or plugin references.
+Create Card first, Log second, then publish the Task execution link in the same checked
+candidate. Correct history with a later event rather than rewriting an old one. Do not create
+a project-wide execution log or separate Verification, State, per-role brief, or Handoff file
+without an independent need.
 
-The only fixed body surfaces are identifiers and parser-facing tables. For `Task.md`, keep
-the canonical task header from §4 and the per-card `execution_log` and `latest_event` facts; surrounding headings
-and explanatory prose remain free. Execution logs follow the content boundary in §4 without
-requiring a shared prose template.
+Card may refine implementation mechanics but cannot add scope, dependency, acceptance
+meaning, or design decisions absent from approved authority. Log never owns normative meaning.
 
-## 6. Writing discipline
+## 6. Content, not a template
 
-1. Read upstream, downstream, and definition locations before writing prose.
-2. Give each fact one authority; every other location uses real relative links and IDs.
-3. Store exploratory drafts separately from approved conclusions.
-4. List affected downstream files and refresh status in the same change batch.
-5. Human language never changes the semantics of ACs, tasks, links, or state.
-
-## 7. DocStar verification
-
-```bash
-python3 docstar.py check --preset gmgn-v1 --corpus <locale-root>
-python3 docstar.py dump --preset gmgn-v1 --json --corpus <locale-root>
-python3 docstar.py brief M1-T1 --preset gmgn-v1 --json --corpus <locale-root>
-```
-
-When the project contains `.docstar/conventions/conventions.json`, omit
-`--preset gmgn-v1`. English and Chinese mirrors should produce equivalent entities, edges,
-states, and diagnostics after natural-language prose is excluded from comparison.
+GMGN does not prescribe section names, order, or prose shape beyond the parser-facing fields
+above. The stage Skill defines what an artifact must answer and self-check. The primary
+orchestrator writes specification documents directly when its context makes that clearest;
+delegate a fresh Author only when bounded isolation, specialization, or parallelism has real
+value. Keep the independent Critic separate from the writer.

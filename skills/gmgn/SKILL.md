@@ -1,219 +1,129 @@
 ---
 name: gmgn
-description: "Use first to route workflow-driven project work: new projects, product ideas, research, feature development, bug fixes, refactors, WhitePaper, ROADMAP, PRD, requirements, design, task docs, coding delegation, launch, release, acceptance, or closure. 凡要按流程或 workflow 推进研发、调研、功能开发、修 bug、重构、写白皮书/ROADMAP/PRD/需求/设计/任务、派活写代码、上线发布、验收关账，或用户说按 GMGN/按流程办/下一步做什么时使用。"
+description: "Use first to route workflow-driven project work: new projects, product ideas, research, feature development, bug fixes, refactors, WhitePaper, ROADMAP, PRD, requirements, design, task docs, coding delegation, launch, release, acceptance, or closure. 凡要按流程推进研发、调研、功能、修 bug、重构、写白皮书/ROADMAP/PRD/需求/设计/任务、派活、上线发布、验收关账，或用户说按 GMGN/下一步做什么时使用。"
 ---
 
 # GMGN router: repository state → next stage
 
-Use this skill to locate the stage, then invoke the specialized skill. The normative method
-is [GMGN.md](../../GMGN.md); Chinese is [GMGN.zh-CN.md](../../GMGN.zh-CN.md).
+Use this skill to locate the stage, then invoke the specialized skill. The normative method is
+[GMGN.md](../../GMGN.md); Chinese is [GMGN.zh-CN.md](../../GMGN.zh-CN.md).
 
 ## Language and contract
 
-Infer `en` or `zh-CN` from approved project documents, then the user's language. Keep the
-machine contract English. Load the matching layout-free writing contract when writing documents:
+Infer `en` or `zh-CN` from approved project documents, then the user's language. Keep machine
+tokens and IDs in English. Load the matching layout-free writing contract when writing:
 [English](references/en/writing-contract.md) | [中文](references/zh-CN/writing-contract.md).
-
-## Telemetry boundary
-
-Telemetry is out-of-band observation, never execution, approval, or closure authority. Do not
-ask a model to write telemetry logs or add them to a prompt, `Task.md`, or `Handoff`. Only
-selected user-level hooks may emit privacy-safe lifecycle/tool metadata: opaque IDs, byte
-counts, status, classifications, fork policy, and structured correlation IDs. Telemetry failure
-never blocks routing or delivery and never changes a gate. Run `telemetry/report.py`
-only when the user explicitly requests a retrospective.
-
-For waits, retain only a normalized result and correlation metadata, never agent message text.
-Retrospectives report outcome/state-change counts, consecutive timeout and wait-storm signals,
-and actual cumulative-token deltas linked to post-wait model reactivation. When native
-turn/call linkage is absent, label this `session_sequence_delta` and expose matched/eligible
-coverage instead of claiming exact native attribution.
-
-Telemetry does not change DocStar or its JSON output. DocStar keeps a fresh full rebuild on
-every invocation with no cache; hooks and reporters measure calls, elapsed time, command type,
-and later grep/read outside DocStar. `grep_avoided` does not claim causation.
 
 ## Route by observable state
 
 | State | Route |
 |---|---|
 | New idea; no approved WhitePaper | `brainstorm` |
-| Approved WhitePaper; ROADMAP absent or being maintained | `roadmap` |
+| Approved WhitePaper; ROADMAP absent or changing | `roadmap` |
 | Owner starts a `not-started` milestone | `write-goal` |
 | Goal exists; Requirement absent or changing | `write-requirement` |
 | Requirement reviewed; Design absent or changing | `write-design` |
 | Design reviewed; Task absent or changing | `write-task` |
-| One or more confirmed cards in the target Milestone execution set are ready or one of its lanes remains active | `run-task` |
-| All target Milestone cards are closed on one shared baseline and traceability is full, but that Milestone has not yet received owner-accepted closure | `close-milestone` |
-| An immutable candidate is already accepted and the owner requests tagging, packaging, publication, deployment handoff, or local installation | `release` |
+| Confirmed Task rows can run or a target-Milestone lane remains active | `run-task` |
+| Every target-Milestone task is closed on one baseline but closure is not accepted | `close-milestone` |
+| An immutable candidate is accepted and distribution is requested | `release` |
 
-Before `write-goal` and throughout every later Milestone skill, record `target_milestone_id`
-and every available Goal, Requirement, Design, and Task authority anchor for that Milestone.
-Do not invent this ID for `brainstorm` or ROADMAP work without a selected Milestone. A
-downstream reference or DocStar edge is context, not authorization: it never expands the
-execution set or the closure gate. If the owner explicitly authorizes multiple Milestones,
-keep one separately owned execution set and closing decision per Milestone.
+From `write-goal` onward, record `target_milestone_id` and the available Goal, Requirement,
+Design, and Task anchors. A cross-Milestone link gives context, not execution authority. If the
+owner authorizes several Milestones, keep separate execution sets and closure decisions.
 
-## Runtime and role routing
+## Roles and fresh-agent dispatch
 
-Use the locale-matched [dispatch and agent-lifecycle contract](references/en/dispatch-and-handoff.md)
-or [中文契约](references/zh-CN/dispatch-and-handoff.md). Runtime state is not document or work-item
-state. Keep the node record and identity refs until `node-complete`. Then retire completed
-agent threads; durable events keep their refs as provenance, but a later node or card starts
-fresh.
+Use the locale-matched [dispatch contract](references/en/dispatch-and-handoff.md) or
+[中文契约](references/zh-CN/dispatch-and-handoff.md).
 
-- For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, the primary orchestrator
-  selects the actual writer before writing starts: itself when its context makes direct
-  authorship the clearest and least wasteful path, or a delegated Author when bounded
-  isolation, specialization, or parallelism creates real value. Bind `author_ref` to that
-  actual writer. WhitePaper normally favors the primary session because it holds the complete
-  owner dialogue. These factors guide the orchestrator's judgment; they are not eligibility
-  gates. Every semantic candidate still receives an independent Critic.
-- Accepted findings return to the same `author_ref`; blocker rechecks return to the same
-  `critic_ref`. When `author_ref` is the primary session, it applies accepted findings
-  directly; a delegated Author and Critic communicate only through the orchestrator.
-- `run-task` maintains a rolling ready set for the recorded target Milestone and one lane per
-  owned card. Each lane has one current Coder attempt plus independent Reviewer and Verifier
-  identities. One Coder attempt ends after its immutable candidate is anchored. Accepted code
-  findings, verification failures, `integration-conflict`, and judgment-required
-  `rebase-required` start a fresh Coder without parent or earlier-Coder history; the scheduler
-  atomically rotates `coder_ref` and `coder_epoch` from the current candidate. Affected review
-  returns to the same Reviewer and affected verification to the same Verifier. Critic blocker
-  rechecks likewise retain the same Critic; replacing a Critic or Reviewer requires a full
-  review.
-  When no implementation lane can currently run in parallel with useful orchestrator work,
-  the primary session may explicitly bind itself as that lane's `coder_ref` before writing.
-  It must not take over a lane already assigned to another Coder, and Reviewer and Verifier
-  remain independent. The primary orchestrator serially owns the integration queue, shared
-  baseline, `Task.md`, per-card execution logs, and traceability.
-- `close-milestone` dispatches target-scoped independent verification, a closure Author, a
-  combined Critic/Reviewer, then has the primary orchestrator integrate after owner acceptance.
-- `release` consumes review, verification, and acceptance evidence already bound to an
-  immutable anchor. An exact-anchor release or an explicitly equivalent mechanical release
-  does not dispatch another closure Author, combined Critic/Reviewer, or closure Verifier.
-  Only evidence invalidated by changed content, test plan, environment, or packaging inputs is
-  regenerated.
-- A platform that cannot resume an identity enters `agent-unavailable`; replacement is
-  explicit, and replacing a Critic or Reviewer requires a full review.
+The primary orchestrator keeps context, selects the stage, prepares briefs, adjudicates
+findings, integrates accepted candidates, and updates shared state. It is not a delegated
+agent. It may directly write WhitePaper, ROADMAP, Goal, Requirement, Design, or Task when that
+uses its complete context best; otherwise it delegates a bounded Author.
 
-For specification-document nodes, select and bind the actual writer, then follow
-`ready-to-dispatch → author-active → author-returned → candidate-anchored → critic-active →
-critic-returned`. When `author_ref` is the primary session, author states are lifecycle
-checkpoints rather than Author-agent dispatches. Accepted findings loop through
-`author-revising` with the same `author_ref` and, for blockers, `critic-rechecking` with the
-same Critic. Finish through `acceptance-ready → accepted`. Use `integrating → node-complete`
-only when the candidate crosses an isolated-workspace, concurrent-writer, or shared-baseline
-boundary. In every case, the primary orchestrator completes accepted same-batch propagation,
-machine checks, and commit control before `node-complete`.
+Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use. Prepare
+the full role brief before creation, start with no parent or earlier-agent history, accept one
+bounded return, and retire the agent. A revision, retry, recheck, or later verification uses a
+new brief and new agent. Never resume or repurpose a returned role.
 
-For implementation, keep one project-wide lane. Use
-`lane_key = project_scope_id + card_id` as its identity; `run_id` records an execution attempt
-and does not define uniqueness. Before any writer dispatch, atomically claim and verify the
-card and canonical `worktree_path` in the
-authority project's shared lane registry. Record `owner_thread_id`, `owner_run_id`,
-`ownership_epoch`, `coder_ref`, and `coder_epoch`; a thread-local agent list or cross-task scan
-is diagnostic, not proof that the lane is free. Claim first without Coder identity, then
-explicitly bind the first `coder_ref`. Every verify, anchor, rotation, or normal release
-requires the exact current ref and epoch. `rotate-coder` is allowed only from an anchored
-current candidate whose worktree `HEAD` matches that candidate; stale Coder returns are
-rejected. Bind the
-implementation repository's Git metadata/stat identity and object format too. Reject returns
-from another owner, a stale epoch, missing/wrong Coder, or a recreated repository path. If the
-owner cannot be confirmed, enter `owner-unreachable` and do not reclaim automatically. Reviewer
-and Verifier may coexist only as read-only agents.
+Fresh identity does not require a full role set after each edit. Select roles by impact:
 
-Every return, integration, conflict, or block recomputes the ready set and fills available
-capacity. Concurrency is the minimum of platform concurrency, ready cards, isolated
-workspaces, and exclusive-resource capacity; never hard-code it. On Codex, fill the current
-task's actual subagent capacity first. If ready cards remain, the owner explicitly authorized
-cross-task fan-out for this run, and create/list/read/wait/send task capabilities exist, create
-one worker main task per remaining lane without waiting for a local slot. Issue all currently
-allowed creates before the first blocking wait. Resolve queued `clientThreadId` to actual
-`threadId + hostId` before wait/claim/activation; preserve all opaque IDs and cursors. Each
-read-only bootstrap owns one prospective lane/worktree and may create one read-only Coder to
-report `coder_ref`. The scheduler alone performs claim/bind/verify and owns the ready set, lane
-registry, integration queue, and shared baseline. A worker cannot mutate registry state,
-recursively create main tasks, adjudicate, accept, integrate, edit `Task.md`, push, or publish.
-Group waits dynamically by runtime capacity, wake on any completion, and refill immediately.
-Without authorization or capabilities, use rolling dispatch in the current task.
+| Changed surface | Independent role |
+|---|---|
+| WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | Critic |
+| Implementation or test-code diff | Reviewer |
+| Executable result, environment, or package input | Verifier after review blockers clear |
+| Equivalent links, formatting, pointers, or status | Machine checks only |
 
-For current-task agents, use one event-driven `wait_agent` covering any live agent only after
-all ready dispatches, primary-Coder work, integration, state refresh, and local checks are
-exhausted. Use the longest platform-safe wait allowed by the surface's user-update and
-liveness limits; never turn a fixed short timeout into a polling interval. A timeout is only a
-liveness checkpoint: do not automatically run `list_agents`, probe a worktree, or call
-`wait_agent` again. Resume useful local work or yield, and send one targeted status request
-only after a task-derived liveness threshold is crossed. Workers push material events—blocker,
-candidate, review, verification, or completion—rather than periodic heartbeats.
+Freeze a candidate before review. Collect all active Critic and Reviewer findings before
+changing it; the primary orchestrator adjudicates once and batches accepted blockers. A fresh
+recheck role is dispatched only for affected scope. Non-blocking suggestions do not reopen an
+otherwise acceptable candidate. Do not dispatch a Verifier while relevant review blockers
+remain.
 
-A lane also records `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`candidate_anchor`, `candidate_coder_epoch`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
-and `shared_baseline_anchor`. Its normal tail is `accepted → integration-queued → integrating
-→ post-integration-verifying → node-complete`; branch acceptance is not card closure.
+## Document nodes
 
-Every worker Coder return stops at `candidate-awaiting-anchor`. Only after scheduler verify,
-candidate/path/`write_set` checks, atomic anchor, and an explicit candidate-scoped
-`review-authorized` message may that worker dispatch Reviewer. Revisions repeat the same gate.
-The completed Coder thread is retired after anchoring. A later revision bootstraps a fresh
-read-only Coder; the scheduler then rotates and activates it from the anchored candidate.
+The primary session or a fresh Author creates one candidate, self-checks it, and anchors it.
+Every semantic candidate receives one fresh independent Critic. If blockers are accepted, the
+primary session fixes them directly or uses a fresh Author, then a fresh Critic checks only the
+affected semantic surface when the boundary is provable. The primary orchestrator performs
+mechanical propagation, links, machine checks, and integration. Do not create an Integrator
+agent.
 
-The primary orchestrator first applies an accepted local-commit `candidate_anchor` to an isolated
-temporary combination based on the current shared baseline. A baseline advance alone does not
-force `rebase-required`; use it only when clean mechanical application fails, dependency/spec
-meaning is invalid, or Coder judgment is needed. Start a fresh Coder attempt for such work.
-Resume the same Verifier with the temporary
-workspace facts. Advance `shared_baseline_anchor` only after verification and mechanical
-ledger checks pass; otherwise abort/discard the temporary candidate, prove the original shared
-workspace clean, and continue unrelated lanes.
+## Task execution
+
+`Task.md` is the compact Milestone index: stable task rows, AC mapping, dependencies, macro
+status, and execution pointers. After the execution set is confirmed, `run-task` creates for
+each selected task:
+
+- `execution/<card_id>/Card.md` — normative execution and TDD contract, linked to `Log.md`;
+- `execution/<card_id>/Log.md` — descriptive current snapshot with `latest_event`, plus
+  append-only history.
+
+Run-task continuously fills a dependency-aware ready set. Concurrent writing lanes are
+isolated; a single non-colliding writer may use the verified current workspace. Each Coder
+attempt is fresh. A returned candidate is anchored before a fresh Reviewer sees it.
+Accepted fixes use another fresh Coder and only affected review roles. The final combination is
+either a frozen sole-writer candidate already based on the unchanged shared baseline or an
+isolated-lane candidate mechanically applied to a temporary workspace. One fresh Verifier
+checks that final candidate when executable evidence is required. Do not repeat the same
+verification before and after clean mechanical integration without a recorded risk reason.
+
+When no implementation lane can run in parallel with useful orchestrator work, the primary
+session may serve as one lane's Coder. It cannot take over an assigned lane and
+cannot replace independent review or required verification.
+
+Agent waiting is event-driven: exhaust useful work, wait once with the longest safe interval,
+and treat timeout as a liveness checkpoint rather than a polling trigger. Telemetry is
+out-of-band observation and never changes routing, readiness, acceptance, or closure.
 
 ## Controlled-change routing
 
-Workflow nodes are not one-way. Route a change to the single authority for the content:
+Route a semantic change to the single authority that owns it:
 
-| Approved authority that needs a semantic change | Route |
+| Authority changed | Route |
 |---|---|
-| WhitePaper problem, goal, scope, harm order, invariant, or interpretation | `brainstorm` revision mode |
-| ROADMAP sequencing, milestone allocation, dependency, or qualitative completion picture | `roadmap` maintenance mode |
-| Goal objective, boundary, slice, non-goal, or completion picture | `write-goal` revision mode |
-| Requirement, constraint, parameter authority, or acceptance criterion | `write-requirement` revision mode |
-| Design structure, interface, data, failure path, or R-AC mapping | `write-design` revision mode |
-| Task card, dependency, execution order, test anchor, or traceability mapping | `write-task` revision mode |
+| WhitePaper problem, goal, scope, invariant, or interpretation | `brainstorm` revision |
+| ROADMAP sequencing, milestone allocation, or dependency | `roadmap` maintenance |
+| Goal objective, boundary, slice, or non-goal | `write-goal` revision |
+| Requirement, constraint, parameter, or AC | `write-requirement` revision |
+| Design structure, interface, data, or failure path | `write-design` revision |
+| Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |
 
-Start from the approved old anchor, record the semantic delta and impact cone, update the
-authority, then propagate only through affected upstream/downstream representations and
-dependent work. Review, approve, and verify only affected content; do not rerun unrelated
-stages. Old approval remains attached to the old anchor. The new anchor needs the approval
-appropriate to that authority only when the change alters a decision or reasonable
-understanding. Meaning-preserving mechanical changes use same-batch refresh and machine
-checks without reapproval. An explicit equivalence record may let the new anchor retain the
-document approval state by citing the old approved anchor; this is not a new approval.
+Start from the approved anchor, record the semantic delta and impact cone, and update only
+affected authority, tasks, code, tests, evidence, and state. Meaning-preserving mechanical
+changes use machine checks without reapproval. A closed foundation remains closed; a current
+Milestone change card may revise its still-authoritative Design or Decision without reopening
+the historical Milestone.
 
-Publication is separate from acceptance. Route an accepted immutable anchor to `release`,
-which reuses anchored review and verification evidence. A tag, upload, authentication retry,
-or local reinstall does not rerun closure. A release-only version or metadata commit may cite
-the accepted anchor through an explicit allowed-diff equivalence record and machine checks;
-any semantic delta returns only its impact cone to the appropriate authority. Historical
-closed state without a provable accepted anchor is not a release input: record an adoption
-baseline, create current review and verification evidence, and obtain new owner acceptance
-before returning to `release`; never guess the missing anchor.
+For a narrow bug or mechanical one-step change, use the controlled bypass: identify the
+smallest authority and acceptance condition, implement, independently review the diff, verify
+the final executable candidate when required, and refresh state in the same batch. Do not
+fabricate the full document chain.
 
-A closed foundation or M0 Milestone is a historical declaration about its closing anchor, not
-a promise that its technical selection can never change. An M0-originated Design, Decision, or
-index remains the semantic authority. Later evidence uses a change card owned by the current
-Milestone to revise that authority: record the trigger, old and new anchors, `supersedes`, and
-impact cone. Keep the M0 state and its old closure anchor closed; do not reopen M0 or rerun its
-complete workflow. The current Milestone owns the change, implementation, and verification
-work, not the M0-originated meaning.
-
-For a narrow bug or mechanical one-step change, use the controlled bypass: identify scope,
-the smallest authority/acceptance condition, implementation, test, independent review, and
-same-batch status refresh. Do not fabricate a full chain; do not bypass WhitePaper, ROADMAP,
-milestone initiation, scope expansion, or closure authority.
-
-<HARD-GATE>Never route past a missing prerequisite, redefine upstream meaning in a downstream document, or execute a downstream Milestone merely because the target Milestone references it. The primary orchestrator may be the recorded writer for WhitePaper, ROADMAP, Goal, Requirement, Design, or Task, but it must make that writer choice explicit before writing, preserve the independent Critic, and must not silently take over work already assigned to another writer. It may act as the recorded Coder only when the lane cannot currently execute in parallel with useful orchestrator work, after explicitly binding the primary session as `coder_ref`, and without taking over an assigned lane; independent Reviewer and Verifier work must never be replaced. The primary orchestrator must itself integrate every accepted candidate, serialize shared-baseline writes, refresh Task/log/traceability state, and preserve the verified candidate meaning; this responsibility must not be delegated. Semantic ambiguity, source repair, or conflict resolution requiring implementation judgment returns to the recorded writer/Coder. Pause dependent work whose premise changed until the semantic revision has the review or approval appropriate to its new version anchor. Agent-to-agent permission does not equal owner authorization. No push, publish, deployment, PR mutation, or external message unless the owner or project rules explicitly authorize it.</HARD-GATE>
+<HARD-GATE>Never skip a missing prerequisite, redefine upstream meaning downstream, execute a referenced Milestone without owner authorization, let a delegated agent self-review, expose an unverified implementation combination as the shared baseline, or push/publish/deploy without explicit authority.</HARD-GATE>
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
-not output a fixed `Reflection` section. Disclose only material unresolved risks that could
-change the conclusion, decision, acceptance, or downstream work; otherwise omit the
-disclosure. Approval, acceptance, and closure always state remaining material risks or that
-none are known.
+not output a fixed `Reflection` section. Disclose only unresolved material risk that could
+change the decision, acceptance, or downstream work.

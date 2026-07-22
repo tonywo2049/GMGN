@@ -122,8 +122,9 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("GMGN.zh-CN.md", names)
             self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
-            self.assertIn("integration_queue_ref", run_task_skill)
-            self.assertIn("post-integration-verifying", run_task_skill)
+            self.assertIn("`execution/<card_id>/Card.md` first", run_task_skill)
+            self.assertIn("## 6. Verify once at the final useful boundary", run_task_skill)
+            self.assertIn("final candidate", run_task_skill)
 
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()
             checksum = (output_dir / f"gmgn-{version}.zip.sha256").read_text(encoding="utf-8")

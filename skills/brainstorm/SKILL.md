@@ -21,9 +21,9 @@ rulings, and challenges premature implementation or solutions disguised as requi
 Before writing, it selects and records the actual WhitePaper writer. Prefer the primary
 session because it already holds the complete Brainstorm context; delegate to an Author only
 when a bounded context package and a concrete isolation, specialization, or parallelism
-benefit outweigh the handoff cost. Bind `author_ref` to the actual writer. Dispatch a
-Researcher only when scoped evidence work is independently useful; dispatch an independent
-Critic after anchoring the candidate.
+benefit outweigh the handoff cost. A delegated Author or Researcher receives a complete
+brief before creation and is single-use. Dispatch an independent fresh Critic only after
+anchoring the candidate.
 
 Use as needed:
 
@@ -46,25 +46,17 @@ Do not introduce R-AC IDs or quantitative requirement criteria here.
 
 ## Writer and critic loop
 
-1. Enter `awaiting-owner-input` while a material problem, scope, or harm-order decision is
-   missing. Once inputs are sufficient, create the node record and enter `ready-to-dispatch`.
-2. Select the actual writer and bind `author_ref`, then enter `author-active`. If the primary
-   session is selected, it writes directly from the dialogue, evidence, owner rulings,
-   required content above, allowed paths, and baseline anchor. If an Author is selected,
-   dispatch that bounded package and retain its identity.
-3. At `author-returned`, the same recorded writer self-checks completeness, scope,
-   placeholders, contradictions, and forbidden changes. Resolve any gap with that writer in
-   `author-rework`, then enter `candidate-anchored`.
-4. `critic-active`: dispatch an independent Critic against that anchor and minimum context.
-   The Critic reports to the orchestrator and does not edit the WhitePaper.
-5. At `critic-returned`, adjudicate findings. The same recorded writer applies accepted
-   findings in `author-revising`; send blocker fixes to the same `critic_ref` in
-   `critic-rechecking`.
-6. With no blocker, enter `acceptance-ready`, present the anchored candidate and remaining
-   material risks—or that none are known—to the owner. The primary orchestrator applies the
-   accepted mechanical links, state, and commit material, including across an integration
-   boundary such as an isolated workspace, concurrent writer, or shared baseline. Finish at `node-complete` only
-   after all representations agree and machine checks pass.
+1. Resolve material problem, scope, and harm-order questions with the owner. Then select the
+   writer. The primary session normally writes directly from the dialogue; if delegation has
+   real value, prepare the complete brief before creating one fresh Author.
+2. The writer self-checks completeness, scope, placeholders, and contradictions, then freezes
+   one candidate. A delegated Author ends after its return.
+3. Prepare one brief and create one fresh independent Critic. Collect its full review before
+   editing. The primary orchestrator adjudicates once and applies accepted findings directly
+   or uses a fresh Author. Only a changed semantic surface gets a fresh Critic recheck.
+4. With no blocker, present the anchored candidate and remaining material risks—or that none
+   are known—to the owner. After approval, apply mechanical links and state, then run machine
+   checks.
 
 ## Revision mode
 
@@ -88,10 +80,8 @@ revision mode or seeking reapproval.
 
 ## Exit
 
-The recorded writer self-checks placeholders, contradictions, scope gaps, and ambiguity.
-Run the writer/independent-Critic loop above using the locale-matched lifecycle
-contract; adjudicate findings without letting the Critic expand scope. Bind owner approval to
-a commit or hash. In creation mode, complete any workspace-topology-required integration and
+Bind owner approval to a commit or hash. In creation mode, complete any
+workspace-topology-required integration and
 use **REQUIRED next skill: `roadmap`**. In revision mode, commit, propagate the approved delta
 through its impact cone, and return to the stage that raised the change rather than restarting
 the full chain.

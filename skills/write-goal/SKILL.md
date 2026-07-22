@@ -29,16 +29,14 @@ as gaps; create each only when its stage starts.
 
 ## Writer and critic loop
 
-At `ready-to-dispatch`, record the ROADMAP anchor and owner initiation, select the actual
-writer, and bind `author_ref`. The primary session may write directly, or an Author may be
-delegated when the bounded handoff creates real value. After `author-returned`, send incomplete
-work to the same recorded writer as `author-rework`; otherwise enter `candidate-anchored` and
-dispatch an independent Critic. At `critic-returned`, adjudicate findings, resume the same
-recorded writer in `author-revising`, and use the same Critic for blocker
-`critic-rechecking`. At `acceptance-ready`, the primary orchestrator reviews the anchored
-candidate. The primary orchestrator applies accepted mechanical propagation and commit
-material, including across an integration boundary, and runs the machine checks. Finish only
-at `node-complete`.
+Record the ROADMAP anchor and owner initiation. The primary session may write directly, or it
+prepares a complete brief and creates one fresh Author when the bounded
+handoff creates real value. The writer self-checks before return; a delegated Author ends on
+return, so later correction uses the primary session or a fresh Author with a new brief. Freeze
+the candidate and dispatch one fresh independent Critic from a prepared brief. Collect all
+findings before editing, adjudicate once, and batch accepted blocker fixes. A semantic recheck
+uses a fresh Critic only for affected scope. The primary orchestrator then reviews the anchored
+candidate, applies accepted mechanical propagation, and runs machine checks.
 
 ## Controlled revision
 
@@ -63,7 +61,7 @@ machine checks without reapproval.
 ## Exit
 
 Require the recorded writer to self-check the ROADMAP boundary and slices. For creation or a
-semantic revision, run the identity-preserving writer/Critic loop using the locale-matched
+semantic revision, run the fresh-agent writer/Critic loop using the locale-matched
 dispatch contract, obtain primary-orchestrator review, and integrate only when required by
 workspace topology. Creation then uses **REQUIRED next skill:
 `write-requirement`**. A revision returns to the stage that raised it and continues through

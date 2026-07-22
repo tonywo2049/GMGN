@@ -1,7 +1,7 @@
 ---
 locale: zh-CN
-purpose: 在并行产出进入共享基线前检查集成、验证强度、声明真实性、工具退化和复杂度。
-upstream: [GMGN §7](../../../../GMGN.zh-CN.md), [代码审查](code-review.md)
+purpose: 在共享基线集成前检查候选身份、审查、验证、状态和复杂度。
+upstream: [GMGN](../../../../GMGN.zh-CN.md), [代码审查](code-review.md)
 downstream: none
 status: approved
 type: design
@@ -12,36 +12,18 @@ nature: normative
 
 English: [../en/pre-merge-checklist.md](../en/pre-merge-checklist.md)
 
-1. **工作区溯源**：`project_scope_id`、`lane_key`、`run_id`、`card_id`、`worktree_path`、
-   `branch_ref`、`baseline_anchor`、`candidate_anchor` 是否锁定同一条已审 lane；开工与回传根核验
-   是否通过；候选是否为只含本卡 `write_set` 的可解析本地 commit；`repository_identity` 与仍可
-   解析的原 baseline 是否和 claim 一致？
-2. **所有权新鲜度**：registry verify 是否仍与 `owner_thread_id`、`owner_run_id`、
-   `ownership_epoch`、精确已绑定 `coder_ref`、当前 `coder_epoch`、canonical 路径一致；worker 是否先停在
-   `candidate-awaiting-anchor`；候选是否经原子 `anchor` 登记后才收到精确 `review-authorized`；不同
-   owner、旧 ownership/Coder epoch、缺失/错误 Coder 或被替换仓库是否在审查、集成前被拒绝？
-3. **两阶段基线安全**：是否先从干净的当前 `shared_baseline_anchor` 创建隔离临时组合并应用候选，
-   且不推进共享锚？基线前移本身不得触发 `rebase-required`；是否只有应用不干净、依赖/规格语义
-   失效或需要 Coder 判断时才使用该状态？
-4. **集成完整性**：实际影响面是否大于文件 diff；接口、调用方、迁移、文档和交互 lane 是否都处理？
-5. **验证不降级**：是否删测、放宽断言、吞错或绕过真实路径？
-6. **声明—磁盘一致**：完成状态、文件、测试输出和 git diff 是否一致；分支 `accepted` 是否仍与
-   `closed` 明确分开？
-7. **操作—形态匹配**：命令对当前路径、空集、大集、重复名和失败码如何退化？
-8. **命名、数字与所有权溯源**：机制专名、关键数字、semantic owner、`conflict_domains` 和
-   `runtime_locks` 能否指回权威？
-9. **过度设计扫**：逐项检查 `delete | stdlib | native | empty abstraction | shrink`。
-10. **当前状态与日志分离**：`Task.md` 是否替换当前状态、阻塞、版本锚、证据与 `latest_event`，
-    单卡日志的追加式事件正文是否保留尝试和已被替代的状态？日志是否保持描述性、单卡化且不进入
-    正常初次派发的必读集？
-11. **失败隔离**：冲突或失败后，失败实现是否已丢弃、前一共享锚是否已证明 clean，并另用经过
-    检查的状态候选记录日志事件和 Task 当前阻塞？
-12. **原子关账**：推进 `shared_baseline_anchor` 前，验证通过的组合候选是否已经包含精简后的
-    closed Task 卡、closed 日志元信息、最终事件、追踪与证据；是否只在该候选原子推进后才把运行态
-    lane 改为 `node-complete`？
+1. **候选身份**：已审候选是否能从预期基线、工作区、任务和预先声明的写入边界精确解析？
+2. **影响范围**：接口、调用方、迁移、文档和交互任务是否都在范围内？
+3. **审查屏障**：是否先收齐全部活动 Critic/Reviewer finding 并清除 blocker，再派 Verifier？
+4. **最终组合**：它是已应用到当前共享基线的隔离 lane 候选，还是已经基于未变共享基线的单 writer
+   冻结候选？
+5. **验证边界**：需要可执行证据时，是否只派一个新 Verifier 检查最终组合？存在第二边界时，
+   是否记录风险理由？
+6. **验证不降级**：是否删测、放宽断言、吞错或绕过真实路径？
+7. **Task/Card/Log 分离**：Task 是否只保留宏观信息，Card 是否为稳定执行/TDD 权威，Log 是否保存
+   当前快照和历史？
+8. **失败隔离**：冲突或失败后，前一共享基线是否仍 clean，失败是否只记录在 Log 而不扩张 Task？
+9. **过度设计**：能否删除、改用标准/原生能力，或缩小结构？
 
-主编排者在临时组合运行 `git diff --check`、`git status --short` 等机械检查。同一 lane 的
-Verifier 收到当前派发的 `workspace_mode`、`worktree_path`、`branch_ref`，在该临时组合运行受影响
-交互与项目门禁。冲突/失败时中止或丢弃临时候选并证明原共享工作区 clean。只有验证通过的候选
-加台账刷新才能原子推进 `shared_baseline_anchor`；候选必须先包含 closed 文档状态，运行态 lane 才能
-进入 `node-complete`。未验证实现组合不得成为共享基线。
+在临时组合运行 `git diff --check`、`git status --short` 等仓库检查。只有审查清零，且在需要时独立
+验证通过的组合才能推进共享基线；Task/Card/Log 与追踪关系必须在该候选中同批刷新。

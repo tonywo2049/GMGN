@@ -20,7 +20,8 @@ Use the Goal locale and the matching layout-free
   writer chooses the document structure.
 - Give each requirement decidable ACs `R1-AC1`, ... using observable precondition, action,
   and result. This is the qualitative-to-quantitative boundary.
-- Separate functional, non-functional, parameter/constraint, non-goal, and open-decision sections.
+- Clearly distinguish functional, non-functional, parameter/constraint, non-goal, and
+  open-decision content.
 - Parameterize changeable numbers; name the authority and verification method for values.
 - Maintain a Goal ↔ R/AC traceability table. No orphan Goal slice and no unowned AC.
 - For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
@@ -31,16 +32,14 @@ structure, and every number has an authority and verification method.
 
 ## Writer and critic loop
 
-At `ready-to-dispatch`, record the Goal anchor, select the actual writer, and bind `author_ref`.
-The primary session may write directly, or an Author may be delegated with the content and
-self-check above when the bounded handoff creates real value. At `author-returned`, send
-incomplete or out-of-scope work to the same recorded writer as `author-rework`; otherwise enter
-`candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
-findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
-same Critic in `critic-rechecking`. When no blocker remains, the primary orchestrator
-reviews the candidate. The primary orchestrator applies accepted mechanical links, mappings,
-state, and commit material, including across an integration boundary, and runs machine checks. Finish at
-`node-complete`.
+Record the Goal anchor. The primary session may write directly, or it prepares a complete brief
+and creates one fresh Author when the bounded handoff creates real
+value. The writer self-checks before return; a delegated Author ends on return, so later
+correction uses the primary session or a fresh Author with a new brief. Freeze the candidate
+and dispatch one fresh independent Critic from a prepared brief. Collect all findings before
+editing, adjudicate once, and batch accepted blocker fixes. A semantic recheck uses a fresh
+Critic only for affected scope. When no blocker remains, the primary orchestrator reviews the
+candidate, applies accepted mechanical links, mappings, and state, then runs machine checks.
 
 ## Controlled revision
 
@@ -63,7 +62,7 @@ refresh plus machine checks without reapproval.
 ## Exit
 
 Require the recorded writer to reconcile scope coverage and scan every affected AC for
-decidability. For creation or a semantic revision, run the identity-preserving writer/Critic
+decidability. For creation or a semantic revision, run the fresh-agent writer/Critic
 loop using the locale-matched dispatch contract; tell the Critic to emphasize upstream
 consistency and acceptance quality. Obtain primary-orchestrator review and integrate only
 when required by workspace topology. Creation then uses **REQUIRED next skill:

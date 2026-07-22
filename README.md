@@ -72,30 +72,34 @@ the Author chooses the structure.
 Native review does not replace execution. GMGN still requires project tests and a
 replayable verification path. In Codex, a custom review prompt and scope flags are
 mutually exclusive; after review, check `git status --short` for generated side effects.
-Within a document node, fixes return to the same Author and blocker rechecks to the same
-Critic. Each implementation candidate ends its Coder attempt; accepted findings or failed
-verification start a fresh Coder from the anchored candidate, while the same Reviewer rechecks
-the affected diff. If a review identity is replaced, GMGN repeats the full review.
+Every delegated role receives a complete brief before creation, returns once, and is retired.
+Later authoring, coding, criticism, review, or verification uses a fresh agent without parent
+or earlier-agent history. Fresh identity does not mean every role reruns: only roles whose
+evidence surface changed are dispatched.
 
-`run-task` continuously fills available capacity from a dependency-aware ready set; it does
-not wait for one card to close before starting another independent card. Each card keeps one
-current Coder attempt, an independent Reviewer, an independent Verifier, and an explicitly
-provisioned worktree. Coder revisions start without earlier-Coder conversation history and
-receive the authority brief plus the current-cycle delta. When no implementation lane can run in parallel with useful orchestrator
-work, the primary session may be that Coder after explicit binding. Worktrees prevent agents
+`run-task` continuously fills available capacity from a dependency-aware ready set. `Task.md`
+keeps task division, AC mapping, dependencies, macro status, and execution pointers. Each
+selected task gets `execution/<card_id>/Card.md` for its stable execution/TDD contract and
+`Log.md` for current runtime state plus append-only history. Each Coder attempt uses a fresh
+agent. Concurrent writers use explicitly provisioned worktrees; a single non-colliding writer
+may use the verified current workspace. When no implementation lane can run in parallel with
+useful orchestrator work, the primary session may be that Coder. Worktrees prevent agents
 from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
 runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
-and traceability. Each Coder returns a local commit containing only its card write set. Integration
-first verifies an isolated temporary combination; only success atomically advances the shared
-baseline. A card closes only after post-integration verification and ledger refresh there.
+and traceability. A delegated Coder returns a local commit containing only its prepared write
+scope; a primary-session sole Coder may freeze and hash its exact diff. An isolated-lane
+candidate is applied to a temporary combination, while a sole-writer candidate already based
+on the unchanged shared baseline is the final combination. After review blockers clear, one
+fresh Verifier checks it when executable evidence is required. Clean mechanical integration does not
+cause identical tests to run twice. Only success atomically advances the shared baseline.
 Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
 timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
 loop. Agent progress remains local to its thread; only material lifecycle events notify the
 orchestrator.
 
-The reviewed `Task.md` card is the static authority for each implementation lane. Run-task
-roles receive the exact card/authority pointers plus current lane facts, not the parent
-conversation or a duplicated per-agent handoff.
+The reviewed `Task.md` row selects the work; its materialized `Card.md` is the static execution
+and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and
+lane facts, not the parent conversation or a duplicated per-agent handoff.
 
 ## Install
 
@@ -216,7 +220,7 @@ claude plugin marketplace remove GMGN --scope user
 | “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
 | “Produce the technical design.” | `write-design` | Design.md |
 | “Break the design into task cards.” | `write-task` | Task.md |
-| “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review and verification evidence |
+| “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review, and any required verification evidence |
 | “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, closure record |
 | “Publish the accepted version / retry its release.” | `release` | Reused acceptance evidence, deterministic artifact, tag and release |
 | “What should happen next?” | `gmgn` | State diagnosis and routing |

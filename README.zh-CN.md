@@ -50,21 +50,24 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 | 运行验证 | 项目测试、启动与 E2E 命令 | 项目命令；可用 `/verify` |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。文档修改回原 Author，blocker 定向复核回原 Critic。每个实现候选结束一次 Coder 尝试；已采纳 finding 或验证失败从已锚候选新建 Coder，受影响 diff 仍回原 Reviewer。审查身份替换后重做完整审查。
+原生审查不替代真实运行。每个受委派角色在创建前取得完整 brief，只回传一次后结束；后续 Author、Coder、Critic、Reviewer、Verifier 都新建，不继承父会话或旧 agent 历史。新身份不代表所有角色重跑，只派受本次变化影响的角色。
 
-`run-task` 按依赖 ready set 持续补满可用槽位，不等上一卡关账才启动下一张独立卡。每卡保留一个
-当前 Coder 尝试、独立 Reviewer、独立 Verifier 和显式 provision 的 worktree。Coder 修订不继承此前
-Coder 对话，只接收权威 brief 与当前周期增量。当前没有实现 lane
-能与有用的主编排工作并行时，主 session 可在显式绑定后承担 Coder。Worktree 能防止 agent 互相覆盖文件与
+`run-task` 按依赖 ready set 持续补满可用槽位。`Task.md` 只保留任务划分、AC 映射、依赖、宏观状态
+和 execution 指针；每个选中任务用 `execution/<card_id>/Card.md` 保存稳定执行/TDD 契约，用
+`Log.md` 保存当前运行快照和追加式历史。每次 Coder 都新建；并发 writer 使用显式 provision 的
+worktree，单个无冲突 writer 可使用已核对的当前工作区。当前没有实现 lane 能与有用的主编排工作
+并行时，主 session 可承担 Coder。Worktree 能防止 agent 互相覆盖文件与
 index，但不能解决 merge、语义、接口或共享运行资源冲突。主 session 串行拥有共享基线、
-`Task.md` 和追踪矩阵。每个 Coder 回传只包含本卡写集的本地 commit；集成先验证隔离临时组合，
-只有成功才原子推进共享基线。任务卡完成集成后验证和台账刷新才关账。
+`Task.md` 和追踪矩阵。受委派 Coder 回传只包含 brief 允许范围的本地 commit；主 session 单独承担
+Coder 时可以冻结并 hash 精确 diff。隔离 lane 候选先应用到临时组合；单 writer 候选已基于未变共享
+基线时，本身就是最终组合。相关审查 blocker 清零后，需要可执行证据时只派一个全新 Verifier 验证
+最终组合。干净机械集成不重复同一测试。
 Agent 等待采用事件驱动：先做完有用本地工作，只发起一次平台允许的最长安全等待，把超时只当存活
 检查点，禁止把 status/list/wait 串成轮询循环。Agent 进度只在自己的 thread 内显示，只向主编排者
 推送实质生命周期事件。
 
-每条实现 lane 都以已评审的 `Task.md` 任务卡为静态权威。run-task 角色只接收精确任务卡/权威指针
-与当前 lane 事实，不继承父会话，也不再复制一份逐 agent handoff。
+已评审的 `Task.md` 行选择工作，物化后的 `Card.md` 是静态执行/TDD 权威。run-task 角色只接收精确
+权威指针、Log 当前快照与 lane 事实，不继承父会话，也不复制逐 agent handoff。
 
 ## 安装
 
@@ -192,7 +195,7 @@ claude plugin marketplace remove GMGN --scope user
 | “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
 | “出技术设计和系统方案” | `write-design` | Design.md |
 | “拆实施计划和任务卡” | `write-task` | Task.md |
-| “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查与验证证据 |
+| “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查和所需验证证据 |
 | “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、关账记录 |
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |
 | “下一步做什么？” | `gmgn` | 状态判断与工序路由 |

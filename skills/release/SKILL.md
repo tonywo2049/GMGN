@@ -9,18 +9,19 @@ Use release evidence; do not recreate closure evidence. A release is distributio
 accepted candidate, not another semantic acceptance cycle.
 
 <HARD-GATE>Require an immutable `accepted_anchor`, its approval or acceptance reference,
-review evidence, verification evidence, disclosed remaining material risks, and explicit
-owner authorization for every external write. If the proposed release contains a semantic
-change not covered by that evidence, stop and route only the affected content through `gmgn`;
-do not publish first or repeat all closure work by default.</HARD-GATE>
+the review evidence required by its scope, any required verification evidence, disclosed
+remaining material risks, and explicit owner authorization for every external write. If the
+proposed release contains a semantic change not covered by that evidence, stop and route only
+the affected content through `gmgn`; do not publish first or repeat all closure work by
+default.</HARD-GATE>
 
 ## Missing historical acceptance anchor
 
 Never fabricate or infer `accepted_anchor` from a historical closed status, tag, prose summary,
 or unanchored test output. For a repository adopted without usable history, record the current
 clean commit as an adoption baseline and its missing-history limitation. That baseline is not
-reusable release evidence. Prepare an immutable current candidate, run the full required review
-and verification for its actual release scope and environment, obtain new owner acceptance,
+reusable release evidence. Prepare an immutable current candidate, run applicable review and
+the verification actually required by its release scope and environment, obtain new owner acceptance,
 and only then use the resulting anchor as `accepted_anchor`. Historical closed records remain
 closed; this recovery creates present evidence and does not rewrite their history.
 
@@ -30,8 +31,8 @@ Record a release evidence tuple in the existing release record, Handoff, or CI p
 do not create a new document when an existing authority can hold it:
 
 - `accepted_anchor` and `release_anchor`;
-- approval or acceptance reference, review evidence reference, and verification evidence
-  reference;
+- approval or acceptance reference, applicable review evidence, and required verification
+  evidence or an explicit `not-required` classification;
 - `semantic_delta`, with `none` only when established rather than assumed;
 - exact `allowed_diff` when the release anchor differs from the accepted anchor;
 - packaging recipe anchor and target distribution environment.

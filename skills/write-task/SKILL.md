@@ -1,190 +1,120 @@
 ---
 name: write-task
-description: "Use after Design review to create or change Task.md: implementation/development plan, steps, tasks/subtasks, task cards, work items, TODOs, dependencies, traceability, current execution snapshot, and linked per-card execution logs. Design 已过审后拆任务/拆卡/排任务、实施计划/开发计划、任务卡/工作项/待办/TODO，并建立 Task.md 当前执行快照与单卡执行日志关联。"
+description: "Use after Design review to create or change Task.md: milestone task decomposition, AC-to-task mapping, dependencies, orchestration status, and pointers to per-card execution contracts. Design 已过审后拆任务、维护 AC→Task 映射、依赖与宏观执行状态；单卡 TDD 与执行细节在 run-task 创建的 execution 文档中维护。"
 ---
 
-# Task.md: execution authority
+# Task.md: milestone task index
 
-<HARD-GATE>`Design.md` must exist and have independent-critic plus primary-orchestrator review. Record `target_milestone_id`; every card must be owned by that Milestone's Task authority. Otherwise return to `write-design`. If task planning exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
-
-## Language and contract
+<HARD-GATE>`Design.md` must exist and have independent Critic plus primary-orchestrator review. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
 
 Use the Design locale and the matching layout-free
 [English](../gmgn/references/en/writing-contract.md) or
 [中文](../gmgn/references/zh-CN/writing-contract.md) contract. Keep filename `Task.md`,
-`type: task`, `nature: normative`, and these exact headers:
+`type: task`, `nature: normative`, and this parser-facing table header:
 
 ```markdown
-| # | task | spec anchor | prerequisite | failing test | status |
+| # | task | spec anchor | prerequisite | status | execution |
 ```
 
-## Writer content and self-check
+## What Task.md owns
 
-- Split the Design into cards; the recorded writer chooses the surrounding document structure
-  while preserving the fixed parser-facing table header. Give each card a stable Markdown
-  anchor keyed by its existing task ID for its log's exact upstream link.
-- Each card is the smallest independently reviewable and verifiable unit.
-- Split at an independent proof boundary, not by file count, chronological phase, or the final
-  product qualification. One card has one primary semantic owner and one independently
-  decidable completion result; one R-AC may map to several cards.
-- Separate independently verifiable interface/schema enablement, implementation, cross-module
-  integration, real-environment or E2E qualification, production eligibility, and Milestone
-  closure. A final safety or production decision does not justify absorbing its separable
-  prerequisites into one implementation card.
-- An intermediate card may integrate only when unfinished product paths remain `unreachable`,
-  disabled, or fail-closed, and its test proves both the local result and that containment.
-- Oversized-card warning signs include unrelated responsibilities or modules, multiple unrelated
-  failing tests, a broad `write_set`, unrelated conflict domains or runtime locks, and one card
-  combining implementation with qualification or closure. Split again whenever the resulting
-  cards can still be independently reviewed and verified.
-- Stop splitting when a smaller unit would no longer have an independently testable result,
-  would create an empty wrapper or fake interface, or would leave required responsibility with
-  no owner.
-- Every card has a stable ID, R-AC spec anchor, explicit `depends_on`, failing-first test,
-  completion criterion, allowed paths, `write_set`, `conflict_domains`, `runtime_locks`, a
-  semantic owner, exactly one owning Milestone, work state `not-started`,
-  `execution_log: none`, and `latest_event: none`. Keep the six parser-facing columns unchanged; record the additional
-  execution facts in card content keyed by the same stable ID.
-- `depends_on` forms an acyclic DAG. It may name cards in the same Milestone; an external hard
-  prerequisite may only point to an already planned upstream Milestone as established by the
-  ROADMAP dependency relationship, not by Milestone ID or numeric order, and never authorizes
-  executing that external card. A current or upstream Milestone must not depend on downstream
-  implementation, confirmation, evidence, or document completion. Such a reverse dependency
-  returns to `write-task` revision mode, and to an upstream authority when its meaning is wrong,
-  before any downstream work starts.
-- If the target Milestone must itself prove technical-selection or architecture feasibility,
-  create a spike or verification card owned by that target Milestone. If responsibility belongs
-  downstream, record a non-blocking TODO or Handoff with receiving Milestone/owner, question,
-  trigger, possible impact or default assumption; do not turn it into the target's prerequisite.
-- A card becomes ready only when every valid predecessor is `node-complete` on the current
-  shared baseline. Order interface/schema changes before their consumers, but do not add
-  artificial ordering between independent cards.
-- `write_set` names intended files and, where useful, stable sections or symbols.
-  `conflict_domains` names shared semantic/interface/schema/migration/generated-artifact
-  surfaces; `runtime_locks` names exclusive databases, ports, hardware, accounts, or other
-  mutable resources. File overlap alone is not proof of safety or conflict.
-- Maintain an AC → task → test → evidence traceability matrix; every in-scope AC is covered.
-- Do not use task prose to redefine Requirement or Design.
+`Task.md` is a compact Milestone index. It owns only:
 
-Before return, the recorded writer checks that every target-Milestone AC has at least one card,
-test, and evidence destination; every card has all required facts; prerequisites form no cycle;
-and no reverse dependency points to a downstream Milestone. Cards eligible together have
-compatible `conflict_domains`, `runtime_locks`, and semantic ownership. The writer does not
-freeze waves in `Task.md`; the orchestrator derives a rolling ready set from the current shared
-baseline.
+- stable task IDs and one-line independently decidable outcomes;
+- Requirement AC and Design anchors;
+- the task dependency DAG;
+- current macro status;
+- the per-card execution pointer, initially `none`;
+- the target Milestone execution set, shared-baseline pointer, integration-queue pointer, and
+  an AC → task traceability table.
 
-## Current snapshot and per-card execution history
+Do not put TDD cases, commands, allowed paths, write sets, locks, candidate anchors, blockers,
+review rounds, verification evidence, or progress narratives in `Task.md`. Those facts belong
+to the per-card execution documents created by `run-task`. Updating Task status or its
+execution link replaces the old value; it never appends history.
 
-- Keep `Task.md` as the normative current execution snapshot. It contains only the facts
-  needed for current scope, readiness, ownership, status, blockers, latest anchors, current
-  evidence, and closure; replace superseded state rather than appending progress narratives.
-- On the first durable execution event for a card, create `execution/<card_id>.md` with
-  all seven fixed frontmatter keys: Task locale; a purpose naming the card; `upstream` as a
-  real relative link to the exact Task card anchor; `downstream: none`; `status: draft`;
-  `type: execution-log`; and `nature: descriptive`. Then replace the card's
-  `execution_log: none` and `latest_event: none` with real relative links in the same
-  state-refresh batch.
-- Append durable status transitions, attempts, candidate and baseline anchors, review and
-  verification rounds, commands, results, limitations, integration conflicts, corrections,
-  and superseded states to that card's log. Give each event a stable `event_id`, a
-  `previous_event` link or `none`, and evidence links; update the Task card's `latest_event`
-  pointer in the same batch. Do not rewrite old event bodies; append a correction. Fixed
-  frontmatter and current pointers may be mechanically refreshed.
-- Keep one log per stable `card_id`. Never accumulate all cards into one project-wide or
-  Milestone-wide execution log.
-- The execution log is descriptive and on-demand. It never defines current scope,
-  dependencies, acceptance, status, or closure. Promote any discovered semantic change to
-  its normative authority through the controlled revision route before affected work resumes.
-- A single-card operator resolves the exact card, its directly gating rows, affected AC rows,
-  and target-Milestone shared-baseline/integration-queue pointers. Do not ingest all of
-  `Task.md`, unrelated closed cards, or the whole execution log by default; start from
-  `latest_event` and follow only the unresolved cycle's links.
-- A closed card remains in the canonical Task table with its closure result, current evidence,
-  and execution-log pointer. Remove its superseded narrative from `Task.md`; do not remove its
-  stable ID or traceability.
+## Decompose work
 
-## Writer and critic loop
+- Split at an independent proof boundary, not by file count, chronology, or a final product
+  qualification. One task has one primary semantic owner and one independently decidable
+  result; one AC may map to several tasks.
+- Separate independently verifiable interface/schema enablement, implementation,
+  cross-module integration, real-environment or E2E qualification, production eligibility,
+  and Milestone closure.
+- An intermediate task may integrate only while unfinished product paths remain unreachable,
+  disabled, or fail-closed, with that containment proved by its later Card TDD contract.
+- Continue splitting when a task still combines separable responsibilities, unrelated
+  failure causes, independent modules, or qualification with implementation.
+- Stop when a smaller unit would not have an independently testable result, would create an
+  empty wrapper or fake interface, or would leave required responsibility without an owner.
+- `prerequisite` forms an acyclic DAG. Add only real data, interface, or authority
+  dependencies. Order interface/schema work before consumers; do not serialize independent
+  work for convenience.
+- An external hard prerequisite may point only to an already planned upstream Milestone and
+  never authorizes executing it. A current or upstream Milestone must not depend on downstream
+  implementation or evidence.
+- Keep an explicit `| AC | task |` mapping and cover every in-scope AC. A task may appear in
+  several rows and an AC may map to several tasks.
 
-At `ready-to-dispatch`, record the Design anchor, select the actual writer, and bind
-`author_ref`. The primary session may write directly, or an Author may be delegated with the
-content and self-check above when the bounded handoff creates real value. At `author-returned`,
-send incomplete or out-of-scope work to the same recorded writer as `author-rework`; otherwise
-enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
-findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
-same Critic in `critic-rechecking`. The Critic checks card granularity as well as traceability:
-one decidable result per card, no artificial dependency, no final qualification used to absorb
-separable work, and no avoidable conflict domain or runtime lock that narrows the ready set. With
-no blocker, the primary orchestrator reviews the candidate. The primary orchestrator applies
-accepted mechanical traceability, links, state, and commit material, including across an
-integration boundary, and runs machine checks. Finish at `node-complete`.
+Before return, check that every task is independently decidable, the DAG is acyclic, no
+reverse Milestone dependency exists, and every in-scope AC maps to at least one task. Do not
+freeze waves; `run-task` derives the rolling ready set.
 
-## Controlled revision
+## Per-card execution contract
 
-1. Classify the authority before editing. Route WhitePaper to `brainstorm`, ROADMAP to
-   `roadmap`, Goal to `write-goal`, Requirement or R-AC meaning to `write-requirement`, and
-   design intent to `write-design`. Resume after any required new upstream review or approval.
-2. For Task-owned meaning, start from the old anchor and record the trigger, semantic delta,
-   affected cards, dependencies, tests, mappings, evidence, and proposed new anchor.
-3. Revise only affected cards and traceability rows. Pause active cards whose premise changed;
-   do not re-split or reopen unrelated work.
-4. A delta that changes execution authority or reasonable understanding receives independent
-   criticism and primary-orchestrator review at a new anchor. Old review remains attached to
-   the old anchor.
-5. Propagate only to affected implementation, tests, evidence, per-card execution logs, and state
-   representations; review and verify that impact cone only.
+After the owner confirms the Task execution set, `run-task` materializes exactly two files for
+each selected task before any Coder dispatch:
 
-Meaning-preserving mechanical changes use same-batch link, hash, task reference, and status
-refresh plus machine checks without reapproval.
+1. `execution/<card_id>/Card.md` — normative stable execution contract: Task/AC/Design
+   anchors, outcome, completion criterion, the TDD contract, and an `execution_log` link to
+   its sibling `Log.md`. Add scope exclusions or an allowed path/write set only when they
+   materially bound a delegated writer. Add conflict domains or runtime locks only for a real
+   shared-resource collision. Link the Task row instead of copying its dependency DAG.
+2. `execution/<card_id>/Log.md` — descriptive current runtime snapshot followed by
+   append-only durable events, evidence, corrections, and superseded attempts. Its current
+   snapshot contains a `latest_event` link to the current event anchor in the same file.
 
-## Legacy Task migration
+The TDD contract belongs in `Card.md`, not Task. It identifies the test case or test location,
+the wrong behavior it must expose in RED, expected GREEN behavior, the replay command or
+executable path, and the final verification/evidence destination. Do not create separate
+`Verification.md`, `State.md`, handoff, or per-role brief files unless the project has an
+independent requirement for them.
 
-When an existing `Task.md` already mixes current authority with accumulated history:
+`Card.md` may refine implementation mechanics but cannot add scope, dependencies, acceptance
+meaning, or design decisions absent from approved authority. If materialization reveals such a
+gap, stop that task and return to the owning authority.
 
-1. Bind `legacy_task_anchor` to the pre-migration commit, content hash, or equivalent immutable
-   version before editing when that version is discoverable. Do not invent a historical commit,
-   backdate a current commit, or infer an approval anchor from prose. If no historical version
-   can be proven, create an `adoption_baseline` at the current clean commit after reviewing the
-   imported current projection. This records when GMGN adopted the state; it does not prove historical approval.
-2. Reconstruct only the current normative projection: canonical rows, current dependencies,
-   status, blocker, anchors, evidence, traceability, and log pointers. If current meaning is
-   uncertain, treat the migration as a semantic revision and use the normal Critic loop.
-3. When `legacy_task_anchor` exists, for each previously executed card create its per-card log and append one
-   `legacy-migration` event that cites `legacy_task_anchor` and exact source locations. Copy or
-   summarize only facts that are unambiguously owned by that `card_id`; do not invent event
-   order, timestamps, evidence, or outcomes. Use the same seven-key frontmatter and exact
-   Task-card upstream link as a new log.
-4. Preserve unassignable old batch or project narrative only through `legacy_task_anchor`.
-   Keep a single compact pointer in the migrated Task or Handoff; do not copy it into a new
-   project-wide or Milestone-wide live log, and do not use it as current authority.
-5. Cut over Task, per-card links, current traceability, and migration record in one checked
-   batch. Verify the new current projection against the old anchor or `adoption_baseline` and
-   keep unrelated cards unchanged.
+## Writer and review loop
 
-When only an `adoption_baseline` exists, closed historical cards remain closed and must not be
-reopened merely to manufacture missing history. Preserve their known current state plus the
-explicit missing-history limitation; do not synthesize per-card events or acceptance evidence.
-An active card without usable anchors is re-anchored at the adoption baseline and must receive
-full review and verification before its next acceptance or closure. Pre-adoption commands,
-summaries, or outcomes that lack an accepted anchor remain descriptive context and are not
-reusable acceptance or release evidence.
+The primary session may write Task directly when it holds the clearest context, or dispatch a
+fresh Author when delegation has real isolation, specialization, or parallel value. Every
+delegated Author or Critic is single-use. Before creating one, prepare a role brief with the
+objective, immutable anchors, required context, scope and prohibitions, checks, and return
+format. Do not resume or repurpose a returned agent.
 
-If DocStar is available, run
-`brief <task-id> --baseline <adoption-or-legacy-commit> --preset gmgn-v1 --json` on a
-representative card; otherwise inspect all fixed table columns manually. DocStar reports structural IDs and
-edges; it does not decide Milestone ownership, dependency legality, or closure eligibility.
+After the writer self-check and machine checks, freeze one candidate and dispatch one fresh
+independent Critic for semantic review. Collect all findings before changing the candidate.
+The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches
+a fresh Author with a revision brief. Re-review only changed semantic scope with a fresh
+Critic; unchanged roles are not dispatched. Non-blocking suggestions do not reopen an
+otherwise acceptable candidate. Meaning-preserving links, formatting, and status refresh use
+machine checks without Critic.
+
+## Controlled revision and legacy migration
+
+- Revise only affected task rows, AC mappings, dependencies, and execution pointers. Pause
+  active tasks whose authority changed; do not reopen unrelated tasks.
+- When migrating an oversized legacy `Task.md`, anchor the old version when possible, retain
+  only the current macro projection, and link historical detail rather than copying it.
+- Existing per-card execution history may be summarized into the new `Log.md` only when its
+  ownership and evidence are unambiguous. Otherwise preserve the legacy anchor and state the
+  limitation; never invent event order, commands, or acceptance evidence.
+- Existing projects may keep their old layout until a controlled migration. New or revised
+  cards use the two-file execution layout.
 
 ## Exit
 
-Require the recorded writer to reconcile the affected matrix and three anchors per changed
-card. For creation or a semantic revision, run the identity-preserving writer/Critic loop
-using the locale-matched dispatch contract, obtain primary-orchestrator review, and integrate
-only when required by workspace topology. After a target-Milestone execution set is explicitly
-confirmed, use **REQUIRED next skill: `run-task`** to dispatch every ready owned card and keep
-refilling capacity. A revision returns to the stage that raised it and continues through the
-affected path only.
-
-Before every substantive return, perform a task-specific self-check and correct defects. Do
-not output a fixed `Reflection` section. Disclose only material unresolved risks that could
-change the conclusion, decision, acceptance, or downstream work; otherwise omit the
-disclosure. Approval, acceptance, and closure always state remaining material risks or that
-none are known.
+After Task semantic review, primary-orchestrator acceptance, and owner confirmation of the
+target execution set, use **REQUIRED next skill: `run-task`**. Before every substantive return,
+perform a task-specific self-check and correct defects. Do not output a fixed `Reflection`
+section. Disclose only unresolved material risk.

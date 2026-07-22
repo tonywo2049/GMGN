@@ -42,8 +42,17 @@
   "task_columns": {
     "spec": "spec anchor",
     "prereq": "prerequisite",
-    "red": "failing test",
-    "status": "status"
+    "status": "status",
+    "execution": "execution"
+  },
+  "task_execution": {
+    "card_fields": {
+      "execution_log": ["execution_log"]
+    },
+    "log_fields": {
+      "latest_event": ["latest_event"]
+    },
+    "canonical_task_table_only": true
   },
   "edges": {
     "directed_pairs": [
@@ -69,6 +78,6 @@
       "severity": "report"
     }
   ],
-  "uncovered_kind_exclusions": ["参数", "测试", "专名", "文档", "节条目", "里程碑"],
+  "uncovered_kind_exclusions": ["参数", "测试", "专名", "文档", "节条目", "里程碑", "任务卡", "执行日志", "最新事件"],
   "aliases": {}
 }

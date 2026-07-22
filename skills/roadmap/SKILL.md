@@ -28,7 +28,7 @@ Use the active locale and the matching layout-free
 
 ## Maintain
 
-- Closure backfill updates the milestone state and links the closure/Handoff evidence.
+- Closure backfill updates the milestone state, closure evidence, and any Handoff that exists.
 - New ideas enter TODO, then are assigned to a milestone before becoming requirements.
 - Record downstream-only confirmations as a non-blocking TODO or Handoff with receiving
   Milestone/owner, question, trigger, possible impact, and any safe default assumption. Closure
@@ -40,16 +40,16 @@ Use the active locale and the matching layout-free
 
 ## Writer and critic loop
 
-1. At `ready-to-dispatch`, record the WhitePaper anchor, mode, `node_id`, and content/checklist
-   above. Select the actual writer and bind `author_ref`: the primary session may write
-   directly, or an Author may be delegated when the bounded handoff creates real value.
-2. At `author-returned`, check return completeness and boundaries. Use `author-rework` with
-   the same recorded writer for missing inputs; otherwise create `candidate-anchored`.
-3. Dispatch an independent Critic. At `critic-returned`, adjudicate findings; resume the same
-   recorded writer in `author-revising` and the same Critic in `critic-rechecking` for blockers.
-4. With no blocker, enter `acceptance-ready`; owner approval binds the candidate anchor. The
-   primary orchestrator applies accepted mechanical reciprocal links, state, evidence pointers,
-   and commit material, runs machine checks, then marks `node-complete`.
+1. Record the WhitePaper anchor and mode. The primary session may write directly, or it may
+   prepare a complete brief and create one fresh Author when the bounded handoff creates real
+   value.
+2. The writer self-checks before return. A delegated Author ends after that return; missing
+   inputs or later revision use the primary session or a fresh Author with a new brief.
+3. Freeze the candidate and dispatch one fresh independent Critic from a prepared brief.
+   Collect all findings before editing, adjudicate once, and batch accepted blocker fixes. A
+   semantic recheck uses a fresh Critic only for affected scope; unchanged roles are not sent.
+4. With no blocker, owner approval binds the candidate anchor. The primary orchestrator applies
+   accepted mechanical reciprocal links, state, and evidence pointers, then runs machine checks.
 
 Closure backfill and other meaning-preserving maintenance skip semantic criticism. The primary
 session applies the mechanical batch directly, including across an integration boundary. Run
@@ -78,7 +78,7 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 
 ## Exit
 
-For creation or a semantic revision, run the identity-preserving writer/Critic loop using the
+For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
 locale-matched dispatch contract, present remaining material risks or that none are known,
 obtain owner approval with a version anchor, and integrate only when required by workspace
 topology. A mechanical maintenance batch needs machine checks but no
