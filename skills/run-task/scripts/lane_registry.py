@@ -454,11 +454,16 @@ def bind_coder(
     def mutate(registry: dict[str, Any]) -> dict[str, Any]:
         lane = get_lane(registry, card_id)
         assert_common_identity(lane, args, require_baseline_head=True)
-        if lane.get("coder_ref") not in (None, coder_ref):
+        registered_coder = lane.get("coder_ref")
+        if registered_coder not in (None, coder_ref):
             raise RegistryError("coder_already_bound", "lane already has a different coder_ref")
+        if registered_coder is not None and lane.get("state") != "coder-active":
+            raise RegistryError(
+                "coder_attempt_completed",
+                "bind-coder cannot reactivate a completed Coder attempt",
+            )
         lane["coder_ref"] = coder_ref
-        if lane.get("coder_epoch") in (None, 0):
-            lane["coder_epoch"] = 1
+        lane["coder_epoch"] = int(lane.get("coder_epoch") or 1)
         lane["state"] = "coder-active"
         lane["updated_at"] = utc_now()
         return {"lane": lane}
@@ -531,8 +536,21 @@ def anchor(
         lane = get_lane(registry, card_id)
         worktree_path = assert_bound_identity(lane, args)
         resolved = resolve_candidate(worktree_path, candidate_anchor)
+        current_coder_epoch = int(lane.get("coder_epoch") or 1)
+        if lane.get("candidate_coder_epoch") == current_coder_epoch:
+            if lane.get("candidate_anchor") == resolved:
+                return {"lane": lane}
+            raise RegistryError(
+                "candidate_already_anchored",
+                "the current Coder attempt already produced an immutable candidate",
+            )
+        if lane.get("state") != "coder-active":
+            raise RegistryError(
+                "coder_not_active",
+                "anchor requires the current Coder attempt to be active",
+            )
         lane["candidate_anchor"] = resolved
-        lane["candidate_coder_epoch"] = lane.get("coder_epoch") or 1
+        lane["candidate_coder_epoch"] = current_coder_epoch
         lane["state"] = "candidate-anchored"
         lane["updated_at"] = utc_now()
         return {"lane": lane}

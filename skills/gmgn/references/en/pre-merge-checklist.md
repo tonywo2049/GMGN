@@ -18,10 +18,11 @@ nature: normative
    resolvable local commit containing only the card `write_set`; and do `repository_identity`
    and the still-resolvable original baseline match the claim?
 2. **Ownership freshness** — Does registry verify still match `owner_thread_id`, `owner_run_id`,
-   `ownership_epoch`, the exact bound `coder_ref`, and canonical path; did the worker stop at
+   `ownership_epoch`, the exact bound `coder_ref`, current `coder_epoch`, and canonical path;
+   did the worker stop at
    `candidate-awaiting-anchor`; was the candidate recorded by atomic `anchor` before an exact
-   `review-authorized`; and were another owner, stale epoch, missing/wrong Coder, or replaced
-   repository rejected before review and integration?
+   `review-authorized`; and were another owner, stale ownership/Coder epoch, missing/wrong
+   Coder, or replaced repository rejected before review and integration?
 3. **Two-phase baseline safety** — Was the accepted commit first applied to an isolated
    temporary combination based on the current clean `shared_baseline_anchor`, without advancing
    it? A baseline advance alone is not `rebase-required`; was that state used only after an

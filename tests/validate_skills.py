@@ -354,7 +354,7 @@ def validate_evidence_context_contract(
             "starting evidence bundle, not a reading prohibition",
             "`omitted`", "`boundary_pointers`", "directly read targeted source files",
             "do not blindly reread already covered spans",
-            "Coder queries CodeGraph at `baseline_anchor`",
+            "Coder queries CodeGraph at the checked-out `expected_head_anchor`",
             "Reviewer independently queries CodeGraph at `candidate_anchor`",
             "Verifier uses CodeGraph only on demand",
             "navigation evidence", "exact Git diff", "stale or mismatched",
@@ -404,7 +404,7 @@ def validate_evidence_context_contract(
         "release 无历史 accepted anchor 契约缺失",
     )
     role_contracts = (
-        (ROOT / "agents" / "coder.md", ("query CodeGraph from the checked-out `baseline_anchor`", "targeted source reads")),
+        (ROOT / "agents" / "coder.md", ("query CodeGraph from the checked-out `expected_head_anchor`", "targeted source reads")),
         (ROOT / "agents" / "reviewer.md", ("independently query CodeGraph at the checked-out `candidate_anchor`", "exact Git diff")),
         (ROOT / "agents" / "verifier.md", ("Use CodeGraph only on demand", "test evidence")),
     )
@@ -1499,7 +1499,8 @@ def validate_agent_lifecycle(
     lane_fields = (
         "project_scope_id", "lane_key", "owner_thread_id", "owner_run_id",
         "ownership_epoch", "run_id", "card_id", "workspace_mode", "worktree_path",
-        "branch_ref", "baseline_anchor", "candidate_anchor", "write_set",
+        "branch_ref", "baseline_anchor", "coder_epoch", "candidate_anchor",
+        "candidate_coder_epoch", "write_set",
         "conflict_domains", "runtime_locks", "integration_queue_ref",
         "shared_baseline_anchor", "repository_identity",
     )
@@ -1835,7 +1836,8 @@ def validate_agent_lifecycle(
         errors,
         parsed.get("run-task", ("", ""))[1],
         (
-            "coder_ref", "coder-returned", "same Coder", "reviewer_ref", "same Reviewer",
+            "coder_ref", "coder_epoch", "coder-returned", "fresh Coder attempt",
+            "reviewer_ref", "same Reviewer",
             "reviewer-rechecking", "verifier-active", "verifier-returned",
             "primary orchestrator is the only writer",
             "project_scope_id", "lane_key", "owner_thread_id", "owner_run_id",
@@ -1868,7 +1870,8 @@ def validate_agent_lifecycle(
             "parent conversation history", '`fork_turns="none"`', "`fork_context=false`",
             '`fork_turns="all"`', "`fork_context=true`", "minimal runtime dispatch",
             "authority repository or corpus", "not a new `Handoff` artifact",
-            "only in chat", "return to `write-task`", "same agent's own history",
+            "only in chat", "return to `write-task`", "earlier-Coder conversation history",
+            "resumed Reviewer or Verifier",
             "lifecycle identity, not a Coder-agent dispatch",
         ),
         "run-task 派发上下文",
@@ -1880,7 +1883,7 @@ def validate_agent_lifecycle(
         (
             "git rev-parse --show-toplevel", "${baseline_anchor}^{commit}",
             "git rev-parse HEAD", "rebuild the worktree", "workspace-prepared",
-            "candidate_anchor", "old `baseline_anchor`",
+            "expected_head_anchor", "candidate_anchor", "old `baseline_anchor`",
         ),
         "run-task 工作区基线锁",
     )
@@ -1917,6 +1920,7 @@ def validate_agent_lifecycle(
             "Thread-local agent absence", "never prove vacancy", "owner-unreachable",
             "do not expire, steal, or recreate it automatically", "tombstone",
             "claim` never accepts `coder_ref", "cancel-unbound", "repository identity",
+            "rotate-coder", "coder_epoch",
             "Git object format", "baseline_anchor` still exists",
         ),
         "run-task 全局 lane claim",
@@ -1932,7 +1936,8 @@ def validate_agent_lifecycle(
             "registry `anchor`", "registry `verify`", "stale `ownership_epoch`",
             "rejected before review or integration", "read-only agents",
             "second writer lane", "candidate-awaiting-anchor", "review-authorized",
-            "missing/wrong `coder_ref`", "write_set",
+            "missing/wrong `coder_ref`", "coder_epoch", "candidate_coder_epoch",
+            "fresh read-only Coder", "write_set",
         ),
         "run-task 候选锚责任",
     )
@@ -2047,7 +2052,7 @@ def validate_agent_lifecycle(
             REFERENCES / "en" / "preflight-checklist.md",
             (
                 "Global writer claim", "lane_key = project_scope_id + card_id",
-                "owner_thread_id", "owner_run_id", "ownership_epoch", "coder_ref",
+                "owner_thread_id", "owner_run_id", "ownership_epoch", "coder_ref", "coder_epoch",
                 "canonical `worktree_path`", "claim → bind-coder → verify", "only diagnostic",
                 "owner-unreachable", "repository_identity", "baseline_anchor",
             ),
@@ -2056,7 +2061,7 @@ def validate_agent_lifecycle(
             REFERENCES / "zh-CN" / "preflight-checklist.md",
             (
                 "全局 writer claim", "lane_key = project_scope_id + card_id",
-                "owner_thread_id", "owner_run_id", "ownership_epoch", "coder_ref",
+                "owner_thread_id", "owner_run_id", "ownership_epoch", "coder_ref", "coder_epoch",
                 "canonical `worktree_path`", "claim → bind-coder → verify", "只是一项诊断",
                 "owner-unreachable", "repository_identity", "baseline_anchor",
             ),
@@ -2065,7 +2070,7 @@ def validate_agent_lifecycle(
             REFERENCES / "en" / "pre-merge-checklist.md",
             (
                 "Ownership freshness", "project_scope_id", "lane_key", "owner_thread_id",
-                "owner_run_id", "ownership_epoch", "coder_ref", "atomic `anchor`",
+                "owner_run_id", "ownership_epoch", "coder_ref", "coder_epoch", "atomic `anchor`",
                 "candidate-awaiting-anchor", "review-authorized", "missing/wrong Coder",
                 "replaced repository rejected before review and integration",
             ),
@@ -2074,7 +2079,7 @@ def validate_agent_lifecycle(
             REFERENCES / "zh-CN" / "pre-merge-checklist.md",
             (
                 "所有权新鲜度", "project_scope_id", "lane_key", "owner_thread_id",
-                "owner_run_id", "ownership_epoch", "coder_ref", "原子 `anchor`",
+                "owner_run_id", "ownership_epoch", "coder_ref", "coder_epoch", "原子 `anchor`",
                 "candidate-awaiting-anchor", "review-authorized", "缺失/错误 Coder",
                 "被替换仓库是否在审查、集成前被拒绝",
             ),

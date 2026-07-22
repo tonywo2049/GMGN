@@ -36,7 +36,13 @@ DASHBOARD_MISSING_SESSION_LIMIT = 200
 ESTIMATED_CHARACTERS_PER_TOKEN = 4
 
 TOKEN_FIELDS = ("input", "cached", "output", "reasoning", "total")
-IDENTIFIER_FIELDS = ("card_id", "run_id", "lane_key", "target_milestone_id")
+IDENTIFIER_FIELDS = (
+    "card_id",
+    "run_id",
+    "lane_key",
+    "target_milestone_id",
+    "coder_epoch",
+)
 FORK_CONTEXT_VALUES = ("none", "all", "false", "true", "unspecified")
 OTEL_TOKEN_ATTRIBUTES = {
     "input": ("gen_ai.usage.input_tokens", "input_token_count"),
@@ -124,6 +130,7 @@ HOOK_ALLOWED_FIELDS = {
     "run_id",
     "lane_key",
     "target_milestone_id",
+    "coder_epoch",
     "fork_context",
     "fork_turns",
 }

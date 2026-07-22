@@ -116,6 +116,7 @@ class LaneRegistryTests(unittest.TestCase):
         owner_thread: str,
         owner_run: str,
         coder_ref: str | None = None,
+        coder_epoch: int = 1,
     ) -> list[str]:
         arguments = [
             "--card-id",
@@ -130,8 +131,31 @@ class LaneRegistryTests(unittest.TestCase):
             str(worktree),
         ]
         if coder_ref is not None:
-            arguments.extend(("--coder-ref", coder_ref))
+            arguments.extend(
+                ("--coder-ref", coder_ref, "--coder-epoch", str(coder_epoch))
+            )
         return arguments
+
+    def commit_file(self, worktree: Path, relative_path: str, content: str) -> str:
+        (worktree / relative_path).write_text(content, encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(worktree), "add", relative_path],
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(worktree), "commit", "-m", f"add {relative_path}"],
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        return subprocess.run(
+            ["git", "-C", str(worktree), "rev-parse", "HEAD"],
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.strip()
 
     def replace_with_clone(self, worktree: Path) -> None:
         shutil.rmtree(worktree)
@@ -312,6 +336,7 @@ class LaneRegistryTests(unittest.TestCase):
             coder_ref="coder-a",
         )
         self.assertEqual(bound["lane"]["coder_ref"], "coder-a")
+        self.assertEqual(bound["lane"]["coder_epoch"], 1)
         self.assertEqual(bound["lane"]["run_id"], "run-a")
         self.assertEqual(
             bound["lane"]["project_scope_id"], bound["project_scope_id"]
@@ -412,6 +437,8 @@ class LaneRegistryTests(unittest.TestCase):
                     *common,
                     "--coder-ref",
                     "coder-wrong",
+                    "--coder-epoch",
+                    "1",
                     *suffix,
                     expected=2,
                 )
@@ -432,6 +459,8 @@ class LaneRegistryTests(unittest.TestCase):
             *common,
             "--coder-ref",
             "coder-a",
+            "--coder-epoch",
+            "1",
             "--candidate-anchor",
             self.head,
             expected=2,
@@ -545,6 +574,162 @@ class LaneRegistryTests(unittest.TestCase):
                 self.assertEqual(
                     rejected["error"]["code"], "repository_identity_mismatch"
                 )
+
+    def test_rotate_coder_advances_generation_and_rejects_old_returns(self) -> None:
+        claimed = self.claim("T-rotate", self.worktree_a)
+        ownership_epoch = claimed["lane"]["ownership_epoch"]
+        self.bind(
+            "T-rotate",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-a",
+        )
+        old_identity = self.identity_arguments(
+            "T-rotate",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-a",
+        )
+        _, anchored = self.run_registry(
+            "anchor", *old_identity, "--candidate-anchor", self.head
+        )
+        self.assertEqual(anchored["lane"]["candidate_coder_epoch"], 1)
+
+        _, rotated = self.run_registry(
+            "rotate-coder",
+            *old_identity,
+            "--new-coder-ref",
+            "coder-b",
+            "--candidate-anchor",
+            self.head,
+        )
+        self.assertEqual(rotated["lane"]["coder_ref"], "coder-b")
+        self.assertEqual(rotated["lane"]["coder_epoch"], 2)
+        self.assertEqual(rotated["lane"]["state"], "coder-active")
+
+        for operation, suffix in (
+            ("verify", []),
+            ("anchor", ["--candidate-anchor", self.head]),
+            ("release", []),
+        ):
+            with self.subTest(operation=operation):
+                _, rejected = self.run_registry(
+                    operation, *old_identity, *suffix, expected=2
+                )
+                self.assertEqual(rejected["error"]["code"], "ownership_mismatch")
+
+        new_identity = self.identity_arguments(
+            "T-rotate",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-b",
+            coder_epoch=2,
+        )
+        self.run_registry("verify", *new_identity)
+        _, revised = self.run_registry(
+            "anchor", *new_identity, "--candidate-anchor", self.head
+        )
+        self.assertEqual(revised["lane"]["candidate_coder_epoch"], 2)
+
+    def test_rotate_coder_requires_anchored_current_candidate_and_fresh_ref(self) -> None:
+        claimed = self.claim("T-rotate", self.worktree_a)
+        ownership_epoch = claimed["lane"]["ownership_epoch"]
+        self.bind(
+            "T-rotate",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-a",
+        )
+        identity = self.identity_arguments(
+            "T-rotate",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-a",
+        )
+        _, unanchored = self.run_registry(
+            "rotate-coder",
+            *identity,
+            "--new-coder-ref",
+            "coder-b",
+            "--candidate-anchor",
+            self.head,
+            expected=2,
+        )
+        self.assertEqual(unanchored["error"]["code"], "candidate_not_anchored")
+
+        self.run_registry("anchor", *identity, "--candidate-anchor", self.head)
+        _, unchanged = self.run_registry(
+            "rotate-coder",
+            *identity,
+            "--new-coder-ref",
+            "coder-a",
+            "--candidate-anchor",
+            self.head,
+            expected=2,
+        )
+        self.assertEqual(unchanged["error"]["code"], "coder_unchanged")
+
+    def test_completed_coder_attempt_cannot_be_reactivated_or_replace_candidate(self) -> None:
+        claimed = self.claim("T-immutable", self.worktree_a)
+        ownership_epoch = claimed["lane"]["ownership_epoch"]
+        self.bind(
+            "T-immutable",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-a",
+        )
+        identity = self.identity_arguments(
+            "T-immutable",
+            self.worktree_a,
+            ownership_epoch,
+            owner_thread="thread-a",
+            owner_run="run-a",
+            coder_ref="coder-a",
+        )
+        _, anchored = self.run_registry(
+            "anchor", *identity, "--candidate-anchor", self.head
+        )
+
+        _, idempotent = self.run_registry(
+            "anchor", *identity, "--candidate-anchor", self.head
+        )
+        self.assertEqual(idempotent["lane"]["candidate_anchor"], self.head)
+
+        _, rejected_bind = self.run_registry(
+            "bind-coder",
+            *self.identity_arguments(
+                "T-immutable",
+                self.worktree_a,
+                ownership_epoch,
+                owner_thread="thread-a",
+                owner_run="run-a",
+            ),
+            "--coder-ref",
+            "coder-a",
+            expected=2,
+        )
+        self.assertEqual(rejected_bind["error"]["code"], "coder_attempt_completed")
+
+        second_candidate = self.commit_file(self.worktree_a, "second.txt", "second\n")
+        _, rejected_anchor = self.run_registry(
+            "anchor", *identity, "--candidate-anchor", second_candidate, expected=2
+        )
+        self.assertEqual(
+            rejected_anchor["error"]["code"], "candidate_already_anchored"
+        )
+        self.assertEqual(anchored["lane"]["candidate_coder_epoch"], 1)
 
 
 if __name__ == "__main__":

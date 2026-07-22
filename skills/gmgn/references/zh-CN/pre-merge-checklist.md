@@ -17,9 +17,9 @@ English: [../en/pre-merge-checklist.md](../en/pre-merge-checklist.md)
    是否通过；候选是否为只含本卡 `write_set` 的可解析本地 commit；`repository_identity` 与仍可
    解析的原 baseline 是否和 claim 一致？
 2. **所有权新鲜度**：registry verify 是否仍与 `owner_thread_id`、`owner_run_id`、
-   `ownership_epoch`、精确已绑定 `coder_ref`、canonical 路径一致；worker 是否先停在
+   `ownership_epoch`、精确已绑定 `coder_ref`、当前 `coder_epoch`、canonical 路径一致；worker 是否先停在
    `candidate-awaiting-anchor`；候选是否经原子 `anchor` 登记后才收到精确 `review-authorized`；不同
-   owner、旧 epoch、缺失/错误 Coder 或被替换仓库是否在审查、集成前被拒绝？
+   owner、旧 ownership/Coder epoch、缺失/错误 Coder 或被替换仓库是否在审查、集成前被拒绝？
 3. **两阶段基线安全**：是否先从干净的当前 `shared_baseline_anchor` 创建隔离临时组合并应用候选，
    且不推进共享锚？基线前移本身不得触发 `rebase-required`；是否只有应用不干净、依赖/规格语义
    失效或需要 Coder 判断时才使用该状态？

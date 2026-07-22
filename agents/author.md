@@ -25,3 +25,5 @@ and deviations. Before returning, perform a task-specific self-check and correct
 your own work. Do not emit a fixed `Reflection` section. Report only material unresolved risks
 that could change a conclusion, decision, acceptance, or downstream work; omit the disclosure
 otherwise. Closure-author returns always state remaining material risks or that none are known.
+Do not send progress or heartbeat messages to the orchestrator; progress may remain visible in
+this thread, while only a blocker, required ruling, candidate, or completion is parent-facing.

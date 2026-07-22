@@ -118,7 +118,7 @@ class ValidateSkillsTests(unittest.TestCase):
 
     def test_rejects_role_specific_codegraph_timing_regression(self) -> None:
         mutations = (
-            ("agents/coder.md", "query CodeGraph from the checked-out `baseline_anchor`", "query CodeGraph from any worktree"),
+            ("agents/coder.md", "query CodeGraph from the checked-out `expected_head_anchor`", "query CodeGraph from any worktree"),
             ("agents/reviewer.md", "independently\nquery CodeGraph at the checked-out `candidate_anchor`", "reuse the Coder's CodeGraph output"),
             ("agents/verifier.md", "Use CodeGraph only on demand", "Always use CodeGraph"),
         )
@@ -1114,7 +1114,7 @@ class ValidateSkillsTests(unittest.TestCase):
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
-            "and requires\n`git rev-parse HEAD` to equal that exact commit.",
+            "and requires\n`git rev-parse HEAD` to equal the exact `expected_head_anchor` commit.",
             "and records HEAD without comparing it to the approved baseline.",
         )
         path.write_text(text, encoding="utf-8")
@@ -1309,7 +1309,8 @@ class ValidateSkillsTests(unittest.TestCase):
         path = self.root / "skills" / "run-task" / "SKILL.md"
         text = self.replace_required(
             path.read_text(encoding="utf-8"),
-            "a stale `ownership_epoch`, a missing/wrong `coder_ref`, a changed repository, or\n"
+            "a stale `ownership_epoch`, a missing/wrong\n"
+            "`coder_ref`, a changed repository, or\n"
             "a different path is rejected before review or integration.",
             "a stale ownership record may continue into review.",
         )

@@ -72,14 +72,16 @@ the Author chooses the structure.
 Native review does not replace execution. GMGN still requires project tests and a
 replayable verification path. In Codex, a custom review prompt and scope flags are
 mutually exclusive; after review, check `git status --short` for generated side effects.
-Within a node, fixes return to the same Author/Coder and blocker rechecks to the same
-Critic/Reviewer. If a platform cannot resume that identity, GMGN records an explicit
-replacement and repeats a full review when the reviewer changes.
+Within a document node, fixes return to the same Author and blocker rechecks to the same
+Critic. Each implementation candidate ends its Coder attempt; accepted findings or failed
+verification start a fresh Coder from the anchored candidate, while the same Reviewer rechecks
+the affected diff. If a review identity is replaced, GMGN repeats the full review.
 
 `run-task` continuously fills available capacity from a dependency-aware ready set; it does
 not wait for one card to close before starting another independent card. Each card keeps one
-bound Coder identity, an independent Reviewer, an independent Verifier, and an explicitly
-provisioned worktree. When no implementation lane can run in parallel with useful orchestrator
+current Coder attempt, an independent Reviewer, an independent Verifier, and an explicitly
+provisioned worktree. Coder revisions start without earlier-Coder conversation history and
+receive the authority brief plus the current-cycle delta. When no implementation lane can run in parallel with useful orchestrator
 work, the primary session may be that Coder after explicit binding. Worktrees prevent agents
 from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
 runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
@@ -87,7 +89,9 @@ and traceability. Each Coder returns a local commit containing only its card wri
 first verifies an isolated temporary combination; only success atomically advances the shared
 baseline. A card closes only after post-integration verification and ledger refresh there.
 Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
-timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling loop.
+timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
+loop. Agent progress remains local to its thread; only material lifecycle events notify the
+orchestrator.
 
 The reviewed `Task.md` card is the static authority for each implementation lane. Run-task
 roles receive the exact card/authority pointers plus current lane facts, not the parent

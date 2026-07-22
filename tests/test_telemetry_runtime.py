@@ -888,6 +888,7 @@ class HookTests(unittest.TestCase):
                         "run_id": "run-42",
                         "lane_key": "project:T0.7",
                         "target_milestone_id": "M0",
+                        "coder_epoch": 3,
                     },
                     "forkContext": False,
                     "forkTurns": "none",
@@ -902,6 +903,7 @@ class HookTests(unittest.TestCase):
         self.assertEqual(record["run_id"], "run-42")
         self.assertEqual(record["lane_key"], "project:T0.7")
         self.assertEqual(record["target_milestone_id"], "M0")
+        self.assertEqual(record["coder_epoch"], "3")
 
         self.run_hook(
             {
@@ -923,6 +925,7 @@ class HookTests(unittest.TestCase):
             "run_id",
             "lane_key",
             "target_milestone_id",
+            "coder_epoch",
         ):
             self.assertNotIn(field_name, message_only)
 

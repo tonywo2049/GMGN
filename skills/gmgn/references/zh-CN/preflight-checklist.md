@@ -25,7 +25,8 @@ English: [../en/preflight-checklist.md](../en/preflight-checklist.md)
    `runtime_locks` 是否与所有 active lane 兼容？
 8. **全局 writer claim**：权威项目 registry 中是否只有一条活动
    `lane_key = project_scope_id + card_id`，且 `owner_thread_id`、`owner_run_id`、
-   `ownership_epoch`、已绑定 `coder_ref`、canonical `worktree_path`、`repository_identity` 与本次
+   `ownership_epoch`、已绑定 `coder_ref`、当前 `coder_epoch`、canonical `worktree_path`、
+   `repository_identity` 与本次
    派发精确一致；独立的原子 `claim → bind-coder → verify` 是否成功，原 `baseline_anchor` 是否仍可
    解析？跨任务扫描无冲突只是一项诊断。`owner-unreachable` 是未解决 blocker，不是重新 claim 的
    许可。Codex 排队 `clientThreadId` 必须先解析为实际 `threadId + hostId`，之后才能 claim 或激活。

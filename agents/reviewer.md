@@ -16,7 +16,11 @@ Targeted source reads remain allowed when the brief or graph is insufficient. On
 original blocker surface qualifies
 for targeted recheck; Coder-judgment changes return all affected hunks. For closure, check
 Requirement–Design–Task–code–evidence consistency and stale state. Return findings, coverage,
-and side effects. Before returning, perform a task-specific self-check and correct defects in
+and side effects. Retain this identity only within the current card or closure review loop; a
+replacement Reviewer performs a full review, and `node-complete` retires this thread. Do not
+send progress or heartbeat messages to the orchestrator; progress may remain visible here,
+while only a blocker, required ruling, review result, or completion is parent-facing. Before
+returning, perform a task-specific self-check and correct defects in
 your own report. Do not emit a fixed `Reflection` section. Report only material unresolved
 risks that could change a conclusion, decision, acceptance, or downstream work. Closure reviews
 always state remaining material risks or that none are known.

@@ -58,7 +58,9 @@ keep one separately owned execution set and closing decision per Milestone.
 
 Use the locale-matched [dispatch and agent-lifecycle contract](references/en/dispatch-and-handoff.md)
 or [中文契约](references/zh-CN/dispatch-and-handoff.md). Runtime state is not document or work-item
-state. Keep the node record and identity refs until `node-complete`.
+state. Keep the node record and identity refs until `node-complete`. Then retire completed
+agent threads; durable events keep their refs as provenance, but a later node or card starts
+fresh.
 
 - For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, the primary orchestrator
   selects the actual writer before writing starts: itself when its context makes direct
@@ -71,8 +73,14 @@ state. Keep the node record and identity refs until `node-complete`.
   `critic_ref`. When `author_ref` is the primary session, it applies accepted findings
   directly; a delegated Author and Critic communicate only through the orchestrator.
 - `run-task` maintains a rolling ready set for the recorded target Milestone and one lane per
-  owned card. Each lane has one bound Coder identity plus independent Reviewer and Verifier
-  identities; fixes, affected review, and affected verification return to those same identities.
+  owned card. Each lane has one current Coder attempt plus independent Reviewer and Verifier
+  identities. One Coder attempt ends after its immutable candidate is anchored. Accepted code
+  findings, verification failures, `integration-conflict`, and judgment-required
+  `rebase-required` start a fresh Coder without parent or earlier-Coder history; the scheduler
+  atomically rotates `coder_ref` and `coder_epoch` from the current candidate. Affected review
+  returns to the same Reviewer and affected verification to the same Verifier. Critic blocker
+  rechecks likewise retain the same Critic; replacing a Critic or Reviewer requires a full
+  review.
   When no implementation lane can currently run in parallel with useful orchestrator work,
   the primary session may explicitly bind itself as that lane's `coder_ref` before writing.
   It must not take over a lane already assigned to another Coder, and Reviewer and Verifier
@@ -103,9 +111,12 @@ For implementation, keep one project-wide lane. Use
 and does not define uniqueness. Before any writer dispatch, atomically claim and verify the
 card and canonical `worktree_path` in the
 authority project's shared lane registry. Record `owner_thread_id`, `owner_run_id`,
-`ownership_epoch`, and `coder_ref`; a thread-local agent list or cross-task scan is diagnostic,
-not proof that the lane is free. Claim first without Coder identity, then explicitly bind one
-`coder_ref`; every later verify, anchor, or normal release requires that exact ref. Bind the
+`ownership_epoch`, `coder_ref`, and `coder_epoch`; a thread-local agent list or cross-task scan
+is diagnostic, not proof that the lane is free. Claim first without Coder identity, then
+explicitly bind the first `coder_ref`. Every verify, anchor, rotation, or normal release
+requires the exact current ref and epoch. `rotate-coder` is allowed only from an anchored
+current candidate whose worktree `HEAD` matches that candidate; stale Coder returns are
+rejected. Bind the
 implementation repository's Git metadata/stat identity and object format too. Reject returns
 from another owner, a stale epoch, missing/wrong Coder, or a recreated repository path. If the
 owner cannot be confirmed, enter `owner-unreachable` and do not reclaim automatically. Reviewer
@@ -136,18 +147,21 @@ only after a task-derived liveness threshold is crossed. Workers push material e
 candidate, review, verification, or completion—rather than periodic heartbeats.
 
 A lane also records `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
+`candidate_anchor`, `candidate_coder_epoch`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
 and `shared_baseline_anchor`. Its normal tail is `accepted → integration-queued → integrating
 → post-integration-verifying → node-complete`; branch acceptance is not card closure.
 
 Every worker Coder return stops at `candidate-awaiting-anchor`. Only after scheduler verify,
 candidate/path/`write_set` checks, atomic anchor, and an explicit candidate-scoped
 `review-authorized` message may that worker dispatch Reviewer. Revisions repeat the same gate.
+The completed Coder thread is retired after anchoring. A later revision bootstraps a fresh
+read-only Coder; the scheduler then rotates and activates it from the anchored candidate.
 
 The primary orchestrator first applies an accepted local-commit `candidate_anchor` to an isolated
 temporary combination based on the current shared baseline. A baseline advance alone does not
 force `rebase-required`; use it only when clean mechanical application fails, dependency/spec
-meaning is invalid, or Coder judgment is needed. Resume the same Verifier with the temporary
+meaning is invalid, or Coder judgment is needed. Start a fresh Coder attempt for such work.
+Resume the same Verifier with the temporary
 workspace facts. Advance `shared_baseline_anchor` only after verification and mechanical
 ledger checks pass; otherwise abort/discard the temporary candidate, prove the original shared
 workspace clean, and continue unrelated lanes.

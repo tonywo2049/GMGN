@@ -50,16 +50,18 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 | 运行验证 | 项目测试、启动与 E2E 命令 | 项目命令；可用 `/verify` |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。同一节点内，修改回到原 Author / Coder，blocker 定向复核回到原 Critic / Reviewer；平台无法恢复身份时显式替换，审查角色变更后重做完整审查。
+原生审查不替代真实运行。GMGN 始终要求项目测试和改动路径的可重放证据；Codex 自定义 review prompt 与范围 flags 互斥，审查后还要用 `git status --short` 检查可能产生的缓存等副产物。文档修改回原 Author，blocker 定向复核回原 Critic。每个实现候选结束一次 Coder 尝试；已采纳 finding 或验证失败从已锚候选新建 Coder，受影响 diff 仍回原 Reviewer。审查身份替换后重做完整审查。
 
 `run-task` 按依赖 ready set 持续补满可用槽位，不等上一卡关账才启动下一张独立卡。每卡保留一个
-已绑定 Coder 身份、独立 Reviewer、独立 Verifier 和显式 provision 的 worktree。当前没有实现 lane
+当前 Coder 尝试、独立 Reviewer、独立 Verifier 和显式 provision 的 worktree。Coder 修订不继承此前
+Coder 对话，只接收权威 brief 与当前周期增量。当前没有实现 lane
 能与有用的主编排工作并行时，主 session 可在显式绑定后承担 Coder。Worktree 能防止 agent 互相覆盖文件与
 index，但不能解决 merge、语义、接口或共享运行资源冲突。主 session 串行拥有共享基线、
 `Task.md` 和追踪矩阵。每个 Coder 回传只包含本卡写集的本地 commit；集成先验证隔离临时组合，
 只有成功才原子推进共享基线。任务卡完成集成后验证和台账刷新才关账。
 Agent 等待采用事件驱动：先做完有用本地工作，只发起一次平台允许的最长安全等待，把超时只当存活
-检查点，禁止把 status/list/wait 串成轮询循环。
+检查点，禁止把 status/list/wait 串成轮询循环。Agent 进度只在自己的 thread 内显示，只向主编排者
+推送实质生命周期事件。
 
 每条实现 lane 都以已评审的 `Task.md` 任务卡为静态权威。run-task 角色只接收精确任务卡/权威指针
 与当前 lane 事实，不继承父会话，也不再复制一份逐 agent handoff。

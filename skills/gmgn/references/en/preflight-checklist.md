@@ -26,7 +26,8 @@ For each question record `answer | evidence | owner | unresolved`; a checkbox is
    compatible with every active lane?
 8. **Global writer claim** — Does the authority-project registry show one active
    `lane_key = project_scope_id + card_id`, with this exact `owner_thread_id`, `owner_run_id`,
-   `ownership_epoch`, bound `coder_ref`, canonical `worktree_path`, and `repository_identity`;
+   `ownership_epoch`, bound `coder_ref`, current `coder_epoch`, canonical `worktree_path`, and
+   `repository_identity`;
    did separate atomic `claim → bind-coder → verify` succeed, and does the original
    `baseline_anchor` still resolve? A clear thread scan is only diagnostic.
    `owner-unreachable` is an unresolved blocker, never permission to reclaim. A queued Codex

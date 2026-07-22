@@ -44,22 +44,26 @@ commit before dispatch. The brief is a starting evidence bundle; it does not pro
 source reads. A recipient may follow `omitted`/`boundary_pointers`, issue narrower DocStar
 queries, or read exact files and line ranges when required evidence is missing or conflicting.
 Record a missing/failed DocStar command as a degradation and use direct targeted reads.
+A revision Coder receives that authority brief plus only the current card snapshot, anchored
+candidate, accepted findings, latest relevant event, replayable failure evidence, and return
+gate. These are required facts, not a mandatory prompt or checkpoint template.
 
 CodeGraph is a locator for code relationships, not evidence authority. When `.codegraph/`
-exists, the Coder uses it at the baseline, the Reviewer independently uses it at the candidate,
+exists, the Coder uses it at the checked-out expected head, the Reviewer independently uses it at the candidate,
 and the Verifier uses it only after a failure or unresolved coverage question. If index-to-commit
 identity is not proven, confirm every result in the checked-out source, Git diff, and tests.
 
-Start or resume a run-task Coder, Reviewer, or Verifier without parent conversation
-history. Where the historical Codex schema is exposed, set `fork_turns="none"`; where the
+Start every run-task Coder attempt without parent or earlier-Coder conversation history. Start
+or resume Reviewer and Verifier identities without parent conversation history. Where the
+historical Codex schema is exposed, set `fork_turns="none"`; where the
 boolean schema is exposed, set `fork_context=false` or omit it when false is the documented
-default. Do not use `fork_turns="all"` or `fork_context=true` for these roles. Resuming a
-recorded identity may retain that agent's own history, but never imports the scheduler
-transcript. If required execution meaning exists only in chat, the card is not ready: stop the
+default. Do not use `fork_turns="all"` or `fork_context=true` for these roles. A resumed
+Reviewer or Verifier may retain its own history, but never imports the scheduler transcript. A
+Coder revision always starts fresh. If required execution meaning exists only in chat, the card is not ready: stop the
 affected lane and return to `write-task` so the authority is reviewed and anchored.
 
 Detailed execution history is not part of the normal initial read set. Follow the card's
-`execution_log` link only for resume, retry, failure, conflict, replacement, audit, or closure,
+`execution_log` link only for a revision attempt, retry, failure, conflict, replacement, audit, or closure,
 starting from its anchored `latest_event`; extract that event and follow only links needed for
 the unresolved cycle instead of ingesting the whole descriptive log. For single-card work,
 resolve only the exact card, directly gating rows, affected AC rows, and current shared-baseline
@@ -73,16 +77,18 @@ document node additionally records `node_id`, `baseline_anchor`, `candidate_anch
 needed `author_ref` or `critic_ref`. An implementation lane records exactly
 `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`, `run_id`,
 `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`repository_identity`, `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
+`repository_identity`, `coder_epoch`, `candidate_anchor`, `candidate_coder_epoch`, `write_set`, `conflict_domains`, `runtime_locks`,
 `integration_queue_ref`, and `shared_baseline_anchor`, plus its own `coder_ref`,
 `reviewer_ref`, and `verifier_ref`. The primary orchestrator identified by `owner_thread_id`
 and `owner_run_id` owns the shared integration queue. Task planning also states `depends_on`
 and the semantic owner.
 `owner_thread_id` is the main task that owns the writer lane, `owner_run_id` is the scheduler
-run holding the claim, and `coder_ref` is that lane's actual writer: normally a delegated
+run holding the claim, and `coder_ref` plus `coder_epoch` identify the lane's current Coder
+attempt: normally a delegated
 Coder, or the primary session under the no-parallelism rule. These identities are not
 interchangeable. `run_id` remains execution provenance and is not a uniqueness key. Bind the
-actual Coder before writing and never silently take over a lane already bound to another one.
+first Coder before writing. Later attempts use atomic `rotate-coder`; never silently take over a
+lane already bound to another one.
 
 For WhitePaper, ROADMAP, Goal, Requirement, Design, and Task, record the writer choice before
 writing begins. `author_ref` identifies either the primary session or a delegated Author
@@ -98,13 +104,16 @@ Every return contains artifacts or findings and replayable evidence; deviations 
 decisions; and only material unresolved risks that could change the conclusion, decision,
 acceptance, or downstream work. Omit that disclosure when no such risk remains; approval,
 acceptance, and closure candidates instead always state remaining material risks or that none
-are known. Before any repository-writing dispatch enters `workspace-prepared`, run
-`git rev-parse --show-toplevel` and require the resolved path to equal the absolute
-`worktree_path`. Also require `git rev-parse --verify "${baseline_anchor}^{commit}"` to succeed
-and `git rev-parse HEAD` to equal that exact commit. If the approved authority anchor is a
+are known. Before any repository-writing dispatch enters `workspace-prepared`, derive
+`expected_head_anchor`: use `baseline_anchor` for an initial attempt and the current
+`candidate_anchor` for a revision. Run `git rev-parse --show-toplevel` and require the resolved
+path to equal the absolute `worktree_path`. Also require
+`git rev-parse --verify "${baseline_anchor}^{commit}"` and
+`git rev-parse --verify "${expected_head_anchor}^{commit}"` to succeed, and require
+`git rev-parse HEAD` to equal the expected-head commit. If the approved authority anchor is a
 content hash, map it to its existing approved repository commit and use that commit as
 `baseline_anchor` before dispatch; do not add a second baseline field. If `HEAD` differs,
-switch to the approved commit or rebuild the worktree, then repeat both assertions.
+switch to the expected commit or rebuild the worktree, then repeat the assertions.
 
 Before every agent return, recheck the current dispatch path. A repository-writing return must
 also verify that the returned candidate is exactly identified by `candidate_anchor`; when it is
@@ -120,8 +129,9 @@ Runtime state is separate from document `status` and task work status.
 - `awaiting-owner-input`: an owner ruling, initiation, approval, or acceptance is required.
 - `ready-to-dispatch`: inputs, authority, dependencies, conflict domains, and locks are ready;
   for a specification document, the actual writer can now be selected and bound.
-- `workspace-prepared`: the assigned workspace, root-path assertion, and exact
-  `HEAD == baseline_anchor` commit assertion passed.
+- `workspace-prepared`: the assigned workspace and root-path assertion passed, and `HEAD`
+  equals the derived `expected_head_anchor`: `baseline_anchor` initially or the current
+  `candidate_anchor` for a revision.
 - `author-active`, `author-returned`, `author-rework`, `author-revising`: the recorded writer
   is writing, returned or reached its self-check checkpoint, repairing an incomplete
   candidate, or applying accepted findings. The recorded writer may be the primary session or
@@ -129,12 +139,12 @@ Runtime state is separate from document `status` and task work status.
 - `candidate-anchored`: the exact candidate has an immutable anchor.
 - `critic-active`, `critic-returned`, `critic-rechecking`: the independent Critic is reviewing,
   returned findings, or the same Critic is rechecking accepted blockers.
-- `coder-active`, `coder-returned`, `coder-revising`: the lane's recorded Coder is implementing,
-  returned, or revising the card.
+- `coder-active`, `coder-returned`, `coder-revising`: the lane's current Coder attempt is
+  implementing, returned, or revising the card. A revision uses a fresh Coder generation.
 - `candidate-awaiting-anchor`: a Coder returned an initial or revised candidate, but the
   scheduler has not yet completed identity/diff checks and atomic anchor; Reviewer is forbidden.
 - `review-authorized`: the scheduler anchored the exact candidate and explicitly authorized
-  review for that candidate and ownership epoch.
+  review for that candidate, ownership epoch, and Coder epoch.
 - `reviewer-active`, `reviewer-returned`, `reviewer-rechecking`: the lane's independent
   Reviewer is reviewing, returned, or rechecking affected diff.
 - `verifier-active`, `verifier-returned`: the lane's Verifier is executing or returned.
@@ -146,13 +156,14 @@ Runtime state is separate from document `status` and task work status.
 - `integration-queued`: the accepted card waits in the recorded integration queue.
 - `integrating`: the primary orchestrator is applying a candidate across an isolated-workspace,
   concurrent-writer, or shared-baseline boundary.
-- `integration-conflict`: integration stopped; the same Coder must resolve the conflict.
+- `integration-conflict`: integration stopped; a fresh Coder attempt resolves the conflict from
+  the anchored candidate.
 - `rebase-required`: mechanical application is not clean, dependency/specification meaning is
-  invalid on the current baseline, or resolution needs Coder judgment; the same Coder updates
-  the lane. A baseline advance alone does not enter this state.
+  invalid on the current baseline, or resolution needs Coder judgment; a fresh Coder attempt
+  updates the lane. A baseline advance alone does not enter this state.
 - `post-integration-verifying`: the same Verifier is checking the composed shared baseline.
 - `node-complete`: artifact, shared baseline, evidence, and representations agree; only now may
-  an implementation card become `closed`.
+  an implementation card become `closed`, and completed role threads are retired.
 - `agent-unavailable`: a recorded agent cannot be resumed; replacement rules apply.
 - `owner-unreachable`: an active writer lane's registered owner cannot be confirmed; no new
   writer may claim, reuse, expire, or steal the lane automatically.
@@ -175,11 +186,13 @@ Implementation lane identity is project-wide across main tasks: `lane_key` is
 `project_scope_id + card_id`, while `run_id` is only execution provenance. Before any Coder may
 write, the scheduler must atomically claim both the card and canonical `worktree_path` in the
 authority project's shared lane registry, then verify `owner_thread_id`, `owner_run_id`,
-`ownership_epoch`, `coder_ref`, and path. At most one active writer owns a card or canonical
-path. `claim` has no Coder identity; `bind-coder` explicitly binds one. Every verify, anchor,
-and normal release requires the exact bound `coder_ref`. Only `cancel-unbound` may cancel a
-claim before binding. Cross-task scans are collision diagnostics, not a lock. Reject stale-owner,
-stale-epoch, missing/wrong-Coder, or recreated-repository returns before review or integration.
+`ownership_epoch`, `coder_ref`, `coder_epoch`, and path. At most one active writer owns a card
+or canonical path. `claim` has no Coder identity; `bind-coder` explicitly binds the first one,
+and `rotate-coder` atomically binds a fresh attempt from the current anchored candidate. Every
+verify, anchor, rotation, and normal release requires the exact bound `coder_ref` and
+`coder_epoch`. Only `cancel-unbound` may cancel a claim before binding. Cross-task scans are
+collision diagnostics, not a lock. Reject stale-owner, stale-epoch, missing/wrong-Coder,
+stale-Coder-generation, or recreated-repository returns before review or integration.
 Reviewer and Verifier may coexist only as read-only agents against the recorded anchor.
 
 The claim also records canonical Git common-dir and git-dir paths, both directories' local stat
@@ -207,15 +220,19 @@ A delegated Author and Critic, or Coder and Reviewer, report only through the or
 Accepted document findings return to the same `author_ref`; when that ref is the primary
 session, it applies them directly without an Author-agent handoff. Blockers return to the
 same `critic_ref`.
-Card findings and `integration-conflict` or `rebase-required` return to the same `coder_ref`;
-every affected diff returns to the same `reviewer_ref`; affected verification returns to the
-same `verifier_ref`.
+Card findings and implementation failures start a fresh Coder attempt from the anchored
+candidate. Every affected diff returns to the same `reviewer_ref`; affected verification
+returns to the same `verifier_ref`. The same Critic remains bound for targeted blocker recheck;
+replacing a Critic or Reviewer requires a full review.
 
 Every initial or revised worker candidate stops at `candidate-awaiting-anchor` and returns to
 the scheduler. The worker cannot mutate the registry or dispatch Reviewer. The scheduler
-verifies the bound lane/repository/path, candidate commit, and `write_set`, performs atomic
-anchor, and then sends candidate-and-epoch-scoped `review-authorized`. Only then may the worker
-dispatch Reviewer. Revision invalidates the preceding authorization and repeats the gate.
+verifies the bound lane/repository/path, current `coder_ref` and `coder_epoch`, candidate
+commit, and `write_set`, performs atomic anchor, records `candidate_coder_epoch`, retires that
+Coder thread, and then sends candidate-and-epoch-scoped `review-authorized`. Only then may the
+worker dispatch Reviewer. A revision first creates a fresh read-only Coder, then the scheduler
+atomically rotates and activates it after checking `HEAD == candidate_anchor`. Revision
+invalidates the preceding authorization and repeats the gate.
 
 For specification documents, the primary orchestrator performs accepted same-batch propagation,
 machine checks, and commit control, including when the candidate crosses an isolated-workspace,
@@ -243,7 +260,7 @@ combines cards into one log. An unverified implementation combination is never t
 After successful post-integration verification, the verified combined candidate itself must
 append the final event, close the log metadata, compact and close the Task card, and refresh
 affected traceability and evidence. Only that exact candidate may advance the shared anchor;
-the runtime lane becomes `node-complete` afterward.
+the runtime lane becomes `node-complete` afterward and its completed role threads are retired.
 
 If the platform cannot resume an agent, enter `agent-unavailable`, record why, and hand the
 complete lane record to an explicit replacement. A replacement Critic/Reviewer performs a
@@ -261,12 +278,15 @@ after every lane owned by that session reaches `node-complete` and is released.
   material unresolved risk. Run-task-only rules apply only when its dispatch says so.
 - **Critic** is read-only and independent; every finding includes location, evidence, impact,
   required correction, and blocker level. It does not edit or become a second author.
-- **Coder** implements exactly one approved card in its recorded workspace, stays within
-  `write_set`, and stages/commits only that set on detached `HEAD` or its unique branch. It
-  returns a resolvable local commit SHA as immutable `candidate_anchor`; remote writes and
-  unrelated paths are forbidden. The primary session may hold this identity for one lane only
-  when no implementation lane can currently run in parallel with useful orchestrator work;
-  that does not waive isolation, anchoring, independent review, or independent verification.
+- **Coder** implements exactly one immutable candidate attempt for one approved card in its
+  recorded workspace, stays within `write_set`, and stages/commits only that set on detached
+  `HEAD` or its unique branch. It returns a resolvable local commit SHA as immutable
+  `candidate_anchor`; remote writes and unrelated paths are forbidden. Its thread retires after
+  that candidate is anchored. Any later revision starts a fresh Coder with the authority brief
+  and current-cycle delta, never earlier-Coder conversation history. The primary session may
+  hold this identity for one lane only when no implementation lane can currently run in
+  parallel with useful orchestrator work; that does not waive isolation, anchoring, independent
+  review, or independent verification.
 - **Reviewer** is a general read-only reviewer for an anchored document, code, or milestone
   closure increment. When the active dispatch is a run-task card, it reviews
   `baseline_anchor..candidate_anchor` only after exact `review-authorized`, and applies the card
@@ -298,8 +318,9 @@ after every lane owned by that session reaches `node-complete` and is released.
   values verbatim. When creation first returns only queued `clientThreadId`, resolve it through
   non-blocking task observations to actual `threadId + hostId`; before resolution, never put it
   in `wait_threads`, claim its lane, or activate it. Once resolved and bootstrapped, the scheduler
-  performs `claim → bind-coder → verify`, then sends activation so the worker resumes that same
-  Coder.
+  performs `claim → bind-coder → verify`, then sends activation for that fresh Coder. A later
+  revision bootstraps another read-only Coder and waits for scheduler `rotate-coder` before
+  writing.
 
   The originating scheduler is the sole global ready-set, lane-registry, integration-queue,
   and shared-baseline owner. Workers cannot mutate the registry, recursively create
@@ -310,8 +331,9 @@ after every lane owned by that session reaches `node-complete` and is released.
   longest platform-safe wait. On timeout, record the next group for the next external
   reactivation and yield; the current activation must not call another wait or list/read tasks.
   A timeout is a liveness checkpoint, never an in-turn rotation signal. Wake on a material update and refill
-  immediately. Workers push blockers, candidates, review, verification, and completion rather
-  than periodic heartbeats. Without capability or run-scoped authorization, degrade to rolling
+  immediately. Workers may show progress in their own thread, but send the scheduler only
+  blockers, required approvals/rulings, candidates, review, verification, and completion—not
+  progress or periodic heartbeats. Without capability or run-scoped authorization, degrade to rolling
   dispatch in the current task. Never encode a current/default subagent count, wait-target
   count, or polling interval as a method constant.
 

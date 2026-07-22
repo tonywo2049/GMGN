@@ -211,6 +211,7 @@ class TelemetryReportTests(unittest.TestCase):
                     "run_id": "run-9",
                     "lane_key": "methodology:CARD-7",
                     "target_milestone_id": "M2",
+                    "coder_epoch": 2,
                 },
             ),
             self.output("2026-07-20T00:00:02.500Z", "spawn-root", {"success": True}),
@@ -509,6 +510,7 @@ class TelemetryReportTests(unittest.TestCase):
                 "run_id": "run-9",
                 "lane_key": "methodology:CARD-7",
                 "target_milestone_id": "M2",
+                "coder_epoch": "2",
                 "input_bytes": 100,
                 "output_bytes": 0,
             },
@@ -712,6 +714,7 @@ class TelemetryReportTests(unittest.TestCase):
         self.assertEqual(gmgn["identifiers"]["run_id"], ["run-9"])
         self.assertEqual(gmgn["identifiers"]["lane_key"], ["methodology:CARD-7"])
         self.assertEqual(gmgn["identifiers"]["target_milestone_id"], ["M2"])
+        self.assertEqual(gmgn["identifiers"]["coder_epoch"], ["2"])
 
         docstar = run["docstar"]
         self.assertEqual(docstar["calls"], 1)

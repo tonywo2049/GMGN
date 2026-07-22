@@ -23,6 +23,7 @@ SEMANTIC_FIELDS = {
     "run_id": "runid",
     "lane_key": "lanekey",
     "target_milestone_id": "targetmilestoneid",
+    "coder_epoch": "coderepoch",
 }
 READ_COMMANDS = {"awk", "bat", "batcat", "cat", "head", "less", "more", "sed", "tail"}
 GREP_COMMANDS = {"egrep", "fgrep", "grep", "rg", "ripgrep"}

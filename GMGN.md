@@ -45,9 +45,10 @@ GMGN defines six execution-separated roles and one optional audit role.
   against a content contract, chooses the document structure, and self-checks before return.
   A document stage does not require an Author-agent dispatch when the primary orchestrator is
   the recorded writer.
-- **Coder** implements one approved task card and returns code, tests, and replayable evidence.
-  This is normally a delegated agent, but may be the primary session under the explicit
-  no-parallelism rule.
+- **Coder** implements one immutable candidate attempt for one approved task card and returns
+  code, tests, and replayable evidence. A revision starts a fresh Coder without earlier-Coder
+  conversation history. The Coder is normally delegated, but may be the primary session under
+  the explicit no-parallelism rule.
 - **Critic/reviewer** tries to falsify an anchored artifact and must be independent of its
   actual writer/Coder. It reports findings and never edits the reviewed work.
 - **Verifier** independently executes tests, gates, and real product paths at an anchored
@@ -84,9 +85,10 @@ Implementation keeps one independent lane per card across the whole authority pr
 per conversation. Its `lane_key` is the combination of `project_scope_id` and `card_id`;
 `run_id` records an execution attempt and does not define lane uniqueness. Each lane records
 `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`, `run_id`,
-`card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`, `integration_queue_ref`,
-and `shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`, and `verifier_ref`.
+`card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`, `coder_epoch`,
+`candidate_anchor`, `candidate_coder_epoch`, `write_set`, `conflict_domains`, `runtime_locks`,
+`integration_queue_ref`, and `shared_baseline_anchor`, plus its own `coder_ref`, `reviewer_ref`,
+and `verifier_ref`.
 The primary orchestrator that owns `owner_thread_id` and `owner_run_id` also owns the shared
 integration queue. Bind `coder_ref` to the actual writer before implementation. Use the
 primary session only when no implementation lane can currently run in parallel with useful
@@ -103,9 +105,12 @@ orchestrator integrates it into `shared_baseline_anchor`, post-integration verif
 passes, and the primary refreshes `Task.md` and traceability.
 
 The primary orchestrator is the hub: a delegated Author and Critic, or Coder and Reviewer, do
-not communicate directly. Within one lane the same Coder repairs findings and
-`integration-conflict`, the same Reviewer rechecks affected diffs, and the same Verifier
-reruns affected verification. A shared-baseline advance first receives a mechanical
+not communicate directly. Each anchored Coder candidate retires that Coder attempt. Accepted
+findings, implementation failures, `integration-conflict`, and `rebase-required` start a fresh
+Coder from the current candidate; the same Reviewer rechecks affected diffs, the same Verifier
+reruns affected verification, and the same Critic rechecks document blockers. A replacement
+Reviewer or Critic performs a full review, and a replacement Verifier reruns full verification.
+A shared-baseline advance first receives a mechanical
 application attempt in an isolated temporary combination; use `rebase-required` only when it
 cannot apply cleanly, dependency/specification meaning became invalid, or Coder judgment is
 required. An upstream semantic change uses `upstream-change-pending` only for its impact cone.
@@ -114,8 +119,9 @@ available capacity; unrelated lanes continue.
 
 If a platform cannot resume the recorded agent, enter `agent-unavailable` and record why.
 Replacement is explicit and receives the complete node record. Replacing a Critic/Reviewer
-requires a full review; a new agent cannot claim the old agent's targeted recheck. The complete
-state meanings and dispatch requirements are in
+requires a full review; a new agent cannot claim the old agent's targeted recheck. At
+`node-complete`, completed role threads are retired and their refs remain provenance only. The
+complete state meanings and dispatch requirements are in
 [`dispatch-and-handoff.md`](skills/gmgn/references/en/dispatch-and-handoff.md).
 
 ### 0.2 Parallel workspaces and ownership
@@ -130,8 +136,9 @@ The authority project's shared lane registry is the machine source of truth acro
 tasks and worktrees. An atomic compare-and-swap claim must succeed before any Coder can write.
 At most one active writer may own a `card_id`, and one canonical `worktree_path` may belong to
 at most one active writer lane. Cross-task thread scans are useful collision diagnostics but
-cannot replace the atomic claim. A return from a different `owner_thread_id` or stale
-`ownership_epoch`, or without the exact bound `coder_ref`, cannot enter review or integration.
+cannot replace the atomic claim. A return from a different `owner_thread_id`, stale
+`ownership_epoch`, or without the exact bound `coder_ref` and `coder_epoch` cannot enter review
+or integration.
 Claim records the worktree's Git metadata/stat identity and object format; every later machine
 operation must match it and prove the original baseline commit still exists. If ownership cannot be confirmed, mark
 `owner-unreachable`; never infer vacancy or reclaim automatically. Reviewer and Verifier may
@@ -144,8 +151,10 @@ first blocking wait. A queued `clientThreadId` is not an active target: resolve 
 `threadId + hostId` and exact worktree facts before waiting on it, claiming its lane, or
 activating writes. Each read-only bootstrap owns exactly one prospective lane and one
 independent Codex worktree, and may create one read-only Coder to report `coder_ref`. The
-scheduler performs `claim → bind-coder → verify`, then activates that same Coder through the
-worker. It remains the only owner of the global ready set, lane registry, integration queue,
+scheduler performs `claim → bind-coder → verify`, then activates that first-attempt Coder
+through the worker. A revision bootstraps a fresh read-only Coder and activates it only after an
+atomic `rotate-coder` from the current candidate. The scheduler remains the only owner of the
+global ready set, lane registry, integration queue,
 and shared baseline. Workers cannot mutate the registry, create more main tasks, adjudicate,
 accept, integrate, edit `Task.md`, push, or publish. Dynamically group waits by runtime tool
 capacity. Use the longest platform-safe blocking wait after useful local work is exhausted;
@@ -161,9 +170,11 @@ Each parallel writing lane uses an explicitly provisioned worktree at an absolut
 `worktree_path`, with either detached `HEAD` or a unique `branch_ref`; the same branch must not
 be attached to multiple worktrees. Before writing, require `git rev-parse --show-toplevel` to
 equal the recorded absolute `worktree_path`, require `baseline_anchor` to resolve as a commit,
-and require `git rev-parse HEAD` to equal it. Map a content-hash authority anchor to its existing
-approved repository commit first; switch or rebuild and recheck on mismatch. At return, recheck
-the path and verify `candidate_anchor`, not the old baseline. A worktree isolates files and the index. It does not resolve Git merge
+and require `git rev-parse HEAD` to equal the derived `expected_head_anchor`: `baseline_anchor`
+for an initial attempt or the current `candidate_anchor` for a revision. Map a content-hash
+authority anchor to its existing approved repository commit first; switch or rebuild and recheck
+on mismatch. At return, recheck the path and verify `candidate_anchor`, not the old baseline.
+A worktree isolates files and the index. It does not resolve Git merge
 conflicts, semantic conflicts, interface conflicts, or shared runtime resources.
 
 The Coder stages and commits only its card's `write_set` in that assigned worktree and returns
@@ -173,9 +184,11 @@ writer, parallel agents return proposals or patches instead of editing directly;
 writer serially applies, stages, commits, and anchors them.
 
 A worker stops at `candidate-awaiting-anchor` after every initial or revised Coder return. The
-scheduler verifies lane/repository identity, path, candidate commit, and `write_set`, then
-atomically anchors it. Only an explicit `review-authorized` message for that exact candidate and
-epoch lets the worker dispatch Reviewer; old authorization never carries to a revision.
+scheduler verifies lane/repository identity, path, current Coder ref/epoch, candidate commit,
+and `write_set`, then atomically anchors it and records `candidate_coder_epoch`. That Coder
+attempt is then retired. Only an explicit `review-authorized` message for that exact candidate,
+ownership epoch, and Coder epoch lets the worker dispatch Reviewer; old authorization never
+carries to a revision.
 
 Integration is two-phase. From the clean current `shared_baseline_anchor`, the primary
 orchestrator mechanically applies an accepted lane in an isolated temporary combination
@@ -545,8 +558,9 @@ omitted/boundary pointers, issue narrower DocStar queries, or read exact source 
 the bundle is insufficient, conflicting, or does not cover code and runtime evidence.
 
 CodeGraph remains a separate optional code-navigation layer. In an indexed repository, the
-Coder queries it at the baseline, the Reviewer independently queries it at the candidate, and
-the Verifier uses it only when a failure or coverage question requires call-path navigation.
+Coder queries it at the checked-out `expected_head_anchor`, the Reviewer independently queries
+it at the candidate, and the Verifier uses it only when a failure or coverage question requires
+call-path navigation.
 If index-to-commit identity is not proven, CodeGraph is only a locator. Exact checked-out
 source, Git diff, tests, and real execution remain evidence. GMGN requires no CodeGraph engine
 or storage changes.

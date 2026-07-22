@@ -46,12 +46,14 @@ grep/read outside DocStar; `grep_avoided` does not claim causation.
 
 The critic-reviewed `Task.md` card is the only static execution authority for a run-task lane.
 The scheduler resolves that card and its spec/Design anchors, using DocStar when available,
-instead of treating the parent conversation as task input. Start or resume every Coder,
-Reviewer, and Verifier without parent conversation history. On a Codex surface with
+instead of treating the parent conversation as task input. Start every Coder attempt without
+parent or earlier-Coder conversation history. Start or resume Reviewer and Verifier identities
+without parent conversation history. On a Codex surface with
 the historical schema, set `fork_turns="none"`; on a surface with the current boolean schema,
 set `fork_context=false` or omit it when false is the documented default. Never use
-`fork_turns="all"` or `fork_context=true` for a run-task role. Resuming a recorded identity may
-retain that same agent's own history; it must not import the scheduler's transcript.
+`fork_turns="all"` or `fork_context=true` for a run-task role. A resumed Reviewer or Verifier
+may retain its own history; it must not import the scheduler transcript. A Coder revision is a
+fresh attempt, not a resumed Coder thread.
 
 Resolve `baseline_anchor` to its full commit SHA before preparing context. The same-baseline
 brief is required starting context when DocStar is available and supports commit-bound briefs:
@@ -63,7 +65,10 @@ unresolvable card, unsupported flag, or failed command is an explicit degradatio
 the stale bundle; record the reason and use targeted reads from the checked-out exact baseline.
 GMGN remains usable when DocStar is absent.
 
-The brief is a starting evidence bundle, not a reading prohibition. Coder, Reviewer, and
+The brief is a starting evidence bundle, not a reading prohibition. A fresh revision Coder
+receives the unchanged authority brief plus only the current card snapshot, anchored candidate,
+accepted findings, latest relevant event, replayable failure evidence, and current return gate.
+This is a content contract, not a mandatory prompt or checkpoint template. Coder, Reviewer, and
 Verifier may use DocStar `id`/`doc`/`trace`, follow `omitted` or `boundary_pointers`, and
 directly read targeted source files and line ranges when required source is absent, ambiguous,
 conflicts with another source, or code/runtime evidence is outside the document graph. They
@@ -71,7 +76,7 @@ do not blindly reread already covered spans; every extra read answers a named un
 question.
 
 If the assigned repository root contains `.codegraph/` and CodeGraph is usable, the Coder
-queries CodeGraph at `baseline_anchor` before grep/find or broad source reading to locate the
+queries CodeGraph at the checked-out `expected_head_anchor` before grep/find or broad source reading to locate the
 implementation and real call paths. The Reviewer independently queries CodeGraph at
 `candidate_anchor` for changed symbols, callers, and sibling paths. The Verifier uses
 CodeGraph only on demand after a failure or when coverage cannot otherwise be established.
@@ -84,7 +89,9 @@ ingestion.
 A primary session bound as `coder_ref` is a lifecycle identity, not a Coder-agent dispatch, so
 it retains its own conversation context. The reviewed card remains its only static execution
 authority; chat context may help interpret the work but cannot add scope, dependencies, or
-acceptance meaning.
+acceptance meaning. Anchoring ends only that primary session's Coder role; it does not end the
+session. Any later revision is assigned to a fresh Coder agent rather than reusing the primary
+session as the old attempt.
 
 Each minimal runtime dispatch cites the exact `card_id`, Task/spec/Design authority anchors,
 and authority repository or corpus, then adds only facts that do not exist until execution:
@@ -97,7 +104,7 @@ owner ruling, scope boundary, or acceptance condition exists only in chat, the c
 ready; stop the affected lane and return to `write-task` rather than inheriting the transcript.
 
 Do not read execution history on a normal initial dispatch. Follow the card's `execution_log`
-link only for resume, retry, failed verification or integration, identity replacement, audit,
+link only for a fresh revision attempt, retry, failed verification or integration, identity replacement, audit,
 or closure. Start at the card's anchored `latest_event`, then extract only that event and links
 needed for the unresolved cycle; do not ingest the whole log. An execution log is descriptive evidence, not an
 authority supplement. If it contains new scope, dependency, acceptance, status, or closure
@@ -162,7 +169,7 @@ verbatim; never derive one opaque ID from another.
 After the actual task/worktree and bootstrap `coder_ref` are known, move through
 `worker-resolved → worker-bootstrap-returned → lane-claimed → coder-bound → worker-activated`.
 The scheduler alone performs registry `claim → bind-coder → verify`, then uses
-`send_message_to_thread` to activate that worker, which resumes the same Coder with the write
+`send_message_to_thread` to activate that worker, which activates that fresh Coder with the write
 instruction. The originating scheduler remains the sole owner of the global ready set, lane
 registry, `integration_queue_ref`, and `shared_baseline_anchor`. A worker must not
 mutate the registry, recursively create main tasks, adjudicate findings, accept a candidate,
@@ -178,7 +185,9 @@ reactivation, then yield; the current scheduler activation must not call another
 `list_threads`, or `read_thread`. A timeout is a liveness checkpoint, never an in-turn rotation
 signal. Wake on any material update,
 update global state, and immediately refill local or worker capacity. Workers push blockers,
-candidates, review, verification, and completion; they do not send periodic heartbeats.
+candidates, review, verification, and completion; they do not send progress or periodic
+heartbeats to the scheduler. Commentary may remain visible in the worker's own thread without
+becoming a parent notification.
 `list_threads` and `read_thread` are collision diagnostics, not polling or a lock. Without the
 required capability or run-scoped authorization, keep rolling within the current task; do not
 infer or hard-code a subagent, wait-target, or polling interval limit.
@@ -196,17 +205,19 @@ Create one lane per card across the authority project. Its `lane_key` is
 `project_scope_id + card_id`; `run_id` is execution provenance, not a uniqueness boundary.
 Record `project_scope_id`, `lane_key`, `owner_thread_id`, `owner_run_id`, `ownership_epoch`,
 `run_id`, `card_id`, `workspace_mode`, `worktree_path`, `branch_ref`, `baseline_anchor`,
-`repository_identity`, `candidate_anchor`, `write_set`, `conflict_domains`, `runtime_locks`,
+`repository_identity`, `coder_epoch`, `candidate_anchor`, `candidate_coder_epoch`, `write_set`, `conflict_domains`, `runtime_locks`,
 `integration_queue_ref`, and `shared_baseline_anchor`. Add the lane's own `coder_ref`,
 `reviewer_ref`, and `verifier_ref`. The originating primary orchestrator owns the shared
 integration queue.
 
 Prefer `workspace_mode: worktree`. The orchestrator must explicitly provision the worktree
 when the platform does not do so. Use detached `HEAD` or a unique `branch_ref`; never attach
-the same branch to multiple worktrees. Before work starts, the agent requires
+the same branch to multiple worktrees. Derive `expected_head_anchor` from lane state:
+`baseline_anchor` for the first attempt and the current `candidate_anchor` for a revision.
+Before work starts, the agent requires
 `git rev-parse --show-toplevel` to equal the absolute `worktree_path`, requires
 `git rev-parse --verify "${baseline_anchor}^{commit}"` to succeed, and requires
-`git rev-parse HEAD` to equal that exact commit. Map a content-hash authority anchor to its
+`git rev-parse HEAD` to equal the exact `expected_head_anchor` commit. Map a content-hash authority anchor to its
 existing approved repository commit as `baseline_anchor` before dispatch. If `HEAD` differs,
 switch to the approved commit or rebuild the worktree and recheck. Enter `workspace-prepared`
 only after both path and baseline checks pass. On return, recheck the current path and verify
@@ -218,16 +229,17 @@ authority project's coordination root. That root owns the registry and may be a 
 repository from the implementation `worktree_path`. The helper stores JSON runtime state behind
 `refs/gmgn/lane-registry` in the authority repository's Git common metadata; linked worktrees
 and Codex tasks therefore share it, while normal branch commits, status, and pushes do not.
-Its `claim`, `bind-coder`, `status`, `verify`, `anchor`, `release`, and `cancel-unbound`
+Its `claim`, `bind-coder`, `rotate-coder`, `status`, `verify`, `anchor`, `release`, and `cancel-unbound`
 operations use Git `update-ref` compare-and-swap and stable English JSON keys. `claim` never
-accepts `coder_ref`; bind it only with the separate `bind-coder` operation. An unbound claim may
+accepts `coder_ref`; bind it only with the separate `bind-coder` operation. Every bound
+operation carries the exact current `coder_ref` and `coder_epoch`. An unbound claim may
 be cancelled only with `cancel-unbound`; normal `release` is reserved for a bound lane and
-requires its exact `coder_ref`.
+requires its exact `coder_ref` and `coder_epoch`.
 
 The global dispatch gate is: provision and validate the worktree; inspect cross-task state for
 diagnostics; atomically `claim` the `card_id` and canonical `worktree_path`; bind the one
-`coder_ref`; then `verify` the exact `owner_thread_id`, `owner_run_id`, `ownership_epoch`,
-`coder_ref`, and path before activation. Reject a claim if either the card or canonical path has
+current `coder_ref`; then `verify` the exact `owner_thread_id`, `owner_run_id`, `ownership_epoch`,
+`coder_ref`, `coder_epoch`, and path before activation. Reject a claim if either the card or canonical path has
 another active writer. Thread-local agent absence and a clear cross-task scan never prove
 vacancy. If the registered owner cannot be confirmed, enter `owner-unreachable` and stop this
 lane; do not expire, steal, or recreate it automatically. A released lane keeps its tombstone,
@@ -250,7 +262,7 @@ does not by itself require a rebase.
 
 At claim, bind the implementation repository identity as well as the path: canonical Git
 common-dir and git-dir paths, both directories' local stat identities, and Git object format.
-Every `bind-coder`, `verify`, `anchor`, `release`, or `cancel-unbound` recomputes and matches that
+Every `bind-coder`, `rotate-coder`, `verify`, `anchor`, `release`, or `cancel-unbound` recomputes and matches that
 identity and confirms the original `baseline_anchor` still exists. Deleting the path and
 recreating another clone at the same absolute name is a mismatch even when that clone contains
 the same baseline commit.
@@ -265,30 +277,39 @@ ready set.
 
 ## 3. Run each card lane independently
 
-At `workspace-prepared`, select the Coder for exactly that approved card and retain its
-`coder_ref`: dispatch a new Coder when safe parallel execution is available, or use the
+At `workspace-prepared`, select the first Coder attempt for exactly that approved card and bind
+its `coder_ref` and `coder_epoch`: dispatch a new Coder when safe parallel execution is
+available, or use the
 already-bound primary session only under the no-parallelism rule in section 1. Require allowed
 paths, failing-first discrimination, the first sufficient
 implementation, real-call-path evidence, and no edits to shared `Task.md`, traceability, or
 the shared baseline. At `coder-returned`, reject incomplete or out-of-scope work to the same
-Coder. Otherwise the Coder stages and commits only this card's `write_set` in its assigned
+attempt before it produces an anchored candidate. Otherwise the Coder stages and commits only
+this card's `write_set` in its assigned
 worktree on detached `HEAD` or its unique `branch_ref`, without any remote write. The return
 includes a parseable local commit SHA as immutable `candidate_anchor`. The worker enters
 `candidate-awaiting-anchor`, stops, and returns the scheduler its exact path, candidate, and
 `write_set` evidence; it must not dispatch Reviewer yet. The scheduler re-runs registry
-`verify` with the exact bound `coder_ref`, confirms repository/path identity, resolves the
+`verify` with the exact bound `coder_ref` and `coder_epoch`, confirms repository/path identity, resolves the
 candidate commit, and checks that its diff contains only the card `write_set`. A return from
-another owner, a stale `ownership_epoch`, a missing/wrong `coder_ref`, a changed repository, or
+a different Coder generation, another owner, a stale `ownership_epoch`, a missing/wrong
+`coder_ref`, a changed repository, or
 a different path is rejected before review or integration. Uncommitted files, a symbolic
 branch name, or a commit containing unrelated paths is not a candidate anchor.
 
-Only the scheduler may run the atomic registry `anchor`. After it succeeds, enter
-`candidate-anchored`, then send an explicit `review-authorized` message tied to that exact
-`candidate_anchor` and `ownership_epoch`. A worker may dispatch one independent read-only
+Only the scheduler may run the atomic registry `anchor`. It records the current
+`candidate_coder_epoch`. After it succeeds, enter `candidate-anchored`, retire the completed
+Coder thread—or end the Coder role when the primary session held it—then send an explicit
+`review-authorized` message tied to that exact
+`candidate_anchor`, `ownership_epoch`, and `coder_epoch`. A worker may dispatch one independent read-only
 Reviewer and retain `reviewer_ref` only after receiving that authorization. Review the exact
-`baseline_anchor..candidate_anchor` card diff. Accepted findings return to the same Coder in
-`coder-revising`; blocker fixes return to the same Reviewer in `reviewer-rechecking`. Every
-revised candidate repeats `candidate-awaiting-anchor → candidate-anchored → review-authorized`;
+`baseline_anchor..candidate_anchor` card diff. Accepted findings are flushed to the card's
+current snapshot and latest event before a fresh read-only Coder is created with no parent or
+earlier-Coder history. The scheduler runs `rotate-coder` only after verifying the old ref and
+epoch, current candidate, repository identity, and `HEAD == candidate_anchor`; it then
+activates the new Coder in `coder-revising`. Blocker fixes return to the same Reviewer in
+`reviewer-rechecking`. Every revised candidate repeats
+`candidate-awaiting-anchor → candidate-anchored → review-authorized`;
 authorization for an older candidate cannot authorize review of the new one. A native surface
 without resumable identity repeats the full card review.
 
@@ -301,8 +322,9 @@ retain `verifier_ref`. For candidate verification, the dispatch gives that Verif
 lane's current `workspace_mode`, `worktree_path`, and `branch_ref`.
 The Verifier runs the targeted test, relevant integration/startup/E2E and negative paths,
 plus project gates at `candidate_anchor`, returning exact commands, environment, exit codes,
-and limitations as `verifier-returned`. A skipped or unavailable command is not a pass. Failure returns to the same
-Coder, then the affected diff returns to the same Reviewer and verification to the same
+and limitations as `verifier-returned`. A skipped or unavailable command is not a pass. A
+failure starts a fresh Coder attempt from the anchored candidate; the affected diff then
+returns to the same Reviewer and verification to the same
 Verifier. With no blocker, the orchestrator may mark the branch candidate `accepted`; it is
 not `closed` and must not update the shared ledger.
 
@@ -341,7 +363,7 @@ integration event and evidence rather than adding another top-level runtime fiel
 
 An advanced shared baseline does not by itself require a rebase. First try the mechanical
 application in the temporary combination workspace. Use `integration-conflict` for a failed
-merge/cherry-pick attempt. Enter `rebase-required` and resume the same Coder only when the lane
+merge/cherry-pick attempt. Enter `rebase-required` and start a fresh Coder attempt only when the lane
 cannot apply cleanly, its dependency or specification meaning is invalid on the current
 baseline, or resolution requires Coder judgment. Unrelated accepted lanes remain eligible.
 Every resulting changed diff returns to the same Reviewer and affected candidate verification
@@ -366,8 +388,8 @@ its first durable event; never append the failure history to `Task.md` or includ
 implementation in the state-only candidate. After diff, link, and repository-required document
 checks, advance `shared_baseline_anchor` only to that descriptive-only commit, then skip the
 failed entry and process unrelated eligible queue items.
-A verification failure returns to the same Coder, affected diff to the same Reviewer, and
-verification to the same Verifier.
+A verification failure starts a fresh Coder attempt from the anchored lane candidate; affected
+diff returns to the same Reviewer, and verification to the same Verifier.
 
 Only after post-integration verification passes may the primary orchestrator prepare closure
 fields in that isolated candidate. Append the successful integration event to
@@ -388,7 +410,8 @@ After these checks, atomically advance `shared_baseline_anchor` to the verified 
 candidate that already contains the Task and log closure state. Never expose an unverified
 temporary combination as the shared baseline.
 
-Only after that atomic advance set the runtime lane to `node-complete`, release its locks,
+Only after that atomic advance set the runtime lane to `node-complete`, retire the Reviewer and
+Verifier threads, release its locks,
 delete no worktree until the integrated anchor and evidence are recorded, then call the registry `release` operation with the exact owner and
 epoch so the tombstone remains while writer ownership and path occupancy are freed. Immediately
 recompute and refill the ready set. Do not push unless explicitly authorized.
@@ -404,7 +427,7 @@ When implementation evidence contradicts an approved premise:
    or R-AC meaning to `write-requirement`, Design intent to `write-design`, and Task execution
    authority to `write-task`.
 3. Resume only after the changed authority has the review or approval required for its new
-   anchor. Resume the same `coder_ref`; update only affected downstream documents, cards,
+   anchor. Start a fresh Coder attempt from the anchored candidate; update only affected downstream documents, cards,
    code, tests, evidence, and state. Mark an invalidated branch `rebase-required`, return its
    affected diff to the same `reviewer_ref`, and verification to the same `verifier_ref`; do not restart unrelated work.
    If an agent is unavailable, enter `agent-unavailable` and
