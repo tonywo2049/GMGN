@@ -1186,6 +1186,30 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 候选锚责任", result.stdout)
 
+    def test_rejects_missing_task_decomposition_boundary(self) -> None:
+        path = self.root / "skills" / "write-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "Split at an independent proof boundary",
+            "Split at an implementation phase boundary",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task 卡片拆分准则", result.stdout)
+
+    def test_rejects_oversized_card_execution(self) -> None:
+        path = self.root / "skills" / "run-task" / "SKILL.md"
+        text = self.replace_required(
+            path.read_text(encoding="utf-8"),
+            "return it to `write-task` controlled revision",
+            "let the Coder decide how much of the card to implement",
+        )
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 大卡回退门禁", result.stdout)
+
     def test_rejects_card_only_general_verifier(self) -> None:
         path = self.root / "agents" / "verifier.md"
         text = self.replace_required(

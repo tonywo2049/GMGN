@@ -251,6 +251,15 @@ Goal.md → Requirement.md → Design.md → Task.md → code/tests → AC trace
 binds a spec anchor, a failing-first test, and a completion criterion. Uncovered ACs are
 unimplemented work.
 
+Task decomposition follows independent proof boundaries. A card has one primary semantic owner
+and one independently decidable completion result. Separate independently verifiable
+implementation, integration, real-environment or E2E qualification, production eligibility,
+and closure instead of using the final qualification to justify one large implementation card.
+Intermediate cards may integrate only while unfinished product paths remain unreachable,
+disabled, or fail-closed and that containment is proved. Stop splitting when a smaller unit
+would no longer be independently verifiable or would create empty wrapper work. The complete
+authoring and review rules are in `skills/write-task/SKILL.md`.
+
 The **process chain** is research → decision → normative document → archived exploration.
 Keep revisable exploration separate from approved conclusions.
 

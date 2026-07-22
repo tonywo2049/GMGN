@@ -1974,6 +1974,41 @@ def validate_agent_lifecycle(
          "six parser-facing columns unchanged", "rolling ready set"),
         "write-task",
     )
+    require_tokens(
+        errors,
+        write_task,
+        (
+            "independent proof boundary", "one primary semantic owner",
+            "one independently decidable completion result", "final safety or production decision",
+            "unfinished product paths remain `unreachable`", "Oversized-card warning signs",
+            "Stop splitting when", "no artificial dependency",
+        ),
+        "write-task 卡片拆分准则",
+    )
+    require_tokens(
+        errors,
+        run_task,
+        (
+            "contains separable responsibilities", "return it to `write-task` controlled revision",
+            "must not\nsplit execution authority ad hoc",
+        ),
+        "run-task 大卡回退门禁",
+    )
+    require_tokens(
+        errors,
+        (ROOT / "GMGN.md").read_text(encoding="utf-8"),
+        (
+            "Task decomposition follows independent proof boundaries",
+            "unfinished product paths remain unreachable",
+        ),
+        "GMGN Task 拆分原则",
+    )
+    require_tokens(
+        errors,
+        (ROOT / "GMGN.zh-CN.md").read_text(encoding="utf-8"),
+        ("任务卡按可独立验证的结果边界拆分", "未完成的产品路径保持不可达"),
+        "GMGN 中文 Task 拆分原则",
+    )
 
     for path, tokens in (
         (

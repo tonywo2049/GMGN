@@ -24,6 +24,22 @@ Use the Design locale and the matching layout-free
   while preserving the fixed parser-facing table header. Give each card a stable Markdown
   anchor keyed by its existing task ID for its log's exact upstream link.
 - Each card is the smallest independently reviewable and verifiable unit.
+- Split at an independent proof boundary, not by file count, chronological phase, or the final
+  product qualification. One card has one primary semantic owner and one independently
+  decidable completion result; one R-AC may map to several cards.
+- Separate independently verifiable interface/schema enablement, implementation, cross-module
+  integration, real-environment or E2E qualification, production eligibility, and Milestone
+  closure. A final safety or production decision does not justify absorbing its separable
+  prerequisites into one implementation card.
+- An intermediate card may integrate only when unfinished product paths remain `unreachable`,
+  disabled, or fail-closed, and its test proves both the local result and that containment.
+- Oversized-card warning signs include unrelated responsibilities or modules, multiple unrelated
+  failing tests, a broad `write_set`, unrelated conflict domains or runtime locks, and one card
+  combining implementation with qualification or closure. Split again whenever the resulting
+  cards can still be independently reviewed and verified.
+- Stop splitting when a smaller unit would no longer have an independently testable result,
+  would create an empty wrapper or fake interface, or would leave required responsibility with
+  no owner.
 - Every card has a stable ID, R-AC spec anchor, explicit `depends_on`, failing-first test,
   completion criterion, allowed paths, `write_set`, `conflict_domains`, `runtime_locks`, a
   semantic owner, exactly one owning Milestone, work state `not-started`,
@@ -95,10 +111,12 @@ content and self-check above when the bounded handoff creates real value. At `au
 send incomplete or out-of-scope work to the same recorded writer as `author-rework`; otherwise
 enter `candidate-anchored` and dispatch an independent Critic. At `critic-returned`, adjudicate
 findings, resume the same recorded writer in `author-revising`, and send blocker fixes to the
-same Critic in `critic-rechecking`. With no blocker, the primary orchestrator reviews the
-candidate. The primary orchestrator applies accepted mechanical traceability, links, state,
-and commit material, including across an integration boundary, and runs machine checks. Finish at
-`node-complete`.
+same Critic in `critic-rechecking`. The Critic checks card granularity as well as traceability:
+one decidable result per card, no artificial dependency, no final qualification used to absorb
+separable work, and no avoidable conflict domain or runtime lock that narrows the ready set. With
+no blocker, the primary orchestrator reviews the candidate. The primary orchestrator applies
+accepted mechanical traceability, links, state, and commit material, including across an
+integration boundary, and runs machine checks. Finish at `node-complete`.
 
 ## Controlled revision
 

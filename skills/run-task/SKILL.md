@@ -7,6 +7,12 @@ description: "Use when one or more approved task cards are confirmed: continuous
 
 <HARD-GATE>Every dispatched card must exist in a critic-reviewed and orchestrator-reviewed `Task.md`, include the execution facts required by `write-task`, and belong to an owner/orchestrator-confirmed execution set for a recorded `target_milestone_id`. Cross-milestone references never expand this set automatically. Otherwise return to `write-task`. A card is ready only after its valid upstream dependencies are integrated into the shared baseline and its conflict domains and runtime locks are available. If implementation exposes changed upstream meaning, pause only the impact cone and route to its authority; code or Task prose must not silently redefine the specification.</HARD-GATE>
 
+Before claiming a ready card, check the decomposition rules in `write-task`. If the card still
+contains separable responsibilities, independently decidable results, or an avoidable sequence
+of implementation plus qualification or closure, pause only that card and its descendants and
+return it to `write-task` controlled revision while unrelated lanes continue. A Coder must not
+split execution authority ad hoc or implement a chat-selected subset of the oversized card.
+
 Use the document locale for status updates and the user's language for conversation. Keep
 all machine tokens and IDs unchanged.
 
