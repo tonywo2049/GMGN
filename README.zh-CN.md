@@ -63,8 +63,9 @@ Coder 时可以冻结并 hash 精确 diff。隔离 lane 候选先应用到临时
 基线时，本身就是最终组合。相关审查 blocker 清零后，需要可执行证据时只派一个全新 Verifier 验证
 最终组合。干净机械集成不重复同一测试。
 Agent 等待采用事件驱动：先做完有用本地工作，只发起一次平台允许的最长安全等待，把超时只当存活
-检查点，禁止把 status/list/wait 串成轮询循环。Agent 进度只在自己的 thread 内显示，只向主编排者
-推送实质生命周期事件。
+检查点，禁止把 status/list/wait 串成轮询循环。只有调度决策、等待超时后状态仍不明确，或生命周期
+事件互相矛盾时才调用一次 `list_agents`；实质状态变化前不得再次查询，也不配置定时查询周期。
+Agent 进度只在自己的 thread 内显示，只向主编排者推送实质生命周期事件。
 
 已评审的 `Task.md` 行选择工作，物化后的 `Card.md` 是静态执行/TDD 权威。run-task 角色只接收精确
 权威指针、Log 当前快照与 lane 事实，不继承父会话，也不复制逐 agent handoff。
@@ -190,7 +191,7 @@ claude plugin marketplace remove GMGN --scope user
 | 你的说法 | 接管的 skill | 主要产物 |
 |---|---|---|
 | “我有个想法，先调研一下可不可行” | `brainstorm` | WhitePaper |
-| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP |
+| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（含 Milestone 验收图景） |
 | “启动 M1，明确范围” | `write-goal` | Goal.md |
 | “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
 | “出技术设计和系统方案” | `write-design` | Design.md |

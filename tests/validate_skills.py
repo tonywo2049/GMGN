@@ -93,6 +93,9 @@ def validate_core_contract(errors: list[str]) -> None:
     run_task = read(CORE_FILES[2])
     dispatch_en = read(CORE_FILES[3])
     dispatch_zh = read(CORE_FILES[4])
+    roadmap = read("skills/roadmap/SKILL.md")
+    write_requirement = read("skills/write-requirement/SKILL.md")
+    close_milestone = read("skills/close-milestone/SKILL.md")
 
     require(gmgn, (
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
@@ -101,6 +104,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not dispatch a Verifier while relevant review blockers remain",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
+        "A `list_agents` snapshot is allowed only",
+        "There is no periodic list interval",
     ), "gmgn 路由契约", errors)
     require(write_task, (
         TASK_HEADER,
@@ -120,6 +125,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "does not need another copy",
         "dispatch one fresh Verifier when executable evidence is required",
         "An additional pre-integration Verifier is allowed only",
+        "Use one `list_agents` snapshot only",
+        "No periodic list interval is configured or inferred",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
@@ -127,12 +134,33 @@ def validate_core_contract(errors: list[str]) -> None:
         "One return ends the agent",
         "Collect every active review return before editing",
         "one fresh Verifier on the final candidate when executable evidence is required",
+        "Do not query again until a material lifecycle event",
+        "There is no periodic list interval",
     ), "英文派发契约", errors)
     require(dispatch_zh, (
         "一次派发，一个全新 agent",
         "创建 agent 前准备完整 brief",
         "一次回传即结束",
+        "才调用一次 `list_agents` 获取状态快照",
+        "不存在定时查询周期",
     ), "中文派发契约", errors)
+    require(roadmap, (
+        "Milestone acceptance picture",
+        "high-level end-to-end or integration scenarios",
+        "must be independently decidable from work owned by that Milestone",
+        "Do not prescribe a test framework",
+        "Requirement refines scenarios into ACs",
+    ), "roadmap 验收图景契约", errors)
+    require(write_requirement, (
+        "ROADMAP acceptance-scenario anchor",
+        "ROADMAP acceptance scenario → Goal slice → R/AC",
+        "without copying it as a second AC system",
+    ), "requirement 验收追踪契约", errors)
+    require(close_milestone, (
+        "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",
+        "covers every ROADMAP acceptance scenario",
+        "ROADMAP acceptance-scenario links to accepted evidence",
+    ), "milestone 验收关账契约", errors)
 
     authority = "\n".join(read(path) for path in CORE_FILES)
     if OLD_TASK_HEADER in authority:

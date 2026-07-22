@@ -118,6 +118,11 @@ could change the decision, acceptance, or downstream work.
 - Wait only after useful dispatch, local checks, state refresh, and integration work are
   exhausted. Use one longest-safe event wait. A timeout is a liveness checkpoint, not a reason
   to start a list/status/wait polling loop.
+- On Codex, use one `list_agents` snapshot only when a scheduling/capacity decision needs
+  current state, a wait timed out without an unambiguous agent state, or received lifecycle
+  events conflict. Do not query again until a material lifecycle event, candidate, blocker, or
+  scheduling condition changes. `path_prefix` scopes the snapshot; it is not an interval.
+  There is no periodic list interval.
 
 Surface limitations never justify silently reusing an agent, widening write permissions, or
 dropping independent review.

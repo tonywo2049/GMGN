@@ -1,11 +1,11 @@
 ---
 name: roadmap
-description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, product roadmap, milestones, phases, release/version plan, priority, dependency order, closure backfill, or TODO allocation. 白皮书已批后排路线图/产品路线图/里程碑规划/版本规划/发布规划、优先级；也用于 ROADMAP 关账回填、新想法登记分配、依赖调整和里程碑重排。"
+description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, priority, dependency order, qualitative Milestone acceptance pictures, closure backfill, or TODO allocation. 白皮书已批后规划里程碑、优先级、依赖和定性验收图景；也用于 ROADMAP 关账回填、新想法分配和里程碑重排。"
 ---
 
 # ROADMAP: single sequencing authority
 
-<HARD-GATE>An approved, version-anchored WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs or quantitative requirement metrics. It precedes milestone requirements, so goals and completion pictures stay qualitative.</HARD-GATE>
+<HARD-GATE>An approved, version-anchored WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs, quantitative requirement metrics, or executable test cases. It precedes Milestone requirements, so acceptance pictures stay qualitative.</HARD-GATE>
 
 ## Language and contract
 
@@ -17,18 +17,27 @@ Use the active locale and the matching layout-free
 ## Create
 
 - Restate only the WhitePaper boundary and invariants needed for sequencing.
-- Define ordered milestones with one qualitative objective, qualitative completion picture,
-  dependencies, and work state `not-started`.
-- Make each completion picture independently decidable from work owned by that Milestone.
-  Sequence strong dependencies from earlier Milestones to later consumers; a downstream
+- Define ordered Milestones with one qualitative objective, one **Milestone acceptance
+  picture**, dependencies, and work state `not-started`.
+- The acceptance picture names one or more high-level end-to-end or integration scenarios.
+  Each scenario has a stable Markdown anchor and states the starting situation, actor or
+  system action, observable outcome, and any decision-relevant failure or recovery outcome.
+- Every acceptance scenario must be independently decidable from work owned by that Milestone.
+  An infrastructure Milestone may use a real input → processing → persistence/recovery →
+  observable output path; do not fabricate a user-interface E2E.
+- Do not prescribe a test framework, command, test file, fixture, selector, or exact numeric
+  threshold in ROADMAP. Requirement refines scenarios into ACs; Design and Card own executable
+  verification details.
+- Sequence strong dependencies from earlier Milestones to later consumers. A downstream
   implementation, confirmation, document, or evidence item must not be an earlier Milestone's
-  completion criterion.
+  acceptance condition.
 - Maintain one TODO list for ideas not yet allocated to a milestone.
 - Do not pre-create empty G-R-D-T files for unstarted milestones.
 
 ## Maintain
 
-- Closure backfill updates the milestone state, closure evidence, and any Handoff that exists.
+- Closure backfill updates the Milestone state and links each acceptance-scenario anchor to its
+  closing evidence, plus any Handoff that exists.
 - New ideas enter TODO, then are assigned to a milestone before becoming requirements.
 - Record downstream-only confirmations as a non-blocking TODO or Handoff with receiving
   Milestone/owner, question, trigger, possible impact, and any safe default assumption. Closure
@@ -62,8 +71,8 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
   rows and documents, required reviewer or approver, and proposed new anchor.
 - If the changed meaning belongs to the WhitePaper, initiate `brainstorm` revision mode and
   resume ROADMAP maintenance only after the required new upstream approval.
-- Revise only ROADMAP-owned sequencing, milestone allocation, dependencies, qualitative
-  completion pictures, or TODO placement. Do not reopen unaffected milestones.
+- Revise only ROADMAP-owned sequencing, Milestone allocation, dependencies, qualitative
+  acceptance pictures, or TODO placement. Do not reopen unaffected Milestones.
 - A later Milestone may supersede a technical selection originating in a closed foundation or
   M0 Milestone. The M0-originated Design, Decision, or index remains semantic authority. Keep
   the historical Milestone and old closure anchor closed; record the current Milestone's change

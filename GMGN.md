@@ -53,8 +53,10 @@ WhitePaper → ROADMAP → Goal → Requirement → Design → Task
 ```
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
-- ROADMAP owns Milestone order, priority, and cross-Milestone dependency.
-- Goal owns one initiated Milestone's objective and boundary.
+- ROADMAP owns Milestone order, priority, cross-Milestone dependency, and each Milestone's
+  qualitative acceptance picture.
+- Goal owns one initiated Milestone's objective, boundary, slices, and the mapping from the
+  ROADMAP acceptance picture into active scope.
 - Requirement owns requirements, constraints, and acceptance criteria (ACs).
 - Design owns the implementation structure, interfaces, data, and failure paths.
 - Task owns task division, AC mapping, dependencies, macro status, and execution pointers.
@@ -136,7 +138,11 @@ becomes the shared baseline.
 
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
 event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a
-list/status/wait polling loop.
+list/status/wait polling loop. Use one `list_agents` snapshot only when a scheduling/capacity
+decision needs current state, a wait timed out without an unambiguous agent state, or received
+lifecycle events conflict. One call serves one decision point; do not query again until a
+material lifecycle event, candidate, blocker, or scheduling condition changes. There is no
+periodic list interval; a wait timeout configures only that wait call.
 
 ## 6. Change, closure, and release
 
@@ -147,10 +153,11 @@ reapproval.
 
 Milestone closure requires:
 
-1. every in-scope AC completed or semantically removed/reassigned at a new authority anchor;
-2. replayable evidence for each retained criterion;
-3. Task, Card/Log, traceability, and ROADMAP refreshed in the same batch;
-4. owner acceptance bound to the closing anchor.
+1. every ROADMAP acceptance scenario traced through Goal slices and in-scope ACs to evidence;
+2. every in-scope AC completed or semantically removed/reassigned at a new authority anchor;
+3. replayable evidence for each retained criterion;
+4. Task, Card/Log, traceability, and ROADMAP refreshed in the same batch;
+5. owner acceptance bound to the closing anchor.
 
 Create a separate handoff only when a receiving operator needs information that has no better
 existing authority. Release reuses review and verification evidence when source, semantics,

@@ -70,11 +70,31 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
 
+    def test_rejects_missing_roadmap_acceptance_picture(self) -> None:
+        self.replace(
+            "skills/roadmap/SKILL.md",
+            "high-level end-to-end or integration scenarios",
+            "general completion notes",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("roadmap 验收图景契约", result.stdout)
+
     def test_rejects_missing_fresh_agent_lifecycle(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",
             "single-use. Prepare",
             "single-use. Defer",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("gmgn 路由契约", result.stdout)
+
+    def test_rejects_periodic_agent_status_polling(self) -> None:
+        self.replace(
+            "skills/gmgn/SKILL.md",
+            "There is no periodic list interval",
+            "Use a periodic list interval",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)

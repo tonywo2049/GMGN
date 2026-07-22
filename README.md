@@ -94,8 +94,10 @@ fresh Verifier checks it when executable evidence is required. Clean mechanical 
 cause identical tests to run twice. Only success atomically advances the shared baseline.
 Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
 timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
-loop. Agent progress remains local to its thread; only material lifecycle events notify the
-orchestrator.
+loop. Use one `list_agents` snapshot only for a scheduling decision, an ambiguous post-timeout
+state, or conflicting lifecycle events; do not query again before material state changes.
+There is no periodic list interval. Agent progress remains local to its thread; only material
+lifecycle events notify the orchestrator.
 
 The reviewed `Task.md` row selects the work; its materialized `Card.md` is the static execution
 and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and
@@ -215,7 +217,7 @@ claude plugin marketplace remove GMGN --scope user
 | Request | Skill | Main output |
 |---|---|---|
 | “I have an idea; research whether it is viable.” | `brainstorm` | WhitePaper |
-| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP |
+| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with Milestone acceptance pictures |
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
 | “Produce the technical design.” | `write-design` | Design.md |

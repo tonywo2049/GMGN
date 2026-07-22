@@ -13,7 +13,7 @@ The primary orchestrator records the Goal/Requirement/Design/Task anchors and ch
 
 - all target tasks and their execution pointers;
 - Card completion contracts against Log current evidence;
-- AC → task → test → evidence coverage;
+- ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence coverage;
 - no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
 - known debt and material risk are classified without silently waiving an AC.
 
@@ -23,8 +23,9 @@ stay in each card's Log.
 ## Reuse evidence before rerunning it
 
 Do not dispatch a Verifier merely because closure started. Reuse verification evidence when it
-is bound to the exact closing anchor and already covers the Milestone's required regression,
-real path, negative/recovery cases, environment, and limitations.
+is bound to the exact closing anchor and already covers every ROADMAP acceptance scenario, the
+Milestone's required regression, real end-to-end or integration path, relevant
+negative/recovery outcomes, environment, and limitations.
 
 If any required closure evidence is missing, stale, environment-specific, or explicitly
 mandated at Milestone scope, prepare a complete brief and create one fresh Verifier. It runs
@@ -38,17 +39,17 @@ The primary session normally writes the closure candidate because it owns the co
 Milestone state. Delegate only when a bounded Author handoff has real value; prepare its full
 brief before creating that fresh single-use Author.
 
-The candidate contains scope reconciliation, evidence map, controlled debt, remaining
-material risks or a supported none-known statement, proposed state changes, and a Handoff plan
-only when a receiving operator lacks an existing authority for needed information. It does not
-mark the Milestone closed before owner acceptance.
+The candidate contains acceptance-picture and scope reconciliation, evidence map, controlled
+debt, remaining material risks or a supported none-known statement, proposed state changes,
+and a Handoff plan only when a receiving operator lacks an existing authority for needed
+information. It does not mark the Milestone closed before owner acceptance.
 
 Freeze the candidate after writer self-check and machine checks. Prepare one brief and create a
 fresh independent combined Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
 consistency and closure meaning. Collect the full review before editing. The primary
 orchestrator adjudicates once and batches accepted blockers; later semantic/diff recheck uses a
-fresh agent only for affected scope. Non-blocking suggestions do not reopen closure. Enter
-Present the candidate for owner acceptance only when required evidence and review have no blocker.
+fresh agent only for affected scope. Non-blocking suggestions do not reopen closure. Present
+the candidate for owner acceptance only when required evidence and review have no blocker.
 
 ## Structural checks
 
@@ -65,7 +66,8 @@ acceptance authorizes the primary orchestrator to:
 - close the target Milestone and its appropriate normative chain;
 - create/update Handoff only when a receiver needs one, using the accepted anchor, acceptance
   reference, applicable evidence, environment, risks, authority pointers, and next command;
-- refresh ROADMAP, Task macro states, AC traceability, execution links, and version anchors;
+- refresh ROADMAP acceptance-scenario links to accepted evidence, Task macro states, AC
+  traceability, execution links, and version anchors;
 - run final diff/link/repository checks and create the local closure commit under project policy.
 
 Do not create an Integrator agent. Do not push, publish, deploy, or release without separate

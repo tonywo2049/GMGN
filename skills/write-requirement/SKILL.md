@@ -20,15 +20,20 @@ Use the Goal locale and the matching layout-free
   writer chooses the document structure.
 - Give each requirement decidable ACs `R1-AC1`, ... using observable precondition, action,
   and result. This is the qualitative-to-quantitative boundary.
+- Carry every ROADMAP acceptance-scenario anchor through its mapped Goal slices into one or
+  more R/ACs. Keep the trace explicit as ROADMAP acceptance scenario → Goal slice → R/AC;
+  refine the scenario into decidable criteria without copying it as a second AC system.
 - Clearly distinguish functional, non-functional, parameter/constraint, non-goal, and
   open-decision content.
 - Parameterize changeable numbers; name the authority and verification method for values.
-- Maintain a Goal ↔ R/AC traceability table. No orphan Goal slice and no unowned AC.
+- Maintain the ROADMAP acceptance scenario → Goal slice → R/AC traceability. No acceptance
+  scenario may disappear silently, no Goal slice may be orphaned, and no AC may be unowned.
 - For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
 
-Before return, the recorded writer checks that every Goal slice is covered or explicitly
-excluded, every AC is decidable and owned, no requirement prescribes an implementation
-structure, and every number has an authority and verification method.
+Before return, the recorded writer checks that every ROADMAP acceptance scenario is covered
+through Goal slices or routed back to `roadmap`/`write-goal`, every Goal slice is covered or
+explicitly excluded, every AC is decidable and owned, no requirement prescribes an
+implementation structure, and every number has an authority and verification method.
 
 ## Writer and critic loop
 

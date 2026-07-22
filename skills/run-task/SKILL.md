@@ -97,7 +97,11 @@ attempt, starting from the last accepted anchor.
 
 Within the current task, wait only after ready dispatch, primary-Coder work, integration,
 state refresh, and local checks are exhausted. Use one event-driven longest-safe wait. A
-timeout is a liveness checkpoint; do not turn list/status/wait into a polling loop.
+timeout is a liveness checkpoint; do not turn list/status/wait into a polling loop. Use one
+`list_agents` snapshot only when a scheduling/capacity decision needs current state, a wait
+timed out without an unambiguous agent state, or received lifecycle events conflict. Do not
+query again until a material lifecycle event, candidate, blocker, or scheduling condition
+changes. No periodic list interval is configured or inferred.
 
 ## 5. Review a frozen candidate
 

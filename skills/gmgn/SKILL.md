@@ -95,8 +95,12 @@ session may serve as one lane's Coder. It cannot take over an assigned lane and
 cannot replace independent review or required verification.
 
 Agent waiting is event-driven: exhaust useful work, wait once with the longest safe interval,
-and treat timeout as a liveness checkpoint rather than a polling trigger. Telemetry is
-out-of-band observation and never changes routing, readiness, acceptance, or closure.
+and treat timeout as a liveness checkpoint rather than a polling trigger. A `list_agents`
+snapshot is allowed only when a scheduling/capacity decision needs current state, a wait timed
+out without an unambiguous agent state, or received lifecycle events conflict. One call serves
+one decision point; do not query again until a material lifecycle event, candidate, blocker, or
+scheduling condition changes. There is no periodic list interval. Telemetry is out-of-band
+observation and never changes routing, readiness, acceptance, or closure.
 
 ## Controlled-change routing
 
@@ -105,8 +109,8 @@ Route a semantic change to the single authority that owns it:
 | Authority changed | Route |
 |---|---|
 | WhitePaper problem, goal, scope, invariant, or interpretation | `brainstorm` revision |
-| ROADMAP sequencing, milestone allocation, or dependency | `roadmap` maintenance |
-| Goal objective, boundary, slice, or non-goal | `write-goal` revision |
+| ROADMAP sequencing, Milestone allocation, dependency, or qualitative acceptance picture | `roadmap` maintenance |
+| Goal objective, boundary, slice, non-goal, or acceptance-scenario mapping | `write-goal` revision |
 | Requirement, constraint, parameter, or AC | `write-requirement` revision |
 | Design structure, interface, data, or failure path | `write-design` revision |
 | Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |

@@ -20,8 +20,10 @@ The recorded writer performs one semantic batch:
 
 1. Change the ROADMAP row from `not-started` to `initiated` and record the owner authorization.
 2. Create the milestone directory and `Goal.md` as its single entry document. It must answer:
-   objective, boundary, slices, non-goals, qualitative completion picture, document map, and
-   known gaps. The writer chooses the section structure.
+   objective, boundary, slices, non-goals, document map, known gaps, and how every ROADMAP
+   acceptance-scenario anchor maps to one or more Goal slices. Goal may clarify the active
+   boundary but must not copy or redefine the ROADMAP outcome. The writer chooses the section
+   structure.
 3. Add reciprocal ROADMAP ↔ Goal links and return one anchored candidate.
 
 Do not create Requirement, Design, or Task content early. Mention absent downstream files
@@ -46,8 +48,8 @@ candidate, applies accepted mechanical propagation, and runs machine checks.
    cross-milestone allocation, dependency, or qualitative milestone-row meaning to `roadmap`
    maintenance mode. Resume here after the required upstream approval; do not patch that
    meaning into Goal.
-3. Revise only Goal-owned objectives, boundaries, slices, non-goals, completion pictures, or
-   document mapping. Preserve unaffected content.
+3. Revise only Goal-owned objectives, boundaries, slices, non-goals, acceptance-scenario
+   mapping, or document mapping. Preserve unaffected content.
 4. If the delta changes a decision or reasonable understanding, run the independent critic
    and primary-orchestrator review against the affected content and bind it to a new anchor.
    Old review remains attached to the old anchor.
@@ -60,7 +62,9 @@ machine checks without reapproval.
 
 ## Exit
 
-Require the recorded writer to self-check the ROADMAP boundary and slices. For creation or a
+Require the recorded writer to self-check the ROADMAP boundary and slices, and confirm that
+every ROADMAP acceptance scenario maps to Goal slices without changing its meaning. If that
+mapping is not valid, return to `roadmap` instead of hiding the gap in Goal. For creation or a
 semantic revision, run the fresh-agent writer/Critic loop using the locale-matched
 dispatch contract, obtain primary-orchestrator review, and integrate only when required by
 workspace topology. Creation then uses **REQUIRED next skill:
