@@ -146,6 +146,29 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("全局调度契约", result.stdout)
 
+    def test_rejects_missing_fallback_stop_rule(self) -> None:
+        cases = (
+            (
+                "GMGN.md",
+                "accepted main\npath works",
+                "accepted main path is broken",
+            ),
+            (
+                "GMGN.md",
+                "stop fixing that issue",
+                "continue improving it until perfect",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Card outcome works",
+                "Card outcome is broken",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative, old=old):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
     def test_rejects_unchanged_state_primary_heartbeat(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",

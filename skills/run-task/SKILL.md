@@ -154,6 +154,8 @@ Critic or Reviewer to recheck the fixes. A fix that
 expands authority, scope, or behavior beyond the accepted findings becomes a separately scoped
 change. Record the reviewed anchor, complete findings and rulings, exact fix delta, and
 post-fix checks at the final anchor. Non-blocking suggestions do not reopen the candidate.
+Do not keep a task open to perfect a non-blocking issue when its Card outcome works and an
+effective fallback keeps the remaining impact within accepted bounds.
 
 The Reviewer also runs the prepared deterministic local targeted, negative, integration, and
 project checks that fit its environment. It returns exact commands, environment, exit codes,

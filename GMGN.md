@@ -226,6 +226,10 @@ Do not add roles, state machines, identity history, configuration, wrappers, or 
 without a current requirement. Preserve trust-boundary validation, security, accessibility,
 and data-loss protection; simplicity is not permission to remove required safeguards.
 
+Completion does not require every non-critical issue to be perfected. When the accepted main
+path works and an effective fallback keeps a remaining non-blocking issue within acceptable
+bounds, stop fixing that issue.
+
 Before every substantive return, self-check the active contract and correct in-scope defects.
 Do not output a fixed `Reflection` section. Report only unresolved material risk that could
 change a decision, acceptance, or downstream work.

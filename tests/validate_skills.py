@@ -144,6 +144,12 @@ def validate_core_contract(errors: list[str]) -> None:
     ):
         require(text, GLOBAL_SCAN_CONTRACT, label, errors)
 
+    require(methodology, (
+        "Completion does not require every non-critical issue to be perfected",
+        "When the accepted main path works and an effective fallback keeps a remaining "
+        "non-blocking issue within acceptable bounds, stop fixing that issue",
+    ), "GMGN 有效兜底边界", errors)
+
     require(gmgn, (
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
         "Prepare the full role brief before creation",
@@ -200,6 +206,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Use one `list_agents` snapshot only",
         "No periodic list interval is configured or inferred",
         "Across the confirmed execution set, wait only after",
+        "Do not keep a task open to perfect a non-blocking issue when its Card outcome works "
+        "and an effective fallback keeps the remaining impact within accepted bounds",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
