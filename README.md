@@ -67,7 +67,7 @@ project artifacts in the active locale.
 | Ten shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
 | Code review and deterministic local checks | `/review`; CLI: `codex review --uncommitted/--commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
-| Risk-triggered final verification | Project package, installation, startup, E2E, or external-environment commands | Project commands; `/verify` where available |
+| Risk-triggered final verification | Installation, startup, E2E, external environments, or artifacts not fully machine-checkable | Project commands; `/verify` where available |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 The Reviewer combines code judgment with the prepared deterministic local execution. In
@@ -80,32 +80,33 @@ accepted fixes are checked by the primary orchestrator and are not sent back for
 independent round. A separate Verifier is exceptional: classify it from the
 [`gmgn-assurance-v1` policy](skills/gmgn/references/en/assurance-policy.json) as
 `not-required` or `required:<trigger>`, and run it only when required.
+Critic and Reviewer do not maximize finding count; no findings is a valid result. They report
+only concrete material harm not already contained by an accepted effective fallback, and ask
+for the smallest sufficient correction. Verifier runs only the checks needed to decide its
+recorded trigger and stops when decided.
 
 `run-task` continuously fills available capacity from a dependency-aware ready set. Before the
 primary session waits or acts as a Coder, it scans every task in the confirmed execution set
 rather than only the current card or lane. `Task.md` keeps task division, AC mapping,
 dependencies, macro status, and execution pointers. Each
 selected task gets `execution/<card_id>/Card.md` for its stable execution/TDD contract and
-`Log.md` for current runtime state plus append-only history. Each Coder attempt uses a fresh
-agent. Concurrent writers use explicitly provisioned worktrees; a single non-colliding writer
-may use the verified current workspace. When no implementation lane can run in parallel with
-useful orchestrator work, the primary session may be that Coder. Worktrees prevent agents
-from overwriting the same files/index, but do not solve merge, semantic, interface, or shared
-runtime-resource conflicts. The primary session serially owns the shared baseline, `Task.md`,
-and traceability. A delegated Coder returns the original candidate base and current tip for the
-complete base-to-tip diff; the last correction commit is never applied alone. A primary-session
-sole Coder may freeze and hash its exact diff. An isolated-lane candidate is applied to a
-temporary combination before its one review round, while a sole-writer candidate already based
-on the unchanged shared baseline is the combination. A changed commit SHA alone does not
-invalidate evidence after clean mechanical application; relevant content does. Task status,
-descriptive Log content, and unrelated rows do not by themselves invalidate evidence. An
-execution-pointer change is equivalent only when it resolves to the same normative Card or
-preserves that Card's authority anchors, completion criterion, and TDD contract.
+`Log.md` for current runtime state plus append-only history. Concurrent writers use isolated
+workspaces; a sole writer may use the current workspace. Workspace, HEAD, and candidate checks
+run only at a real handoff or material state change. A sole writer freezes a diff/content hash;
+an isolated handoff transfers the complete candidate. Before integration, GMGN confirms that
+the integrated content is the reviewed content.
+
+Discovery does not expand an active Card. A newly found issue stays in the task only when it
+blocks the Card outcome or a prepared required check, has no accepted effective fallback, and
+its smallest sufficient correction stays inside existing authority. Otherwise it is omitted,
+presented separately when materially valuable, or routed upstream. The task closes as soon as
+its Card contract is satisfied.
+
 The Reviewer runs the prepared deterministic local checks in the same round. After accepted
 findings are fixed, the primary orchestrator checks the exact fix delta and reruns affected
 machine checks without another independent pass. Only a recorded risk trigger adds a fresh
 Verifier on the final candidate. Clean mechanical integration does not cause identical tests
-to run twice. Only success atomically advances the shared baseline.
+to run twice.
 Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
 timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
 loop. Use one `list_agents` snapshot only for a scheduling decision, an ambiguous post-timeout
@@ -328,11 +329,13 @@ contain discovery, installation, and native-surface adapters only.
 ./tests/validate.sh
 python3 -m unittest discover -s tests
 python3 scripts/package_release.py --allow-dirty
+python3 scripts/package_release.py --set-version 0.2.19
 ```
 
 The packager reads the version from the Codex manifest, includes only the release
-allowlist, and produces a deterministic ZIP and SHA-256 checksum. Without
-`--allow-dirty`, it rejects a dirty worktree.
+allowlist, and produces a deterministic ZIP and SHA-256 checksum. `--set-version` validates
+SemVer and synchronizes the four existing release declarations. Without `--allow-dirty`, the
+command rejects a dirty worktree.
 
 ## DocStar compatibility
 

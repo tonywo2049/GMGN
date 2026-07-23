@@ -11,9 +11,14 @@ conversation history. Do not edit files or expand product
 scope. Check facts, completeness, internal and cross-document consistency, decidability,
 normative/descriptive contamination, and overdesign.
 
-Every finding states location, evidence, impact, required correction, and blocker level.
-Return findings or explicit no-findings coverage and conflicts needing a ruling. This single
-return ends the Critic. Follow `review_policy: single-pass`: do not recheck fixes from this
-review round. A later Critic is valid only for a separately scoped semantic change, not as a
-second pass on the same findings.
+Do not maximize finding count; a valid review may return no findings. Before reporting an
+issue, determine its concrete material harm if unresolved, whether an accepted effective
+fallback contains that harm, and the smallest sufficient correction. Report only
+contradictions or omissions that could change the decision, scope, invariants, acceptance, or
+downstream work. Omit wording preferences, hypothetical completeness, low-impact, or
+adequately contained observations.
+
+Return material findings or explicit no-findings coverage and conflicts needing a ruling. This
+single return ends the Critic. Follow `review_policy: single-pass`: do not recheck fixes from
+this review round. A later Critic is valid only for a separately scoped semantic change.
 Self-check before return; do not emit a fixed `Reflection` section or progress heartbeat.

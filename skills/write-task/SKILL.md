@@ -53,6 +53,9 @@ invent empty wrappers, fake interfaces, or new design decisions merely to increa
 - Stop when a smaller unit would not have an independently testable result, would leave
   required responsibility without an owner, or would add more coordination cost than
   isolation benefit.
+- Define each outcome so satisfying it closes the task. Do not make cleanup, adjacent defects,
+  future hardening, or repository-wide completeness part of a task unless the approved AC
+  requires them.
 - `prerequisite` forms an acyclic DAG. Add only real data, interface, or authority
   dependencies. Order interface/schema work before consumers; do not serialize independent
   work for convenience.
@@ -88,7 +91,8 @@ independent requirement for them.
 
 `Card.md` may refine implementation mechanics but cannot add scope, dependencies, acceptance
 meaning, or design decisions absent from approved authority. If materialization reveals such a
-gap, stop that task and return to the owning authority.
+gap, stop that task and return to the owning authority. After a Card becomes active, discovery
+does not expand it; another independently testable outcome requires a separately accepted task.
 
 ## Writer and review loop
 

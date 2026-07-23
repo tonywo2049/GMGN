@@ -10,20 +10,15 @@ nature: normative
 
 # Preflight checklist
 
-For each unresolved item record its evidence and owner; a checkbox alone is not evidence.
+Check only facts that can block this run. Do not create evidence for the checklist itself or
+repeat a check while its relevant state is unchanged.
 
-1. **Question** — What one question does this run answer, and what output would not support
-   that conclusion?
-2. **Environment** — Do versions, configuration, data, permissions, dependencies, and hardware
-   match the Card assumptions?
-3. **Measurement** — Are tests, clocks, mocks, logs, fixtures, and judgment scripts trustworthy
-   for this question?
-4. **Outcomes** — Can success, failure, timeout, missing data, and interruption be classified?
-5. **Workspace** — Does the repository root and HEAD match the prepared brief, and is the
-   allowed write scope explicit?
-6. **Concurrency** — Does this task have one writer, with no collision against any declared
-   shared-resource constraint?
-7. **Evidence destination** — Where will commands, results, limitations, and side effects be
-   recorded in the card Log?
+1. **Scope** — Is the Card outcome and allowed write scope clear enough to begin?
+2. **Existing work** — Will current user changes be preserved?
+3. **Writer boundary** — Is there one writer per workspace? Use a separate worktree, baseline,
+   and expected HEAD only for concurrent writing or candidate handoff.
 
-Do not start with an unresolved blocker. Give each non-blocking follow-up an owner and point.
+Check environment, measurement, permissions, shared resources, and failure classification only
+when the Card or prepared command actually depends on them. Record command results and material
+limitations in the existing Card Log after execution. Do not start with a real unresolved
+blocker.

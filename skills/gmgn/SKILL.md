@@ -61,12 +61,17 @@ Fresh identity does not require a full role set after each edit. Select roles by
 | Recorded trigger from the [assurance policy](references/en/assurance-policy.json) | Verifier after review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
+The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
+review round. An accepted finding fix remains part of that reviewed batch and does not
+re-enter role selection.
+
 Freeze a candidate before review. Each semantic change batch or task execution uses
 `review_policy: single-pass`: at most one Critic/Reviewer round; both roles may run in that
 round when both surfaces changed. Collect all active findings before changing the candidate.
 The primary orchestrator adjudicates once,
-batches accepted blockers, checks their resolution, and runs affected machine checks. Do not
-send the fixes to another Critic or Reviewer. If a fix expands authority, scope, or behavior
+batches accepted blockers, checks their resolution, and runs affected machine checks. This
+bounded resolution check does not search for new findings. Do not resume or create a
+Critic/Reviewer for those fixes. If a fix expands authority, scope, or behavior
 beyond the accepted findings, split it into a separately scoped change. Record the reviewed
 anchor, findings and rulings, exact fix delta, and post-fix checks at the final anchor.
 Non-blocking suggestions do not reopen an otherwise acceptable candidate. The Reviewer runs
@@ -74,10 +79,16 @@ the prepared deterministic local checks and returns the commands and results wit
 findings. After accepted fixes, the primary orchestrator checks the fix delta and reruns
 affected machine checks without another independent round.
 
+Critic and Reviewer do not maximize finding count; a valid review may return no findings.
+Report an issue only when leaving it unresolved creates concrete material harm, no accepted
+effective fallback contains that harm, and a smallest sufficient correction can be stated.
+Omit observations that do not change acceptance or the next action.
+
 A fresh Verifier is exceptional, not default. Classify the final candidate from the assurance
 policy as `not-required` or `required:<trigger>`. Do not dispatch a Verifier while accepted
 review blockers remain unresolved; when required, bind its evidence to the blocker-resolved
-final candidate.
+final candidate, run only the checks needed to decide that trigger, and stop when decided. A
+required check cannot be waived unless an accepted fallback is itself successfully verified.
 
 ## Document nodes
 
@@ -101,18 +112,19 @@ each selected task:
 Run-task continuously fills a dependency-aware ready set. Before waiting or acting as a Coder,
 the primary orchestrator scans every task in the confirmed execution set, not only the current
 card or active lane, and dispatches every ready, non-conflicting task that fits currently
-available capacity. Concurrent writing lanes are isolated; a single non-colliding writer may
-use the verified current workspace. Each Coder attempt is fresh. Treat the full
-`candidate_base_anchor..candidate_tip_anchor` diff as the candidate. Apply that full diff or its
-complete ordered commit chain to the temporary combination; never apply only the last correction
-commit. Resolve any judgment-required conflict before freezing the task execution's one Reviewer
-candidate. Reserve its shared baseline and integration position until integration or abandonment.
-A changed commit SHA alone
-does not invalidate evidence after clean mechanical application; compare relevant content and
-ignore Task status, descriptive Log content, and unrelated task rows when deciding
-task-authority equivalence. An execution-pointer change is equivalent only when it resolves to
-the same normative Card, or when that Card's authority anchors, completion criterion, and TDD
-contract are unchanged.
+available capacity. Compliance checks run only at a real boundary or material state change.
+Concurrent writing lanes are isolated; a sole writer may use the current workspace. Freeze a
+diff/content hash for a sole writer and require a complete base-to-tip diff or ordered commit
+chain only for an isolated handoff. Before integration, confirm that integrated content is the
+reviewed content; a changed commit SHA alone does not invalidate equivalent content.
+
+Discovery does not expand an active Card. Keep a newly found issue in the Card only when it
+blocks the Card outcome or a prepared required check, has no accepted effective fallback, and
+its smallest sufficient correction stays inside existing authority without adding another
+independently testable outcome. Otherwise omit it, present a materially valuable separate
+candidate, or route changed authority upstream. Close the task as soon as the Card outcome,
+prepared checks, accepted blockers, and any required verification are satisfied.
+
 Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
 primary orchestrator checks their resolution and runs affected machine checks. Dispatch a
 fresh Verifier on the resulting final candidate only for the exceptional risk triggers above.

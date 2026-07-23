@@ -14,7 +14,7 @@
       "test-code-diff"
     ],
     "execution": "deterministic-local",
-    "candidate_integrity": "head-and-diff-unchanged"
+    "candidate_integrity": "reviewed-content-unchanged"
   },
   "verifier": {
     "default": false,
@@ -25,7 +25,8 @@
     },
     "triggers": [
       "external-mutable-environment",
-      "final-artifact-or-installation",
+      "artifact-not-fully-machine-checkable",
+      "installation-or-startup",
       "reviewer-unavailable-real-startup-or-e2e",
       "high-risk-behavior",
       "explicit-independent-execution-requirement"

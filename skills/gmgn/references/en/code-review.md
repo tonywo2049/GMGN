@@ -24,19 +24,24 @@ assurance_policy: gmgn-assurance-v1
 
 ## 2. Review surface
 
-Before review, record `git rev-parse --show-toplevel`, HEAD, the frozen diff/content hash, and
-tracked status; require the resolved path to equal the absolute workspace in the dispatch.
-Review the exact candidate named by the brief: normally the complete
-`candidate_base_anchor..candidate_tip_anchor` diff, or a captured diff with a recorded content
-hash for a sole-writer current workspace. Freeze that workspace during review; never review
-whichever mutable diff happens to be open or only the last correction commit.
+Before review, freeze the simplest exact identity for the content named by the brief: a
+captured diff/content hash for a sole writer, or the complete base-to-tip diff or ordered
+commit chain for an isolated handoff. Confirm the workspace only when candidate handoff or
+concurrent writing makes it material. Never review whichever mutable diff happens to be open
+or only the last correction commit.
 
-1. Does the task-card diff satisfy its spec anchor, prepared write boundary, and any declared
-   shared-resource constraint?
-2. Which outputs, error paths, no-baseline branches, and sibling call paths lack assertions?
-3. Can each changed test fail when the implementation is wrong? Mutate only in isolation.
-4. Did the change weaken boundary validation, security, data protection, performance, or accessibility?
-5. Complexity labels: `delete | stdlib | native | empty abstraction | shrink`.
+1. Does the task-card diff satisfy its spec anchor and prepared write boundary?
+2. Is there concrete correctness, regression, safety, data, accessibility, performance, or
+   acceptance harm if an observed issue remains?
+3. Does an accepted effective fallback already contain that harm, and what is the smallest
+   sufficient correction?
+4. Can each changed test fail when the implementation is wrong?
+
+A valid review may return no findings. Omit preference-only, speculative, low-impact, cleanup,
+refactoring, broader-coverage, or adequately contained observations when they do not change
+acceptance or the next action. Run prepared checks; add exploratory checks only for a concrete
+risk. Do not propose a broader redesign when a smaller correction or effective fallback is
+sufficient.
 
 When `.codegraph/` exists, independently query CodeGraph in the candidate worktree for changed
 symbols, their callers, and sibling paths. If the index cannot prove candidate-commit identity,
@@ -44,28 +49,19 @@ use it only to navigate. Findings must cite the exact Git diff or checked-out so
 real execution remain the behavioral evidence. Read targeted files directly whenever the task
 brief or graph is insufficient.
 
-Run the prepared deterministic local targeted, negative, integration, and project checks that
-fit the review environment. Do not intentionally edit any workspace file. Prefer a disposable
-copy when a command may write; otherwise allow only declared generated/cache paths. After
-execution, recheck repository root, HEAD, frozen diff/content hash, and tracked status. Any
-tracked change or anchor/hash drift invalidates the review. Report exact commands, environment,
-exit codes, limitations, and side effects together with findings; a skipped or unavailable
-required command is not a pass. Each finding contains
-`location · evidence · impact · normative fix · priority`. End with `git status --short` and
-disclose review-generated caches or other side effects.
+Run the prepared deterministic local checks that fit the review environment. Do not
+intentionally edit workspace files. Prefer a disposable copy when a command may write;
+otherwise allow only declared generated/cache paths. Recompare the frozen content identity
+only after a command or event that could change it. Any material content drift invalidates the
+review. Report exact commands, environment, exit codes, limitations, and side effects together
+with material findings; a skipped or unavailable required command is not a pass.
 
-Apply the complete self-checked isolated-lane diff or its complete ordered commit chain to a
-temporary combination before review; never apply only the last correction commit. A frozen
-sole-writer candidate already based on the unchanged shared baseline is the combination.
-Resolve an unclean application or judgment-required conflict with a fresh Coder, then freeze the
-final review candidate. Reserve its shared baseline and integration position until integration
-or abandonment, so the candidate cannot become stale after review. A changed commit SHA alone
-does not invalidate evidence after a clean application; compare relevant source, build inputs,
-and normative task content. Task status, descriptive Log content, and unrelated rows do not by
-themselves invalidate evidence. An execution-pointer change is equivalent only when it resolves
-to the same normative Card or preserves that Card's authority anchors, completion criterion,
-and TDD contract. Each task execution uses `review_policy: single-pass` and has at most one
-Reviewer round.
+Apply the complete self-checked isolated-lane candidate before review; never apply only its
+last correction commit. A sole-writer candidate needs no temporary copy. Resolve an unclean
+application or judgment-required conflict with a fresh Coder, then freeze the final review
+content. A changed commit SHA alone does not invalidate equivalent source, build inputs, and
+normative task content. Each task execution uses `review_policy: single-pass` and has at most
+one Reviewer round.
 After that round, the primary orchestrator adjudicates once, batches accepted fixes, checks
 each resolution against its finding, and runs affected machine checks. Do not dispatch another
 Reviewer to recheck those fixes. A fix that changes dependency/specification meaning or

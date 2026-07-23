@@ -6,131 +6,91 @@ assurance_policy: gmgn-assurance-v1
 
 # Release an accepted anchor
 
-Use release evidence; do not recreate closure evidence. A release is distribution of an
-accepted candidate, not another semantic acceptance cycle.
+A release distributes an accepted candidate; it is not another acceptance cycle. Reuse
+review, test, closure, and verification evidence while their content, scope, inputs, and target
+environment remain unchanged.
 
-<HARD-GATE>Require an immutable `accepted_anchor`, its approval or acceptance reference,
-the review evidence required by its scope, any required verification evidence, disclosed
-remaining material risks, and explicit owner authorization for every external write. If the
-proposed release contains a semantic change not covered by that evidence, stop and route only
-the affected content through `gmgn`; do not publish first or repeat all closure work by
-default.</HARD-GATE>
+<HARD-GATE>Require an immutable accepted anchor, applicable successful review evidence,
+disclosed material risks, and explicit owner authorization before external writes. If source
+behavior, specification meaning, acceptance, scope, design intent, execution authority,
+dependency behavior, packaging behavior, or target obligations changed without accepted
+evidence, stop and route only that impact cone through `gmgn`.</HARD-GATE>
 
-## Missing historical acceptance anchor
+## Recover missing historical acceptance
 
-Never fabricate or infer `accepted_anchor` from a historical closed status, tag, prose summary,
-or unanchored test output. For a repository adopted without usable history, record the current
-clean commit as an adoption baseline and its missing-history limitation. That baseline is not
-reusable release evidence. Prepare an immutable current candidate, run applicable review and
-the verification actually required by its release scope and environment, obtain new owner acceptance,
-and only then use the resulting anchor as `accepted_anchor`. Historical closed records remain
-closed; this recovery creates present evidence and does not rewrite their history.
+Never infer an accepted anchor from a historical status, tag, summary, or unanchored test
+output. When usable acceptance history is missing, prepare and review one current immutable
+candidate, run only the verification required by its risk and environment, obtain owner
+acceptance, and release that new anchor. Do not rewrite historical closure records.
 
-## 1. Bind reusable evidence
+## 1. Reuse accepted evidence
 
-Record a release evidence tuple in the existing release record, Handoff, or CI provenance;
-do not create a new document when an existing authority can hold it:
+Compare only inputs that can invalidate existing evidence. When reviewed content, required
+test plan, target environment, and relevant package inputs are unchanged, reuse the accepted
+review, regression, E2E, DocStar, closure, and verification evidence. Never rerun Critic or
+Reviewer for the same accepted change batch under `review_policy: single-pass`.
 
-- `accepted_anchor` and `release_anchor`;
-- approval or acceptance reference, applicable review evidence, and a classification from the
-  [assurance policy](../gmgn/references/en/assurance-policy.json): `not-required` or
-  `required:<trigger>`, plus current evidence for every required trigger;
-- `semantic_delta`, with `none` only when established rather than assumed;
-- exact `allowed_diff` when the release anchor differs from the accepted anchor;
-- packaging recipe anchor and target distribution environment.
+When the release anchor differs from the accepted anchor only through version manifests,
+checksums, generated release metadata, or meaning-preserving links, prove that small allowed
+diff and run affected machine checks. Do not request another semantic approval or full test
+run. If meaning or behavior changed, return to the owning workflow instead of expanding the
+release task.
 
-Review evidence remains reusable while the reviewed content and review scope are unchanged.
-It is never regenerated for the same accepted change batch: `review_policy: single-pass`.
-Missing or failed required review evidence blocks release of that accepted anchor. A content or
-scope change is a separately scoped change with a new candidate and accepted anchor, not a
-review retry.
-Verification evidence remains reusable while the accepted content, required test plan, and
-target execution environment are unchanged. Artifact evidence remains reusable only for the
-same release anchor, packaging recipe, and artifact inputs. Accessible evidence is required;
-an agent summary without the anchored commands and results is not reusable evidence.
+Use existing commit, CI, checksum, tag, and release records as provenance. Do not create a
+separate release document or evidence tuple unless a receiver independently requires one.
 
-## 2. Classify the release delta
+## 2. Prepare the release once
 
-Choose exactly one path:
+For an ordinary version-only release:
 
-1. **Exact-anchor release.** `release_anchor == accepted_anchor`. Before reuse, compare the
-   reviewed content and scope, required test plan, target execution environment, and every
-   other recorded evidence-validity input. Only when those inputs are unchanged, reuse the
-   accepted review, regression, E2E, DocStar, and closure evidence. If required review evidence
-   is missing or failed, stop; do not dispatch another Critic or Reviewer for this anchor. If
-   reviewed content or scope changed, use the semantic-delta path. Regenerate only invalidated
-   verification, structural, environment, or artifact evidence.
-2. **Mechanical equivalent.** The release anchor differs only by an explicit allowlist such
-   as version manifests, checksums, generated release metadata, or meaning-preserving links.
-   Record old and new anchors, `semantic_delta: none`, `allowed_diff`, and
-   `approval_inherited_from: <accepted_anchor>`. Prove the diff stays inside the allowlist and
-   run the affected machine checks; do not request new semantic approval or full review.
-3. **Semantic delta.** Source behavior, specification meaning, acceptance, scope, design
-   intent, execution authority, or user-visible obligations changed. Invalidate only the
-   affected review and verification evidence, route that impact cone to its authority, and
-   resume release after a separately scoped change has its own single review round and a new
-   accepted anchor. This cannot be used to recheck fixes from the original review round.
+1. synchronize and validate existing version declarations;
+2. commit the version-only release delta;
+3. run the repository's release metadata/structure checks;
+4. build the artifact once from the clean immutable release anchor;
+5. record its member identity and checksum.
 
-Changing a packaging recipe, signing method, dependency lock, target platform, or deployment
-configuration invalidates the corresponding artifact or environment checks. It does not by
-itself invalidate unrelated semantic review or product regression evidence. When the delta's
-meaning is uncertain, use the semantic path.
+Deterministic packaging is proved by the packaging code's own tests when that code changes; do
+not rebuild every ordinary release merely to re-prove an unchanged algorithm. Do not rerun full
+regression, E2E, DocStar, closure, or independent review when the accepted product content and
+their validity inputs are unchanged.
 
-## 3. Verify the artifact boundary
+Classify the frozen final candidate from the
+[assurance policy](../gmgn/references/en/assurance-policy.json). A deterministic archive whose
+members and bytes are fully checked by an unchanged packaging recipe is `not-required`.
+Dispatch one fresh Verifier only for a recorded trigger such as:
 
-The primary orchestrator first builds the release artifact, records its release anchor,
-packaging recipe, member identity, and checksum, then freezes those inputs. Classify that
-frozen release candidate with the assurance policy. A distributed archive, package,
-installation, or startup path is `required:final-artifact-or-installation`; dispatch one fresh
-Verifier before external writes. It independently checks the frozen artifact and any applicable
-installation/startup path. `not-required` is valid only when no policy trigger exists.
+- `artifact-not-fully-machine-checkable`;
+- `installation-or-startup`;
+- an external mutable environment, high-risk behavior, unavailable required Reviewer
+  execution, or an explicit independent-execution requirement.
 
-The primary orchestrator and any required Verifier run only checks required by the selected
-path and repository policy:
+The Verifier runs only the minimum plan needed to decide that trigger and stops once decided.
+Missing or failed required Verifier evidence blocks publication. A fallback satisfies
+verification only when it is the accepted required path and is successfully verified.
 
-- prove the worktree is clean and the release anchor is immutable and locally available;
-- prove all version declarations agree and the requested tag names that version;
-- build from the release anchor with the recorded packaging recipe;
-- compare the artifact member allowlist and bytes to the release anchor, reject missing,
-  extra, duplicate, traversing, or symlink entries, and record the checksum;
-- rebuild when deterministic packaging is promised and compare bytes;
-- run the installation or startup smoke path for the distributed form when applicable;
-- check whether the remote tag, release, and assets already exist before writing.
+## 3. Publish and reconcile idempotently
 
-Bind the Verifier's exact commands, environment, results, limitations, and artifact checksum to
-the release anchor. Missing or failed required Verifier evidence blocks publication; it does
-not trigger another Critic or Reviewer.
+Before external writes, check once for a conflicting remote tag or release. After explicit
+authorization, perform the smallest ordered writes required by the target. Prefer an atomic
+branch-and-tag push where supported, create or complete one release, upload only the required
+assets, then read the final remote state back once. Confirm the release anchor, tag, asset
+identity, and checksum.
 
-Do not rerun full regression, E2E, DocStar, or closure authoring merely because a tag, upload,
-authentication step, or local installation is retried. Never rerun Critic or Reviewer for the
-same accepted change batch. Rerun verification, structural, environment, or artifact checks
-only when their evidence-validity inputs changed or their earlier result is missing or failed.
+If a partial matching release already exists, create only missing objects. Stop on a
+conflicting tag, checksum, artifact, or target identity. Authentication, upload, or network
+retry does not invalidate accepted product evidence and does not trigger another Critic,
+Reviewer, full test run, or Milestone closure.
 
-## 4. Publish and reconcile idempotently
-
-Present the release anchor, evidence references, delta classification, artifact checksum,
-target, remaining material risks, and explicit owner authorization. External authorization is operation-specific: approval
-to tag or publish does not imply deployment, PR mutation, notification, or local installation.
-
-After authorization, perform the smallest ordered writes required by the target. After every
-write, read the remote state back and bind it to the release anchor. If a partial release
-already exists, reconcile matching objects and create only missing ones; never manufacture a
-second release or repeat semantic review to recover from an operational retry. Stop on a
-conflicting tag, checksum, artifact, or target identity.
-
-For local delivery, refresh the configured marketplace or package source, reinstall only when
-the platform cache requires it, verify the reported version and one distinguishing shipped
-file, and state whether a new session or plugin reload is required.
+Local installation is a separate authorized operation. Reinstall only when needed, then check
+the reported version and one distinguishing shipped file; state whether reload or a new
+session is required.
 
 ## Exit
 
-Record the published tag/release or deployment reference, artifact checksum, installed-version
-evidence when requested, and any failed external operation. Release success returns to
-`roadmap` for maintenance or the next Milestone; an operational retry remains in `release`
-with the same reusable evidence tuple.
+Return the release anchor, published tag/release or deployment reference, artifact checksum,
+any requested installation evidence, and unresolved material risk. Release success returns to
+`roadmap`; an operational retry stays in `release` with the same accepted evidence.
 
-Before every substantive return, perform a task-specific self-check and correct defects. Do
-not output a fixed `Reflection` section. Disclose only material unresolved risks that could
-change the conclusion, decision, acceptance, or downstream work; otherwise omit the
-disclosure. Approval, acceptance, and closure always state remaining material risks or that
-none are known.
+Before every substantive return, perform a task-specific self-check and correct in-scope
+defects. Do not output a fixed `Reflection` section. Report only unresolved material risk that
+could change the release decision or downstream work.

@@ -114,15 +114,30 @@ Freeze a candidate before independent checks. Select roles by what changed:
 | recorded trigger from the assurance policy | fresh Verifier after review clears |
 | equivalent links, formatting, pointers, or status | machine checks only |
 
+The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
+review round. An accepted finding fix remains part of that reviewed batch and does not
+re-enter role selection.
+
 Each semantic change batch or task execution uses `review_policy: single-pass`: at most one
 independent Critic/Reviewer round. When both surfaces changed, both roles may run in that same
-round. Collect every finding
-before editing. The primary orchestrator adjudicates once, batches accepted blocker fixes,
-checks each resolution against the finding, and runs the affected machine checks. Do not send
-those fixes to another Critic or Reviewer. A fix that expands authority, scope, or behavior
+round. Collect every finding before editing. The primary orchestrator adjudicates once,
+batches accepted blocker fixes,
+checks each resolution against the finding, and runs the affected machine checks. This bounded
+resolution check does not search for new findings. Do not resume or create a Critic/Reviewer
+for those fixes. A fix that expands authority, scope, or behavior
 beyond the accepted findings becomes a separately scoped change rather than a review recheck.
 The final anchor records the reviewed anchor, complete findings and rulings, exact fix delta,
 and post-fix checks. Non-blocking suggestions do not reopen an otherwise acceptable candidate.
+
+Critic and Reviewer do not maximize finding count; a valid review may return no findings.
+Before reporting an issue, they consider its concrete material harm if left unresolved,
+whether an effective fallback already keeps the impact within accepted bounds, and the
+smallest sufficient correction. Omit preference-only, speculative, low-impact, or adequately
+contained issues when they do not change acceptance or the next action. Verifier applies the
+same materiality boundary to incidental observations, runs only the checks needed to decide
+its recorded trigger, and stops when that decision is established. It cannot waive a failed,
+skipped, timed-out, or unavailable required check unless an accepted fallback is itself the
+required and successfully verified path.
 
 The Reviewer runs the prepared deterministic local checks as part of its single return and
 reports exact commands, environment, exit codes, limitations, and side effects. After accepted
@@ -147,31 +162,32 @@ Before waiting or acting as a Coder, the primary orchestrator scans every task i
 execution set, not only the current card or active lane, and dispatches every ready,
 non-conflicting task that fits currently available capacity.
 
-Concurrent writers use isolated worktrees or equivalent workspaces. A single writer may use a
-verified current workspace when no other writer can collide with it. One task has one writer
-at a time. The Coder writes only the allowed scope in its prepared brief and returns an
-immutable local candidate with its original base and current tip. The transferable candidate is
-the complete `candidate_base_anchor..candidate_tip_anchor` diff, not just the tip commit. The
-primary orchestrator owns Task/Card/Log runtime state, the integration queue, and the shared
-baseline.
+Compliance checks are triggered by a real boundary or material state change, not merely by
+starting a task. Before the first write, confirm the Card scope, preservation of existing user
+changes, and one writer per workspace. Concurrent writers use isolated worktrees or equivalent
+workspaces; a single writer may use the current workspace. Require workspace/base anchors and
+a transferable commit range only when concurrent work or candidate handoff makes them
+necessary. Freeze the simplest exact identity before review: a diff or content hash for a sole
+writer, and the complete base-to-tip diff or ordered commit chain for an isolated handoff.
+Recheck a fact only after an event or command that could have changed it. Before integration,
+confirm that the content being integrated is the reviewed content; a changed commit SHA alone
+does not invalidate equivalent content. Do not repeat unchanged checks or create evidence only
+to prove that a compliance check ran.
 
-The primary orchestrator mechanically applies each self-checked isolated-lane candidate to a
-temporary combination before that task execution's one review round. Apply the complete diff or
-its complete ordered commit chain; never apply only the last correction commit. A frozen
-sole-writer candidate already based on the unchanged shared baseline is itself the combination
-and needs no copy. A clean application needs no Coder. Resolve a conflict or judgment-required
-combination with a fresh Coder before freezing the review candidate. Reserve that shared
-baseline and integration position until the candidate integrates or is abandoned, so it cannot
-become stale after its only review round. Other Coder work may continue, but it cannot advance
-that reserved baseline. A changed commit SHA alone does not invalidate evidence after a clean
-mechanical application; compare the relevant source, build inputs, and normative task content.
-Task status, descriptive Log content, and unrelated task rows do not by themselves invalidate
-task-authority evidence. An `execution` pointer change is equivalent only when it resolves to
-the same normative Card, or when that Card's authority anchors, completion criterion, and TDD
-contract are unchanged. After the review round, batch accepted fixes without another Critic or
-Reviewer, run affected machine checks, and use any risk-triggered verification gate. A
-combination missing required review or risk-triggered evidence never becomes the shared
-baseline.
+Discovery does not expand a task. Once a Card is active, its outcome, completion criterion,
+and authority boundary stay fixed. A newly found issue belongs to that Card only when leaving
+it unresolved prevents the Card outcome or a prepared required check, no accepted effective
+fallback contains the impact, and the smallest sufficient correction fits the existing
+authority without adding another independently testable outcome. Otherwise omit a low-value
+issue, present a materially valuable separate candidate to the primary orchestrator, or route
+an authority change upstream; do not keep the current Card open. Close the task as soon as its
+Card outcome works, prepared required checks pass, accepted blockers are resolved, and any
+required verification passes.
+
+The primary orchestrator owns Task/Card/Log runtime state, the integration queue, and the
+shared baseline. It applies the complete transferable candidate, resolves judgment-required
+conflicts before review, and integrates only content covered by required review and
+risk-triggered evidence.
 
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
 event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a
@@ -198,8 +214,10 @@ Milestone closure requires:
 
 Create a separate handoff only when a receiving operator needs information that has no better
 existing authority. Release reuses review and verification evidence when source, semantics,
-test plan, environment, and package inputs are unchanged. Tagging, upload retries, and local
-installation are not reasons to repeat Milestone closure.
+test plan, environment, and package inputs are unchanged. An unchanged deterministic packaging
+recipe uses machine checks rather than an automatic Verifier; installation, startup,
+non-machine-checkable artifacts, or another recorded risk may still require one. Tagging,
+upload retries, and local installation are not reasons to repeat Milestone closure.
 
 For a narrow bug or one-step mechanical change, identify the smallest authority and acceptance
 condition, implement it, independently review the diff and deterministic local behavior, add
@@ -228,7 +246,8 @@ and data-loss protection; simplicity is not permission to remove required safegu
 
 Completion does not require every non-critical issue to be perfected. When the accepted main
 path works and an effective fallback keeps a remaining non-blocking issue within acceptable
-bounds, stop fixing that issue.
+bounds, stop fixing that issue. A task is complete when its Card contract is satisfied, not
+when every nearby issue discovered during the work has been resolved.
 
 Before every substantive return, self-check the active contract and correct in-scope defects.
 Do not output a fixed `Reflection` section. Report only unresolved material risk that could

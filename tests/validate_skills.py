@@ -148,6 +148,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "Completion does not require every non-critical issue to be perfected",
         "When the accepted main path works and an effective fallback keeps a remaining "
         "non-blocking issue within acceptable bounds, stop fixing that issue",
+        "The Critic/Reviewer rows above are evaluated only once",
+        "An accepted finding fix remains part of that reviewed batch and does not\n"
+        "re-enter role selection",
+        "bounded\nresolution check does not search for new findings",
+        "Do not resume or create a Critic/Reviewer\nfor those fixes",
     ), "GMGN 有效兜底边界", errors)
 
     require(gmgn, (
@@ -155,16 +160,23 @@ def validate_core_contract(errors: list[str]) -> None:
         "Prepare the full role brief before creation",
         "Collect all active findings before changing the candidate",
         "Each semantic change batch or task execution uses `review_policy: single-pass`",
-        "Do not send the fixes to another Critic or Reviewer",
-        "Record the reviewed anchor, findings and rulings, exact fix delta, and post-fix checks",
+        "Do not resume or create a\nCritic/Reviewer for those fixes",
+        "The Critic/Reviewer rows above are evaluated only once",
+        "An accepted finding fix remains part of that reviewed batch and does not\n"
+        "re-enter role selection",
+        "bounded resolution check does not search for new findings",
         "Do not dispatch a Verifier while accepted review blockers remain unresolved",
         "The Reviewer runs the prepared deterministic local checks",
         "A fresh Verifier is exceptional, not default",
         "After accepted fixes, the primary orchestrator checks the fix delta and reruns affected machine checks without another independent round",
         "must not send a progress update while observable state is unchanged",
-        "`candidate_base_anchor..candidate_tip_anchor`",
-        "never apply only the last correction commit",
-        "A changed commit SHA alone does not invalidate evidence",
+        "Critic and Reviewer do not maximize finding count",
+        "a valid review may return no findings",
+        "concrete material harm",
+        "accepted effective fallback",
+        "Compliance checks run only at a real boundary or material state change",
+        "Discovery does not expand an active Card",
+        "Close the task as soon as the Card outcome",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
@@ -181,6 +193,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "The objective is useful parallelism, not more task cards",
         "Never invent empty wrappers, fake interfaces, or new design decisions",
         "more coordination cost than isolation benefit",
+        "satisfying it closes the task",
+        "discovery\ndoes not expand it",
+        "another independently testable outcome requires a separately accepted task",
     ), "write-task 紧凑索引契约", errors)
     require(run_task, (
         "`execution/<card_id>/Card.md` first",
@@ -188,19 +203,25 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
         "Collect every active review return before editing",
         "Each task execution uses `review_policy: single-pass`",
-        "do not dispatch another Critic or Reviewer to recheck the fixes",
-        "Reserve that shared baseline and integration position",
+        "The Critic/Reviewer rows above are evaluated only once",
+        "does not re-enter role selection",
+        "bounded resolution\ncheck does not search for new findings",
+        "do not resume or create a Critic/Reviewer for the\nfixes",
         "Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain",
-        "itself the combination",
         "The Reviewer also runs the prepared deterministic local",
         "A fresh Verifier is exceptional, not default",
         "Classify the final candidate from the assurance policy",
         "An additional pre-integration Verifier is allowed only",
-        "The transferable candidate is the complete\n`candidate_base_anchor..candidate_tip_anchor` diff",
-        "Never apply only the last",
-        "A changed commit SHA alone\ndoes not invalidate review or execution evidence",
-        "Ignore Task\nstatus, descriptive Log content, and unrelated task rows",
-        "An `execution` pointer change is",
+        "Compliance checks are triggered by a real boundary or material state change",
+        "Discovery does not expand an active Card",
+        "complete original-base-to-current-tip diff or ordered commit chain",
+        "never apply only\nits last correction commit",
+        "A sole-writer candidate needs no temporary copy",
+        "changed commit SHA alone does not invalidate equivalent source",
+        "Critic and Reviewer do not maximize finding count",
+        "a valid review may return no findings",
+        "does not broaden the verification plan after the recorded\nrisk is decided",
+        "A failed, skipped,\ntimed-out, or unavailable required command is not a pass",
         "The Verifier must leave every tracked file unchanged",
         "sends no heartbeat when state is unchanged",
         "Use one `list_agents` snapshot only",
@@ -208,6 +229,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "Across the confirmed execution set, wait only after",
         "Do not keep a task open to perfect a non-blocking issue when its Card outcome works "
         "and an effective fallback keeps the remaining impact within accepted bounds",
+        "A task is complete when its Card contract is satisfied",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
@@ -220,9 +242,13 @@ def validate_core_contract(errors: list[str]) -> None:
         "The Reviewer runs the prepared deterministic local checks",
         "A fresh Verifier is exceptional, not default",
         "Classify the final candidate from the assurance policy",
-        "`candidate_base_anchor..candidate_tip_anchor`",
+        "Compliance checks are triggered by a real boundary or material state change",
+        "A sole writer may use a captured\ndiff or content hash",
         "a correction commit is not a standalone candidate",
-        "leaves every tracked file unchanged",
+        "valid review may return\nno findings",
+        "concrete material harm",
+        "smallest sufficient correction",
+        "runs only the checks needed to decide the recorded trigger",
         "sends no heartbeat when observable state is unchanged",
         "Do not query again until a material lifecycle event",
         "There is no periodic list interval",
@@ -247,15 +273,16 @@ def validate_core_contract(errors: list[str]) -> None:
     require(pre_merge, (
         "`not-required` or `required:<trigger>`",
         "Missing required evidence blocks integration",
-        "blocker-resolved final combination",
-        "`candidate_base_anchor..candidate_tip_anchor`",
-        "Task status, descriptive Log content, and unrelated rows",
-        "If the execution pointer changed",
-        "leave tracked files unchanged on both pass and failure",
+        "content being integrated exactly the reviewed content",
+        "frozen diff/content hash for a sole writer",
+        "changed commit SHA alone does not invalidate evidence",
     ), "合并前双向验证门禁", errors)
     require(release, (
-        "`required:final-artifact-or-installation`",
-        "dispatch one fresh Verifier before external writes",
+        "deterministic archive whose\nmembers and bytes are fully checked",
+        "`artifact-not-fully-machine-checkable`",
+        "`installation-or-startup`",
+        "build the artifact once",
+        "read the final remote state back once",
         "Missing or failed required Verifier evidence blocks publication",
     ), "发布制品独立验证门禁", errors)
 
@@ -302,7 +329,7 @@ def validate_assurance_policy(errors: list[str]) -> dict[str, object] | None:
         errors.append(f"{ASSURANCE_POLICY_PATH}: 单轮审查与修复后证据策略无效")
     if not isinstance(reviewer, dict) or (
         reviewer.get("execution") != "deterministic-local"
-        or reviewer.get("candidate_integrity") != "head-and-diff-unchanged"
+        or reviewer.get("candidate_integrity") != "reviewed-content-unchanged"
     ):
         errors.append(f"{ASSURANCE_POLICY_PATH}: Reviewer 执行或候选完整性策略无效")
     if not isinstance(verifier, dict) or verifier.get("default") is not False:
@@ -388,14 +415,17 @@ def validate_roles(errors: list[str]) -> None:
             if role == "reviewer":
                 require(text, (
                     "deterministic local checks",
+                    "valid review may return no findings",
+                    "concrete material harm",
+                    "accepted effective\nfallback",
+                    "smallest sufficient correction",
+                    "material content drift invalidates\nthe review",
                     "exact commands, environment, exit codes",
-                    "Any tracked change or anchor/hash drift invalidates the review",
-                    "candidate_base_anchor",
-                    "candidate_tip_anchor",
                 ), str(markdown), errors)
                 require(instructions, (
-                    "确定性本地测试计划", "原样命令", "任何 tracked 变化或锚/哈希漂移均使本轮无效",
-                    "candidate_base_anchor", "candidate_tip_anchor", "不得只审最后一个修订提交",
+                    "确定性本地测试计划", "没有 finding 是有效结果",
+                    "具体实质影响", "已接受的有效兜底", "最小充分修复",
+                    "实质内容漂移使本轮无效",
                 ), str(toml), errors)
                 if config.get("sandbox_mode") != "workspace-write":
                     errors.append(f"{toml}: Reviewer 运行本地检查需要 workspace-write")
@@ -403,20 +433,37 @@ def validate_roles(errors: list[str]) -> None:
                 require(text, (
                     "required:<trigger>",
                     "Ordinary deterministic local checks belong to the Reviewer",
-                    "Any tracked change invalidates verification on both pass and failure",
+                    "Do not broaden the plan",
+                    "accepted required path",
+                    "A failed, skipped, timed-out, or unavailable required command is not a pass",
+                    "material content\nchange invalidates verification",
                 ), str(markdown), errors)
                 require(instructions, (
                     "required:<trigger>", "普通确定性本地检查归 Reviewer",
-                    "成功或失败后的任何 tracked 变化都使验证无效",
-                    "生成或刷新 oracle、evidence、attempt",
+                    "不扩大计划继续找问题", "已接受且成功验证的必需路径",
+                    "失败、跳过、超时或环境缺失的必需检查不是通过",
+                    "任何实质内容变化都使验证无效",
                 ), str(toml), errors)
             if role == "coder":
                 require(text, (
-                    "candidate_base_anchor", "candidate_tip_anchor",
-                    "correction commit\nis not standalone",
+                    "Discovery does not expand the Card",
+                    "accepted effective fallback",
+                    "another independently\ntestable outcome",
                 ), str(markdown), errors)
                 require(instructions, (
-                    "candidate_base_anchor", "candidate_tip_anchor", "修订提交不可单独应用",
+                    "发现问题不会扩大 Card", "已接受的有效兜底",
+                    "不增加另一个可独立测试结果",
+                ), str(toml), errors)
+            if role == "critic":
+                require(text, (
+                    "valid review may return no findings",
+                    "concrete material harm",
+                    "accepted effective\nfallback",
+                    "smallest sufficient correction",
+                ), str(markdown), errors)
+                require(instructions, (
+                    "没有 finding 是有效结果", "具体实质影响",
+                    "已接受的有效兜底", "最小充分修复",
                 ), str(toml), errors)
             if len(text.splitlines()) > 80:
                 errors.append(f"{markdown}: 角色契约超过 80 行")

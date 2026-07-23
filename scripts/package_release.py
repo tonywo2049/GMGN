@@ -226,6 +226,45 @@ def manifest_version(root: Path = ROOT) -> str:
     return release_metadata(root)["version"]
 
 
+def set_release_version(version: str, root: Path = ROOT) -> None:
+    validated_version = validate_semver_2(version, Path("<requested-version>"))
+    documents = {
+        key: load_release_json(root, key)
+        for key in RELEASE_METADATA_PATHS
+    }
+    codex_name, _ = manifest_identity(
+        documents["codex_manifest"], RELEASE_METADATA_PATHS["codex_manifest"]
+    )
+    claude_name, _ = manifest_identity(
+        documents["claude_manifest"], RELEASE_METADATA_PATHS["claude_manifest"]
+    )
+    if claude_name != codex_name:
+        raise ValueError(f"双 manifest name 不一致: {codex_name!r} != {claude_name!r}")
+
+    documents["codex_manifest"]["version"] = validated_version
+    documents["claude_manifest"]["version"] = validated_version
+    unique_marketplace_entry(
+        documents["codex_marketplace"],
+        RELEASE_METADATA_PATHS["codex_marketplace"],
+        codex_name,
+    )["version"] = validated_version
+    unique_marketplace_entry(
+        documents["claude_marketplace"],
+        RELEASE_METADATA_PATHS["claude_marketplace"],
+        codex_name,
+    )["version"] = validated_version
+
+    rendered = {
+        RELEASE_METADATA_PATHS[key]: (
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n"
+        )
+        for key, document in documents.items()
+    }
+    for relative_path, content in rendered.items():
+        (root / relative_path).write_text(content, encoding="utf-8")
+    release_metadata(root)
+
+
 def write_archive(destination: Path, files: list[Path]) -> None:
     with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in files:
@@ -240,11 +279,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="生成 GMGN 可复现发布包")
     parser.add_argument("--allow-dirty", action="store_true", help="允许未提交的工作树，仅供开发验证")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "dist", help="发布产物目录")
+    parser.add_argument("--set-version", help="同步四处发布版本后退出")
     args = parser.parse_args()
 
     try:
         if not args.allow_dirty and worktree_is_dirty():
             raise ValueError("工作树不干净；开发验证请显式传 --allow-dirty")
+        if args.set_version is not None:
+            set_release_version(args.set_version)
+            print(f"已同步发布版本 {args.set_version}")
+            return 0
         version = manifest_version()
         output_dir = args.output_dir.resolve()
         output_dir.mkdir(parents=True, exist_ok=True)

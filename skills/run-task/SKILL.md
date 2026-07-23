@@ -68,8 +68,8 @@ Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is sing
 creating it, prepare a complete brief containing:
 
 - `dispatch_id`, role, one bounded objective, and return format;
-- authority, immutable baseline/candidate anchors, and for a Coder the original
-  `candidate_base_anchor` plus current `candidate_tip_anchor`;
+- authority and scope, plus immutable baseline/candidate anchors only when they already exist
+  and are needed for handoff, review, or integration;
 - exact workspace, allowed write scope, permissions, and prohibitions;
 - only the required Card/current Log context and relevant accepted findings or failures;
 - checks to run and evidence required for return.
@@ -80,29 +80,32 @@ verification gets a new agent and a new brief. Critic and Reviewer are not redis
 recheck fixes from their completed round. Fresh identity does not mean every role is dispatched
 after every change.
 
-Use a commit-bound DocStar brief when available and verified against the exact baseline; treat
-it as an index, not authority. Use CodeGraph as a locator only when its index matches or can be
-confirmed against the checked-out source.
+Use a commit-bound DocStar brief only when candidate handoff needs it; treat it as an index,
+not authority. Use CodeGraph as a locator and confirm claims against checked-out source.
 
 ## 4. Protect one writer boundary per task
 
-Use one worktree or equivalently isolated workspace for each concurrent writing lane. A single
-writer may use the verified current workspace when no other writer can collide with it and
-existing user changes are preserved. Record only the boundary facts needed for this run: task,
-owner, workspace, baseline, candidate, and allowed write scope; add conflict domains or locks
-only when they exist. Reject stale ownership, wrong workspace, unrelated paths, or an
-unresolvable candidate before review or integration.
+Compliance checks are triggered by a real boundary or material state change, not merely by
+starting a task. Before the first write, confirm Card scope, preservation of existing user
+changes, and one writer per workspace. Use an isolated workspace for each concurrent writing
+lane; a sole writer may use the current workspace. Require baseline/HEAD checks and record
+candidate transfer facts only for concurrent work or handoff. Do not repeat an unchanged check
+or create evidence for the check itself.
 
 A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
 `Task.md`, Card/Log runtime state, the integration queue, or remote state. It first establishes
 a discriminating RED test, implements the smallest sufficient change, and runs the Card checks.
-A delegated isolated Coder returns the original `candidate_base_anchor` and current
-`candidate_tip_anchor`. The transferable candidate is the complete
-`candidate_base_anchor..candidate_tip_anchor` diff. A correction advances the tip but does not
-replace the original base or become a standalone candidate. When the primary orchestrator is
-the sole Coder in the verified current workspace, it may instead freeze and hash the same full
-diff for review. A correction always uses a fresh delegated Coder, or a newly frozen
-primary-Coder attempt, starting from the last accepted anchor.
+Discovery does not expand an active Card. A newly found issue belongs to it only when leaving
+the issue unresolved prevents the Card outcome or a prepared required check, no accepted
+effective fallback contains the impact, and the smallest sufficient correction stays inside
+existing authority without adding another independently testable outcome. Otherwise omit a
+low-value issue, return a materially valuable separate candidate to the primary orchestrator,
+or route an authority change upstream; do not keep the Card open.
+
+For review, a sole writer freezes its exact diff or content hash. An isolated Coder handoff
+returns changed files, commands/results, deviations, material unresolved risks, and the
+complete original-base-to-current-tip diff or ordered commit chain. A correction commit is
+not a standalone candidate. A later correction uses a fresh Coder.
 
 Across the confirmed execution set, wait only after ready dispatch, primary-Coder work, integration,
 state refresh, and local checks are exhausted. Use one event-driven longest-safe wait. A
@@ -117,24 +120,14 @@ decision request, or the final result.
 ## 5. Review the final useful candidate once
 
 Before independent review, the writer completes its self-check and required machine checks.
-The primary orchestrator mechanically applies the complete
-`candidate_base_anchor..candidate_tip_anchor` diff, or its complete ordered commit chain, to a
-temporary combination based on the current shared baseline. Never apply only the last
-correction commit. A frozen single-writer candidate already based on the unchanged shared
-baseline is itself the combination. Resolve an unclean application or judgment-required
-conflict with a fresh Coder before freezing the immutable review candidate. Reserve that shared
-baseline and integration position until the candidate integrates or is abandoned; other Coder
-work may continue, but it cannot advance the reserved baseline. Once review begins, do not edit
-the candidate while review roles are active merely because the orchestrator notices another
-ordinary issue.
+The primary orchestrator applies the complete isolated handoff before review; never apply only
+its last correction commit. A sole-writer candidate needs no temporary copy. Resolve an
+unclean application or judgment-required conflict with a fresh Coder before freezing the
+review content. Once review begins, do not edit that content while review roles are active.
 
-A clean mechanical application may produce a different commit SHA. A changed commit SHA alone
-does not invalidate review or execution evidence; compare the relevant source and build inputs.
-For task authority, compare the task definition, spec anchor, and prerequisite. Ignore Task
-status, descriptive Log content, and unrelated task rows. An `execution` pointer change is
-equivalent only when it resolves to the same normative Card, or when that Card's authority
-anchors, completion criterion, and TDD contract are unchanged. If any relevant content changed
-or equivalence cannot be proved, the existing evidence is not transferable.
+Before integration, confirm that the content being integrated is the reviewed content. A
+changed commit SHA alone does not invalidate equivalent source, build inputs, and normative
+task content. Recheck identity only after an event or command that could have changed it.
 
 Select roles by impact:
 
@@ -145,20 +138,33 @@ Select roles by impact:
 | recorded trigger from the [assurance policy](../gmgn/references/en/assurance-policy.json) | fresh Verifier, but only after review blockers clear |
 | formatting, links, pointers, or equivalent mechanical state | machine checks only |
 
+The Critic/Reviewer rows above are evaluated only once, immediately before the task
+execution's review round. An accepted finding fix remains part of that reviewed execution and
+does not re-enter role selection.
+
 Critic and Reviewer may run together when both surfaces changed. Collect every active review
 return before editing. The primary orchestrator adjudicates once, rejects scope expansion,
 and batches accepted blocker fixes into one revision. Each task execution uses
 `review_policy: single-pass` and has at most this one Critic/Reviewer round. The primary
-orchestrator checks each resolution and runs affected machine checks; do not dispatch another
-Critic or Reviewer to recheck the fixes. A fix that
+orchestrator checks each resolution and runs affected machine checks. This bounded resolution
+check does not search for new findings; do not resume or create a Critic/Reviewer for the
+fixes. A fix that
 expands authority, scope, or behavior beyond the accepted findings becomes a separately scoped
 change. Record the reviewed anchor, complete findings and rulings, exact fix delta, and
 post-fix checks at the final anchor. Non-blocking suggestions do not reopen the candidate.
 Do not keep a task open to perfect a non-blocking issue when its Card outcome works and an
 effective fallback keeps the remaining impact within accepted bounds.
 
+Critic and Reviewer do not maximize finding count; a valid review may return no findings.
+Before reporting an issue, determine its concrete material harm if left unresolved, whether an
+accepted effective fallback already contains that harm, and the smallest sufficient
+correction. Omit preference-only, speculative, low-impact, cleanup, refactoring,
+broader-coverage, or adequately contained observations that do not change acceptance or the
+next action.
+
 The Reviewer also runs the prepared deterministic local targeted, negative, integration, and
-project checks that fit its environment. It returns exact commands, environment, exit codes,
+project checks that fit its environment. Add exploratory checks only for a concrete risk. It
+returns exact commands, environment, exit codes,
 limitations, and side effects together with its findings. A skipped or unavailable required
 Reviewer command is not a pass. If no accepted blocker changes the candidate, this execution
 evidence belongs to the final candidate. After accepted fixes, the primary orchestrator checks
@@ -172,12 +178,16 @@ final candidate from the assurance policy as `not-required` or `required:<trigge
 that classification in Log.
 
 Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. When a trigger
-exists, dispatch one fresh Verifier after the fixed temporary combination becomes the final
-candidate. It runs only the non-transferable or explicitly independent plan and returns exact
-commands, environment, exit codes, limitations, and side effects. A skipped or unavailable
-required command is not a pass. The Verifier must leave every tracked file unchanged on both
-pass and failure. A command that generates or refreshes oracle, evidence, or attempt files is
-run beforehand by the Coder or primary orchestrator, not by the Verifier.
+exists, dispatch one fresh Verifier against the fixed final candidate. It runs only the
+non-transferable or explicitly independent plan and returns exact
+commands, environment, exit codes, limitations, and side effects. A failed, skipped,
+timed-out, or unavailable required command is not a pass. It does not broaden the verification
+plan after the recorded
+risk is decided and applies the same materiality/fallback filter to incidental observations.
+An accepted fallback satisfies verification only when it is itself the required and
+successfully verified path. The Verifier must leave every tracked file unchanged on both pass
+and failure. A command that generates or refreshes oracle, evidence, or attempt files is run
+beforehand by the Coder or primary orchestrator, not by the Verifier.
 
 Do not separately verify the lane candidate and then repeat the same verification after clean
 mechanical integration. An additional pre-integration Verifier is allowed only when the
@@ -193,9 +203,9 @@ change.
 
 ## 7. Integrate and close
 
-Only the primary orchestrator writes the temporary combination, shared baseline, Task status,
-Card/Log state, and traceability. Combination conflicts are resolved before the task's one
-review round. A post-review fix uses a fresh Coder when needed, then runs affected machine
+Only the primary orchestrator writes the shared baseline, Task status, Card/Log state, and
+traceability. Integration conflicts are resolved before the task's one review round. A
+post-review fix uses a fresh Coder when needed, then runs affected machine
 checks and any risk-triggered verification without another Reviewer.
 
 After the final candidate clears required review and any required verification:
@@ -208,7 +218,8 @@ After the final candidate clears required review and any required verification:
 
 Detailed blockers, anchors, commands, evidence, and event history stay in Log and are never
 copied back into Task. Release the lane only after the integrated anchor and closure evidence
-are durable. Do not push unless explicitly authorized.
+are durable. A task is complete when its Card contract is satisfied, not when every nearby
+issue discovered during the work has been resolved. Do not push unless explicitly authorized.
 
 ## Upstream change and exit
 

@@ -41,8 +41,8 @@ surface changed:
 Every brief contains:
 
 1. `dispatch_id`, role, one bounded objective, and required return shape;
-2. exact authority, baseline, candidate, and relevant evidence anchors; a Coder brief also
-   names the original `candidate_base_anchor` and current `candidate_tip_anchor`;
+2. exact authority and scope, plus baseline, candidate, or evidence anchors only when they
+   already exist and are needed for this dispatch;
 3. required context pointers and the named questions unresolved by that context;
 4. repository/workspace facts, write permissions, allowed paths, and prohibitions;
 5. prior accepted findings or failures only when they affect this dispatch;
@@ -61,23 +61,20 @@ as a locator and confirm claims against the checked-out source, diff, and tests.
 
 ## Workspace and candidate boundary
 
-Before repository writing, require:
+Compliance checks are triggered by a real boundary or material state change, not merely by
+starting a task. Before the first write, confirm the assigned scope, preservation of existing
+user changes, and one writer per workspace. Use an independent worktree or equivalent
+workspace for concurrent writers; a single writer may use the current workspace. Require a
+resolved baseline and expected HEAD only when a candidate will cross an agent/workspace
+boundary or concurrent writing makes that identity necessary.
 
-- `git rev-parse --show-toplevel` equals the absolute assigned workspace;
-- `baseline_anchor` and `expected_head_anchor` resolve as commits;
-- `HEAD` equals the expected initial or revision anchor;
-- the dispatch has one write owner and explicit allowed paths.
-
-Use an independent worktree for concurrent writers. A worktree isolates files and the index;
-it does not solve semantic, interface, merge, or shared-resource conflicts. In a shared
-workspace, parallel agents return proposals only and one recorded writer applies them.
-
-A writing return identifies the original `candidate_base_anchor`, current
-`candidate_tip_anchor`, changed files, commands/results, deviations, and material unresolved
-risks. The transferable candidate is the full `candidate_base_anchor..candidate_tip_anchor`
-diff; a correction commit is not a standalone candidate. Recheck the workspace and candidate on
-return. Reject an unanchored, wrong-workspace, stale-authority, or out-of-scope candidate before
-review.
+Freeze the simplest sufficient exact identity before review. A sole writer may use a captured
+diff or content hash. An isolated handoff returns changed files, commands/results, deviations,
+material unresolved risks, and the complete original-base-to-current-tip diff or ordered
+commit chain; a correction commit is not a standalone candidate. Recheck an identity only
+after an event or command that could have changed it. Reject wrong-workspace, stale-authority,
+out-of-scope, or incomplete transferable content before review or integration. Do not repeat
+unchanged checks or create evidence merely to prove that a compliance check ran.
 
 ## Freeze and the single review round
 
@@ -93,6 +90,13 @@ it into a separately scoped change instead of treating it as a recheck. Non-bloc
 suggestions do not reopen a candidate. The final anchor records the reviewed anchor, complete
 findings and rulings, exact fix delta, and post-fix checks.
 
+Critic and Reviewer are not expected to maximize finding count, and a valid review may return
+no findings. Before reporting an issue, they consider its concrete material harm if left
+unresolved, whether an effective fallback already keeps the impact within accepted bounds,
+and the smallest sufficient correction. Omit preference-only, speculative, low-impact, or
+adequately contained issues when they do not change acceptance or the next action. Do not
+propose a broader redesign when a smaller correction or effective fallback is sufficient.
+
 The Reviewer runs the prepared deterministic local checks and returns exact commands,
 environment, exit codes, limitations, and side effects together with code findings. After
 accepted fixes, the primary orchestrator checks the exact fix delta and reruns affected machine
@@ -101,24 +105,33 @@ checks without another independent round.
 A fresh Verifier is exceptional, not default. Classify the final candidate from the assurance
 policy as `not-required` or `required:<trigger>`. Do not dispatch it while relevant Critic or
 Reviewer blockers remain. When required, bind its evidence to the blocker-resolved final
-candidate. Repeating identical tests at another boundary is not additional evidence.
+candidate. It runs only the checks needed to decide the recorded trigger and stops once that
+decision is established. Apply the same materiality and fallback filter to incidental
+observations, but never waive a failed, skipped, timed-out, or unavailable required check
+unless an accepted fallback is itself the required and successfully verified path. Repeating
+identical tests at another boundary is not additional evidence.
 
 ## Role returns
 
 - **Author** returns the assigned document candidate, self-check evidence, and deviations.
-- **Critic** is read-only. Every finding gives location, evidence, impact, required correction,
-  and blocker level; it does not become a second author.
+- **Critic** is read-only. It reports only contradictions or omissions that could materially
+  change the decision, scope, invariants, acceptance, or downstream work; wording preferences
+  and hypothetical completeness are omitted.
 - **Coder** implements one Card attempt, stays inside its write set, produces discriminating
-  tests, and returns the candidate base and current tip for the complete diff. A later fix uses
-  a fresh Coder but does not trigger another Reviewer in the same task execution.
+  tests, and does not absorb adjacent work. A discovered issue stays in the Card only when it
+  blocks the Card outcome or a prepared required check, has no accepted effective fallback,
+  and its smallest sufficient correction fits the existing authority. An isolated handoff
+  returns its complete candidate range. A later fix uses a fresh Coder but does not trigger
+  another Reviewer in the same task execution.
 - **Reviewer** does not intentionally edit workspace files. It checks the anchored
-  implementation diff, spec fit, untested paths, assertion discrimination, side effects, and
-  avoidable complexity, then runs the prepared deterministic local checks. It prefers a
-  disposable copy for commands that write and proves HEAD, frozen diff/content hash, and
-  tracked status are unchanged before returning.
+  implementation diff for concrete correctness, regression, safety, data, or acceptance
+  impact, then runs the prepared deterministic local checks. Cleanup, refactoring, and broader
+  coverage are not blockers unless required to contain a material risk. It compares the frozen
+  content identity after commands that could change it.
 - **Verifier** is a risk-triggered final-candidate role. It leaves every tracked file unchanged
-  on both pass and failure and returns exact evidence for the non-transferable or explicitly
-  independent plan. Evidence generation or refresh runs before this independent check.
+  on both pass and failure, does not broaden the assigned risk after it is decided, and returns
+  exact evidence for the non-transferable or explicitly independent plan. Evidence generation
+  or refresh runs before this independent check.
 - **Researcher** distinguishes direct observation, sourced fact, and inference. Research does
   not become authority without orchestrator adjudication.
 

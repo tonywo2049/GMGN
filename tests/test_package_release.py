@@ -96,6 +96,65 @@ class PackageReleaseTests(unittest.TestCase):
     def assert_no_release_artifacts(self, output_dir: Path) -> None:
         self.assertFalse(output_dir.exists() and any(output_dir.iterdir()))
 
+    def test_set_version_synchronizes_all_release_metadata(self) -> None:
+        version = "0.3.0-rc.1"
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            result = subprocess.run(
+                [
+                    "python3",
+                    str(copied_root / "scripts" / "package_release.py"),
+                    "--allow-dirty",
+                    "--set-version",
+                    version,
+                ],
+                cwd=copied_root,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for relative_path in VERSION_PATHS:
+                document = json.loads(
+                    (copied_root / relative_path).read_text(encoding="utf-8")
+                )
+                if "plugins" in document:
+                    values = [
+                        entry["version"] for entry in document["plugins"]
+                        if entry.get("name", "").casefold() == "gmgn"
+                    ]
+                    self.assertEqual(values, [version])
+                else:
+                    self.assertEqual(document["version"], version)
+
+    def test_set_version_rejects_invalid_semver_without_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            before = {
+                relative: (copied_root / relative).read_bytes()
+                for relative in VERSION_PATHS
+            }
+            result = subprocess.run(
+                [
+                    "python3",
+                    str(copied_root / "scripts" / "package_release.py"),
+                    "--allow-dirty",
+                    "--set-version",
+                    "v1.2.3",
+                ],
+                cwd=copied_root,
+                text=True,
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("SemVer 2.0", result.stderr)
+            self.assertEqual(
+                before,
+                {
+                    relative: (copied_root / relative).read_bytes()
+                    for relative in VERSION_PATHS
+                },
+            )
+
     def test_archive_is_deterministic_and_whitelisted(self) -> None:
         version = json.loads((ROOT / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))["version"]
         with tempfile.TemporaryDirectory() as temporary:

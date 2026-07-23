@@ -169,6 +169,64 @@ class ValidateSkillsTests(unittest.TestCase):
                 result = self.run_isolated_mutation(relative, old, new)
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
+    def test_rejects_findings_or_tasks_that_do_not_converge(self) -> None:
+        cases = (
+            (
+                "agents/critic.md",
+                "a valid review may return no findings",
+                "every review must return findings",
+            ),
+            (
+                "agents/reviewer.md",
+                "accepted effective\nfallback",
+                "fallbacks are irrelevant",
+            ),
+            (
+                "agents/verifier.md",
+                "Do not broaden the plan",
+                "Broaden the plan",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Discovery does not expand an active Card",
+                "Discovery expands the active Card",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "A task is complete when its Card contract is satisfied",
+                "A task remains open after its Card contract is satisfied",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative, old=old):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_post_fix_review_loop(self) -> None:
+        cases = (
+            (
+                "GMGN.md",
+                "An accepted finding fix remains part of that reviewed batch and does not\n"
+                "re-enter role selection",
+            ),
+            (
+                "skills/gmgn/SKILL.md",
+                "bounded resolution check does not search for new findings",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "do not resume or create a Critic/Reviewer for the\nfixes",
+            ),
+        )
+        for relative, rule in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(
+                    relative,
+                    rule,
+                    "accepted fixes start another complete Critic/Reviewer round",
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
     def test_rejects_unchanged_state_primary_heartbeat(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",
@@ -182,34 +240,29 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_tip_only_candidate_application(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            "Never apply only the last",
-            "Apply only the last",
+            "never apply only\nits last correction commit",
+            "apply only its last correction commit",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行与验证契约", result.stdout)
 
-    def test_rejects_candidate_and_evidence_contract_drift(self) -> None:
+    def test_rejects_boundary_and_candidate_contract_drift(self) -> None:
         cases = (
             (
                 "skills/run-task/SKILL.md",
-                "The transferable candidate is the complete\n`candidate_base_anchor..candidate_tip_anchor` diff",
-                "The transferable candidate is the tip commit",
+                "Compliance checks are triggered by a real boundary or material state change",
+                "Compliance checks run in full whenever any task starts",
             ),
             (
                 "skills/run-task/SKILL.md",
-                "A changed commit SHA alone\ndoes not invalidate review or execution evidence",
+                "complete original-base-to-current-tip diff or ordered commit chain",
+                "tip commit only",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "changed commit SHA alone does not invalidate equivalent source",
                 "A changed commit SHA always invalidates evidence",
-            ),
-            (
-                "skills/run-task/SKILL.md",
-                "Ignore Task\nstatus, descriptive Log content, and unrelated task rows",
-                "Bind evidence to the entire Task file",
-            ),
-            (
-                "skills/run-task/SKILL.md",
-                "An `execution` pointer change is\nequivalent only when it resolves to the same normative Card",
-                "Any execution pointer change is equivalent",
             ),
             (
                 "skills/gmgn/SKILL.md",
@@ -218,8 +271,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "agents/reviewer.md",
-                "Any tracked change or\nanchor/hash drift invalidates the review",
-                "Tracked changes may be retained after review",
+                "material content drift invalidates\nthe review",
+                "material content drift may be accepted",
             ),
         )
         for relative, old, new in cases:
@@ -231,15 +284,15 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 ".codex/agents/coder.toml",
-                "回传原始 candidate_base_anchor 与当前 candidate_tip_anchor；可转移候选是完整 base-to-tip diff，修订提交不可单独应用。",
+                "发现问题不会扩大 Card",
             ),
             (
                 ".codex/agents/reviewer.toml",
-                "candidate_base_anchor 到 candidate_tip_anchor 的完整 diff",
+                "没有 finding 是有效结果",
             ),
             (
                 ".codex/agents/verifier.toml",
-                "成功或失败后的任何 tracked 变化都使验证无效。",
+                "不扩大计划继续找问题",
             ),
         )
         for relative, rule in cases:
@@ -277,11 +330,39 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("run-task 执行与验证契约", result.stdout)
 
+    def test_rejects_run_task_required_command_waiver(self) -> None:
+        self.replace(
+            "skills/run-task/SKILL.md",
+            "A failed, skipped,\ntimed-out, or unavailable required command is not a pass",
+            "A failed, skipped,\ntimed-out, or unavailable required command may pass",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 执行与验证契约", result.stdout)
+
+    def test_rejects_verifier_required_command_waiver(self) -> None:
+        cases = (
+            (
+                "agents/verifier.md",
+                "A failed, skipped, timed-out, or unavailable required command is not a pass",
+                "A failed, skipped, timed-out, or unavailable required command may pass",
+            ),
+            (
+                ".codex/agents/verifier.toml",
+                "失败、跳过、超时或环境缺失的必需检查不是通过",
+                "失败、跳过、超时或环境缺失的必需检查也可通过",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
     def test_rejects_verifier_that_changes_tracked_files(self) -> None:
         self.replace(
             "agents/verifier.md",
-            "Any tracked change invalidates verification on both pass and failure",
-            "Tracked changes may be accepted after verification",
+            "Any material content\nchange invalidates verification on both pass and failure",
+            "Material content changes may be accepted after verification",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
@@ -297,11 +378,11 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("合并前双向验证门禁", result.stdout)
 
-    def test_rejects_release_without_artifact_verifier(self) -> None:
+    def test_rejects_release_without_risk_triggered_artifact_verifier(self) -> None:
         self.replace(
             "skills/release/SKILL.md",
-            "dispatch one fresh\nVerifier before external writes",
-            "continue before external writes",
+            "`artifact-not-fully-machine-checkable`",
+            "`all-artifacts-always-pass`",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
