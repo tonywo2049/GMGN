@@ -134,9 +134,12 @@ could change the decision, acceptance, or downstream work.
 - On Claude Code, use a new custom or general-purpose agent for every dispatch. Do not use
   resume or SendMessage to assign later work to a returned role. Agent Teams do not provide
   worktree isolation automatically.
-- Wait only after useful dispatch, local checks, state refresh, and integration work are
-  exhausted. Use one longest-safe event wait. A timeout is a liveness checkpoint, not a reason
-  to start a list/status/wait polling loop.
+- Before waiting or acting as a Coder, the primary orchestrator scans every task in the
+  confirmed execution set, not only the current card or active lane, and dispatches every
+  ready, non-conflicting task that fits currently available capacity. Wait only after useful
+  dispatch, local checks, state refresh, and integration work are exhausted. Use one
+  longest-safe event wait. A timeout is a liveness checkpoint, not a reason to start a
+  list/status/wait polling loop.
 - A long-running primary session sends no heartbeat when observable state is unchanged. It
   updates only for material progress, a blocker, a decision request, or the final result.
 - On Codex, use one `list_agents` snapshot only when a scheduling/capacity decision needs

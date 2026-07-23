@@ -127,6 +127,25 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("gmgn 路由契约", result.stdout)
 
+    def test_rejects_global_execution_set_scan_drift(self) -> None:
+        cases = (
+            (
+                "GMGN.md",
+                "scans every task in the confirmed\nexecution set",
+                "scans only the current task",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "dispatches every ready, non-conflicting task that fits currently available capacity",
+                "dispatches only the current lane",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("全局调度契约", result.stdout)
+
     def test_rejects_unchanged_state_primary_heartbeat(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",

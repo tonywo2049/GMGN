@@ -51,7 +51,10 @@ with this preparation candidate.
 
 Read the compact Task rows for the confirmed execution set and the selected tasks' Card current
 contracts. A ready task has every prerequisite integrated and no collision with a declared
-shared-resource constraint. Recompute after every material agent return, block, or integration.
+shared-resource constraint. Recompute after every material agent return, block, integration,
+or resource-capacity change. Before waiting or acting as a Coder, the primary orchestrator
+scans every task in the confirmed execution set, not only the current card or active lane, and
+dispatches every ready, non-conflicting task that fits currently available capacity.
 Concurrency is the minimum of platform capacity, ready tasks, available writer workspaces, and
 any real exclusive-resource capacity; never hard-code a count. Prefer dependency topology, then stable
 `card_id` order. A blocked lane does not stop unrelated lanes.
@@ -101,7 +104,7 @@ the sole Coder in the verified current workspace, it may instead freeze and hash
 diff for review. A correction always uses a fresh delegated Coder, or a newly frozen
 primary-Coder attempt, starting from the last accepted anchor.
 
-Within the current task, wait only after ready dispatch, primary-Coder work, integration,
+Across the confirmed execution set, wait only after ready dispatch, primary-Coder work, integration,
 state refresh, and local checks are exhausted. Use one event-driven longest-safe wait. A
 timeout is a liveness checkpoint; do not turn list/status/wait into a polling loop. Use one
 `list_agents` snapshot only when a scheduling/capacity decision needs current state, a wait

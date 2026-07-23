@@ -41,6 +41,8 @@ PACKAGE_PATHS = (
     "LICENSE",
 )
 REQUIRED_PACKAGE_FILES = (
+    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
+    Path("skills/gmgn/references/en/assurance-policy.json"),
     Path("telemetry/__init__.py"),
     Path("telemetry/collector.py"),
     Path("telemetry/hook.py"),
@@ -105,7 +107,7 @@ def release_files() -> list[Path]:
     ]
     if missing_required:
         joined = ", ".join(path.as_posix() for path in missing_required)
-        raise ValueError(f"发布包缺少 telemetry 运行文件: {joined}")
+        raise ValueError(f"发布包缺少必需文件: {joined}")
     files: list[Path] = []
     for relative in relative_files:
         path = ROOT / relative

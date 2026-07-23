@@ -143,6 +143,9 @@ agent stage.
 `run-task` continuously fills a dependency-aware ready set. A task is ready when its
 prerequisites are integrated and any declared shared-resource constraint is available.
 Concurrency is determined by real capacity; GMGN defines no fixed agent count or wave barrier.
+Before waiting or acting as a Coder, the primary orchestrator scans every task in the confirmed
+execution set, not only the current card or active lane, and dispatches every ready,
+non-conflicting task that fits currently available capacity.
 
 Concurrent writers use isolated worktrees or equivalent workspaces. A single writer may use a
 verified current workspace when no other writer can collide with it. One task has one writer

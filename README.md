@@ -81,8 +81,10 @@ independent round. A separate Verifier is exceptional: classify it from the
 [`gmgn-assurance-v1` policy](skills/gmgn/references/en/assurance-policy.json) as
 `not-required` or `required:<trigger>`, and run it only when required.
 
-`run-task` continuously fills available capacity from a dependency-aware ready set. `Task.md`
-keeps task division, AC mapping, dependencies, macro status, and execution pointers. Each
+`run-task` continuously fills available capacity from a dependency-aware ready set. Before the
+primary session waits or acts as a Coder, it scans every task in the confirmed execution set
+rather than only the current card or lane. `Task.md` keeps task division, AC mapping,
+dependencies, macro status, and execution pointers. Each
 selected task gets `execution/<card_id>/Card.md` for its stable execution/TDD contract and
 `Log.md` for current runtime state plus append-only history. Each Coder attempt uses a fresh
 agent. Concurrent writers use explicitly provisioned worktrees; a single non-colliding writer

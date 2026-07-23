@@ -98,13 +98,16 @@ each selected task:
 - `execution/<card_id>/Log.md` — descriptive current snapshot with `latest_event`, plus
   append-only history.
 
-Run-task continuously fills a dependency-aware ready set. Concurrent writing lanes are
-isolated; a single non-colliding writer may use the verified current workspace. Each Coder
-attempt is fresh. Treat the full `candidate_base_anchor..candidate_tip_anchor` diff as the
-candidate. Apply that full diff or its complete ordered commit chain to the temporary
-combination; never apply only the last correction commit. Resolve any judgment-required
-conflict before freezing the task execution's one Reviewer candidate. Reserve its shared
-baseline and integration position until integration or abandonment. A changed commit SHA alone
+Run-task continuously fills a dependency-aware ready set. Before waiting or acting as a Coder,
+the primary orchestrator scans every task in the confirmed execution set, not only the current
+card or active lane, and dispatches every ready, non-conflicting task that fits currently
+available capacity. Concurrent writing lanes are isolated; a single non-colliding writer may
+use the verified current workspace. Each Coder attempt is fresh. Treat the full
+`candidate_base_anchor..candidate_tip_anchor` diff as the candidate. Apply that full diff or its
+complete ordered commit chain to the temporary combination; never apply only the last correction
+commit. Resolve any judgment-required conflict before freezing the task execution's one Reviewer
+candidate. Reserve its shared baseline and integration position until integration or abandonment.
+A changed commit SHA alone
 does not invalidate evidence after clean mechanical application; compare relevant content and
 ignore Task status, descriptive Log content, and unrelated task rows when deciding
 task-authority equivalence. An execution-pointer change is equivalent only when it resolves to

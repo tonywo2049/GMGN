@@ -32,6 +32,10 @@ REQUIRED_TELEMETRY_FILES = {
     "telemetry/dashboard.css",
     "telemetry/dashboard.js",
 }
+REQUIRED_REFERENCE_FILES = {
+    "skills/gmgn/references/en/dispatch-and-handoff.md",
+    "skills/gmgn/references/en/assurance-policy.json",
+}
 
 
 class PackageReleaseTests(unittest.TestCase):
@@ -118,7 +122,7 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("agents/author.md", names)
             self.assertIn("agents/critic.md", names)
             self.assertIn("agents/verifier.md", names)
-            self.assertIn("skills/gmgn/references/en/assurance-policy.json", names)
+            self.assertTrue(REQUIRED_REFERENCE_FILES <= set(names))
             self.assertIn("README.zh-CN.md", names)
             self.assertNotIn("GMGN.zh-CN.md", names)
             self.assertFalse(any("/references/zh-CN/" in name for name in names))
@@ -215,8 +219,22 @@ class PackageReleaseTests(unittest.TestCase):
             result = self.run_copied_packager(copied_root, output_dir)
 
             self.assertEqual(result.returncode, 1)
-            self.assertIn("发布包缺少 telemetry 运行文件", result.stderr)
+            self.assertIn("发布包缺少必需文件", result.stderr)
             self.assert_no_release_artifacts(output_dir)
+
+    def test_archive_rejects_missing_required_reference_file(self) -> None:
+        for relative in sorted(REQUIRED_REFERENCE_FILES):
+            with self.subTest(relative=relative), tempfile.TemporaryDirectory() as temporary:
+                copied_root = self.copied_repository(temporary)
+                (copied_root / relative).unlink()
+                output_dir = Path(temporary) / "dist"
+
+                result = self.run_copied_packager(copied_root, output_dir)
+
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("发布包缺少必需文件", result.stderr)
+                self.assertIn(relative, result.stderr)
+                self.assert_no_release_artifacts(output_dir)
 
     def test_archive_rejects_non_english_normative_root(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

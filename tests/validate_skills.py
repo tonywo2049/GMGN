@@ -42,6 +42,12 @@ REVIEW_POLICY_FILES = (
     Path(".codex/agents/reviewer.toml"),
 )
 ASSURANCE_POLICY_PATH = Path("skills/gmgn/references/en/assurance-policy.json")
+GLOBAL_SCAN_CONTRACT = (
+    "Before waiting or acting as a Coder",
+    "scans every task in the confirmed execution set",
+    "not only the current card or active lane",
+    "dispatches every ready, non-conflicting task that fits currently available capacity",
+)
 ASSURANCE_BINDING_FILES = (
     Path("GMGN.md"),
     Path("skills/gmgn/SKILL.md"),
@@ -119,6 +125,7 @@ def validate_skills(errors: list[str]) -> None:
 
 
 def validate_core_contract(errors: list[str]) -> None:
+    methodology = read("GMGN.md")
     gmgn = read(CORE_FILES[0])
     write_task = read(CORE_FILES[1])
     run_task = read(CORE_FILES[2])
@@ -128,6 +135,14 @@ def validate_core_contract(errors: list[str]) -> None:
     close_milestone = read("skills/close-milestone/SKILL.md")
     release = read("skills/release/SKILL.md")
     pre_merge = read("skills/gmgn/references/en/pre-merge-checklist.md")
+
+    for text, label in (
+        (methodology, "GMGN 根规范全局调度契约"),
+        (gmgn, "gmgn 路由全局调度契约"),
+        (run_task, "run-task 全局调度契约"),
+        (dispatch_en, "英文派发全局调度契约"),
+    ):
+        require(text, GLOBAL_SCAN_CONTRACT, label, errors)
 
     require(gmgn, (
         "Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use",
@@ -184,6 +199,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "sends no heartbeat when state is unchanged",
         "Use one `list_agents` snapshot only",
         "No periodic list interval is configured or inferred",
+        "Across the confirmed execution set, wait only after",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
