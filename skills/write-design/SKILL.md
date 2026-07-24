@@ -9,8 +9,8 @@ description: "Use after Requirement review to create or change Design.md: system
 
 ## Language and contract
 
-Use the Requirement locale for artifact prose and the English-only layout-free
-[writing contract](../gmgn/references/en/writing-contract.md). Keep filename `Design.md`,
+Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
+writing contract. Use the Requirement locale for artifact prose. Keep filename `Design.md`,
 `type: design`, and `nature: normative`.
 
 ## Writer content and self-check

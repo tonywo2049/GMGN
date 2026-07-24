@@ -7,8 +7,8 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 <HARD-GATE>`Design.md` must exist and have independent Critic plus primary-orchestrator review. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
 
-Use the Design locale for artifact prose and the English-only layout-free
-[writing contract](../gmgn/references/en/writing-contract.md). Keep filename `Task.md`, `type:
+Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
+writing contract. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
 task`, `nature: normative`, and this parser-facing table header:
 
 ```markdown
@@ -79,9 +79,11 @@ each selected task before any Coder dispatch:
    its sibling `Log.md`. Add scope exclusions or an allowed path/write set only when they
    materially bound a delegated writer. Add conflict domains or runtime locks only for a real
    shared-resource collision. Link the Task row instead of copying its dependency DAG.
-2. `execution/<card_id>/Log.md` — descriptive current runtime snapshot followed by
-   append-only durable events, evidence, corrections, and superseded attempts. Its current
-   snapshot contains a `latest_event` link to the current event anchor in the same file.
+2. `execution/<card_id>/Log.md` — descriptive current runtime snapshot, material decisions
+   only, and one final evidence summary when closed. Routine dispatch, waiting, unchanged
+   status, and successful intermediate checks do not become Log entries. Its `latest_event`
+   field is only a DocStar compatibility pointer to `#current` or `#final-evidence`, not a
+   general event ledger.
 
 The TDD contract belongs in `Card.md`, not Task. It identifies the test case or test location,
 the wrong behavior it must expose in RED, expected GREEN behavior, the replay command or
@@ -118,8 +120,9 @@ use machine checks without Critic.
 - When migrating an oversized legacy `Task.md`, anchor the old version when possible, retain
   only the current macro projection, and link historical detail rather than copying it.
 - Existing per-card execution history may be summarized into the new `Log.md` only when its
-  ownership and evidence are unambiguous. Otherwise preserve the legacy anchor and state the
-  limitation; never invent event order, commands, or acceptance evidence.
+  ownership and evidence are unambiguous. Preserve material decisions and final acceptance
+  evidence; otherwise keep the legacy anchor and state the limitation. Never invent event
+  order, commands, or acceptance evidence.
 - Existing projects may keep their old layout until a controlled migration. New or revised
   cards use the two-file execution layout.
 

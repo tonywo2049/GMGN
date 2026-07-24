@@ -1,7 +1,6 @@
 ---
 name: run-task
 description: "Use when one or more approved Task.md rows are confirmed: materialize per-card execution contracts, run every ready implementation task through bounded writer lanes, review code and deterministic local execution once, add separate final-candidate verification only for explicit risk triggers, integrate, and close. 已确认任务集后创建单卡 Card/Log、滚动并行开发、由 Reviewer 一轮完成代码审查与确定性本地检查，仅在风险触发时单独验证最终候选并关账。"
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Run confirmed task cards
@@ -12,8 +11,6 @@ The primary orchestrator owns scheduling, adjudication, shared state, integratio
 and per-card execution documents. It may be the Coder for one task only when no useful
 implementation work can run in parallel with orchestration; it cannot replace the independent
 Reviewer or any risk-triggered Verifier.
-
-Use the English-only [dispatch contract](../gmgn/references/en/dispatch-and-handoff.md).
 
 ## 1. Materialize execution documents
 
@@ -27,9 +24,12 @@ confirmed task selected for this run:
    runtime locks only for a real shared-resource collision. Do not copy the Task dependency
    DAG into Card.
 2. `execution/<card_id>/Log.md` second. It is descriptive and contains a replaceable current
-   snapshot—status, blocker, workspace, latest candidate, current evidence, and a
-   `latest_event` link to the current event anchor in that file—then append-only events with
-   stable IDs and evidence links.
+   snapshot—status, current candidate when one exists, next action, and only an active blocker
+   or material workspace fact—followed by material decisions only. On closure it contains one
+   final evidence summary. Routine dispatch, waiting, unchanged status, and successful
+   intermediate checks are not Log entries. Keep one DocStar compatibility pointer:
+   `latest_event: [Current](#current)` while active, changed to
+   `[Final Evidence](#final-evidence)` when closed. It does not require generated event IDs.
 3. After both files resolve, replace the Task row's `execution: none` with a real link to
    `Card.md` and set its macro status to `prepared`. Do this in the same checked candidate so
    no published Task pointer dangles.
@@ -41,8 +41,8 @@ scope. An unresolved semantic gap returns to `write-task`, `write-design`, or th
 upstream skill.
 
 Do not create `Verification.md`, `State.md`, a per-role Handoff, or one project-wide execution
-log. On retries, start from the current snapshot and latest relevant event in `Log.md`; do not
-read the full history unless the unresolved issue requires it.
+log. On retries, start from the current snapshot and only the material decisions relevant to
+the unresolved issue.
 
 Run diff, link, and repository-required document checks before advancing the shared baseline
 with this preparation candidate.
@@ -74,6 +74,11 @@ creating it, prepare a complete brief containing:
 - only the required Card/current Log context and relevant accepted findings or failures;
 - checks to run and evidence required for return.
 
+The brief may name registered skills or available tools required for the task. The agent may
+load them through normal discovery and follow their own local resources. Put resolved workflow
+decisions, including any assurance classification, directly in the brief instead of passing
+another Skill's internal resource path.
+
 Create a new agent without parent or earlier-agent conversation history. One return ends that
 agent. A later writing attempt, separately scoped semantic or implementation change, or later
 verification gets a new agent and a new brief. Critic and Reviewer are not redispatched to
@@ -81,7 +86,10 @@ recheck fixes from their completed round. Fresh identity does not mean every rol
 after every change.
 
 Use a commit-bound DocStar brief only when candidate handoff needs it; treat it as an index,
-not authority. Use CodeGraph as a locator and confirm claims against checked-out source.
+not authority. When the workspace has a usable CodeGraph index, use it first for source
+location and code relationships, target the exact assigned workspace in every query, and treat
+returned source as already read. Read checked-out files directly when the index is absent,
+stale, unsupported, changed after the query, or insufficient for the decision.
 
 ## 4. Protect one writer boundary per task
 
@@ -89,8 +97,11 @@ Compliance checks are triggered by a real boundary or material state change, not
 starting a task. Before the first write, confirm Card scope, preservation of existing user
 changes, and one writer per workspace. Use an isolated workspace for each concurrent writing
 lane; a sole writer may use the current workspace. Require baseline/HEAD checks and record
-candidate transfer facts only for concurrent work or handoff. Do not repeat an unchanged check
-or create evidence for the check itself.
+candidate transfer facts only for concurrent work or handoff. When CodeGraph indexing is
+authorized, the CLI is available, and an isolated workspace has no `.codegraph/`, run
+`codegraph init <workspace>` once before source discovery. Do not share an index between
+workspaces. Initialization failure falls back to targeted source reads and does not block the
+task. Do not repeat an unchanged check or create evidence for the check itself.
 
 A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
 `Task.md`, Card/Log runtime state, the integration queue, or remote state. It first establishes
@@ -135,7 +146,7 @@ Select roles by impact:
 |---|---|
 | specification or document meaning | fresh Critic |
 | implementation diff or test code, including deterministic local execution | fresh Reviewer |
-| recorded trigger from the [assurance policy](../gmgn/references/en/assurance-policy.json) | fresh Verifier, but only after review blockers clear |
+| recorded `required:<trigger>` classification | fresh Verifier, but only after review blockers clear |
 | formatting, links, pointers, or equivalent mechanical state | machine checks only |
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the task
@@ -150,8 +161,8 @@ orchestrator checks each resolution and runs affected machine checks. This bound
 check does not search for new findings; do not resume or create a Critic/Reviewer for the
 fixes. A fix that
 expands authority, scope, or behavior beyond the accepted findings becomes a separately scoped
-change. Record the reviewed anchor, complete findings and rulings, exact fix delta, and
-post-fix checks at the final anchor. Non-blocking suggestions do not reopen the candidate.
+change. Put the reviewed anchor, complete findings and rulings, exact fix delta, and post-fix
+checks in the final evidence summary. Non-blocking suggestions do not reopen the candidate.
 Do not keep a task open to perfect a non-blocking issue when its Card outcome works and an
 effective fallback keeps the remaining impact within accepted bounds.
 
@@ -174,8 +185,10 @@ the exact fix delta and reruns every affected machine check without another inde
 
 Ordinary deterministic local execution belongs to the Reviewer; Coder test output remains
 supporting implementation evidence. A fresh Verifier is exceptional, not default. Classify the
-final candidate from the assurance policy as `not-required` or `required:<trigger>` and record
-that classification in Log.
+final candidate as `not-required` or `required:<trigger>` using the current assurance policy
+loaded through the registered `gmgn` Skill. Record the classification in Log; add the reason
+and minimum verification plan only when verification is required, and include them in any
+Verifier brief.
 
 Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. When a trigger
 exists, dispatch one fresh Verifier against the fixed final candidate. It runs only the
@@ -195,11 +208,11 @@ integration decision itself needs independent runtime evidence, an external muta
 or environment makes evidence non-transferable, the baseline/test inputs changed materially,
 or project policy explicitly requires dual verification. Record the reason.
 
-If risk-triggered verification fails, record the failure in Log, create a fresh Coder for the
-fix, check the resolution and affected machine checks without another Reviewer, then dispatch
-a fresh Verifier because the required final-candidate evidence was invalidated. If the fix
-expands authority, scope, or behavior beyond the reviewed task, route it as a separately scoped
-change.
+If risk-triggered verification fails, record it as a material decision in Log, create a fresh
+Coder for the fix, check the resolution and affected machine checks without another Reviewer,
+then dispatch a fresh Verifier because the required final-candidate evidence was invalidated.
+If the fix expands authority, scope, or behavior beyond the reviewed task, route it as a
+separately scoped change.
 
 ## 7. Integrate and close
 
@@ -210,22 +223,23 @@ checks and any risk-triggered verification without another Reviewer.
 
 After the final candidate clears required review and any required verification:
 
-- append the successful event and evidence to `Log.md` and set its current snapshot to closed;
+- write one final evidence summary in `Log.md` and set its current snapshot to closed;
 - keep `Card.md` unchanged as the stable contract;
 - set only the Task row's macro `status` to `closed` and keep its `execution` link;
 - refresh affected AC traceability and shared-baseline/integration-queue pointers;
 - run diff, links, repository checks, and then atomically advance the shared baseline.
 
-Detailed blockers, anchors, commands, evidence, and event history stay in Log and are never
-copied back into Task. Release the lane only after the integrated anchor and closure evidence
-are durable. A task is complete when its Card contract is satisfied, not when every nearby
-issue discovered during the work has been resolved. Do not push unless explicitly authorized.
+Material blockers and decisions plus final anchors, commands, review, and required evidence
+stay in Log and are never copied back into Task. Release the lane only after the integrated
+anchor and closure evidence are durable. A task is complete when its Card contract is satisfied,
+not when every nearby issue discovered during the work has been resolved. Do not push unless
+explicitly authorized.
 
 ## Upstream change and exit
 
 When evidence contradicts approved authority, pause only the affected task and descendants,
-record the observation in Log, and route the semantic change to its owner. Resume with fresh
-agents only after the new authority anchor has the required review or approval.
+record the blocking decision in Log, and route the semantic change to its owner. Resume with
+fresh agents only after the new authority anchor has the required review or approval.
 
 Remain in `run-task` while a confirmed task can become ready or a lane/integration entry is
 active. When every target-Milestone task is closed on one shared baseline and AC traceability

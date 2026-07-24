@@ -9,9 +9,9 @@ description: "Use after owner approval of the WhitePaper to create or maintain t
 
 ## Language and contract
 
-Use the active locale for artifact prose and the English-only layout-free
-[writing contract](../gmgn/references/en/writing-contract.md). Use `ROADMAP.md`, `type:
-roadmap`, `nature: normative`, and `status: draft` until approved.
+Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
+writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `type: roadmap`,
+`nature: normative`, and `status: draft` until approved.
 
 ## Create
 

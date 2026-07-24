@@ -9,9 +9,9 @@ description: "Use when a WhitePaper does not exist, needs a major rethink, or an
 
 ## Language and contract
 
-Use the active project/user locale for artifact prose. Load the English-only layout-free
-[writing contract](../gmgn/references/en/writing-contract.md). The WhitePaper uses `type:
-whitepaper`, `nature: normative`, and stable English frontmatter tokens.
+Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
+writing contract. Use the active project/user locale for artifact prose. The WhitePaper uses
+`type: whitepaper`, `nature: normative`, and stable English frontmatter tokens.
 
 ## Working rhythm
 

@@ -9,8 +9,8 @@ description: "Use when an approved ROADMAP exists and the owner explicitly start
 
 ## Language and contract
 
-Use the ROADMAP locale unless the owner changes it explicitly. Load the English-only
-layout-free [writing contract](../gmgn/references/en/writing-contract.md). Keep filename
+Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
+writing contract. Use the ROADMAP locale unless the owner changes it explicitly. Keep filename
 `Goal.md`, `type: goal`, and `nature: normative`.
 
 ## One change batch

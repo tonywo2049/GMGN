@@ -6,7 +6,6 @@ downstream: [pre-merge checklist](pre-merge-checklist.md)
 status: approved
 type: task
 nature: normative
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Code-review contract: native entry and shared checks
@@ -43,11 +42,11 @@ acceptance or the next action. Run prepared checks; add exploratory checks only 
 risk. Do not propose a broader redesign when a smaller correction or effective fallback is
 sufficient.
 
-When `.codegraph/` exists, independently query CodeGraph in the candidate worktree for changed
-symbols, their callers, and sibling paths. If the index cannot prove candidate-commit identity,
-use it only to navigate. Findings must cite the exact Git diff or checked-out source; tests and
-real execution remain the behavioral evidence. Read targeted files directly whenever the task
-brief or graph is insufficient.
+When the candidate workspace has a usable `.codegraph/`, query CodeGraph first for changed
+symbols, their callers, and sibling paths, and treat returned source as already read. Findings
+must cite that source or the exact Git diff; tests and real execution remain the behavioral
+evidence. Read targeted files directly when the index is stale, unsupported, changed after the
+query, or insufficient.
 
 Run the prepared deterministic local checks that fit the review environment. Do not
 intentionally edit workspace files. Prefer a disposable copy when a command may write;
@@ -67,7 +66,7 @@ each resolution against its finding, and runs affected machine checks. Do not di
 Reviewer to recheck those fixes. A fix that changes dependency/specification meaning or
 expands behavior beyond the accepted findings becomes a separately scoped change. The primary
 orchestrator reruns affected machine checks after accepted fixes. A separate Verifier is not a
-default second stage; classify it from the [assurance policy](assurance-policy.json) and use it
-only for `required:<trigger>` on the blocker-resolved final candidate. The final anchor records
-the reviewed anchor, findings and rulings, exact fix delta, post-fix checks, verification
-classification, and any policy-triggered evidence.
+default second stage; use it only for a recorded `required:<trigger>` classification on the
+blocker-resolved final candidate. The final anchor records the reviewed anchor, findings and
+rulings, exact fix delta, post-fix checks, verification classification, and any
+trigger-specific evidence.

@@ -96,12 +96,15 @@ task before Coder dispatch:
 
 - `execution/<card_id>/Card.md` — normative stable execution/TDD contract. It links to the
   exact Task/Requirement/Design authority and exposes `execution_log: [Log.md](Log.md)`.
-- `execution/<card_id>/Log.md` — descriptive current snapshot plus append-only events. Its
-  snapshot exposes `latest_event` as a link to the current event anchor in that file.
+- `execution/<card_id>/Log.md` — descriptive execution record with a replaceable current
+  snapshot, material decisions only, and one final evidence summary when closed.
 
 Create Card first, then Log, then publish the Task execution link to Card in the same checked
 candidate. Do not create separate State, Verification, per-role Handoff, or project-wide
 execution-log files unless an independent project requirement needs one.
+For DocStar compatibility, the snapshot keeps one `latest_event` pointer: it targets
+`#current` while active and `#final-evidence` when closed. This pointer does not create an
+event ledger or require generated event IDs.
 
 ## 4. Review and verification
 
@@ -167,8 +170,14 @@ starting a task. Before the first write, confirm the Card scope, preservation of
 changes, and one writer per workspace. Concurrent writers use isolated worktrees or equivalent
 workspaces; a single writer may use the current workspace. Require workspace/base anchors and
 a transferable commit range only when concurrent work or candidate handoff makes them
-necessary. Freeze the simplest exact identity before review: a diff or content hash for a sole
-writer, and the complete base-to-tip diff or ordered commit chain for an isolated handoff.
+necessary. When CodeGraph indexing is authorized and the CLI is available, initialize it once
+in each isolated workspace before source discovery; initialization failure falls back to
+targeted source reads and never blocks the task. Every query targets the exact assigned
+workspace. Use its usable index first for source location and code relationships, and treat
+returned source as already read. Read files directly only when the index is absent, stale,
+unsupported, changed after the query, or insufficient for the decision. Freeze the simplest
+exact identity before review: a diff or content hash for a sole writer, and the complete
+base-to-tip diff or ordered commit chain for an isolated handoff.
 Recheck a fact only after an event or command that could have changed it. Before integration,
 confirm that the content being integrated is the reviewed content; a changed commit SHA alone
 does not invalidate equivalent content. Do not repeat unchanged checks or create evidence only

@@ -87,6 +87,44 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
 
+    def test_rejects_verbose_log_contract(self) -> None:
+        self.replace(
+            "skills/write-task/SKILL.md",
+            "material decisions\n   only",
+            "latest_event and append-only events",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("write-task 紧凑索引契约", result.stdout)
+
+    def test_allows_negated_legacy_log_term(self) -> None:
+        self.replace(
+            "skills/run-task/SKILL.md",
+            "# Run confirmed task cards",
+            "# Run confirmed task cards\n\n`Log.md` does not use append-only history.",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_rejects_missing_codegraph_first_rule(self) -> None:
+        self.replace(
+            "skills/run-task/SKILL.md",
+            "returned source as already read",
+            "always read every returned source again",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("run-task 执行与验证契约", result.stdout)
+
+    def test_rejects_missing_compact_log_docstar_adapter(self) -> None:
+        path = self.root / ".docstar/conventions/conventions.json"
+        value = json.loads(path.read_text(encoding="utf-8"))
+        value.pop("task_execution")
+        path.write_text(json.dumps(value), encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("紧凑 Log 兼容指针", result.stdout)
+
     def test_rejects_missing_task_decomposition_objective(self) -> None:
         self.replace(
             "skills/write-task/SKILL.md",
@@ -426,32 +464,25 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("单轮审查与修复后证据策略无效", result.stdout)
 
-    def test_rejects_assurance_policy_binding_drift(self) -> None:
-        surfaces = (
+    def test_rejects_nonstandard_skill_frontmatter(self) -> None:
+        self.replace(
             "skills/close-milestone/SKILL.md",
-            "skills/gmgn/references/en/code-review.md",
-            "agents/verifier.md",
-            ".codex/agents/reviewer.toml",
+            "\n---\n\n# Close a milestone",
+            "\nassurance_policy: gmgn-assurance-v1\n---\n\n# Close a milestone",
         )
-        for relative in surfaces:
-            with self.subTest(relative=relative):
-                copied_root = Path(self.temporary.name) / relative.replace("/", "-")
-                shutil.copytree(self.root, copied_root)
-                path = copied_root / relative
-                path.write_text(
-                    path.read_text(encoding="utf-8").replace(
-                        "assurance_policy: gmgn-assurance-v1",
-                        "assurance_policy: legacy-policy",
-                        1,
-                    ),
-                    encoding="utf-8",
-                )
-                result = subprocess.run(
-                    ["python3", "tests/validate_skills.py"], cwd=copied_root,
-                    text=True, capture_output=True,
-                )
-                self.assertEqual(result.returncode, 1)
-                self.assertIn("assurance policy 绑定", result.stdout)
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("frontmatter 只允许 name 和 description", result.stdout)
+
+    def test_rejects_skill_runtime_link_outside_its_directory(self) -> None:
+        self.replace(
+            "skills/run-task/SKILL.md",
+            "# Run confirmed task cards",
+            "# Run confirmed task cards\n\n[shared policy](../gmgn/references/en/assurance-policy.json)",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Skill 运行时链接越出自身目录", result.stdout)
 
     def test_rejects_invalid_codex_role_toml(self) -> None:
         path = self.root / ".codex/agents/reviewer.toml"

@@ -14,8 +14,11 @@ in the workspace. Stay inside the prepared write scope and respect any declared 
 constraint. Never edit shared `Task.md`, Card/Log runtime state, the integration queue, shared
 baseline, or remote state.
 Read the authority and real call path. First add or confirm a test that exposes the wrong
-behavior, then implement the smallest sufficient solution. Use CodeGraph only as a locator and
-confirm results against current source and tests.
+behavior, then implement the smallest sufficient solution. If the workspace has a usable
+CodeGraph index, use it first for source location and relationships and treat returned source
+as already read. Target the exact assigned workspace in every query. Read files directly when
+the index is absent, stale, unsupported, changed after the query, or insufficient; use tests
+and real execution for behavioral evidence.
 
 Discovery does not expand the Card. Keep a newly found issue only when it blocks the Card
 outcome or a prepared required check, has no accepted effective fallback, and its smallest

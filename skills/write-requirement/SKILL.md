@@ -9,8 +9,8 @@ description: "Use after milestone initiation and Goal.md to analyze, clarify, cr
 
 ## Language and contract
 
-Use the Goal locale for artifact prose and the English-only layout-free
-[writing contract](../gmgn/references/en/writing-contract.md). Keep filename `Requirement.md`,
+Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
+writing contract. Use the Goal locale for artifact prose. Keep filename `Requirement.md`,
 `type: requirement`, and `nature: normative`.
 
 ## Writer content and self-check

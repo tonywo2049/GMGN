@@ -6,7 +6,6 @@ downstream: none
 status: approved
 type: design
 nature: normative
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Pre-merge checklist
@@ -22,14 +21,13 @@ assurance_policy: gmgn-assurance-v1
 4. **Final content** — Are accepted post-review fixes recorded and affected checks current?
    A changed commit SHA alone does not invalidate evidence when relevant source, build inputs,
    and normative task content still match.
-5. **Verification classification** — Is the final candidate classified from the
-   [assurance policy](assurance-policy.json) as `not-required` or `required:<trigger>`? When
-   required, is current Verifier evidence bound to the blocker-resolved final combination?
-   Missing required evidence blocks integration.
+5. **Verification classification** — Is the final candidate classified as `not-required` or
+   `required:<trigger>`? When required, is current Verifier evidence bound to the
+   blocker-resolved final combination? Missing required evidence blocks integration.
 6. **No downgrade** — Were tests removed, assertions weakened, errors swallowed, or real paths
    bypassed?
 7. **Task/Card/Log split** — Is Task macro-only, Card the stable execution/TDD authority, and
-   Log the current snapshot plus history?
+   Log limited to the current snapshot, material decisions, and final evidence?
 8. **Failure isolation** — On conflict or failure, is the previous shared baseline still clean
    and is the failure recorded in Log without expanding Task?
 9. **Overdesign** — Can anything be deleted, replaced by standard/native behavior, or shrunk?

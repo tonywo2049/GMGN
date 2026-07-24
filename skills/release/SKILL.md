@@ -1,7 +1,6 @@
 ---
 name: release
 description: "Use after a candidate is already accepted to prepare or retry a version tag, deterministic package, checksum, GitHub/GitLab release, publication, deployment handoff, or local plugin update without repeating milestone closure. 已接受候选需要打 tag、生成发布包与校验和、创建或重试版本发布、交付部署或更新本地插件时使用；复用已绑定锚的验收证据，不重复里程碑关账。"
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Release an accepted anchor
@@ -54,8 +53,8 @@ not rebuild every ordinary release merely to re-prove an unchanged algorithm. Do
 regression, E2E, DocStar, closure, or independent review when the accepted product content and
 their validity inputs are unchanged.
 
-Classify the frozen final candidate from the
-[assurance policy](../gmgn/references/en/assurance-policy.json). A deterministic archive whose
+Classify the frozen final candidate as `not-required` or `required:<trigger>` using the current
+assurance policy loaded through the registered `gmgn` Skill. A deterministic archive whose
 members and bytes are fully checked by an unchanged packaging recipe is `not-required`.
 Dispatch one fresh Verifier only for a recorded trigger such as:
 
@@ -64,9 +63,10 @@ Dispatch one fresh Verifier only for a recorded trigger such as:
 - an external mutable environment, high-risk behavior, unavailable required Reviewer
   execution, or an explicit independent-execution requirement.
 
-The Verifier runs only the minimum plan needed to decide that trigger and stops once decided.
-Missing or failed required Verifier evidence blocks publication. A fallback satisfies
-verification only when it is the accepted required path and is successfully verified.
+Put the classification, reason, and minimum verification plan in its brief. The Verifier runs
+only that plan and stops once the trigger is decided. Missing or failed required Verifier
+evidence blocks publication. A fallback satisfies verification only when it is the accepted
+required path and is successfully verified.
 
 ## 3. Publish and reconcile idempotently
 

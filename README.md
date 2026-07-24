@@ -90,11 +90,12 @@ primary session waits or acts as a Coder, it scans every task in the confirmed e
 rather than only the current card or lane. `Task.md` keeps task division, AC mapping,
 dependencies, macro status, and execution pointers. Each
 selected task gets `execution/<card_id>/Card.md` for its stable execution/TDD contract and
-`Log.md` for current runtime state plus append-only history. Concurrent writers use isolated
-workspaces; a sole writer may use the current workspace. Workspace, HEAD, and candidate checks
-run only at a real handoff or material state change. A sole writer freezes a diff/content hash;
-an isolated handoff transfers the complete candidate. Before integration, GMGN confirms that
-the integrated content is the reviewed content.
+`Log.md` for current state, material decisions, and final evidence. Routine dispatch, waiting,
+unchanged state, and successful intermediate checks are omitted. Concurrent writers use
+isolated workspaces; a sole writer may use the current workspace. Workspace, HEAD, and
+candidate checks run only at a real handoff or material state change. A sole writer freezes a
+diff/content hash; an isolated handoff transfers the complete candidate. Before integration,
+GMGN confirms that the integrated content is the reviewed content.
 
 Discovery does not expand an active Card. A newly found issue stays in the task only when it
 blocks the Card outcome or a prepared required check, has no accepted effective fallback, and
@@ -358,9 +359,10 @@ does not claim that DocStar caused a grep to be avoided.
 For run-task dispatch, DocStar 0.2.3 or later provides a commit-bound brief as the starting
 evidence bundle.
 It does not forbid an agent from following pointers or reading exact source ranges when more
-evidence is needed. If `.codegraph/` exists, GMGN also uses CodeGraph as a role-specific code
-locator—baseline for Coder, candidate plus deterministic local checks for Reviewer, and the
-final candidate on demand for a risk-triggered Verifier—while grounding claims in source,
+evidence is needed. When CodeGraph indexing is authorized and the CLI is available, GMGN
+initializes one index per isolated workspace and uses it first for source discovery and code
+relationships. Returned source is not read again; targeted reads remain available when the
+index is absent, stale, unsupported, changed, or insufficient. Claims still rest on source,
 diffs, tests, and real execution.
 
 ## License

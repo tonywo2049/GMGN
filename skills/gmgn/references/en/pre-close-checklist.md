@@ -6,7 +6,6 @@ downstream: none
 status: approved
 type: design
 nature: normative
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Pre-close checklist

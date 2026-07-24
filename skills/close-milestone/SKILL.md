@@ -1,12 +1,11 @@
 ---
 name: close-milestone
 description: "Use when every target-milestone task is closed and traceability is full to reconcile scope, run any still-required milestone regression/E2E, independently review the closure candidate, obtain owner acceptance, and backfill ROADMAP plus any needed receiver handoff. 目标 Milestone 自有任务全部关账后做范围核对、仍必需的回归/E2E、关账审查与负责人验收。"
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Close a milestone
 
-<HARD-GATE>Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC must map to a task and evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final event. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
+<HARD-GATE>Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC must map to a task and evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
 
 ## Reconcile the closing anchor
 
@@ -18,8 +17,8 @@ The primary orchestrator records the Goal/Requirement/Design/Task anchors and ch
 - no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
 - known debt and material risk are classified without silently waiving an AC.
 
-Task remains a compact macro index. Detailed commands, anchors, blockers, and event history
-stay in each card's Log.
+Task remains a compact macro index. Material decisions and final commands, anchors, review, and
+required evidence stay in each card's Log.
 
 ## Reuse evidence before rerunning it
 
@@ -30,11 +29,12 @@ regression, real end-to-end or integration path, relevant negative/recovery outc
 environment, and limitations.
 
 Put missing or stale deterministic local checks in the closure Reviewer's prepared plan.
-Classify any remaining final-candidate evidence with the
-[assurance policy](../gmgn/references/en/assurance-policy.json). Create one fresh Verifier only
-for `required:<trigger>`; it runs only that policy-triggered plan and returns exact commands,
-environment, revision, exit codes, results, limitations, and side effects. A skipped or
-unavailable required command is not a pass. The single return ends that Verifier.
+Classify remaining final-candidate evidence as `not-required` or `required:<trigger>` using the
+current assurance policy loaded through the registered `gmgn` Skill. Create one fresh Verifier
+only for `required:<trigger>` and put the classification, reason, and minimum verification
+plan in its brief. It returns exact commands, environment, revision, exit codes, results,
+limitations, and side effects. A skipped or unavailable required command is not a pass. The
+single return ends that Verifier.
 
 ## Closure candidate and review
 

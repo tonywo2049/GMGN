@@ -48,24 +48,6 @@ GLOBAL_SCAN_CONTRACT = (
     "not only the current card or active lane",
     "dispatches every ready, non-conflicting task that fits currently available capacity",
 )
-ASSURANCE_BINDING_FILES = (
-    Path("GMGN.md"),
-    Path("skills/gmgn/SKILL.md"),
-    Path("skills/run-task/SKILL.md"),
-    Path("skills/close-milestone/SKILL.md"),
-    Path("skills/release/SKILL.md"),
-    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
-    Path("skills/gmgn/references/en/code-review.md"),
-    Path("skills/gmgn/references/en/pre-merge-checklist.md"),
-    Path("skills/gmgn/references/en/pre-close-checklist.md"),
-    Path("skills/gmgn/references/en/writing-contract.md"),
-    Path("agents/reviewer.md"),
-    Path("agents/verifier.md"),
-    Path(".codex/agents/reviewer.toml"),
-    Path(".codex/agents/verifier.toml"),
-)
-
-
 def read(relative: Path | str) -> str:
     path = ROOT / relative
     if not path.is_file():
@@ -116,6 +98,9 @@ def validate_skills(errors: list[str]) -> None:
                 errors.append(f"{relative}: name 必须等于目录名 {name}")
             if not fields.get("description"):
                 errors.append(f"{relative}: description 缺失")
+            extra_fields = sorted(set(fields) - {"name", "description"})
+            if extra_fields:
+                errors.append(f"{relative}: frontmatter 只允许 name 和 description，实际多出 {extra_fields}")
             if len(read(relative).splitlines()) > 500:
                 errors.append(f"{relative}: 超过 500 行，应拆引用或删重复规则")
             if not (ROOT / "skills" / name / "agents" / "openai.yaml").is_file():
@@ -188,7 +173,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not put TDD cases",
         "The TDD contract belongs in `Card.md`, not Task",
         "`execution_log` link to its sibling `Log.md`",
-        "latest_event",
+        "material decisions\nonly",
+        "final evidence summary",
+        "`latest_event`\nfield is only a DocStar compatibility pointer",
+        "not a\ngeneral event ledger",
         "minimize unnecessary task dependencies, shared writes, and runtime conflicts",
         "The objective is useful parallelism, not more task cards",
         "Never invent empty wrappers, fake interfaces, or new design decisions",
@@ -210,7 +198,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain",
         "The Reviewer also runs the prepared deterministic local",
         "A fresh Verifier is exceptional, not default",
-        "Classify the final candidate from the assurance policy",
+        "Classify the\nfinal candidate as `not-required` or `required:<trigger>`",
+        "registered skills or available tools required for the task",
+        "load them through normal discovery",
+        "instead of passing\nanother Skill's internal resource path",
         "An additional pre-integration Verifier is allowed only",
         "Compliance checks are triggered by a real boundary or material state change",
         "Discovery does not expand an active Card",
@@ -230,6 +221,17 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not keep a task open to perfect a non-blocking issue when its Card outcome works "
         "and an effective fallback keeps the remaining impact within accepted bounds",
         "A task is complete when its Card contract is satisfied",
+        "run `codegraph init <workspace>`\nonce before source discovery",
+        "CodeGraph indexing is\nauthorized",
+        "Do not share an index between workspaces",
+        "target the exact assigned workspace in every query",
+        "treat returned source as already read",
+        "index is absent, stale, unsupported, changed after the query, or\ninsufficient",
+        "Routine dispatch, waiting, unchanged status, and successful\nintermediate checks are not Log entries",
+        "`latest_event: [Current](#current)` while active",
+        "`[Final Evidence](#final-evidence)` when closed",
+        "does not require generated event IDs",
+        "write one final evidence summary in `Log.md`",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
@@ -241,17 +243,24 @@ def validate_core_contract(errors: list[str]) -> None:
         "The final anchor records the reviewed anchor",
         "The Reviewer runs the prepared deterministic local checks",
         "A fresh Verifier is exceptional, not default",
-        "Classify the final candidate from the assurance policy",
+        "Classify the final candidate as `not-required`\nor `required:<trigger>`",
+        "registered skills or available tools required for the task",
+        "load them through normal discovery",
+        "instead of passing\nanother Skill's internal resource path",
         "Compliance checks are triggered by a real boundary or material state change",
         "A sole writer may use a captured\ndiff or content hash",
         "a correction commit is not a standalone candidate",
         "valid review may return\nno findings",
         "concrete material harm",
         "smallest sufficient correction",
-        "runs only the checks needed to decide the recorded trigger",
+        "minimum verification plan",
         "sends no heartbeat when observable state is unchanged",
         "Do not query again until a material lifecycle event",
         "There is no periodic list interval",
+        "initialize it once in each isolated workspace before source discovery",
+        "against the exact assigned workspace",
+        "treat returned source as already read",
+        "index is absent, stale,\nunsupported, changed after the query, or insufficient",
     ), "英文派发契约", errors)
     require(roadmap, (
         "Milestone acceptance picture",
@@ -269,6 +278,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",
         "every ROADMAP acceptance scenario",
         "ROADMAP acceptance-scenario links to accepted evidence",
+        "closed `Log.md` current snapshot and final evidence",
     ), "milestone 验收关账契约", errors)
     require(pre_merge, (
         "`not-required` or `required:<trigger>`",
@@ -276,6 +286,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "content being integrated exactly the reviewed content",
         "frozen diff/content hash for a sole writer",
         "changed commit SHA alone does not invalidate evidence",
+        "current snapshot, material decisions, and final evidence",
     ), "合并前双向验证门禁", errors)
     require(release, (
         "deterministic archive whose\nmembers and bytes are fully checked",
@@ -355,7 +366,7 @@ def validate_assurance_policy(errors: list[str]) -> dict[str, object] | None:
     return policy
 
 
-def validate_review_policy(errors: list[str], policy: dict[str, object] | None) -> None:
+def validate_review_policy(errors: list[str]) -> None:
     for relative in REVIEW_POLICY_FILES:
         try:
             text = read(relative)
@@ -363,22 +374,6 @@ def validate_review_policy(errors: list[str], policy: dict[str, object] | None) 
             errors.append(str(exc))
             continue
         require(text, ("review_policy: single-pass",), str(relative), errors)
-    if policy is None or not isinstance(policy.get("policy_id"), str):
-        return
-    policy_id = policy["policy_id"]
-    for relative in ASSURANCE_BINDING_FILES:
-        try:
-            if relative.suffix == ".toml":
-                config = tomllib.loads(read(relative))
-                instructions = config.get("developer_instructions")
-                if not isinstance(instructions, str) or (
-                    f"assurance_policy: {policy_id}" not in instructions
-                ):
-                    errors.append(f"{relative}: assurance policy 绑定缺失或漂移")
-            elif frontmatter(relative).get("assurance_policy") != policy_id:
-                errors.append(f"{relative}: assurance policy 绑定缺失或漂移")
-        except (AssertionError, tomllib.TOMLDecodeError) as exc:
-            errors.append(f"{relative}: assurance policy 绑定不可读 ({exc})")
 
 
 def validate_roles(errors: list[str]) -> None:
@@ -421,11 +416,17 @@ def validate_roles(errors: list[str]) -> None:
                     "smallest sufficient correction",
                     "material content drift invalidates\nthe review",
                     "exact commands, environment, exit codes",
+                    "query it first and treat returned source as already read",
+                    "exact candidate workspace in every query",
+                    "index is absent, stale, unsupported, changed after the query, or insufficient",
                 ), str(markdown), errors)
                 require(instructions, (
                     "确定性本地测试计划", "没有 finding 是有效结果",
                     "具体实质影响", "已接受的有效兜底", "最小充分修复",
                     "实质内容漂移使本轮无效",
+                    "CodeGraph 索引时先查询",
+                    "每次查询必须指向准确的候选工作区",
+                    "返回源码视为已读取",
                 ), str(toml), errors)
                 if config.get("sandbox_mode") != "workspace-write":
                     errors.append(f"{toml}: Reviewer 运行本地检查需要 workspace-write")
@@ -449,10 +450,16 @@ def validate_roles(errors: list[str]) -> None:
                     "Discovery does not expand the Card",
                     "accepted effective fallback",
                     "another independently\ntestable outcome",
+                    "use it first for source location and relationships",
+                    "exact assigned workspace in every query",
+                    "treat returned source\nas already read",
                 ), str(markdown), errors)
                 require(instructions, (
                     "发现问题不会扩大 Card", "已接受的有效兜底",
                     "不增加另一个可独立测试结果",
+                    "CodeGraph 索引时先用它定位源码和代码关系",
+                    "每次查询必须指向准确的当前工作区",
+                    "返回源码视为已读取",
                 ), str(toml), errors)
             if role == "critic":
                 require(text, (
@@ -484,15 +491,15 @@ def validate_docstar_adapter(errors: list[str]) -> None:
         "status": "status",
         "execution": "execution",
     }
+    if config.get("task_columns") != expected_columns:
+        errors.append("DocStar task_columns 未采用新 Task 表头")
     expected_execution = {
         "card_fields": {"execution_log": ["execution_log"]},
         "log_fields": {"latest_event": ["latest_event"]},
         "canonical_task_table_only": True,
     }
-    if config.get("task_columns") != expected_columns:
-        errors.append("DocStar task_columns 未采用新 Task 表头")
     if config.get("task_execution") != expected_execution:
-        errors.append("DocStar task_execution 未采用 Task→Card→Log→latest_event")
+        errors.append("DocStar task_execution 未采用紧凑 Log 兼容指针")
 
 
 def validate_relative_links(errors: list[str]) -> None:
@@ -524,16 +531,25 @@ def validate_relative_links(errors: list[str]) -> None:
                 continue
             if not resolved.exists():
                 errors.append(f"{path.relative_to(ROOT)}: 链接目标不存在 {target}")
+                continue
+            skill_parent = path.parent.parent
+            if path.name == "SKILL.md" and skill_parent == ROOT / "skills":
+                try:
+                    resolved.relative_to(path.parent.resolve())
+                except ValueError:
+                    errors.append(
+                        f"{path.relative_to(ROOT)}: Skill 运行时链接越出自身目录 {target}"
+                    )
 
 
 def main() -> int:
     errors: list[str] = []
-    policy = validate_assurance_policy(errors)
+    validate_assurance_policy(errors)
     validate_release(errors)
     validate_skills(errors)
     validate_core_contract(errors)
     validate_normative_language_layout(errors)
-    validate_review_policy(errors, policy)
+    validate_review_policy(errors)
     validate_roles(errors)
     validate_docstar_adapter(errors)
     validate_relative_links(errors)

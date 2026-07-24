@@ -6,7 +6,6 @@ downstream: [GMGN router](../../SKILL.md), [code review](code-review.md)
 status: approved
 type: task
 nature: normative
-assurance_policy: gmgn-assurance-v1
 ---
 
 # Dispatch and fresh-agent contract
@@ -32,8 +31,7 @@ surface changed:
 
 - semantic document change → Critic;
 - implementation or test-code diff, including deterministic local execution → Reviewer;
-- recorded trigger from the [assurance policy](assurance-policy.json) → Verifier after review
-  clears;
+- recorded `required:<trigger>` classification → Verifier after review clears;
 - equivalent mechanical links, formatting, pointers, and status → machine checks.
 
 ## Prepare the brief before creating the agent
@@ -48,6 +46,11 @@ Every brief contains:
 5. prior accepted findings or failures only when they affect this dispatch;
 6. checks, expected evidence, limitations to report, and the return gate.
 
+The brief may name registered skills or available tools required for the task. The agent may
+load them through normal discovery and follow their own local resources. Put resolved workflow
+decisions, including any assurance classification, directly in the brief instead of passing
+another Skill's internal resource path.
+
 Do not create an agent and then expand its scope through follow-up messages. A clarification may
 only explain an existing brief fact; a new objective or changed candidate needs a new brief and
 new agent. Do not put credentials, telemetry instructions, or unrelated project history in a
@@ -56,8 +59,11 @@ brief.
 For a run-task Coder, the exact `Card.md`, current `Log.md` snapshot, and authority anchors are
 the static execution input. Attach a commit-bound DocStar brief when available and verified
 against the exact baseline. It is an index, not authority. Follow omitted pointers or use
-targeted reads when needed; do not ingest all Task or Log history by default. Use CodeGraph only
-as a locator and confirm claims against the checked-out source, diff, and tests.
+targeted reads when needed; do not ingest all Task or Log history by default. When the assigned
+workspace has a usable CodeGraph index, use it first for source location and code relationships
+against the exact assigned workspace and treat returned source as already read. Read files
+directly when the index is absent, stale, unsupported, changed after the query, or insufficient;
+ground conclusions in that source, the diff, tests, and real execution.
 
 ## Workspace and candidate boundary
 
@@ -66,7 +72,10 @@ starting a task. Before the first write, confirm the assigned scope, preservatio
 user changes, and one writer per workspace. Use an independent worktree or equivalent
 workspace for concurrent writers; a single writer may use the current workspace. Require a
 resolved baseline and expected HEAD only when a candidate will cross an agent/workspace
-boundary or concurrent writing makes that identity necessary.
+boundary or concurrent writing makes that identity necessary. When CodeGraph indexing is
+authorized and the CLI is available, initialize it once in each isolated workspace before
+source discovery; do not share an index across workspaces, and fall back to targeted source
+reads if initialization fails.
 
 Freeze the simplest sufficient exact identity before review. A sole writer may use a captured
 diff or content hash. An isolated handoff returns changed files, commands/results, deviations,
@@ -102,14 +111,14 @@ environment, exit codes, limitations, and side effects together with code findin
 accepted fixes, the primary orchestrator checks the exact fix delta and reruns affected machine
 checks without another independent round.
 
-A fresh Verifier is exceptional, not default. Classify the final candidate from the assurance
-policy as `not-required` or `required:<trigger>`. Do not dispatch it while relevant Critic or
-Reviewer blockers remain. When required, bind its evidence to the blocker-resolved final
-candidate. It runs only the checks needed to decide the recorded trigger and stops once that
-decision is established. Apply the same materiality and fallback filter to incidental
-observations, but never waive a failed, skipped, timed-out, or unavailable required check
-unless an accepted fallback is itself the required and successfully verified path. Repeating
-identical tests at another boundary is not additional evidence.
+A fresh Verifier is exceptional, not default. Classify the final candidate as `not-required`
+or `required:<trigger>`. Do not dispatch it while relevant Critic or Reviewer blockers remain.
+When required, put the classification, reason, and minimum verification plan in its brief and
+bind its evidence to the blocker-resolved final candidate. It stops once the recorded trigger
+is decided. Apply the same materiality and fallback filter to incidental observations, but
+never waive a failed, skipped, timed-out, or unavailable required check unless an accepted
+fallback is itself the required and successfully verified path. Repeating identical tests at
+another boundary is not additional evidence.
 
 ## Role returns
 

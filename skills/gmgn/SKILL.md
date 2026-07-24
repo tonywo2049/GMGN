@@ -1,13 +1,11 @@
 ---
 name: gmgn
 description: "Use first to route workflow-driven project work: new projects, product ideas, research, feature development, bug fixes, refactors, WhitePaper, ROADMAP, PRD, requirements, design, task docs, coding delegation, launch, release, acceptance, or closure. 凡要按流程推进研发、调研、功能、修 bug、重构、写白皮书/ROADMAP/PRD/需求/设计/任务、派活、上线发布、验收关账，或用户说按 GMGN/下一步做什么时使用。"
-assurance_policy: gmgn-assurance-v1
 ---
 
 # GMGN router: repository state → next stage
 
-Use this skill to locate the stage, then invoke the specialized skill. The English-only
-normative method is [GMGN.md](../../GMGN.md).
+Use this runtime method to locate the stage, then invoke the specialized skill.
 
 ## Language and contract
 
@@ -58,7 +56,7 @@ Fresh identity does not require a full role set after each edit. Select roles by
 |---|---|
 | WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | Critic |
 | Implementation or test-code diff, including deterministic local execution | Reviewer |
-| Recorded trigger from the [assurance policy](references/en/assurance-policy.json) | Verifier after review blockers clear |
+| Recorded trigger from the local [assurance policy](references/en/assurance-policy.json) | Verifier after review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
@@ -84,11 +82,12 @@ Report an issue only when leaving it unresolved creates concrete material harm, 
 effective fallback contains that harm, and a smallest sufficient correction can be stated.
 Omit observations that do not change acceptance or the next action.
 
-A fresh Verifier is exceptional, not default. Classify the final candidate from the assurance
-policy as `not-required` or `required:<trigger>`. Do not dispatch a Verifier while accepted
-review blockers remain unresolved; when required, bind its evidence to the blocker-resolved
-final candidate, run only the checks needed to decide that trigger, and stop when decided. A
-required check cannot be waived unless an accepted fallback is itself successfully verified.
+A fresh Verifier is exceptional, not default. Classify the final candidate from the local
+assurance policy as `not-required` or `required:<trigger>`. Do not dispatch a Verifier while
+accepted review blockers remain unresolved; when required, put the classification, reason,
+and minimum verification plan in its brief, bind its evidence to the blocker-resolved final
+candidate, and stop when the trigger is decided. A required check cannot be waived unless an
+accepted fallback is itself successfully verified.
 
 ## Document nodes
 
@@ -106,8 +105,9 @@ status, and execution pointers. After the execution set is confirmed, `run-task`
 each selected task:
 
 - `execution/<card_id>/Card.md` — normative execution and TDD contract, linked to `Log.md`;
-- `execution/<card_id>/Log.md` — descriptive current snapshot with `latest_event`, plus
-  append-only history.
+- `execution/<card_id>/Log.md` — descriptive current snapshot, material decisions, and final
+  evidence when closed. Its single `latest_event` pointer preserves DocStar compatibility
+  without requiring a general event ledger.
 
 Run-task continuously fills a dependency-aware ready set. Before waiting or acting as a Coder,
 the primary orchestrator scans every task in the confirmed execution set, not only the current

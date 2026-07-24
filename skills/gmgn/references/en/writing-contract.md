@@ -6,7 +6,6 @@ downstream: [GMGN router](../../SKILL.md)
 status: approved
 type: design
 nature: normative
-assurance_policy: gmgn-assurance-v1
 ---
 
 # GMGN writing contract
@@ -61,8 +60,8 @@ not-started → prepared → active | blocked → closed
 `prepared` means Card and Log exist. `blocked` is only the Task-level macro signal; Log owns
 the reason. `closed` means the accepted implementation and required evidence are integrated
 on the shared baseline. The Reviewer normally supplies deterministic local execution evidence.
-Classify a separate Verifier from the [assurance policy](assurance-policy.json); any
-`required:<trigger>` evidence must be bound to the blocker-resolved final candidate.
+Any `required:<trigger>` Verifier evidence must be bound to the blocker-resolved final
+candidate.
 
 Approval and acceptance bind an immutable commit, content hash, or equivalent version anchor.
 Editing a file does not move that decision. WhitePaper and ROADMAP need owner approval;
@@ -135,9 +134,21 @@ task before Coder dispatch:
   Design anchors, completion criterion, TDD contract, and
   `execution_log: [Log.md](Log.md)`.
 - `Log.md` is descriptive. Its frontmatter uses `type: execution-log` and links upstream to
-  Card. It contains a replaceable current snapshot and append-only events. The snapshot has
-  `latest_event: [<event_id>](#<event_id>)`; each event has a stable ID, result, and evidence
-  needed to replay or understand the decision.
+  Card. It contains a replaceable current snapshot, material decisions, and one final evidence
+  summary when closed. The snapshot contains status, current candidate when one exists, next
+  action, and only an active blocker or material workspace fact. It also contains
+  `latest_event: [Current](#current)` while active and points that field to
+  `[Final Evidence](#final-evidence)` when closed, solely for DocStar compatibility. Append a
+  decision only for a blocker or failed required check, accepted fallback, review finding and
+  ruling, accepted fix, or another fact that changes acceptance or the next action. Routine
+  dispatch, waiting, unchanged status, and successful intermediate checks are not Log entries.
+  The compatibility pointer does not require generated event IDs; a decision needs a stable ID
+  only when another artifact links to it.
+
+Final evidence identifies the accepted candidate and integrated anchor, records the
+discriminating RED and final GREEN commands/results, gives the independent review result and
+any accepted finding/fix, and records the verification classification plus required evidence
+when applicable. Omit optional fields that do not exist instead of writing placeholder values.
 
 Add scope exclusions or an allowed path/write set when they materially bound a delegated
 writer. Add conflict domains or runtime locks only when a real shared-resource collision
@@ -145,9 +156,9 @@ exists. Task remains the dependency authority; Card links to the Task row instea
 its prerequisite DAG.
 
 Create Card first, Log second, then publish the Task execution link in the same checked
-candidate. Correct history with a later event rather than rewriting an old one. Do not create
-a project-wide execution log or separate Verification, State, per-role brief, or Handoff file
-without an independent need.
+candidate. Correct a material decision with a later decision rather than rewriting it. Do not
+create a project-wide execution log or separate Verification, State, per-role brief, or Handoff
+file without an independent need.
 
 Card may refine implementation mechanics but cannot add scope, dependency, acceptance
 meaning, or design decisions absent from approved authority. Log never owns normative meaning.
