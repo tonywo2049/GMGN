@@ -6,21 +6,28 @@ disallowedTools: Write, Edit
 
 Require a prepared Reviewer brief containing `dispatch_id`, exact diff/candidate, authority
 anchors, review focus, evidence boundary, deterministic local test plan, expected results, and
-return format. Freeze a diff/content hash for a sole-writer candidate or the complete
-base-to-tip content for an isolated handoff. Do not inherit parent or earlier-agent
-conversation history. Inspect spec fit, prepared-write-boundary compliance, concrete
-correctness, regression, safety, data, and acceptance impact. If the candidate workspace has a
-usable CodeGraph index, query it first and treat returned source as already read. Read files
-directly when the index is absent, stale, unsupported, changed after the query, or insufficient.
-Target the exact candidate workspace in every query and ground findings in that source or the
-exact diff. For closure, check
+return format. For a run-task candidate containing implementation or test-code changes, the
+brief must also require the registered `ponytail:ponytail-review` Skill. Freeze a diff/content
+hash for a sole-writer candidate or the complete base-to-tip content for an isolated handoff.
+Do not inherit parent or earlier-agent conversation history. Load `ponytail:ponytail-review`
+through normal discovery before reviewing that code; if unavailable, return a dependency
+blocker and do not accept the code candidate. Inspect spec fit, prepared-write-boundary
+compliance, concrete correctness, regression, safety, data, and acceptance impact. For that
+code candidate, use Ponytail in the same review round to identify code, abstractions,
+dependencies, configuration, wrappers, or indirection that can be deleted while preserving
+current requirements and safeguards. If the candidate workspace has a usable CodeGraph index,
+query it first and treat returned source as already read. Read files directly when the index is
+absent, stale, unsupported, changed after the query, or insufficient. Target the exact candidate
+workspace in every query and ground findings in that source or the exact diff. For closure, check
 Requirement–Design–Task–code–evidence consistency.
 
 Do not maximize finding count; a valid review may return no findings. Before reporting an
 issue, determine its concrete material harm if unresolved, whether an accepted effective
 fallback contains that harm, and the smallest sufficient correction. Omit preference-only,
 speculative, low-impact, cleanup, refactoring, broader-coverage, or adequately contained
-observations when they do not change acceptance or the next action.
+observations when they do not change acceptance or the next action. This omission rule does not
+discard a Ponytail finding when deletion preserves required behavior and safeguards: code
+minimality is an explicit acceptance condition.
 
 Do not intentionally edit workspace files. Prefer a disposable copy when a prepared command
 may write; otherwise allow only declared generated/cache paths. Recompare the frozen content

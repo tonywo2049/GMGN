@@ -79,6 +79,12 @@ load them through normal discovery and follow their own local resources. Put res
 decisions, including any assurance classification, directly in the brief instead of passing
 another Skill's internal resource path.
 
+Every Coder brief must require the registered `ponytail:ponytail` Skill at `full`. A Reviewer
+brief must require `ponytail:ponytail-review` when its candidate contains implementation or
+test-code changes. Resolve availability before the role writes or accepts that code. A missing
+required Skill is a dependency blocker for that code task, not permission to copy its rules,
+silently continue, or accept the code candidate.
+
 Create a new agent without parent or earlier-agent conversation history. One return ends that
 agent. A later writing attempt, separately scoped semantic or implementation change, or later
 verification gets a new agent and a new brief. Critic and Reviewer are not redispatched to
@@ -105,7 +111,9 @@ task. Do not repeat an unchanged check or create evidence for the check itself.
 
 A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
 `Task.md`, Card/Log runtime state, the integration queue, or remote state. It first establishes
-a discriminating RED test, implements the smallest sufficient change, and runs the Card checks.
+a discriminating RED test, loads `ponytail:ponytail` through normal discovery at `full`,
+implements the smallest sufficient change without removing required safeguards, and runs the
+Card checks.
 Discovery does not expand an active Card. A newly found issue belongs to it only when leaving
 the issue unresolved prevents the Card outcome or a prepared required check, no accepted
 effective fallback contains the impact, and the smallest sufficient correction stays inside
@@ -171,11 +179,17 @@ Before reporting an issue, determine its concrete material harm if left unresolv
 accepted effective fallback already contains that harm, and the smallest sufficient
 correction. Omit preference-only, speculative, low-impact, cleanup, refactoring,
 broader-coverage, or adequately contained observations that do not change acceptance or the
-next action.
+next action. This filter does not discard Ponytail findings: code minimality is an explicit
+acceptance condition, and code that
+`ponytail:ponytail-review` can delete while preserving current requirements and safeguards
+violates it.
 
-The Reviewer also runs the prepared deterministic local targeted, negative, integration, and
-project checks that fit its environment. Add exploratory checks only for a concrete risk. It
-returns exact commands, environment, exit codes,
+For a candidate containing implementation or test-code changes, the Reviewer loads
+`ponytail:ponytail-review` through normal discovery and applies it inside this same review round
+alongside correctness, regression, safety, data, and acceptance review.
+The Reviewer also runs the prepared deterministic local targeted, negative, integration, and project
+checks that fit its environment. Add exploratory checks only for a concrete risk. It returns
+exact commands, environment, exit codes,
 limitations, and side effects together with its findings. A skipped or unavailable required
 Reviewer command is not a pass. If no accepted blocker changes the candidate, this execution
 evidence belongs to the final candidate. After accepted fixes, the primary orchestrator checks

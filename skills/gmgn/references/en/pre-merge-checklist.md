@@ -30,7 +30,10 @@ nature: normative
    Log limited to the current snapshot, material decisions, and final evidence?
 8. **Failure isolation** — On conflict or failure, is the previous shared baseline still clean
    and is the failure recorded in Log without expanding Task?
-9. **Overdesign** — Can anything be deleted, replaced by standard/native behavior, or shrunk?
+9. **Overdesign** — Did R-D-T criticism apply the deletion test? When the candidate contains
+   implementation or test-code changes, did the Reviewer load `ponytail:ponytail-review`? Can
+   anything still be deleted, replaced by standard/native behavior, or shrunk without losing a
+   current accepted outcome or required safeguard?
 
 Run repository checks required by the project. Only reviewed, blocker-resolved content with
 affected post-fix machine checks and any risk-triggered final-candidate evidence may advance

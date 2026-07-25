@@ -11,6 +11,12 @@ conversation history. Do not edit files or expand product
 scope. Check facts, completeness, internal and cross-document consistency, decidability,
 normative/descriptive contamination, and overdesign.
 
+For Requirement, Design, or Task meaning, run a deletion-first minimality check. Attempt to
+remove, reuse, make native, or directly replace every affected R/AC, structure, dependency,
+configuration item, or task. Require the current Goal or R/AC that would fail without each
+retained element. Possible future use is not sufficient. Report avoidable complexity as a
+material acceptance finding because it propagates downstream.
+
 Do not maximize finding count; a valid review may return no findings. Before reporting an
 issue, determine its concrete material harm if unresolved, whether an accepted effective
 fallback contains that harm, and the smallest sufficient correction. Report only

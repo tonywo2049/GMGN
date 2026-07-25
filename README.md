@@ -121,11 +121,22 @@ The reviewed `Task.md` row selects the work; its materialized `Card.md` is the s
 and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and
 lane facts, not the parent conversation or a duplicated per-agent handoff.
 
+R-D-T minimality is enforced by GMGN itself. Every retained requirement, design element, and
+task must identify the current Goal or R/AC that would fail if it were removed; the Critic
+applies the same deletion-first check before acceptance. Code minimality uses the external
+[Ponytail](https://github.com/DietrichGebert/ponytail) plugin instead of duplicating its rules.
+Run-task requires `ponytail:ponytail` at `full` for Coder. A Reviewer candidate containing
+implementation or test-code changes requires `ponytail:ponytail-review`. Ponytail review is
+part of the same Reviewer round and does not replace correctness or safety review. If Ponytail
+is not installed, that code task stops with a dependency blocker.
+
 ## Install
 
 ### Codex
 
 ```bash
+codex plugin marketplace add DietrichGebert/ponytail
+codex plugin add ponytail@ponytail
 codex plugin marketplace add tonywo2049/GMGN
 codex plugin add gmgn@GMGN
 ```
@@ -145,6 +156,8 @@ $gmgn Determine the correct next step for this project.
 ### Claude Code
 
 ```bash
+claude plugin marketplace add DietrichGebert/ponytail
+claude plugin install ponytail@ponytail --scope user
 claude plugin marketplace add tonywo2049/GMGN
 claude plugin install gmgn@GMGN --scope user
 ```

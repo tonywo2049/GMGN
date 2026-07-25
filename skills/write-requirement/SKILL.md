@@ -22,6 +22,10 @@ writing contract. Use the Goal locale for artifact prose. Keep filename `Require
 - Carry every ROADMAP acceptance-scenario anchor through its mapped Goal slices into one or
   more R/ACs. Keep the trace explicit as ROADMAP acceptance scenario → Goal slice → R/AC;
   refine the scenario into decidable criteria without copying it as a second AC system.
+- Keep the smallest requirement set that satisfies the current Goal. Every R/AC must name the
+  current Goal slice or externally imposed invariant that would fail if it were removed.
+  Delete speculative future capability, reuse, scale, configurability, or implementation
+  convenience that has no such parent.
 - Clearly distinguish functional, non-functional, parameter/constraint, non-goal, and
   open-decision content.
 - Parameterize changeable numbers; name the authority and verification method for values.
@@ -32,7 +36,8 @@ writing contract. Use the Goal locale for artifact prose. Keep filename `Require
 Before return, the recorded writer checks that every ROADMAP acceptance scenario is covered
 through Goal slices or routed back to `roadmap`/`write-goal`, every Goal slice is covered or
 explicitly excluded, every AC is decidable and owned, no requirement prescribes an
-implementation structure, and every number has an authority and verification method.
+implementation structure, every retained R/AC fails a current accepted outcome when removed,
+and every number has an authority and verification method.
 
 ## Writer and critic loop
 
@@ -69,7 +74,8 @@ refresh plus machine checks without reapproval.
 Require the recorded writer to reconcile scope coverage and scan every affected AC for
 decidability. For creation or a semantic revision, run the fresh-agent writer/Critic
 loop using the English-only dispatch contract; tell the Critic to emphasize upstream
-consistency and acceptance quality. Obtain primary-orchestrator review and integrate only
+consistency, acceptance quality, and deletion of any R/AC that does not serve a current Goal
+outcome. Obtain primary-orchestrator review and integrate only
 when required by workspace topology. Creation then uses **REQUIRED next skill:
 `write-design`**. A revision returns to the stage that raised it and continues through the
 affected path only.

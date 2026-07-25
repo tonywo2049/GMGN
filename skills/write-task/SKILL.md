@@ -64,10 +64,14 @@ invent empty wrappers, fake interfaces, or new design decisions merely to increa
   implementation or evidence.
 - Keep an explicit `| AC | task |` mapping and cover every in-scope AC. A task may appear in
   several rows and an AC may map to several tasks.
+- Apply the deletion test to every task: name the current AC and approved Design element that
+  would fail without it. Remove a task when all current ACs remain satisfied without its
+  outcome; a possible future need is not a task owner.
 
 Before return, check that every task is independently decidable, the DAG is acyclic, no
-reverse Milestone dependency exists, and every in-scope AC maps to at least one task. Do not
-freeze waves; `run-task` derives the rolling ready set.
+reverse Milestone dependency exists, every in-scope AC maps to at least one task, and no task
+survives only for speculative reuse, hardening, or coordination. Do not freeze waves;
+`run-task` derives the rolling ready set.
 
 ## Per-card execution contract
 
@@ -106,6 +110,8 @@ format. Do not resume or repurpose a returned agent.
 
 After the writer self-check and machine checks, freeze one candidate and dispatch one fresh
 independent Critic for semantic review. Collect all findings before changing the candidate.
+The Critic must try deleting or merging each affected task and report any task whose removal
+preserves all current ACs and approved Design outcomes as overdesign.
 The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches
 a fresh Author with a revision brief. It checks each resolution and runs affected machine
 checks without dispatching a second Critic. A fix that expands authority or scope beyond the

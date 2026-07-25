@@ -26,11 +26,14 @@ writing contract. Use the Requirement locale for artifact prose. Keep filename `
 - For each external input, cache restore, migration import, permission boundary, human entry,
   or model-output acceptance point, record the real source authority, validation, observable
   failure behavior, negative evidence, and owner. “Validated upstream” is not a source.
-- Apply the first-sufficient anti-overdesign order from GMGN §7.
+- Apply the first-sufficient anti-overdesign order from GMGN §7. For every new module,
+  interface, state, configuration item, dependency, or failure mechanism, name the current
+  R/AC that would fail if it were removed. Future reuse or possible scale is not sufficient.
 
 Before return, check the mapping in both directions, trust boundaries and negative paths,
 existing-call-path feasibility, rollback or failure behavior where required, and whether any
-new structure lacks a current R-AC.
+new structure lacks a current R-AC or can be deleted, reused, made native, or replaced by a
+direct solution without losing a current accepted outcome.
 
 ## Writer and critic loop
 
@@ -68,7 +71,8 @@ refresh plus machine checks without reapproval.
 Require the recorded writer to reconcile the affected mapping in both directions: no orphan
 design and no unmapped R-AC. For creation or a semantic revision, run the fresh-agent
 writer/Critic loop using the English-only dispatch contract; tell the Critic to emphasize
-feasibility, upstream/downstream consistency, and overdesign. Obtain primary-orchestrator
+feasibility, upstream/downstream consistency, and a deletion-first overdesign check against the
+smallest sufficient design. Obtain primary-orchestrator
 review and integrate only when required by workspace topology. Creation then uses **REQUIRED next skill:
 `write-task`**. A revision returns to the stage that raised it and continues through the
 affected path only.

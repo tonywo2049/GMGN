@@ -240,6 +240,18 @@ approval. DocStar is optional structural tooling; CodeGraph is optional navigati
 documents, source, diffs, tests, and runtime behavior remain evidence. Telemetry is out-of-band
 observation and never changes routing, readiness, acceptance, or closure.
 
+Solution minimality is an acceptance condition across Requirement, Design, and Task. Writers
+choose the least structure that satisfies the current Goal, R/ACs, and required safeguards.
+Every requirement, criterion, module, interface, state, configuration item, dependency, and
+task must name the current upstream outcome that would fail if it were removed. A possible
+future need, speculative reuse, or implementation convenience is not an upstream outcome.
+Anything that can be deleted without losing a current accepted outcome is overdesign and must
+not propagate downstream.
+
+The independent Critic applies the same deletion test to every affected R-D-T candidate. It
+first attempts deletion, reuse, native behavior, or a direct solution; unresolved overdesign is
+a material acceptance finding, not a wording, cleanup, or low-impact preference.
+
 Choose the first sufficient option:
 
 1. no implementation;
@@ -252,6 +264,17 @@ Choose the first sufficient option:
 Do not add roles, state machines, identity history, configuration, wrappers, or documents
 without a current requirement. Preserve trust-boundary validation, security, accessibility,
 and data-loss protection; simplicity is not permission to remove required safeguards.
+
+Code minimality is delegated to the registered
+[Ponytail](https://github.com/DietrichGebert/ponytail) plugin rather than copied into GMGN.
+Every run-task Coder brief requires `ponytail:ponytail` at `full`. A run-task Reviewer brief
+requires `ponytail:ponytail-review` when its candidate contains implementation or test-code
+changes. Load the named Skill through normal discovery before writing or reviewing that code.
+If it is unavailable, return a dependency blocker without writing or accepting that code
+candidate. Ponytail governs implementation minimality, not R-D-T authority. Its review runs
+inside the single Reviewer round alongside correctness, regression, safety, data, acceptance,
+and deterministic local execution. Report code that can be deleted while preserving current
+requirements and safeguards even when it would otherwise look like cleanup or refactoring.
 
 Completion does not require every non-critical issue to be perfected. When the accepted main
 path works and an effective fallback keeps a remaining non-blocking issue within acceptable

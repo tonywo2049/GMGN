@@ -135,6 +135,96 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
 
+    def test_rejects_solution_minimality_drift(self) -> None:
+        cases = (
+            (
+                "skills/write-requirement/SKILL.md",
+                "Keep the smallest requirement set that satisfies the current Goal",
+                "Add every potentially useful future requirement",
+            ),
+            (
+                "skills/write-design/SKILL.md",
+                "Future reuse or possible scale is not sufficient",
+                "Future reuse always justifies new structure",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "Apply the deletion test to every task",
+                "Keep every proposed task",
+            ),
+            (
+                "agents/critic.md",
+                "deletion-first minimality check",
+                "addition-first completeness check",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_missing_ponytail_code_gate(self) -> None:
+        cases = (
+            (
+                "skills/run-task/SKILL.md",
+                "Every Coder brief must require the registered `ponytail:ponytail` Skill at `full`",
+                "Coder briefs need no code-minimality Skill",
+            ),
+            (
+                "agents/coder.md",
+                "Load `ponytail:ponytail` through normal discovery before implementation",
+                "Implement without loading Ponytail",
+            ),
+            (
+                "agents/reviewer.md",
+                "Load `ponytail:ponytail-review`\nthrough normal discovery before reviewing that code",
+                "Review without loading Ponytail",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_ponytail_reverse_contract(self) -> None:
+        cases = (
+            (
+                "skills/run-task/SKILL.md",
+                "silently continue, or accept the code candidate.",
+                "silently continue, or accept the code candidate.\n\n"
+                "If Ponytail is unavailable, continue and accept the candidate.",
+            ),
+            (
+                ".codex/agents/reviewer.toml",
+                "回传前自检，不输出固定 Reflection 段。",
+                "Ponytail 不可用时仍继续并接受候选。回传前自检，不输出固定 Reflection 段。",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("含相反契约", result.stdout)
+
+    def test_rejects_missing_ponytail_install_commands(self) -> None:
+        cases = (
+            (
+                "README.md",
+                "codex plugin add ponytail@ponytail",
+                "codex plugin add ponytail@wrong",
+            ),
+            (
+                "README.zh-CN.md",
+                "claude plugin install ponytail@ponytail --scope user",
+                "claude plugin install ponytail@wrong --scope user",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("Ponytail 安装契约", result.stdout)
+
     def test_rejects_missing_roadmap_acceptance_picture(self) -> None:
         self.replace(
             "skills/roadmap/SKILL.md",

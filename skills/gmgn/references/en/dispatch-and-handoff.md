@@ -51,6 +51,12 @@ load them through normal discovery and follow their own local resources. Put res
 decisions, including any assurance classification, directly in the brief instead of passing
 another Skill's internal resource path.
 
+For run-task, every Coder brief names the registered `ponytail:ponytail` Skill at `full`. A
+Reviewer brief names `ponytail:ponytail-review` when its candidate contains implementation or
+test-code changes. The role loads the named Skill through normal discovery before writing or
+accepting that code. Missing Ponytail blocks that code task; do not copy its rules or continue
+without it.
+
 Do not create an agent and then expand its scope through follow-up messages. A clarification may
 only explain an existing brief fact; a new objective or changed candidate needs a new brief and
 new agent. Do not put credentials, telemetry instructions, or unrelated project history in a
@@ -105,6 +111,9 @@ unresolved, whether an effective fallback already keeps the impact within accept
 and the smallest sufficient correction. Omit preference-only, speculative, low-impact, or
 adequately contained issues when they do not change acceptance or the next action. Do not
 propose a broader redesign when a smaller correction or effective fallback is sufficient.
+Avoidable R-D-T complexity is material because it propagates downstream. Code that Ponytail can
+delete while preserving current requirements and safeguards violates code minimality; neither
+case is omitted as cleanup or refactoring.
 
 The Reviewer runs the prepared deterministic local checks and returns exact commands,
 environment, exit codes, limitations, and side effects together with code findings. After
@@ -125,18 +134,23 @@ another boundary is not additional evidence.
 - **Author** returns the assigned document candidate, self-check evidence, and deviations.
 - **Critic** is read-only. It reports only contradictions or omissions that could materially
   change the decision, scope, invariants, acceptance, or downstream work; wording preferences
-  and hypothetical completeness are omitted.
+  and hypothetical completeness are omitted. For an affected R-D-T candidate it attempts
+  deletion, reuse, native behavior, and a direct solution, then requires the current upstream
+  outcome that would fail without each retained element.
 - **Coder** implements one Card attempt, stays inside its write set, produces discriminating
-  tests, and does not absorb adjacent work. A discovered issue stays in the Card only when it
+  tests, loads `ponytail:ponytail` at `full`, and does not absorb adjacent work. A discovered
+  issue stays in the Card only when it
   blocks the Card outcome or a prepared required check, has no accepted effective fallback,
   and its smallest sufficient correction fits the existing authority. An isolated handoff
   returns its complete candidate range. A later fix uses a fresh Coder but does not trigger
   another Reviewer in the same task execution.
 - **Reviewer** does not intentionally edit workspace files. It checks the anchored
   implementation diff for concrete correctness, regression, safety, data, or acceptance
-  impact, then runs the prepared deterministic local checks. Cleanup, refactoring, and broader
-  coverage are not blockers unless required to contain a material risk. It compares the frozen
-  content identity after commands that could change it.
+  impact, loads `ponytail:ponytail-review` in the same round to find removable implementation
+  complexity, then runs the prepared deterministic local checks. Cleanup, refactoring, and
+  broader coverage are not blockers unless required to contain a material risk or the code
+  minimality acceptance condition. It compares the frozen content identity after commands that
+  could change it.
 - **Verifier** is a risk-triggered final-candidate role. It leaves every tracked file unchanged
   on both pass and failure, does not broaden the assigned risk after it is decided, and returns
   exact evidence for the non-transferable or explicitly independent plan. Evidence generation

@@ -6,19 +6,22 @@ isolation: worktree
 
 Handle one prepared Coder brief and one `card_id`. Require `dispatch_id`, exact `Card.md`,
 current `Log.md` snapshot, authority, allowed write scope, prohibitions, checks, and return
-format; require workspace/base anchors only for concurrent work or candidate handoff. Do not
-inherit parent or earlier-Coder conversation history.
+format; it must also require the registered `ponytail:ponytail` Skill at `full`. Require
+workspace/base anchors only for concurrent work or candidate handoff. Do not inherit parent or
+earlier-Coder conversation history.
 
 Before writing, confirm the Card scope, preserve existing user changes, and ensure one writer
 in the workspace. Stay inside the prepared write scope and respect any declared shared-resource
 constraint. Never edit shared `Task.md`, Card/Log runtime state, the integration queue, shared
 baseline, or remote state.
-Read the authority and real call path. First add or confirm a test that exposes the wrong
-behavior, then implement the smallest sufficient solution. If the workspace has a usable
-CodeGraph index, use it first for source location and relationships and treat returned source
-as already read. Target the exact assigned workspace in every query. Read files directly when
-the index is absent, stale, unsupported, changed after the query, or insufficient; use tests
-and real execution for behavioral evidence.
+Load `ponytail:ponytail` through normal discovery before implementation; if unavailable, return
+a dependency blocker without writing. Read the authority and real call path. First add or
+confirm a test that exposes the wrong behavior, then implement the smallest sufficient
+solution under Ponytail without removing required validation, error handling, security, or
+accessibility. If the workspace has a usable CodeGraph index, use it first for source location
+and relationships and treat returned source as already read. Target the exact assigned
+workspace in every query. Read files directly when the index is absent, stale, unsupported,
+changed after the query, or insufficient; use tests and real execution for behavioral evidence.
 
 Discovery does not expand the Card. Keep a newly found issue only when it blocks the Card
 outcome or a prepared required check, has no accepted effective fallback, and its smallest

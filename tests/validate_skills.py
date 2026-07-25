@@ -48,6 +48,23 @@ GLOBAL_SCAN_CONTRACT = (
     "not only the current card or active lane",
     "dispatches every ready, non-conflicting task that fits currently available capacity",
 )
+PONYTAIL_CONTRACT_FILES = (
+    Path("GMGN.md"),
+    Path("skills/gmgn/SKILL.md"),
+    Path("skills/run-task/SKILL.md"),
+    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
+    Path("skills/gmgn/references/en/code-review.md"),
+    Path("agents/coder.md"),
+    Path("agents/reviewer.md"),
+    Path(".codex/agents/coder.toml"),
+    Path(".codex/agents/reviewer.toml"),
+)
+PONYTAIL_REVERSE_CONTRACT = (
+    "If Ponytail is unavailable, continue and accept the candidate",
+    "Ponytail 不可用时仍继续并接受候选",
+)
+
+
 def read(relative: Path | str) -> str:
     path = ROOT / relative
     if not path.is_file():
@@ -77,6 +94,16 @@ def require(text: str, fragments: tuple[str, ...], label: str, errors: list[str]
     ]
     if missing:
         errors.append(f"{label}: 缺少关键契约 {missing}")
+
+
+def forbid(text: str, fragments: tuple[str, ...], label: str, errors: list[str]) -> None:
+    normalized = " ".join(text.split()).casefold()
+    present = [
+        fragment for fragment in fragments
+        if " ".join(fragment.split()).casefold() in normalized
+    ]
+    if present:
+        errors.append(f"{label}: 含相反契约 {present}")
 
 
 def validate_release(errors: list[str]) -> None:
@@ -117,6 +144,7 @@ def validate_core_contract(errors: list[str]) -> None:
     dispatch_en = read(CORE_FILES[3])
     roadmap = read("skills/roadmap/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
+    write_design = read("skills/write-design/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
     release = read("skills/release/SKILL.md")
     pre_merge = read("skills/gmgn/references/en/pre-merge-checklist.md")
@@ -138,6 +166,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "re-enter role selection",
         "bounded\nresolution check does not search for new findings",
         "Do not resume or create a Critic/Reviewer\nfor those fixes",
+        "Solution minimality is an acceptance condition across Requirement, Design, and Task",
+        "Anything that can be deleted without losing a current accepted outcome is overdesign",
+        "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
+        "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
     ), "GMGN 有效兜底边界", errors)
 
     require(gmgn, (
@@ -166,6 +198,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
         "There is no periodic list interval",
+        "Requirement, Design, and Task writers keep the least structure",
+        "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
+        "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
+        "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
+        "Missing Ponytail blocks that code task",
     ), "gmgn 路由契约", errors)
     require(write_task, (
         TASK_HEADER,
@@ -182,6 +219,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Never invent empty wrappers, fake interfaces, or new design decisions",
         "more coordination cost than isolation benefit",
         "satisfying it closes the task",
+        "Apply the deletion test to every task",
+        "Remove a task when all current ACs remain satisfied without its\noutcome",
+        "Critic must try deleting or merging each affected task",
         "discovery\ndoes not expand it",
         "another independently testable outcome requires a separately accepted task",
     ), "write-task 紧凑索引契约", errors)
@@ -232,6 +272,12 @@ def validate_core_contract(errors: list[str]) -> None:
         "`[Final Evidence](#final-evidence)` when closed",
         "does not require generated event IDs",
         "write one final evidence summary in `Log.md`",
+        "Every Coder brief must require the registered `ponytail:ponytail` Skill at `full`",
+        "A Reviewer\nbrief must require `ponytail:ponytail-review` when its candidate contains implementation or\ntest-code changes",
+        "A missing\nrequired Skill is a dependency blocker for that code task",
+        "loads `ponytail:ponytail` through normal discovery at `full`",
+        "Reviewer loads `ponytail:ponytail-review` through normal discovery",
+        "code minimality is an explicit acceptance condition",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
@@ -261,6 +307,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "against the exact assigned workspace",
         "treat returned source as already read",
         "index is absent, stale,\nunsupported, changed after the query, or insufficient",
+        "every Coder brief names the registered `ponytail:ponytail` Skill at `full`",
+        "A\nReviewer brief names `ponytail:ponytail-review` when its candidate contains implementation or\ntest-code changes",
+        "Missing Ponytail blocks that code task",
+        "Avoidable R-D-T complexity is material because it propagates downstream",
+        "Code that Ponytail can\ndelete while preserving current requirements and safeguards",
     ), "英文派发契约", errors)
     require(roadmap, (
         "Milestone acceptance picture",
@@ -273,7 +324,16 @@ def validate_core_contract(errors: list[str]) -> None:
         "ROADMAP acceptance-scenario anchor",
         "ROADMAP acceptance scenario → Goal slice → R/AC",
         "without copying it as a second AC system",
+        "Keep the smallest requirement set that satisfies the current Goal",
+        "Delete speculative future capability, reuse, scale, configurability, or implementation\n"
+        "  convenience that has no such parent",
     ), "requirement 验收追踪契约", errors)
+    require(write_design, (
+        "Apply the first-sufficient anti-overdesign order from GMGN §7",
+        "For every new module,\n  interface, state, configuration item, dependency, or failure mechanism",
+        "Future reuse or possible scale is not sufficient",
+        "deletion-first overdesign check against the\nsmallest sufficient design",
+    ), "design 最简方案契约", errors)
     require(close_milestone, (
         "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",
         "every ROADMAP acceptance scenario",
@@ -287,6 +347,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "frozen diff/content hash for a sole writer",
         "changed commit SHA alone does not invalidate evidence",
         "current snapshot, material decisions, and final evidence",
+        "Did R-D-T criticism apply the deletion test",
+        "When the candidate contains\nimplementation or test-code changes",
+        "`ponytail:ponytail-review`",
     ), "合并前双向验证门禁", errors)
     require(release, (
         "deterministic archive whose\nmembers and bytes are fully checked",
@@ -309,6 +372,20 @@ def validate_normative_language_layout(errors: list[str]) -> None:
         errors.append(str(exc))
     if not (ROOT / "README.zh-CN.md").is_file():
         errors.append("README.zh-CN.md 必须保留")
+
+
+def validate_ponytail_contract(errors: list[str]) -> None:
+    for relative in PONYTAIL_CONTRACT_FILES:
+        forbid(read(relative), PONYTAIL_REVERSE_CONTRACT, str(relative), errors)
+
+    install_commands = (
+        "codex plugin marketplace add DietrichGebert/ponytail",
+        "codex plugin add ponytail@ponytail",
+        "claude plugin marketplace add DietrichGebert/ponytail",
+        "claude plugin install ponytail@ponytail --scope user",
+    )
+    for relative in (Path("README.md"), Path("README.zh-CN.md")):
+        require(read(relative), install_commands, f"{relative} Ponytail 安装契约", errors)
 
 
 def validate_assurance_policy(errors: list[str]) -> dict[str, object] | None:
@@ -419,6 +496,10 @@ def validate_roles(errors: list[str]) -> None:
                     "query it first and treat returned source as already read",
                     "exact candidate workspace in every query",
                     "index is absent, stale, unsupported, changed after the query, or insufficient",
+                    "For a run-task candidate containing implementation or test-code changes",
+                    "require the registered `ponytail:ponytail-review` Skill",
+                    "Load `ponytail:ponytail-review`\nthrough normal discovery before reviewing that code",
+                    "code\nminimality is an explicit acceptance condition",
                 ), str(markdown), errors)
                 require(instructions, (
                     "确定性本地测试计划", "没有 finding 是有效结果",
@@ -427,6 +508,10 @@ def validate_roles(errors: list[str]) -> None:
                     "CodeGraph 索引时先查询",
                     "每次查询必须指向准确的候选工作区",
                     "返回源码视为已读取",
+                    "当 run-task 候选含实现或测试代码差异时",
+                    "要求已注册的 ponytail:ponytail-review Skill",
+                    "审查该代码前通过正常发现加载 ponytail:ponytail-review",
+                    "Ponytail finding 属于明确验收项",
                 ), str(toml), errors)
                 if config.get("sandbox_mode") != "workspace-write":
                     errors.append(f"{toml}: Reviewer 运行本地检查需要 workspace-write")
@@ -453,6 +538,9 @@ def validate_roles(errors: list[str]) -> None:
                     "use it first for source location and relationships",
                     "exact assigned workspace in every query",
                     "treat returned source\nas already read",
+                    "require the registered `ponytail:ponytail` Skill at `full`",
+                    "Load `ponytail:ponytail` through normal discovery before implementation",
+                    "without removing required validation, error handling, security, or\naccessibility",
                 ), str(markdown), errors)
                 require(instructions, (
                     "发现问题不会扩大 Card", "已接受的有效兜底",
@@ -460,6 +548,9 @@ def validate_roles(errors: list[str]) -> None:
                     "CodeGraph 索引时先用它定位源码和代码关系",
                     "每次查询必须指向准确的当前工作区",
                     "返回源码视为已读取",
+                    "要求已注册的 ponytail:ponytail Skill 使用 full 模式",
+                    "正常发现加载 ponytail:ponytail",
+                    "不得删除必需的校验、错误处理、安全或无障碍保护",
                 ), str(toml), errors)
             if role == "critic":
                 require(text, (
@@ -467,10 +558,16 @@ def validate_roles(errors: list[str]) -> None:
                     "concrete material harm",
                     "accepted effective\nfallback",
                     "smallest sufficient correction",
+                    "deletion-first minimality check",
+                    "Possible future use is not sufficient",
+                    "avoidable complexity as a\nmaterial acceptance finding",
                 ), str(markdown), errors)
                 require(instructions, (
                     "没有 finding 是有效结果", "具体实质影响",
                     "已接受的有效兜底", "最小充分修复",
+                    "删除优先的最简性检查",
+                    "未来可能使用不能作为理由",
+                    "属于实质验收 finding",
                 ), str(toml), errors)
             if len(text.splitlines()) > 80:
                 errors.append(f"{markdown}: 角色契约超过 80 行")
@@ -549,6 +646,7 @@ def main() -> int:
     validate_skills(errors)
     validate_core_contract(errors)
     validate_normative_language_layout(errors)
+    validate_ponytail_contract(errors)
     validate_review_policy(errors)
     validate_roles(errors)
     validate_docstar_adapter(errors)

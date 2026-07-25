@@ -84,11 +84,20 @@ Agent 进度只在自己的 thread 内显示，只向主编排者推送实质生
 已评审的 `Task.md` 行选择工作，物化后的 `Card.md` 是静态执行/TDD 权威。run-task 角色只接收精确
 权威指针、Log 当前快照与 lane 事实，不继承父会话，也不复制逐 agent handoff。
 
+R-D-T 的方案最简性由 GMGN 自己检查：每个保留的需求、设计元素和任务都必须指出删除后会失败的
+当前 Goal 或 R/AC，Critic 在接受前做同样的删除优先检查。代码最简性调用外部
+[Ponytail](https://github.com/DietrichGebert/ponytail) 插件，不复制它的规则。run-task 要求
+Coder 使用 `ponytail:ponytail` 的 `full` 模式；含实现或测试代码差异的 Reviewer 候选要求
+`ponytail:ponytail-review`。Ponytail 与正确性、安全性审查在同一轮完成。未安装 Ponytail
+时，该代码任务明确报告依赖阻塞。
+
 ## 安装
 
 ### Codex
 
 ```bash
+codex plugin marketplace add DietrichGebert/ponytail
+codex plugin add ponytail@ponytail
 codex plugin marketplace add tonywo2049/GMGN
 codex plugin add gmgn@GMGN
 ```
@@ -108,6 +117,8 @@ $gmgn 判断这个项目下一步该做什么
 ### Claude Code
 
 ```bash
+claude plugin marketplace add DietrichGebert/ponytail
+claude plugin install ponytail@ponytail --scope user
 claude plugin marketplace add tonywo2049/GMGN
 claude plugin install gmgn@GMGN --scope user
 ```

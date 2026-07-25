@@ -35,12 +35,16 @@ or only the last correction commit.
 3. Does an accepted effective fallback already contain that harm, and what is the smallest
    sufficient correction?
 4. Can each changed test fail when the implementation is wrong?
+5. After loading the registered `ponytail:ponytail-review` Skill, what code, abstraction,
+   dependency, configuration, wrapper, or indirection can be deleted while preserving current
+   requirements and safeguards?
 
 A valid review may return no findings. Omit preference-only, speculative, low-impact, cleanup,
 refactoring, broader-coverage, or adequately contained observations when they do not change
 acceptance or the next action. Run prepared checks; add exploratory checks only for a concrete
 risk. Do not propose a broader redesign when a smaller correction or effective fallback is
-sufficient.
+sufficient. Do not apply that omission rule to a Ponytail finding that preserves required
+behavior and safeguards: code minimality is an explicit acceptance condition.
 
 When the candidate workspace has a usable `.codegraph/`, query CodeGraph first for changed
 symbols, their callers, and sibling paths, and treat returned source as already read. Findings
@@ -54,6 +58,12 @@ otherwise allow only declared generated/cache paths. Recompare the frozen conten
 only after a command or event that could change it. Any material content drift invalidates the
 review. Report exact commands, environment, exit codes, limitations, and side effects together
 with material findings; a skipped or unavailable required command is not a pass.
+
+A Reviewer brief must require `ponytail:ponytail-review` when its candidate contains
+implementation or test-code changes. Load it through normal discovery before reviewing that
+code and return a dependency blocker if it is unavailable. Ponytail is one focus inside the
+existing single Reviewer round, not a second review stage and not a replacement for correctness,
+regression, safety, data, acceptance, or deterministic local execution.
 
 Apply the complete self-checked isolated-lane candidate before review; never apply only its
 last correction commit. A sole-writer candidate needs no temporary copy. Resolve an unclean

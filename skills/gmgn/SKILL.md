@@ -89,6 +89,24 @@ and minimum verification plan in its brief, bind its evidence to the blocker-res
 candidate, and stop when the trigger is decided. A required check cannot be waived unless an
 accepted fallback is itself successfully verified.
 
+## Minimality gates
+
+Requirement, Design, and Task writers keep the least structure that satisfies the current Goal
+and R/ACs. Each retained R/AC, design element, dependency, configuration item, and task must
+name the current upstream outcome that would fail if it were removed. Their fresh Critic
+attempts deletion, reuse, native behavior, or a direct solution and treats avoidable complexity
+as a material acceptance finding because it propagates downstream. A possible future need is
+not an owner.
+
+Code minimality uses the separately installed
+[Ponytail](https://github.com/DietrichGebert/ponytail) plugin. Every run-task Coder brief
+requires `ponytail:ponytail` at `full`. A run-task Reviewer brief requires
+`ponytail:ponytail-review` when its candidate contains implementation or test-code changes. The
+role loads the named Skill through normal discovery before writing or accepting that code.
+Missing Ponytail blocks that code task. Ponytail review stays inside the single Reviewer round
+and supplements rather than replaces correctness, regression, safety, data, acceptance, and
+deterministic local execution.
+
 ## Document nodes
 
 The primary session or a fresh Author creates one candidate, self-checks it, and anchors it.
