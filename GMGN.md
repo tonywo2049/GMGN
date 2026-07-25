@@ -62,9 +62,11 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
 - ROADMAP owns Milestone order, priority, cross-Milestone dependency, explicit deliverables,
   and each Milestone's qualitative acceptance picture. A deliverable may be a named artifact
   such as a document or report, or one or more named qualitative end-to-end scenarios. Every
-  Milestone has at least one end-to-end scenario that traverses its full owned outcome and
-  covers every deliverable; add more only for independently decidable paths or
-  failure/recovery outcomes.
+  Milestone has at least one end-to-end scenario that traverses its full owned outcome; the
+  acceptance picture's scenarios collectively cover every deliverable. Add more only for
+  independently decidable paths or failure/recovery outcomes. Possible future work not yet
+  allocated to a Milestone belongs in the Backlog. A downstream-only item with a receiving
+  Milestone or owner is a Handoff instead.
 - Goal owns one initiated Milestone's objective, boundary, slices, and the mapping from the
   ROADMAP acceptance picture into active scope.
 - Requirement owns requirements, constraints, and acceptance criteria (ACs).

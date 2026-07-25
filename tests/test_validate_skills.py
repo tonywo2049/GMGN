@@ -292,6 +292,27 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("roadmap 验收图景契约", result.stdout)
 
+    def test_rejects_roadmap_backlog_handoff_or_metadata_drift(self) -> None:
+        cases = (
+            (
+                "skills/roadmap/SKILL.md",
+                "Otherwise keep it in the Backlog",
+                "Otherwise keep it as an unclassified item",
+                "roadmap 验收图景契约",
+            ),
+            (
+                "skills/roadmap/agents/openai.yaml",
+                "Define Milestone deliverables and full-outcome E2E scenarios",
+                "Define a generic project timeline",
+                "roadmap 界面元数据契约",
+            ),
+        )
+        for relative, old, new, label in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(label, result.stdout)
+
     def test_rejects_missing_fresh_agent_lifecycle(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",

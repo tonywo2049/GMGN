@@ -186,6 +186,7 @@ def validate_core_contract(errors: list[str]) -> None:
     dispatch_en = read(CORE_FILES[3])
     writing_en = read("skills/gmgn/references/en/writing-contract.md")
     roadmap = read("skills/roadmap/SKILL.md")
+    roadmap_agent = read("skills/roadmap/agents/openai.yaml")
     write_requirement = read("skills/write-requirement/SKILL.md")
     write_design = read("skills/write-design/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
@@ -216,7 +217,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
         "explicit deliverables",
-        "covers every\n  deliverable",
+        "acceptance picture's scenarios collectively cover every deliverable",
+        "Possible future work not yet\n  allocated to a Milestone belongs in the Backlog",
+        "A downstream-only item with a receiving\n  Milestone or owner is a Handoff instead",
         "Every Milestone has at least one end-to-end scenario",
         "Task boundaries follow independently provable outcomes, not API count",
         "All Coder lanes use the same current approved Design Bundle commit",
@@ -249,7 +252,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
         "There is no periodic list interval",
-        "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, or Backlog placement",
+        "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, Backlog placement, or Handoff placement",
         "Requirement, Design, and Task writers keep the least structure",
         "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
@@ -390,7 +393,14 @@ def validate_core_contract(errors: list[str]) -> None:
         "Requirement refines scenarios into ACs",
         "Maintain one Backlog for possible future work that is not yet allocated to a Milestone",
         "New ideas enter the Backlog",
+        "Record a downstream-only confirmation as a non-blocking Handoff when a receiving",
+        "Otherwise keep it in the Backlog",
     ), "roadmap 验收图景契约", errors)
+    require(roadmap_agent, (
+        "Milestone deliverables",
+        "E2E scenarios",
+        "里程碑产出",
+    ), "roadmap 界面元数据契约", errors)
     require(write_requirement, (
         "ROADMAP acceptance-scenario anchor",
         "ROADMAP acceptance scenario → Goal slice → R/AC",
