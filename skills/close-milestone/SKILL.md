@@ -15,6 +15,7 @@ and checks:
 - all target tasks and their execution pointers;
 - Card completion contracts against Log current evidence;
 - ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence coverage;
+- every ROADMAP deliverable against its accepted result and required canonical pointer;
 - every retained Contract ID against its provider implementation, every in-scope consumer,
   conformance/integration evidence, and observable failure behavior;
 - no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
@@ -50,12 +51,12 @@ The primary session normally writes the closure candidate because it owns the co
 Milestone state. Delegate only when a bounded Author handoff has real value; prepare its full
 brief before creating that fresh single-use Author.
 
-The candidate contains acceptance-picture and scope reconciliation, evidence map, controlled
-debt, remaining material risks or a supported none-known statement, proposed state changes,
-the proposed final Contract commit when applicable, and a Handoff plan only when a receiving
-operator lacks an existing authority for needed information. Prepare the actual Milestone,
-Contract, ROADMAP, Task, traceability, and Handoff state in an isolated closure commit; it has
-no effect on the shared baseline before owner acceptance.
+The candidate contains deliverable and acceptance-picture reconciliation, evidence map,
+controlled debt, remaining material risks or a supported none-known statement, proposed state
+changes, the proposed final Contract commit when applicable, and a Handoff plan only when a
+receiving operator lacks an existing authority for needed information. Prepare the actual
+Milestone, Contract, ROADMAP, Task, traceability, and Handoff state in an isolated closure
+commit; it has no effect on the shared baseline before owner acceptance.
 
 Commit the complete candidate locally after writer self-check and machine checks. Prepare one
 brief naming its shortest unambiguous commit reference and create a fresh independent combined
@@ -89,8 +90,8 @@ it into the shared baseline. That commit already contains:
   Contract for that Milestone;
 - a Handoff only when a receiver needs one, using the closing commit, applicable evidence,
   environment, risks, authority pointers, and next command;
-- refreshed ROADMAP acceptance-scenario links to accepted evidence, Task macro states, AC
-  traceability, execution links, and commit references;
+- refreshed ROADMAP deliverable pointers and acceptance-scenario links to accepted evidence,
+  Task macro states, AC traceability, execution links, and commit references;
 - the final diff/link/repository check results.
 
 Integrate that exact commit without creating post-acceptance closure content. If it cannot be

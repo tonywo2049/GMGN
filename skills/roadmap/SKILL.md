@@ -19,10 +19,20 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 - Define ordered Milestones with one qualitative objective, explicit **Milestone
   deliverables**, one **Milestone acceptance picture**, dependencies, and work state
   `not-started`.
-- Every Milestone names its concrete deliverables. A deliverable may be a named artifact such
-  as a document or report, or one or more named qualitative end-to-end scenarios for product,
-  infrastructure, or operational work. Include only deliverables owned by that Milestone. The
-  acceptance picture must cover every deliverable.
+- Derive each deliverable from the approved WhitePaper and that Milestone's expected outcome;
+  never infer ROADMAP deliverables backward from a downstream Goal.
+- Name what will exist at the end, not how well it must perform. Choose only the concrete
+  objects appropriate to the Milestone: a specification, repository state, release, running
+  network or environment, tool, report, ledger, or real product/operational E2E. The acceptance
+  picture owns quality and proof and must cover every deliverable.
+- Write a real E2E as a short complete path from start through key actions to an observable
+  result, not as a test path or acceptance document. When a deliverable such as a complete
+  specification already contains its functions, E2E, failure, and recovery definitions, list
+  that artifact once instead of repeating its contained paths as deliverables.
+- Use a candidate name during planning, and point an internal-code deliverable to its
+  repository when known. Refine the name at Milestone start or closure when the owned outcome
+  is unchanged; otherwise use controlled revision. In a shared table cell, number deliverables
+  consecutively and put one item on each line.
 - Every Milestone acceptance picture names at least one high-level end-to-end scenario that
   traverses the full outcome owned by that Milestone. Add more only for independently
   decidable main paths, permission boundaries, or failure/recovery outcomes.
@@ -45,8 +55,12 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 
 ## Maintain
 
-- Closure backfill updates the Milestone state and links each acceptance-scenario anchor to its
-  closing evidence, plus any Handoff that exists.
+- Closure backfill updates the Milestone state, links each acceptance-scenario anchor to its
+  closing evidence, and replaces candidate deliverable identities with canonical pointers:
+  internal code uses `repository@<accepted-commit>`; an external distribution uses its release
+  tag and release page; a network uses `network-id`, genesis hash, and manifest/endpoints; and
+  a document, report, or tool links directly to the accepted artifact. Add any Handoff that
+  exists.
 - New ideas enter the Backlog, then are assigned to a Milestone before becoming requirements.
 - Record a downstream-only confirmation as a non-blocking Handoff when a receiving
   Milestone/owner exists. Otherwise keep it in the Backlog. Record the question, trigger,

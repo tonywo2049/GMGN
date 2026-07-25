@@ -313,6 +313,27 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn(label, result.stdout)
 
+    def test_rejects_roadmap_deliverable_authority_or_pointer_drift(self) -> None:
+        cases = (
+            (
+                "skills/roadmap/SKILL.md",
+                "never infer ROADMAP deliverables backward from a downstream Goal",
+                "infer ROADMAP deliverables from the downstream Goal",
+                "roadmap 验收图景契约",
+            ),
+            (
+                "skills/close-milestone/SKILL.md",
+                "every ROADMAP deliverable against its accepted result and required canonical pointer",
+                "ROADMAP deliverable names without accepted pointers",
+                "milestone 验收关账契约",
+            ),
+        )
+        for relative, old, new, label in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(label, result.stdout)
+
     def test_rejects_missing_fresh_agent_lifecycle(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",

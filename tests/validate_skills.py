@@ -217,6 +217,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
         "explicit deliverables",
+        "Derive deliverables from the\n  WhitePaper and Milestone outcome, never backward from Goal",
+        "name the resulting object rather\n  than its acceptance quality",
+        "replace planning names\n  with canonical artifact pointers at closure",
         "acceptance picture's scenarios collectively cover every deliverable",
         "Possible future work not yet\n  allocated to a Milestone belongs in the Backlog",
         "A downstream-only item with a receiving\n  Milestone or owner is a Handoff instead",
@@ -382,8 +385,15 @@ def validate_core_contract(errors: list[str]) -> None:
     ), "英文派发契约", errors)
     require(roadmap, (
         "explicit **Milestone\n  deliverables**",
-        "A deliverable may be a named artifact",
-        "The acceptance picture must cover every deliverable",
+        "never infer ROADMAP deliverables backward from a downstream Goal",
+        "Name what will exist at the end, not how well it must perform",
+        "The acceptance\n  picture owns quality and proof",
+        "real E2E as a short complete path from start through key actions to an observable\n  result",
+        "not as a test path or acceptance document",
+        "list\n  that artifact once instead of repeating its contained paths as deliverables",
+        "point an internal-code deliverable to its\n  repository when known",
+        "number deliverables\n  consecutively and put one item on each line",
+        "must cover every deliverable",
         "Milestone acceptance picture",
         "Every Milestone acceptance picture names at least one high-level end-to-end scenario",
         "traverses the full outcome owned by that Milestone",
@@ -395,6 +405,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "New ideas enter the Backlog",
         "Record a downstream-only confirmation as a non-blocking Handoff when a receiving",
         "Otherwise keep it in the Backlog",
+        "`repository@<accepted-commit>`",
+        "release\n  tag and release page",
+        "`network-id`, genesis hash, and manifest/endpoints",
+        "document, report, or tool links directly to the accepted artifact",
     ), "roadmap 验收图景契约", errors)
     require(roadmap_agent, (
         "Milestone deliverables",
@@ -422,7 +436,8 @@ def validate_core_contract(errors: list[str]) -> None:
     require(close_milestone, (
         "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",
         "every ROADMAP acceptance scenario",
-        "ROADMAP acceptance-scenario links to accepted evidence",
+        "every ROADMAP deliverable against its accepted result and required canonical pointer",
+        "ROADMAP deliverable pointers and acceptance-scenario links to accepted evidence",
         "closed `Log.md` current snapshot and final evidence",
         "every retained Contract ID against its provider implementation",
         "Closure cannot silently rewrite the contract to match code",
