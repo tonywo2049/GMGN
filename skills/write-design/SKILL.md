@@ -16,14 +16,14 @@ design`; an independently needed `Contract.md` uses `type: contract`; both are n
 The Design-stage candidate is:
 
 - `Design.md` alone when there is no cross-unit interface; or
-- one Design Bundle—`Design.md` plus required `Contract.md` at the same immutable anchor—when
+- one Design Bundle—`Design.md` plus required `Contract.md` at the same Git commit—when
   current work crosses independently developed module, task, or team boundaries.
 
 The contract itself is mandatory for every such boundary; only the separate file is
 conditional on that boundary existing. Do not create an empty `Contract.md`. Do not split a
 normal in-process module into services merely to justify a contract artifact.
 Design acceptance makes the bundle an `approved` working baseline for implementation, not the
-final frozen contract. Controlled coding evidence may produce a newly reviewed working anchor;
+final frozen contract. Controlled coding evidence may produce a newly reviewed working commit;
 `close-milestone` freezes the final implementation-matching Contract as `closed`.
 
 ## Writer content and self-check
@@ -58,7 +58,7 @@ final frozen contract. Controlled coding evidence may produce a newly reviewed w
   in a library, protocol, serialization path, legacy integration, or required quality cannot
   be resolved from the repository and direct evidence. The spike is evidence, not a mandatory
   production task.
-- Use the Design Bundle's normal immutable commit or content anchor. Do not add a parallel
+- Use the Design Bundle's Git commit. Do not add a parallel
   `v1`/`v2` workflow or formal API version unless a current external or coexisting-version
   compatibility requirement needs it.
 
@@ -70,17 +70,18 @@ losing a current accepted outcome.
 
 ## Writer and critic loop
 
-Record the Requirement anchor. The primary session may write directly, or it prepares a
+Record the Requirement commit. The primary session may write directly, or it prepares a
 complete brief and creates one fresh Author when the bounded handoff creates
 real value. The writer self-checks before return; a delegated Author ends on return, so later
-correction uses the primary session or a fresh Author with a new brief. Freeze the whole
-Design-stage candidate and dispatch one fresh independent Critic from a prepared brief. When
+correction uses the primary session or a fresh Author with a new brief. Commit the whole
+Design-stage candidate locally and dispatch one fresh independent Critic from a prepared brief
+that names the shortest unambiguous commit reference. When
 `Contract.md` exists, the Critic checks both provider and consumer feasibility, the
 Design-to-Contract mapping, and whether the separate artifact can be deleted. Collect all
 findings before editing, adjudicate once, and batch accepted blocker fixes. The primary
 orchestrator checks each resolution without dispatching a second Critic. With no accepted
-blocker unresolved, it reviews and accepts the Design Bundle at one anchor, applies accepted
-mechanical mappings, links, and state, then runs machine checks. This anchor is the shared
+blocker unresolved, it reviews and accepts the Design Bundle at one commit, applies accepted
+mechanical mappings, links, and state, then runs machine checks. This commit is the shared
 working baseline for Task creation and Coder dispatch.
 
 ## Controlled revision
@@ -94,18 +95,18 @@ working baseline for Task creation and Coder dispatch.
    Design/Contract change.
 3. A meaning-preserving clarification uses the smallest same-batch edit, affected pointer
    refresh, and machine checks. It does not trigger semantic reapproval.
-4. For Design- or Contract-owned meaning, start from the old bundle anchor and record the
+4. For Design- or Contract-owned meaning, start from the old bundle commit and record the
    trigger, smallest semantic delta, affected Contract IDs, R-AC mappings, structures,
-   providers, consumers, tasks, code, tests, evidence, and proposed new anchor. Pause only that
+   providers, consumers, tasks, code, tests, evidence, and proposed new commit. Pause only that
    impact cone.
 5. Revise only the affected design, contract, and bidirectional mapping; do not redesign
    unrelated structures. A semantic delta receives one fresh independent Critic round and
-   primary-orchestrator review at the new bundle anchor. Old review remains attached to the
-   old anchor.
+   primary-orchestrator review at the new bundle commit. Old review remains attached to the
+   old commit.
 6. Propagate only to affected Task cards, implementation, tests, evidence, and state
    representations. Unaffected lanes continue.
 
-Meaning-preserving mechanical changes use same-batch link, hash, mapping pointer, and status
+Meaning-preserving mechanical changes use same-batch link, mapping pointer, and status
 refresh plus machine checks without reapproval.
 
 ## Exit

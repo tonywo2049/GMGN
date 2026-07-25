@@ -149,7 +149,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/close-milestone/SKILL.md",
-                "mark the reconciled implementation-matching Contract anchor `closed`",
+                "mark the reconciled implementation-matching Contract commit `closed`",
                 "leave the final Contract mutable after closure",
             ),
             (
@@ -432,13 +432,13 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/run-task/SKILL.md",
-                "complete original-base-to-current-tip diff or ordered commit chain",
+                "complete\noriginal-base-to-candidate commit range",
                 "tip commit only",
             ),
             (
                 "skills/run-task/SKILL.md",
-                "changed commit SHA alone does not invalidate equivalent source",
-                "A changed commit SHA always invalidates evidence",
+                "different integration commit is acceptable only when the reviewed source",
+                "different integration commit is accepted without comparing reviewed source",
             ),
             (
                 "skills/gmgn/SKILL.md",
@@ -447,12 +447,41 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "agents/reviewer.md",
-                "material content drift invalidates\nthe review",
+                "material\ncontent drift invalidates\nthe review",
                 "material content drift may be accepted",
             ),
         )
         for relative, old, new in cases:
             with self.subTest(relative=relative, old=old):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_hash_or_uncommitted_workflow_anchors(self) -> None:
+        cases = (
+            (
+                "skills/run-task/SKILL.md",
+                "Before review, a sole writer commits the complete candidate locally",
+                "A sole writer may use a captured diff or content hash. "
+                "Before review, a sole writer commits the complete candidate locally",
+            ),
+            (
+                "skills/gmgn/references/en/writing-contract.md",
+                "Commit the candidate locally\nbefore independent review",
+                "Review the uncommitted candidate before creating a commit",
+            ),
+            (
+                "agents/coder.md",
+                "return the shortest unambiguous commit reference",
+                "return the full-length commit object ID",
+            ),
+            (
+                "skills/roadmap/SKILL.md",
+                "Commit the complete candidate locally",
+                "Review the mutable candidate before committing it",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
                 result = self.run_isolated_mutation(relative, old, new)
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 

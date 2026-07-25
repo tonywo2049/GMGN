@@ -64,7 +64,7 @@ The Critic/Reviewer rows above are evaluated only once, immediately before the c
 review round. An accepted finding fix remains part of that reviewed batch and does not
 re-enter role selection.
 
-Freeze a candidate before review. Each semantic change batch or task execution uses
+Commit the complete candidate locally before review. Each semantic change batch or task execution uses
 `review_policy: single-pass`: at most one Critic/Reviewer round; both roles may run in that
 round when both surfaces changed. Collect all active findings before changing the candidate.
 The primary orchestrator adjudicates once,
@@ -72,7 +72,7 @@ batches accepted blockers, checks their resolution, and runs affected machine ch
 bounded resolution check does not search for new findings. Do not resume or create a
 Critic/Reviewer for those fixes. If a fix expands authority, scope, or behavior
 beyond the accepted findings, split it into a separately scoped change. Record the reviewed
-anchor, findings and rulings, exact fix delta, and post-fix checks at the final anchor.
+commit, findings and rulings, exact fix delta, and post-fix checks at the final accepted commit.
 Non-blocking suggestions do not reopen an otherwise acceptable candidate. The Reviewer runs
 the prepared deterministic local checks and returns the commands and results with its code
 findings. After accepted fixes, the primary orchestrator checks the fix delta and reruns
@@ -103,7 +103,7 @@ not an owner.
 developed modules, tasks, or teams requires a separate `Contract.md`; otherwise keep the
 interface in Design. The contract is mandatory at such a boundary, while the separate file is
 conditional on the boundary existing. When present, Design and Contract form one reviewed
-bundle at one immutable working anchor. Design acceptance makes it the shared implementation
+bundle at one Git commit. Design acceptance makes it the shared implementation
 baseline, not the final frozen contract. `close-milestone` freezes the implementation-matching
 Contract as `closed`. Do not invent a parallel API-version workflow unless a current
 compatibility requirement needs coexisting versions.
@@ -141,10 +141,13 @@ Run-task continuously fills a dependency-aware ready set. Before waiting or acti
 the primary orchestrator scans every task in the confirmed execution set, not only the current
 card or active lane, and dispatches every ready, non-conflicting task that fits currently
 available capacity. Compliance checks run only at a real boundary or material state change.
-Concurrent writing lanes are isolated; a sole writer may use the current workspace. Freeze a
-diff/content hash for a sole writer and require a complete base-to-tip diff or ordered commit
-chain only for an isolated handoff. Before integration, confirm that integrated content is the
-reviewed content; a changed commit SHA alone does not invalidate equivalent content.
+Concurrent writing lanes are isolated; a sole writer may use the current workspace. Commit
+the complete candidate locally before review and identify it with the shortest unambiguous
+commit reference. An isolated handoff also returns the complete base-to-candidate commit
+range. Before integration, confirm through Git that integrated content matches the reviewed
+commit; a different integration commit is acceptable only when the reviewed source, build
+inputs, and normative content are unchanged. Full-length commit object IDs, diff/content
+hashes, and checksums are not workflow anchors.
 
 Discovery does not expand an active Card. Keep a newly found issue in the Card only when it
 blocks the Card outcome or a prepared required check, has no accepted effective fallback, and
@@ -153,12 +156,12 @@ independently testable outcome. Otherwise omit it, present a materially valuable
 candidate, or route changed authority upstream. Close the task as soon as the Card outcome,
 prepared checks, accepted blockers, and any required verification are satisfied.
 
-All Coder lanes use the same current approved Design Bundle working anchor. A Coder cannot edit shared
+All Coder lanes use the same current approved Design Bundle commit. A Coder cannot edit shared
 interface authority; when implementation evidence contradicts it, the Coder returns the
 evidence, smallest proposed delta, and affected tasks. The primary orchestrator keeps
 unaffected lanes running, classifies a meaning-preserving clarification for same-batch machine
 checks, and routes a semantic Design/Contract change through `write-design` for one new bundle
-anchor and its required Critic round.
+commit and its required Critic round.
 
 Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
 primary orchestrator checks their resolution and runs affected machine checks. Dispatch a
@@ -193,7 +196,7 @@ Route a semantic change to the single authority that owns it:
 | Design structure, cross-task interface contract, data, or failure path | `write-design` revision |
 | Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |
 
-Start from the approved anchor, record the semantic delta and impact cone, and update only
+Start from the approved commit, record the semantic delta and impact cone, and update only
 affected authority, tasks, code, tests, evidence, and state. Meaning-preserving mechanical
 changes use machine checks without reapproval. A closed foundation remains closed; a current
 Milestone change card may revise its still-authoritative Design or Decision without reopening

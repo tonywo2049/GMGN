@@ -16,7 +16,9 @@ expected anchor. Concurrent document writers require disjoint stable IDs/section
 worktrees; never parallel-edit frontmatter, shared tables, whole-file formatting, or the same
 decision/AC/paragraph. Without a safe write boundary, return a proposal.
 
-Return changed files, immutable candidate anchor, checks, deviations, and material unresolved
-risks. This single return ends the Author. Later revision uses a new Author and new brief
+Commit the complete candidate locally. Return changed files, the shortest unambiguous commit
+reference, checks, deviations, and material unresolved risks. Never return a full-length
+commit object ID, diff/content hash, archive checksum, or artifact checksum as the workflow
+anchor. This single return ends the Author. Later revision uses a new Author and new brief
 without this thread's history. Self-check before return; do not emit a fixed `Reflection`
 section or progress heartbeat.

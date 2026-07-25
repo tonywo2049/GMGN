@@ -63,6 +63,45 @@ PONYTAIL_REVERSE_CONTRACT = (
     "If Ponytail is unavailable, continue and accept the candidate",
     "Ponytail 不可用时仍继续并接受候选",
 )
+GIT_ANCHOR_FILES = (
+    Path("GMGN.md"),
+    Path("skills/brainstorm/SKILL.md"),
+    Path("skills/roadmap/SKILL.md"),
+    Path("skills/write-goal/SKILL.md"),
+    Path("skills/write-requirement/SKILL.md"),
+    Path("skills/write-design/SKILL.md"),
+    Path("skills/write-task/SKILL.md"),
+    Path("skills/gmgn/SKILL.md"),
+    Path("skills/run-task/SKILL.md"),
+    Path("skills/close-milestone/SKILL.md"),
+    Path("skills/release/SKILL.md"),
+    Path("skills/gmgn/references/en/writing-contract.md"),
+    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
+    Path("skills/gmgn/references/en/code-review.md"),
+    Path("skills/gmgn/references/en/pre-merge-checklist.md"),
+    Path("agents/author.md"),
+    Path("agents/coder.md"),
+    Path("agents/critic.md"),
+    Path("agents/reviewer.md"),
+    Path("agents/verifier.md"),
+    Path(".codex/agents/author.toml"),
+    Path(".codex/agents/coder.toml"),
+    Path(".codex/agents/critic.toml"),
+    Path(".codex/agents/reviewer.toml"),
+    Path(".codex/agents/verifier.toml"),
+)
+LEGACY_HASH_ANCHOR_RULES = (
+    "a diff or content hash for a sole writer",
+    "a sole writer may use a captured diff or content hash",
+    "frozen diff/content hash for a sole writer",
+    "freeze a diff/content hash",
+    "return the frozen diff/content hash",
+    "single writer freezes a diff/content hash",
+    "单 writer 回传冻结 diff/内容哈希",
+    "单 writer 冻结 diff/内容哈希",
+    "bind owner approval to a commit or hash",
+    "immutable commit, content hash, or equivalent version anchor",
+)
 
 
 def read(relative: Path | str) -> str:
@@ -175,7 +214,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
         "Every Milestone has at least one end-to-end scenario",
         "Task boundaries follow independently provable outcomes, not API count",
-        "All Coder lanes use the same current approved Design Bundle working anchor",
+        "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
     ), "GMGN 有效兜底边界", errors)
 
@@ -211,7 +250,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
         "Missing Ponytail blocks that code task",
         "requires a separate `Contract.md`",
-        "same current approved Design Bundle working anchor",
+        "same current approved Design Bundle commit",
         "evidence, smallest proposed delta, and affected tasks",
         "`close-milestone` freezes the implementation-matching\nContract as `closed`",
     ), "gmgn 路由契约", errors)
@@ -259,10 +298,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "An additional pre-integration Verifier is allowed only",
         "Compliance checks are triggered by a real boundary or material state change",
         "Discovery does not expand an active Card",
-        "complete original-base-to-current-tip diff or ordered commit chain",
+        "complete original-base-to-candidate commit range",
         "never apply only\nits last correction commit",
         "A sole-writer candidate needs no temporary copy",
-        "changed commit SHA alone does not invalidate equivalent source",
+        "different integration commit is acceptable only when the reviewed source",
         "Critic and Reviewer do not maximize finding count",
         "a valid review may return no findings",
         "does not broaden the verification plan after the recorded\nrisk is decided",
@@ -304,7 +343,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "collect every active return before editing",
         "Each semantic change batch or task execution uses `review_policy: single-pass`",
         "Do not send fixes from that round to another Critic or Reviewer",
-        "The final anchor records the reviewed anchor",
+        "The final accepted commit records the reviewed commit",
         "The Reviewer runs the prepared deterministic local checks",
         "A fresh Verifier is exceptional, not default",
         "Classify the final candidate as `not-required`\nor `required:<trigger>`",
@@ -312,7 +351,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "load them through normal discovery",
         "instead of passing\nanother Skill's internal resource path",
         "Compliance checks are triggered by a real boundary or material state change",
-        "A sole writer may use a captured\ndiff or content hash",
+        "Commit the complete candidate locally before review",
+        "shortest unambiguous commit reference",
         "a correction commit is not a standalone candidate",
         "valid review may return\nno findings",
         "concrete material harm",
@@ -365,7 +405,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "closed `Log.md` current snapshot and final evidence",
         "every retained Contract ID against its provider implementation",
         "Closure cannot silently rewrite the contract to match code",
-        "mark the reconciled implementation-matching Contract anchor `closed`",
+        "mark the reconciled implementation-matching Contract commit `closed`",
     ), "milestone 验收关账契约", errors)
     require(writing_en, (
         "design | contract | task",
@@ -373,7 +413,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "one normative `Contract.md` is\nrequired",
         "outcomes, not API count",
         "The Coder does not edit\nthe shared Design Bundle or create a separate change-request document",
-        "`close-milestone` alone marks the final\nimplementation-matching Contract anchor `closed`",
+        "`close-milestone` alone marks the final\nimplementation-matching Contract commit `closed`",
     ), "英文 Design/Contract 写作契约", errors)
     require(critic_role, (
         "First determine\nwhether such a boundary exists",
@@ -389,9 +429,9 @@ def validate_core_contract(errors: list[str]) -> None:
     require(pre_merge, (
         "`not-required` or `required:<trigger>`",
         "Missing required evidence blocks integration",
-        "content being integrated exactly the reviewed content",
-        "frozen diff/content hash for a sole writer",
-        "changed commit SHA alone does not invalidate evidence",
+        "complete candidate committed before review",
+        "shortest unambiguous commit reference",
+        "different\n   integration commit is acceptable only when the reviewed source",
         "current snapshot, material decisions, and final evidence",
         "Did R-D-T criticism apply the deletion test",
         "When the candidate contains\nimplementation or test-code changes",
@@ -405,6 +445,109 @@ def validate_core_contract(errors: list[str]) -> None:
         "read the final remote state back once",
         "Missing or failed required Verifier evidence blocks publication",
     ), "发布制品独立验证门禁", errors)
+    require(methodology, (
+        "every review, approval, acceptance, Milestone closure, and release binds to a Git commit or release tag",
+        "Commit the candidate locally before independent review",
+        "shortest unambiguous commit reference or the tag",
+        "never use a\nfull-length commit object ID, diff hash, content hash, archive checksum, or artifact checksum\nas a workflow anchor",
+        "Checksums are evidence only",
+    ), "GMGN Git 锚点硬门禁", errors)
+    require(writing_en, (
+        "<HARD-GATE>In a Git-backed GMGN project",
+        "every review, approval, acceptance, Milestone\nclosure, and release anchor is a Git commit or release tag",
+        "Commit the candidate locally\nbefore independent review",
+        "shortest unambiguous commit reference or the tag",
+        "Checksums are evidence only",
+    ), "英文写作契约 Git 锚点硬门禁", errors)
+    require(gmgn, (
+        "Commit\nthe complete candidate locally before review",
+        "shortest unambiguous\ncommit reference",
+        "Full-length commit object IDs, diff/content\nhashes, and checksums are not workflow anchors",
+    ), "gmgn 路由 Git 锚点门禁", errors)
+    require(run_task, (
+        "Before review, a sole writer commits the complete candidate locally",
+        "shortest\nunambiguous commit reference",
+        "Full-length commit object IDs, diff/content hashes, and\nchecksums are not workflow anchors",
+    ), "run-task Git 锚点门禁", errors)
+    require(dispatch_en, (
+        "Commit the complete candidate locally before review",
+        "shortest unambiguous commit reference",
+        "Never put a full-length commit object ID, diff hash, content hash, archive checksum, or artifact\nchecksum in the brief or return as a workflow anchor",
+        "use an isolated worktree",
+    ), "派发 Git 锚点门禁", errors)
+    require(pre_merge, (
+        "complete candidate committed before review",
+        "shortest unambiguous commit reference",
+        "A full-length commit object ID, diff/content hash,\n   archive checksum, or artifact checksum is not a workflow anchor",
+    ), "合并前 Git 锚点门禁", errors)
+    require(release, (
+        "Require an accepted Git commit",
+        "shortest unambiguous commit reference before tagging and the release tag after\ntagging",
+        "checksum is never a workflow anchor; checksums are evidence only",
+    ), "发布 Git 锚点门禁", errors)
+    for path, commit_rule in (
+        (Path("skills/brainstorm/SKILL.md"), "committing the complete candidate locally"),
+        (Path("skills/roadmap/SKILL.md"), "Commit the complete candidate locally"),
+        (Path("skills/write-goal/SKILL.md"), "Commit the complete candidate locally"),
+        (Path("skills/write-requirement/SKILL.md"), "Commit the complete\ncandidate locally"),
+        (Path("skills/write-design/SKILL.md"), "Commit the whole\nDesign-stage candidate locally"),
+        (Path("skills/write-task/SKILL.md"), "commit the complete candidate locally"),
+        (Path("skills/close-milestone/SKILL.md"), "Commit the complete candidate locally"),
+    ):
+        require(
+            read(path),
+            (commit_rule, "shortest unambiguous commit reference"),
+            f"{path} 候选 commit 门禁",
+            errors,
+        )
+    require(read("agents/author.md"), (
+        "Commit the complete candidate locally",
+        "shortest unambiguous commit\nreference",
+        "Never return a full-length\ncommit object ID, diff/content hash",
+    ), "Author Git 锚点门禁", errors)
+    require(read("agents/coder.md"), (
+        "Commit the complete candidate locally",
+        "shortest unambiguous commit reference",
+        "Never return a\nfull-length commit object ID, diff/content hash",
+    ), "Coder Git 锚点门禁", errors)
+    require(read("agents/critic.md"), (
+        "shortest unambiguous commit\nreference for the locally committed complete candidate",
+        "A full-length commit object ID, diff/content hash",
+    ), "Critic Git 锚点门禁", errors)
+    require(read("agents/reviewer.md"), (
+        "shortest unambiguous commit reference for a\nlocally committed complete candidate",
+        "A full-length commit object ID, diff/content hash",
+    ), "Reviewer Git 锚点门禁", errors)
+    require(read("agents/verifier.md"), (
+        "shortest unambiguous commit\nreference for the locally committed complete final candidate",
+        "A full-length commit object ID, diff/content hash",
+    ), "Verifier Git 锚点门禁", errors)
+    require(read(".codex/agents/author.toml"), (
+        "评审前必须把完整候选提交到本地 Git",
+        "最短无歧义 commit",
+        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
+    ), "Codex Author Git 锚点门禁", errors)
+    require(read(".codex/agents/coder.toml"), (
+        "评审前必须把完整候选提交到本地 Git",
+        "最短无歧义 commit",
+        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
+    ), "Codex Coder Git 锚点门禁", errors)
+    require(read(".codex/agents/critic.toml"), (
+        "本地已提交完整候选的最短无歧义 commit",
+        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
+    ), "Codex Critic Git 锚点门禁", errors)
+    require(read(".codex/agents/reviewer.toml"), (
+        "完整候选必须在评审前提交到本地 Git",
+        "最短无歧义 commit",
+        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
+    ), "Codex Reviewer Git 锚点门禁", errors)
+    require(read(".codex/agents/verifier.toml"), (
+        "本地已提交完整最终候选的最短无歧义 commit",
+        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
+    ), "Codex Verifier Git 锚点门禁", errors)
+
+    for path in GIT_ANCHOR_FILES:
+        forbid(read(path), LEGACY_HASH_ANCHOR_RULES, f"{path} Git 锚点反向门禁", errors)
 
     authority = "\n".join(read(path) for path in CORE_FILES)
     if OLD_TASK_HEADER in authority:

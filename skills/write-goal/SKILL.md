@@ -5,7 +5,7 @@ description: "Use when an approved ROADMAP exists and the owner explicitly start
 
 # Initiate a milestone and write Goal.md
 
-<HARD-GATE>Creation mode requires an approved ROADMAP, a `not-started` milestone row, and explicit owner initiation; otherwise return to `roadmap`. Revision mode requires an existing initiated Goal and its approved ROADMAP anchor, but does not require re-initiation. If the changed meaning belongs to WhitePaper or ROADMAP, return to `brainstorm` or `roadmap` before editing Goal. Work on an uninitiated milestone is out of scope.</HARD-GATE>
+<HARD-GATE>Creation mode requires an approved ROADMAP commit, a `not-started` milestone row, and explicit owner initiation; otherwise return to `roadmap`. Revision mode requires an existing initiated Goal and its approved ROADMAP commit, but does not require re-initiation. If the changed meaning belongs to WhitePaper or ROADMAP, return to `brainstorm` or `roadmap` before editing Goal. Work on an uninitiated milestone is out of scope.</HARD-GATE>
 
 ## Language and contract
 
@@ -23,26 +23,27 @@ The recorded writer performs one semantic batch:
    acceptance-scenario anchor maps to one or more Goal slices. Goal may clarify the active
    boundary but must not copy or redefine the ROADMAP outcome. The writer chooses the section
    structure.
-3. Add reciprocal ROADMAP ↔ Goal links and return one anchored candidate.
+3. Add reciprocal ROADMAP ↔ Goal links and return one committed candidate.
 
 Do not create Requirement, Design, or Task content early. Mention absent downstream files
 as gaps; create each only when its stage starts.
 
 ## Writer and critic loop
 
-Record the ROADMAP anchor and owner initiation. The primary session may write directly, or it
+Record the ROADMAP commit and owner initiation. The primary session may write directly, or it
 prepares a complete brief and creates one fresh Author when the bounded
 handoff creates real value. The writer self-checks before return; a delegated Author ends on
-return, so later correction uses the primary session or a fresh Author with a new brief. Freeze
-the candidate and dispatch one fresh independent Critic from a prepared brief. Collect all
+return, so later correction uses the primary session or a fresh Author with a new brief.
+Commit the complete candidate locally and dispatch one fresh independent Critic from a
+prepared brief that names the shortest unambiguous commit reference. Collect all
 findings before editing, adjudicate once, and batch accepted blocker fixes. The primary
 orchestrator checks each resolution without dispatching a second Critic, then reviews the
-anchored candidate, applies accepted mechanical propagation, and runs machine checks.
+committed candidate, applies accepted mechanical propagation, and runs machine checks.
 
 ## Controlled revision
 
-1. Start from the old Goal anchor and record the trigger, semantic delta, affected slices,
-   documents, and evidence, plus the proposed new anchor.
+1. Start from the old Goal commit and record the trigger, semantic delta, affected slices,
+   documents, and evidence, plus the proposed new commit.
 2. Route WhitePaper-owned meaning to `brainstorm` revision mode and ROADMAP-owned sequencing,
    cross-milestone allocation, dependency, or qualitative milestone-row meaning to `roadmap`
    maintenance mode. Resume here after the required upstream approval; do not patch that
@@ -50,13 +51,13 @@ anchored candidate, applies accepted mechanical propagation, and runs machine ch
 3. Revise only Goal-owned objectives, boundaries, slices, non-goals, acceptance-scenario
    mapping, or document mapping. Preserve unaffected content.
 4. If the delta changes a decision or reasonable understanding, run the independent critic
-   and primary-orchestrator review against the affected content and bind it to a new anchor.
-   Old review remains attached to the old anchor.
+   and primary-orchestrator review against the affected content and bind it to a new commit.
+   Old review remains attached to the old commit.
 5. Propagate only to affected Requirement, Design, Task, implementation, test, evidence, and
    state representations. Review and verify that impact cone only; do not rerun unrelated
    stages.
 
-Meaning-preserving mechanical changes use same-batch link, hash, and status refresh plus
+Meaning-preserving mechanical changes use same-batch link and status refresh plus
 machine checks without reapproval.
 
 ## Exit

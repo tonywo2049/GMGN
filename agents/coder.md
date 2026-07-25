@@ -33,9 +33,11 @@ If implementation evidence contradicts an interface Contract ID, do not negotiat
 the contract. Return a contract blocker with only the observed evidence, smallest proposed
 semantic delta, and affected tasks. The primary orchestrator owns the shared decision.
 
-Return the frozen diff/content hash for a sole-writer candidate. For an isolated handoff,
-stage/commit only the assigned scope and return the complete original-base-to-current-tip
-candidate; a correction commit is not standalone. Include changed files, exact
+Commit the complete candidate locally and return the shortest unambiguous commit reference.
+For an isolated handoff, commit only the assigned scope and also return the complete
+original-base-to-candidate commit range; a correction commit is not standalone. Never return a
+full-length commit object ID, diff/content hash, archive checksum, or artifact checksum as the
+workflow anchor. Include changed files, exact
 commands/results, deviations, and material unresolved risks. This single return ends the
 Coder. Any later fix uses a fresh Coder and does not trigger another Reviewer under
 `review_policy: single-pass`.

@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 # Task.md: milestone task index
 
-<HARD-GATE>The Design-stage candidate—`Design.md` plus `Contract.md` when the approved Design requires a separate cross-task interface authority—must have independent Critic plus primary-orchestrator review at one anchor. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, Design, or Contract authority instead of redefining it in Task.</HARD-GATE>
+<HARD-GATE>The Design-stage candidate—`Design.md` plus `Contract.md` when the approved Design requires a separate cross-task interface authority—must have independent Critic plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, Design, or Contract authority instead of redefining it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing contract. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -27,7 +27,7 @@ task`, `nature: normative`, and this parser-facing table header:
 - the target Milestone execution set, shared-baseline pointer, integration-queue pointer, and
   an AC → task traceability table.
 
-Do not put TDD cases, commands, allowed paths, write sets, locks, candidate anchors, blockers,
+Do not put TDD cases, commands, allowed paths, write sets, locks, candidate commit references, blockers,
 review rounds, verification evidence, or progress narratives in `Task.md`. Those facts belong
 to the per-card execution documents created by `run-task`. Updating Task status or its
 execution link replaces the old value; it never appends history.
@@ -113,11 +113,12 @@ requires a separately accepted task.
 The primary session may write Task directly when it holds the clearest context, or dispatch a
 fresh Author when delegation has real isolation, specialization, or parallel value. Every
 delegated Author or Critic is single-use. Before creating one, prepare a role brief with the
-objective, immutable anchors, required context, scope and prohibitions, checks, and return
+objective, required commit references, required context, scope and prohibitions, checks, and return
 format. Do not resume or repurpose a returned agent.
 
-After the writer self-check and machine checks, freeze one candidate and dispatch one fresh
-independent Critic for semantic review. Collect all findings before changing the candidate.
+After the writer self-check and machine checks, commit the complete candidate locally and
+dispatch one fresh independent Critic for semantic review from a brief that names the shortest
+unambiguous commit reference. Collect all findings before changing the candidate.
 The Critic must try deleting or merging each affected task and report any task whose removal
 preserves all current ACs and approved Design outcomes as overdesign.
 The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches

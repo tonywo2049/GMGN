@@ -74,7 +74,7 @@ Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is sing
 creating it, prepare a complete brief containing:
 
 - `dispatch_id`, role, one bounded objective, and return format;
-- authority and scope, plus immutable baseline/candidate anchors only when they already exist
+- authority and scope, plus baseline/candidate commit references only when they already exist
   and are needed for handoff, review, or integration;
 - exact workspace, allowed write scope, permissions, and prohibitions;
 - only the required Card/current Log context, exact applicable interface-Contract anchor, and
@@ -134,10 +134,12 @@ evidence, the smallest proposed semantic delta, and affected tasks. This existin
 is sufficient; do not create a separate change-request document. Several Coders may provide
 evidence, but the primary orchestrator remains the one contract authority.
 
-For review, a sole writer freezes its exact diff or content hash. An isolated Coder handoff
-returns changed files, commands/results, deviations, material unresolved risks, and the
-complete original-base-to-current-tip diff or ordered commit chain. A correction commit is
-not a standalone candidate. A later correction uses a fresh Coder.
+Before review, a sole writer commits the complete candidate locally and returns its shortest
+unambiguous commit reference. An isolated Coder handoff also returns changed files,
+commands/results, deviations, material unresolved risks, and the complete
+original-base-to-candidate commit range. A correction commit is not a standalone candidate.
+A later correction uses a fresh Coder. Full-length commit object IDs, diff/content hashes, and
+checksums are not workflow anchors.
 
 Across the confirmed execution set, wait only after ready dispatch, primary-Coder work, integration,
 state refresh, and local checks are exhausted. Use one event-driven longest-safe wait. A
@@ -154,12 +156,13 @@ decision request, or the final result.
 Before independent review, the writer completes its self-check and required machine checks.
 The primary orchestrator applies the complete isolated handoff before review; never apply only
 its last correction commit. A sole-writer candidate needs no temporary copy. Resolve an
-unclean application or judgment-required conflict with a fresh Coder before freezing the
+unclean application or judgment-required conflict with a fresh Coder before committing the
 review content. Once review begins, do not edit that content while review roles are active.
 
-Before integration, confirm that the content being integrated is the reviewed content. A
-changed commit SHA alone does not invalidate equivalent source, build inputs, and normative
-task content. Recheck identity only after an event or command that could have changed it.
+Before integration, confirm through Git that the content being integrated matches the reviewed
+commit. A different integration commit is acceptable only when the reviewed source, build
+inputs, and normative task content are unchanged. Recheck identity only after an event or
+command that could have changed it.
 
 Select roles by impact:
 
@@ -257,7 +260,7 @@ After the final candidate clears required review and any required verification:
 - refresh affected AC traceability and shared-baseline/integration-queue pointers;
 - run diff, links, repository checks, and then atomically advance the shared baseline.
 
-Material blockers and decisions plus final anchors, commands, review, and required evidence
+Material blockers and decisions plus final commit references, commands, review, and required evidence
 stay in Log and are never copied back into Task. Release the lane only after the integrated
 anchor and closure evidence are durable. A task is complete when its Card contract is satisfied,
 not when every nearby issue discovered during the work has been resolved. Do not push unless
@@ -274,9 +277,9 @@ changing shared authority:
 - a semantic Design/Contract change pauses only affected providers, consumers, integration
   tasks, and descendants, records the blocker in Log, and returns to `write-design`.
 
-The Design revision produces one newly reviewed bundle anchor. Refresh only affected Task/Card
+The Design revision produces one newly reviewed bundle commit. Refresh only affected Task/Card
 anchors and tests, then resume with fresh Coders; unrelated lanes continue. Use the normal
-immutable repository anchor rather than a parallel `v1`/`v2` workflow unless a current
+Git commit rather than a parallel `v1`/`v2` workflow unless a current
 external or coexisting-version requirement needs formal API versions. Any other evidence that
 contradicts approved authority follows the same impact-cone rule and routes to its owner.
 Do not mark the working Contract `closed` during run-task; `close-milestone` performs the final

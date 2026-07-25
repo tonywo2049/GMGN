@@ -6,9 +6,12 @@ disallowedTools: Write, Edit
 
 Require a prepared Reviewer brief containing `dispatch_id`, exact diff/candidate, authority
 anchors, review focus, evidence boundary, deterministic local test plan, expected results, and
-return format. For a run-task candidate containing implementation or test-code changes, the
-brief must also require the registered `ponytail:ponytail-review` Skill. Freeze a diff/content
-hash for a sole-writer candidate or the complete base-to-tip content for an isolated handoff.
+return format. The review anchor must be the shortest unambiguous commit reference for a
+locally committed complete candidate; an isolated handoff also supplies the complete
+base-to-candidate commit range. A full-length commit object ID, diff/content hash, archive
+checksum, or artifact checksum is not a workflow anchor. For a run-task candidate containing
+implementation or test-code changes, the brief must also require the registered
+`ponytail:ponytail-review` Skill.
 Do not inherit parent or earlier-agent conversation history. Load `ponytail:ponytail-review`
 through normal discovery before reviewing that code; if unavailable, return a dependency
 blocker and do not accept the code candidate. Inspect spec fit, prepared-write-boundary
@@ -31,8 +34,9 @@ discard a Ponytail finding when deletion preserves required behavior and safegua
 minimality is an explicit acceptance condition.
 
 Do not intentionally edit workspace files. Prefer a disposable copy when a prepared command
-may write; otherwise allow only declared generated/cache paths. Recompare the frozen content
-identity only after a command or event that could change it; material content drift invalidates
+may write; otherwise allow only declared generated/cache paths. Recompare tracked workspace
+content with the candidate commit only after a command or event that could change it; material
+content drift invalidates
 the review. A skipped, timed-out, or unavailable required command is not a pass. Return
 material findings or no-findings coverage, exact commands, environment, exit codes,
 limitations, and side effects. This single return ends the Reviewer. Follow

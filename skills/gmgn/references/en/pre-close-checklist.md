@@ -23,7 +23,7 @@ nature: normative
    execution results or post-fix machine checks current, and is any risk-triggered
    final-candidate verification current?
 6. **State** — Do Task macro status, Card contract, closed Log snapshot/latest event,
-   traceability, ROADMAP, and the closing anchor agree?
+   traceability, ROADMAP, and the closing commit agree?
 7. **Contract freeze** — Does every retained Contract ID match provider and consumer
    implementations plus conformance/integration evidence, with no semantic mismatch being
    hidden by a closure edit?
@@ -31,7 +31,7 @@ nature: normative
    entry or lock left active?
 9. **Findings and risk** — Are material structural findings classified as target blockers or
    proved pre-existing external debt, and are remaining risks stated without invention?
-10. **Acceptance** — Is owner acceptance bound to the exact closing anchor that marks the
+10. **Acceptance** — Is owner acceptance bound to the exact closing commit that marks the
     implementation-matching Contract `closed`?
 
 Any unresolved target blocker or unclassified material finding blocks closure. A separate

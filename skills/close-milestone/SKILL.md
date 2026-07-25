@@ -7,9 +7,9 @@ description: "Use when every target-milestone task is closed and traceability is
 
 <HARD-GATE>The target Milestone must have at least one ROADMAP end-to-end acceptance scenario covering its full owned outcome. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC and ROADMAP scenario must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
 
-## Reconcile the closing anchor
+## Reconcile the closing commit
 
-The primary orchestrator records the Goal/Requirement/Design/applicable Contract/Task anchors
+The primary orchestrator records the Goal/Requirement/Design/applicable Contract/Task commits
 and checks:
 
 - all target tasks and their execution pointers;
@@ -22,7 +22,7 @@ and checks:
 
 The Design-stage Contract was an approved working baseline. If closure finds a semantic
 contract/implementation mismatch, return only that impact cone to `write-design`, obtain the
-new reviewed working anchor, refresh affected tasks and evidence, and then restart closure.
+new reviewed working commit, refresh affected tasks and evidence, and then restart closure.
 Closure cannot silently rewrite the contract to match code.
 
 Task remains a compact macro index. Material decisions and final commands, anchors, review, and
@@ -32,7 +32,7 @@ required evidence stay in each card's Log.
 
 Do not dispatch a Verifier merely because closure started. Reuse Reviewer execution, post-fix
 machine checks, and any risk-triggered verification when they are bound to the exact closing
-anchor and already cover every ROADMAP acceptance scenario, the Milestone's required
+commit and already cover every ROADMAP acceptance scenario, the Milestone's required
 regression, real end-to-end or integration path, relevant negative/recovery outcomes,
 environment, and limitations.
 
@@ -52,12 +52,13 @@ brief before creating that fresh single-use Author.
 
 The candidate contains acceptance-picture and scope reconciliation, evidence map, controlled
 debt, remaining material risks or a supported none-known statement, proposed state changes,
-the proposed final Contract anchor when applicable, and a Handoff plan only when a receiving
+the proposed final Contract commit when applicable, and a Handoff plan only when a receiving
 operator lacks an existing authority for needed information. It does not mark the Milestone or
 Contract closed before owner acceptance.
 
-Freeze the candidate after writer self-check and machine checks. Prepare one brief and create a
-fresh independent combined Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
+Commit the complete candidate locally after writer self-check and machine checks. Prepare one
+brief naming its shortest unambiguous commit reference and create a fresh independent combined
+Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
 consistency, closure meaning, and any missing deterministic local checks. Collect the full
 review before editing. The primary
 orchestrator adjudicates once, batches accepted blockers, checks each resolution, and runs
@@ -75,20 +76,20 @@ run equivalent repository link/table checks and record the substitution.
 
 ## Owner acceptance and integration
 
-Present scope, evidence, debt, risks, and immutable closing anchor. Only explicit owner
+Present scope, evidence, debt, risks, and the closing commit. Only explicit owner
 acceptance authorizes the primary orchestrator to:
 
 - close the target Milestone and its appropriate normative chain;
-- mark the reconciled implementation-matching Contract anchor `closed`; this is the final
+- mark the reconciled implementation-matching Contract commit `closed`; this is the final
   frozen Contract for that Milestone;
-- create/update Handoff only when a receiver needs one, using the accepted anchor, acceptance
+- create/update Handoff only when a receiver needs one, using the accepted commit, acceptance
   reference, applicable evidence, environment, risks, authority pointers, and next command;
 - refresh ROADMAP acceptance-scenario links to accepted evidence, Task macro states, AC
-  traceability, execution links, and version anchors;
+  traceability, execution links, and commit references;
 - run final diff/link/repository checks and create the local closure commit under project policy.
 
 Do not create an Integrator agent. Do not push, publish, deploy, or release without separate
-authorization. `release` reuses exact-anchor acceptance, review, and verification evidence and
+authorization. `release` reuses commit-bound acceptance, review, and verification evidence and
 regenerates only evidence invalidated by changed packaging or environment inputs.
 
 ## Exit

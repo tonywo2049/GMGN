@@ -12,7 +12,7 @@ nature: descriptive
 
 GMGN is an agentic software-delivery workflow for **Codex (CLI/Desktop)** and
 **Claude Code**. Ten composable skills move work from an idea to a closed milestone and then
-publish an accepted anchor without repeating closure review.
+publish an accepted commit without repeating closure review.
 Hard gates prevent skipped stages, independent review reduces shared blind spots, and
 replayable commands bind completion claims to evidence.
 
@@ -70,8 +70,8 @@ stays in Design and no empty contract file is created. Both files form one revie
 Bundle. Tasks split at independently provable outcomes rather than API count and anchor the
 applicable AC, Design, and Contract authority.
 The Design-stage Contract is an approved working baseline. Coding evidence may revise it
-through `write-design`; Milestone closure reconciles it with provider/consumer code and freezes
-the accepted implementation-matching anchor as `closed`.
+through `write-design`; Milestone closure reconciles it with provider/consumer code and marks
+the accepted implementation-matching commit as `closed`.
 
 ## Supported surfaces
 
@@ -79,7 +79,7 @@ the accepted implementation-matching anchor as `closed`.
 |---|---|---|
 | Ten shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
-| Code review and deterministic local checks | `/review`; CLI: `codex review --uncommitted/--commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
+| Code review and deterministic local checks | `/review`; CLI: `codex review --commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
 | Risk-triggered final verification | Installation, startup, E2E, external environments, or artifacts not fully machine-checkable | Project commands; `/verify` where available |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
@@ -106,9 +106,12 @@ selected task gets `execution/<card_id>/Card.md` for its stable execution/TDD co
 `Log.md` for current state, material decisions, and final evidence. Routine dispatch, waiting,
 unchanged state, and successful intermediate checks are omitted. Concurrent writers use
 isolated workspaces; a sole writer may use the current workspace. Workspace, HEAD, and
-candidate checks run only at a real handoff or material state change. A sole writer freezes a
-diff/content hash; an isolated handoff transfers the complete candidate. Before integration,
-GMGN confirms that the integrated content is the reviewed content.
+candidate checks run only at a real handoff or material state change. Before review, the
+complete candidate is committed locally. Human-facing briefs and records use its shortest
+unambiguous commit reference; an isolated handoff also transfers the complete commit range.
+Full-length commit object IDs, diff/content hashes, and checksums cannot be workflow anchors.
+Before integration, GMGN confirms through Git that the integrated content matches the reviewed
+commit.
 
 All Coder lanes use the same Design Bundle anchor. A Coder does not edit or negotiate shared
 interface authority; conflicting implementation evidence returns as a blocker with the
@@ -365,10 +368,10 @@ python3 scripts/package_release.py --allow-dirty
 python3 scripts/package_release.py --set-version 0.2.19
 ```
 
-The packager reads the version from the Codex manifest, includes only the release
-allowlist, and produces a deterministic ZIP and SHA-256 checksum. `--set-version` validates
-SemVer and synchronizes the four existing release declarations. Without `--allow-dirty`, the
-command rejects a dirty worktree.
+The packager reads the version from the Codex manifest, includes only the release allowlist,
+and produces a deterministic ZIP and SHA-256 checksum. The checksum is artifact-integrity
+evidence, never a workflow anchor. `--set-version` validates SemVer and synchronizes the four
+existing release declarations. Without `--allow-dirty`, the command rejects a dirty worktree.
 
 ## DocStar compatibility
 

@@ -65,18 +65,25 @@ candidate.
 
 For an interface `Contract.md`, `approved` means the current shared working baseline that all
 affected Coder lanes must follow. Coding evidence may replace it through a controlled
-`write-design` revision at a new approved anchor. `closed` means Milestone closure has
+`write-design` revision at a new approved commit. `closed` means Milestone closure has
 reconciled the contract with provider and consumer implementations plus evidence and the owner
-has accepted that final frozen anchor.
+has accepted that final frozen commit.
 
-Approval and acceptance bind an immutable commit, content hash, or equivalent version anchor.
-Editing a file does not move that decision. WhitePaper and ROADMAP need owner approval;
-Goal, Requirement, the whole Design-stage candidate, and Task need independent Critic review
-plus primary-orchestrator acceptance; Milestone closure needs owner acceptance.
+<HARD-GATE>In a Git-backed GMGN project, every review, approval, acceptance, Milestone
+closure, and release anchor is a Git commit or release tag. Commit the candidate locally
+before independent review. In human-facing documents, briefs, logs, and returns, use the
+shortest unambiguous commit reference or the tag; never use a full-length commit object ID,
+diff hash, content hash, archive checksum, or artifact checksum as a workflow anchor. If the
+current workspace cannot safely create the candidate commit, use an isolated worktree.
+Checksums are evidence only.</HARD-GATE>
+
+Editing a file does not move a decision. WhitePaper and ROADMAP need owner approval; Goal,
+Requirement, the whole Design-stage candidate, and Task need independent Critic review plus
+primary-orchestrator acceptance; Milestone closure needs owner acceptance.
 
 Each semantic change batch receives at most one Critic round. When accepted findings are fixed
-after that review, the final accepted anchor records the reviewed anchor, complete findings and
-rulings, exact fix delta, and post-fix machine checks. The fixes are not sent to a second
+after that review, the final accepted commit records the reviewed commit, complete findings
+and rulings, exact fix delta, and post-fix machine checks. The fixes are not sent to a second
 Critic.
 
 ## 3. Controlled changes
@@ -93,12 +100,12 @@ Change only the authority that owns the meaning:
 | Task | `write-task` revision |
 
 A semantic change can alter scope, obligation, acceptance meaning, design intent, or execution
-authority. It gets the review or approval appropriate to that authority at a new anchor. A
+authority. It gets the review or approval appropriate to that authority at a new commit. A
 mechanical change preserves meaning, such as formatting, links, mirrored status, or generated
 metadata; it needs affected machine checks, not automatic semantic reapproval.
 
-Propagate only the impact cone. Record the trigger, old anchor, classification, exact delta,
-affected IDs/files/tests/evidence, required review, and new anchor in the owning authority or
+Propagate only the impact cone. Record the trigger, old commit, classification, exact delta,
+affected IDs/files/tests/evidence, required review, and new commit in the owning authority or
 an existing linked decision record. Do not add an empty change-log section or copy the record
 into every affected document.
 
@@ -128,7 +135,7 @@ The parser-facing Task header is fixed:
 Chinese documents use the same header. Keep a separate `| AC | task |` mapping. Task owns task
 division, spec anchors, the dependency DAG, macro status, execution pointers, and the few
 Milestone-level pointers needed to schedule and integrate. It does not contain TDD cases,
-commands, write sets, locks, blockers, candidate anchors, evidence, or progress history.
+commands, write sets, locks, blockers, candidate commit references, evidence, or progress history.
 Replace current values; do not append execution narrative.
 
 ## 5. Design Bundle and interface contracts
@@ -140,8 +147,8 @@ by one implementation unit in `Design.md`; never create an empty contract artifa
 contract is mandatory at a cross-unit boundary; only the separate file is conditional on that
 boundary existing.
 
-When present, `Contract.md` and `Design.md` form one Design Bundle accepted at the same
-immutable working anchor. `Contract.md` owns stable Contract IDs, provider/consumer boundaries,
+When present, `Contract.md` and `Design.md` form one Design Bundle accepted at the same Git
+commit. `Contract.md` owns stable Contract IDs, provider/consumer boundaries,
 input/output semantics, invariants, observable failures, and only the compatibility or caller
 obligations required by current R/ACs and the real call path. Link code-native interfaces,
 OpenAPI, Protobuf, JSON Schema, event schemas, commands, or file formats instead of duplicating
@@ -153,11 +160,11 @@ and one cohesive task may implement several Contract IDs. The `spec anchor` cell
 applicable AC, Design decision/module, and Contract IDs or bundle anchor without copying their
 meaning.
 
-The normal immutable commit or content anchor identifies the accepted Design Bundle. Add
-formal API versions only when a current external or coexisting-version compatibility
-requirement needs them; do not create a parallel `v1`/`v2` workflow. Design acceptance makes
-this an approved implementation baseline. `close-milestone` alone marks the final
-implementation-matching Contract anchor `closed`.
+The accepted Design Bundle is identified by its Git commit. Add formal API versions only when
+a current external or coexisting-version compatibility requirement needs them; do not create
+a parallel `v1`/`v2` workflow. Design acceptance makes this an approved implementation
+baseline. `close-milestone` alone marks the final implementation-matching Contract commit
+`closed`.
 
 ## 6. Card and Log
 
@@ -180,7 +187,7 @@ task before Coder dispatch:
   The compatibility pointer does not require generated event IDs; a decision needs a stable ID
   only when another artifact links to it.
 
-Final evidence identifies the accepted candidate and integrated anchor, records the
+Final evidence identifies the accepted candidate commit and integrated commit, records the
 discriminating RED and final GREEN commands/results, gives the independent review result and
 any accepted finding/fix, and records the verification classification plus required evidence
 when applicable. Omit optional fields that do not exist instead of writing placeholder values.

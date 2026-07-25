@@ -5,7 +5,7 @@ description: "Use after owner approval of the WhitePaper to create or maintain t
 
 # ROADMAP: single sequencing authority
 
-<HARD-GATE>An approved, version-anchored WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs, quantitative requirement metrics, or executable test cases. It precedes Milestone requirements, so acceptance pictures stay qualitative.</HARD-GATE>
+<HARD-GATE>An approved, commit-bound WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs, quantitative requirement metrics, or executable test cases. It precedes Milestone requirements, so acceptance pictures stay qualitative.</HARD-GATE>
 
 ## Language and contract
 
@@ -53,16 +53,17 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 
 ## Writer and critic loop
 
-1. Record the WhitePaper anchor and mode. The primary session may write directly, or it may
+1. Record the WhitePaper commit and mode. The primary session may write directly, or it may
    prepare a complete brief and create one fresh Author when the bounded handoff creates real
    value.
 2. The writer self-checks before return. A delegated Author ends after that return; missing
    inputs or later revision use the primary session or a fresh Author with a new brief.
-3. Freeze the candidate and dispatch one fresh independent Critic from a prepared brief.
-   Collect all findings before editing, adjudicate once, and batch accepted blocker fixes.
+3. Commit the complete candidate locally and dispatch one fresh independent Critic from a
+   prepared brief that names the shortest unambiguous commit reference. Collect all findings
+   before editing, adjudicate once, and batch accepted blocker fixes.
    Check each resolution and run affected machine checks; do not dispatch a second Critic to
    recheck this round's fixes.
-4. With no blocker, owner approval binds the candidate anchor. The primary orchestrator applies
+4. With no blocker, owner approval binds the candidate commit. The primary orchestrator applies
    accepted mechanical reciprocal links, state, and evidence pointers, then runs machine checks.
 
 Closure backfill and other meaning-preserving maintenance skip semantic criticism. The primary
@@ -72,20 +73,21 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 
 ## Controlled revision
 
-- Start from the approved old anchor. Record the trigger, semantic delta, affected milestone
-  rows and documents, required reviewer or approver, and proposed new anchor.
+- Start from the approved old commit. Record the trigger, semantic delta, affected milestone
+  rows and documents, required reviewer or approver, and proposed new commit.
 - If the changed meaning belongs to the WhitePaper, initiate `brainstorm` revision mode and
   resume ROADMAP maintenance only after the required new upstream approval.
 - Revise only ROADMAP-owned sequencing, Milestone allocation, dependencies, qualitative
   acceptance pictures, or TODO placement. Do not reopen unaffected Milestones.
 - A later Milestone may supersede a technical selection originating in a closed foundation or
   M0 Milestone. The M0-originated Design, Decision, or index remains semantic authority. Keep
-  the historical Milestone and old closure anchor closed; record the current Milestone's change
-  card, trigger, old anchor, new anchor, `supersedes`, and impact cone instead of reopening or
+  the historical Milestone and old closure commit closed; record the current Milestone's
+  change card, trigger, old commit, new commit, `supersedes`, and impact cone instead of
+  reopening or
   rerunning M0. That current card owns change, implementation, and verification work.
 - A change that alters a decision or reasonable understanding receives independent criticism
-  and owner approval at a new anchor. Old approval remains attached to the old anchor.
-- Meaning-preserving mechanical changes use same-batch link, hash, and status refresh plus
+  and owner approval at a new commit. Old approval remains attached to the old commit.
+- Meaning-preserving mechanical changes use same-batch link and status refresh plus
   machine checks without reapproval.
 - Propagate the approved delta only to affected Goal, Requirement, Design, Task, execution,
   test, evidence, and state representations; review and verify that impact cone only.
@@ -94,7 +96,7 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 
 For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
 English-only dispatch contract, present remaining material risks or that none are known,
-obtain owner approval with a version anchor, and integrate only when required by workspace
+obtain owner approval bound to the candidate commit, and integrate only when required by workspace
 topology. Before approval, confirm every Milestone has at least one full-owned-outcome
 end-to-end scenario. A mechanical maintenance batch needs machine checks but no
 new approval. When the owner explicitly starts a target Milestone, **REQUIRED next skill:

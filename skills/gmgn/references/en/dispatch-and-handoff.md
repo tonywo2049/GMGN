@@ -84,17 +84,20 @@ authorized and the CLI is available, initialize it once in each isolated workspa
 source discovery; do not share an index across workspaces, and fall back to targeted source
 reads if initialization fails.
 
-Freeze the simplest sufficient exact identity before review. A sole writer may use a captured
-diff or content hash. An isolated handoff returns changed files, commands/results, deviations,
-material unresolved risks, and the complete original-base-to-current-tip diff or ordered
-commit chain; a correction commit is not a standalone candidate. Recheck an identity only
-after an event or command that could have changed it. Reject wrong-workspace, stale-authority,
-out-of-scope, or incomplete transferable content before review or integration. Do not repeat
-unchanged checks or create evidence merely to prove that a compliance check ran.
+Commit the complete candidate locally before review and identify it in the brief with the
+shortest unambiguous commit reference. An isolated handoff also returns changed files,
+commands/results, deviations, material unresolved risks, and the complete
+original-base-to-candidate commit range; a correction commit is not a standalone candidate.
+Never put a full-length commit object ID, diff hash, content hash, archive checksum, or artifact
+checksum in the brief or return as a workflow anchor. If the current workspace cannot safely
+create the candidate commit, use an isolated worktree. Recheck identity only after an event or
+command that could have changed it. Reject wrong-workspace, stale-authority, out-of-scope, or
+incomplete transferable content before review or integration. Do not repeat unchanged checks
+or create evidence merely to prove that a compliance check ran.
 
-## Freeze and the single review round
+## Commit and run the single review round
 
-The writer completes its self-check and machine checks before the candidate is frozen for
+The writer completes its self-check and machine checks before the candidate is committed for
 independent review. Each semantic change batch or task execution uses
 `review_policy: single-pass`: at most one Critic/Reviewer round; both roles may run in that
 round when both evidence surfaces changed. Once review starts, collect every active return
@@ -103,7 +106,7 @@ adjudicates once, batches accepted blocker fixes, checks each resolution against
 and runs the affected machine checks. Do not send fixes from that round to another Critic or
 Reviewer. If a fix expands authority, scope, or behavior beyond the accepted findings, split
 it into a separately scoped change instead of treating it as a recheck. Non-blocking
-suggestions do not reopen a candidate. The final anchor records the reviewed anchor, complete
+suggestions do not reopen a candidate. The final accepted commit records the reviewed commit, complete
 findings and rulings, exact fix delta, and post-fix checks.
 
 Critic and Reviewer are not expected to maximize finding count, and a valid review may return
@@ -147,13 +150,13 @@ another boundary is not additional evidence.
   another Reviewer in the same task execution. It never edits shared Design/Contract
   authority. When coding evidence contradicts a Contract ID, it returns only the evidence,
   smallest proposed semantic delta, and affected tasks for primary-orchestrator adjudication.
-- **Reviewer** does not intentionally edit workspace files. It checks the anchored
+- **Reviewer** does not intentionally edit workspace files. It checks the candidate-commit
   implementation diff for concrete correctness, regression, safety, data, or acceptance
   impact, loads `ponytail:ponytail-review` in the same round to find removable implementation
   complexity, then runs the prepared deterministic local checks. Cleanup, refactoring, and
   broader coverage are not blockers unless required to contain a material risk or the code
-  minimality acceptance condition. It compares the frozen content identity after commands that
-  could change it.
+  minimality acceptance condition. It compares tracked workspace content with the candidate
+  commit after commands that could change it.
 - **Verifier** is a risk-triggered final-candidate role. It leaves every tracked file unchanged
   on both pass and failure, does not broaden the assigned risk after it is decided, and returns
   exact evidence for the non-transferable or explicitly independent plan. Evidence generation

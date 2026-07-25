@@ -10,17 +10,19 @@ nature: normative
 
 # Pre-merge checklist
 
-1. **Candidate identity** — Is the content being integrated exactly the reviewed content? Use
-   a frozen diff/content hash for a sole writer and the complete base-to-tip diff or ordered
-   commit chain for an isolated handoff.
+1. **Candidate identity** — Was the complete candidate committed before review and identified
+   by the shortest unambiguous commit reference? For an isolated handoff, is the complete
+   base-to-candidate commit range present? A full-length commit object ID, diff/content hash,
+   archive checksum, or artifact checksum is not a workflow anchor.
 2. **Scope** — Are applicable Contract IDs, interfaces, callers, migrations, documentation,
    and interacting tasks in the impact boundary?
 3. **Single review barrier** — Was the one Critic/Reviewer round completed, including the
    Reviewer's prepared deterministic local checks, with every finding collected and each
    accepted blocker resolved without a second independent round?
 4. **Final content** — Are accepted post-review fixes recorded and affected checks current?
-   A changed commit SHA alone does not invalidate evidence when relevant source, build inputs,
-   and normative task content still match.
+   Does Git confirm that the integrated content matches the reviewed commit? A different
+   integration commit is acceptable only when the reviewed source, build inputs, and
+   normative task content are unchanged.
 5. **Verification classification** — Is the final candidate classified as `not-required` or
    `required:<trigger>`? When required, is current Verifier evidence bound to the
    blocker-resolved final combination? Missing required evidence blocks integration.

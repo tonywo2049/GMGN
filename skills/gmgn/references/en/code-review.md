@@ -13,7 +13,7 @@ nature: normative
 ## 1. Select the surface
 
 - Codex Desktop: `/review`.
-- Codex CLI: `codex review --uncommitted`, `--commit <sha>`, or `--base <branch>`;
+- Codex CLI: `codex review --commit <short-commit>` or `--base <branch>`;
   do not combine a scope flag with a custom prompt.
 - Claude Code: an independent no-edit reviewer that may run prepared commands; use
   `/code-review` only when the user
@@ -23,11 +23,12 @@ nature: normative
 
 ## 2. Review surface
 
-Before review, freeze the simplest exact identity for the content named by the brief: a
-captured diff/content hash for a sole writer, or the complete base-to-tip diff or ordered
-commit chain for an isolated handoff. Confirm the workspace only when candidate handoff or
-concurrent writing makes it material. Never review whichever mutable diff happens to be open
-or only the last correction commit.
+Before review, commit the complete candidate locally and name its shortest unambiguous commit
+reference in the brief. An isolated handoff also supplies the complete base-to-candidate
+commit range. Confirm the workspace only when candidate handoff or concurrent writing makes it
+material. Never review an uncommitted mutable diff or only the last correction commit. Never
+use a full-length commit object ID, diff/content hash, archive checksum, or artifact checksum
+as the review anchor.
 
 1. Does the task-card diff satisfy its spec anchor and prepared write boundary?
 2. Is there concrete correctness, regression, safety, data, accessibility, performance, or
@@ -54,8 +55,8 @@ query, or insufficient.
 
 Run the prepared deterministic local checks that fit the review environment. Do not
 intentionally edit workspace files. Prefer a disposable copy when a command may write;
-otherwise allow only declared generated/cache paths. Recompare the frozen content identity
-only after a command or event that could change it. Any material content drift invalidates the
+otherwise allow only declared generated/cache paths. Recompare tracked workspace content with
+the candidate commit only after a command or event that could change it. Any material content drift invalidates the
 review. Report exact commands, environment, exit codes, limitations, and side effects together
 with material findings; a skipped or unavailable required command is not a pass.
 
@@ -65,18 +66,19 @@ code and return a dependency blocker if it is unavailable. Ponytail is one focus
 existing single Reviewer round, not a second review stage and not a replacement for correctness,
 regression, safety, data, acceptance, or deterministic local execution.
 
-Apply the complete self-checked isolated-lane candidate before review; never apply only its
-last correction commit. A sole-writer candidate needs no temporary copy. Resolve an unclean
-application or judgment-required conflict with a fresh Coder, then freeze the final review
-content. A changed commit SHA alone does not invalidate equivalent source, build inputs, and
-normative task content. Each task execution uses `review_policy: single-pass` and has at most
-one Reviewer round.
+Apply and commit the complete self-checked isolated-lane candidate before review; never apply
+only its last correction commit. A sole-writer candidate needs no temporary copy. Resolve an
+unclean application or judgment-required conflict with a fresh Coder, then commit the final
+review content. Before integration, use Git to confirm that it matches the reviewed commit. A
+different integration commit is acceptable only when the reviewed source, build inputs, and
+normative task content are unchanged. Each task execution uses
+`review_policy: single-pass` and has at most one Reviewer round.
 After that round, the primary orchestrator adjudicates once, batches accepted fixes, checks
 each resolution against its finding, and runs affected machine checks. Do not dispatch another
 Reviewer to recheck those fixes. A fix that changes dependency/specification meaning or
 expands behavior beyond the accepted findings becomes a separately scoped change. The primary
 orchestrator reruns affected machine checks after accepted fixes. A separate Verifier is not a
 default second stage; use it only for a recorded `required:<trigger>` classification on the
-blocker-resolved final candidate. The final anchor records the reviewed anchor, findings and
+blocker-resolved final candidate. The final accepted commit records the reviewed commit, findings and
 rulings, exact fix delta, post-fix checks, verification classification, and any
 trigger-specific evidence.

@@ -37,7 +37,7 @@ current task does not need.
 - **Coder** implements one bounded Card attempt.
 - **Critic** independently challenges document meaning.
 - **Reviewer** independently reviews implementation or test-code diffs and runs the prepared
-  deterministic local checks against that frozen candidate.
+  deterministic local checks against that candidate commit.
 - **Verifier** independently executes checks against one fixed final candidate only when the
   [assurance policy](skills/gmgn/references/en/assurance-policy.json) records a trigger.
 
@@ -70,12 +70,18 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
 - A boundary between independently developed modules, tasks, or teams requires
   `Contract.md`. It owns the shared interface semantics; an interface owned by one
   implementation unit stays in `Design.md`. Design and Contract are accepted as one bundle at
-  one working anchor. This is the shared implementation baseline, not the final frozen
+  one Git commit. This is the shared implementation baseline, not the final frozen
   contract; Milestone closure freezes the implementation-matching Contract.
 - Task owns task division, AC mapping, dependencies, macro status, and execution pointers.
 
-One fact has one authority. Other documents link to it instead of copying it. Approval binds
-to an immutable version anchor; editing a file never moves approval automatically.
+One fact has one authority. Other documents link to it instead of copying it. Every review,
+approval, acceptance, Milestone closure, and release binds to a Git commit or release tag.
+Commit the candidate locally before independent review. Human-facing documents, briefs, logs,
+and returns use the shortest unambiguous commit reference or the tag. They never use a
+full-length commit object ID, diff hash, content hash, archive checksum, or artifact checksum
+as a workflow anchor. If the current workspace cannot safely create the candidate commit, use
+an isolated worktree. Checksums are evidence only. Editing a file never moves approval
+automatically.
 
 Human prose may be English or Chinese. Machine fields, IDs, status tokens, and Task headers
 remain stable. The complete structural contract is in the
@@ -90,7 +96,7 @@ remain stable. The complete structural contract is in the
 ```
 
 It also contains the AC-to-task mapping and Milestone-level execution pointers. It does not
-contain TDD cases, commands, write sets, locks, blockers, candidate anchors, review rounds,
+contain TDD cases, commands, write sets, locks, blockers, candidate commit references, review rounds,
 verification evidence, or progress history.
 
 Within the approved Design, Task decomposition targets useful independent execution. Give each
@@ -123,7 +129,7 @@ event ledger or require generated event IDs.
 
 ## 4. Review and verification
 
-Freeze a candidate before independent checks. Select roles by what changed:
+Commit the complete candidate locally before independent checks. Select roles by what changed:
 
 | Changed surface | Independent check |
 |---|---|
@@ -144,7 +150,7 @@ checks each resolution against the finding, and runs the affected machine checks
 resolution check does not search for new findings. Do not resume or create a Critic/Reviewer
 for those fixes. A fix that expands authority, scope, or behavior
 beyond the accepted findings becomes a separately scoped change rather than a review recheck.
-The final anchor records the reviewed anchor, complete findings and rulings, exact fix delta,
+The final accepted commit records the reviewed commit, complete findings and rulings, exact fix delta,
 and post-fix checks. Non-blocking suggestions do not reopen an otherwise acceptable candidate.
 
 Critic and Reviewer do not maximize finding count; a valid review may return no findings.
@@ -190,13 +196,15 @@ in each isolated workspace before source discovery; initialization failure falls
 targeted source reads and never blocks the task. Every query targets the exact assigned
 workspace. Use its usable index first for source location and code relationships, and treat
 returned source as already read. Read files directly only when the index is absent, stale,
-unsupported, changed after the query, or insufficient for the decision. Freeze the simplest
-exact identity before review: a diff or content hash for a sole writer, and the complete
-base-to-tip diff or ordered commit chain for an isolated handoff.
+unsupported, changed after the query, or insufficient for the decision. Before review, commit
+the complete candidate locally and identify it with the shortest unambiguous commit reference.
+An isolated handoff also returns the complete original-base-to-candidate commit range; a later
+correction commit is not a standalone candidate.
 Recheck a fact only after an event or command that could have changed it. Before integration,
-confirm that the content being integrated is the reviewed content; a changed commit SHA alone
-does not invalidate equivalent content. Do not repeat unchanged checks or create evidence only
-to prove that a compliance check ran.
+confirm through Git that the content being integrated matches the reviewed commit. A different
+integration commit is acceptable only when the reviewed source, build inputs, and normative
+content are unchanged. Do not repeat unchanged checks or create evidence only to prove that a
+compliance check ran.
 
 Discovery does not expand a task. Once a Card is active, its outcome, completion criterion,
 and authority boundary stay fixed. A newly found issue belongs to that Card only when leaving
@@ -213,7 +221,7 @@ shared baseline. It applies the complete transferable candidate, resolves judgme
 conflicts before review, and integrates only content covered by required review and
 risk-triggered evidence.
 
-All Coder lanes use the same current approved Design Bundle working anchor; they do not negotiate or edit
+All Coder lanes use the same current approved Design Bundle commit; they do not negotiate or edit
 shared interface authority. A Coder whose implementation evidence contradicts a Contract ID
 returns only the evidence, smallest proposed semantic delta, and affected tasks. No separate
 change-request document is created. The primary orchestrator keeps unaffected lanes running
@@ -222,10 +230,10 @@ and classifies the return:
 - an internal implementation issue stays in the Card;
 - a meaning-preserving clarification gets the smallest same-batch edit and machine checks;
 - a semantic Design/Contract change pauses only its provider, consumers, integration tasks,
-  and descendants, then returns to `write-design` for one newly reviewed bundle anchor.
+  and descendants, then returns to `write-design` for one newly reviewed bundle commit.
 
-Use the normal immutable repository anchor. Formal API versions exist only when a current
-external or coexisting-version compatibility requirement needs them.
+Use the normal Git commit. Formal API versions exist only when a current external or
+coexisting-version compatibility requirement needs them.
 
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
 event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a
@@ -238,7 +246,7 @@ periodic list interval; a wait timeout configures only that wait call.
 ## 6. Change, closure, and release
 
 When evidence contradicts approved meaning, route the semantic change to its owning authority
-and pause only its impact cone. Record old and new anchors and propagate only affected tasks,
+and pause only its impact cone. Record old and new commits and propagate only affected tasks,
 code, tests, evidence, and state. Mechanical changes need machine checks, not semantic
 reapproval.
 
@@ -249,17 +257,17 @@ with a fabricated browser/UI test.
 
 Closure also reconciles every retained Contract ID with provider and consumer code plus
 conformance/integration evidence. A semantic mismatch returns to `write-design`; closure never
-edits authority to excuse code. Owner acceptance marks the reconciled Contract anchor
+edits authority to excuse code. Owner acceptance marks the reconciled Contract commit
 `closed`, which is the Milestone's final frozen contract. Later Milestones create controlled
-new anchors rather than rewriting that history.
+new commits rather than rewriting that history.
 
 Milestone closure requires:
 
 1. every ROADMAP acceptance scenario traced through Goal slices and in-scope ACs to evidence;
-2. every in-scope AC completed or semantically removed/reassigned at a new authority anchor;
+2. every in-scope AC completed or semantically removed/reassigned at a new authority commit;
 3. replayable evidence for each retained criterion;
 4. Task, Card/Log, traceability, and ROADMAP refreshed in the same batch;
-5. owner acceptance bound to the closing anchor.
+5. owner acceptance bound to the closing commit.
 
 Create a separate handoff only when a receiving operator needs information that has no better
 existing authority. Release reuses review and verification evidence when source, semantics,

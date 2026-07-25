@@ -49,7 +49,7 @@ Design 阶段始终产出 `Design.md`。只要存在由不同模块、Task 或�
 同一锚点上的 Design Bundle。Task 按可独立证明的结果拆分，不按 API 数量拆分，并引用相关 AC、
 Design 与 Contract 权威。
 Design 阶段的 Contract 是已批准的工作基线，不是最终稿。编码证据可通过 `write-design` 受控修订；
-Milestone 关账时再核对提供方、消费方、实现与证据，并把一致的关闭锚点冻结为最终 Contract。
+Milestone 关账时再核对提供方、消费方、实现与证据，并把一致的关闭 commit 冻结为最终 Contract。
 
 ## 支持范围
 
@@ -57,7 +57,7 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并把一�
 |---|---|---|
 | 十件共享 skill | 支持 | 支持 |
 | 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
-| 代码审查与确定性本地检查 | `/review`；CLI 用 `codex review --uncommitted/--commit/--base`，并运行项目命令 | 独立 reviewer 并运行项目命令；`/code-review` 仅用于已授权评论的 GitHub PR |
+| 代码审查与确定性本地检查 | `/review`；CLI 用 `codex review --commit/--base`，并运行项目命令 | 独立 reviewer 并运行项目命令；`/code-review` 仅用于已授权评论的 GitHub PR |
 | 风险触发的最终验证 | 安装、启动、E2E、外部环境或无法完全机检的制品 | 项目命令；可用 `/verify` |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
@@ -76,12 +76,13 @@ Critic 和 Reviewer 不追求 finding 数量；没有 finding 是有效结果。
 和 execution 指针；每个选中任务用 `execution/<card_id>/Card.md` 保存稳定执行/TDD 契约，用
 `Log.md` 保存当前状态、关键决策和最终证据；不记录普通派发、等待、未变化状态和已被最终证据覆盖
 的成功中间检查。并发 writer 使用隔离工作区，单 writer 可直接使用当前工作区；只有真实交接或
-实质状态变化才检查 workspace、HEAD 和候选身份。单 writer 冻结 diff/内容哈希，隔离交接传递
-完整候选；集成前只确认集成内容仍是已审内容。
+实质状态变化才检查 workspace、HEAD 和候选身份。评审前必须把完整候选提交到本地 Git，brief
+与记录只写最短无歧义 commit；隔离交接还传递完整 commit 范围。完整对象 ID、diff/内容哈希和
+校验和都不能作为流程锚点；集成前通过 Git 确认集成内容与已审 commit 一致。
 
 所有 Coder lane 使用同一个 Design Bundle 锚点。Coder 不直接修改或协商共享接口权威；实现证据
 与 Contract 冲突时，只回传证据、最小修改建议和受影响 Task。内部实现问题留在 Card；语义不变
-的澄清只做机器检查；语义变化只暂停影响范围，并通过一次 `write-design` 修订形成新锚点。
+的澄清只做机器检查；语义变化只暂停影响范围，并通过一次 `write-design` 修订形成新 commit。
 
 发现问题不会扩大 active Card。新问题只有在不修会阻止 Card 结果或既定必需检查、没有已接受的
 有效兜底、且最小充分修复仍在现有权威内时才属于当前任务；否则忽略低价值问题、将确有价值的事项
@@ -317,8 +318,8 @@ python3 scripts/package_release.py --set-version 0.2.19
 ```
 
 打包器默认拒绝脏工作树，从 Codex manifest 读取版本，只收录运行所需白名单，并生成确定性 ZIP 与
-SHA-256。`--set-version` 校验 SemVer 并同步四处现有版本声明；开发中验证可显式使用
-`--allow-dirty`。
+SHA-256。该校验和只证明制品完整性，不能作为流程锚点。`--set-version` 校验 SemVer 并同步四处现有
+版本声明；开发中验证可显式使用 `--allow-dirty`。
 
 ## 可选增强
 

@@ -4,8 +4,10 @@ description: "Independently falsify one anchored GMGN document candidate from a 
 disallowedTools: Write, Edit
 ---
 
-Require a prepared Critic brief containing `dispatch_id`, immutable candidate, authority,
-impact boundary, checks, finding format, and return gate. Review only the assigned semantic
+Require a prepared Critic brief containing `dispatch_id`, the shortest unambiguous commit
+reference for the locally committed complete candidate, authority, impact boundary, checks,
+finding format, and return gate. A full-length commit object ID, diff/content hash, archive
+checksum, or artifact checksum is not a workflow anchor. Review only the assigned semantic
 delta and minimum required upstream/downstream context. Do not inherit parent or earlier-agent
 conversation history. Do not edit files or expand product
 scope. Check facts, completeness, internal and cross-document consistency, decidability,

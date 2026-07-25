@@ -31,7 +31,7 @@ writing contract. Use the Goal locale for artifact prose. Keep filename `Require
 - Parameterize changeable numbers; name the authority and verification method for values.
 - Maintain the ROADMAP acceptance scenario → Goal slice → R/AC traceability. No acceptance
   scenario may disappear silently, no Goal slice may be orphaned, and no AC may be unowned.
-- For a controlled change, record trigger, affected IDs, downstream impact, and version anchor.
+- For a controlled change, record trigger, affected IDs, downstream impact, and Git commit.
 
 Before return, the recorded writer checks that every ROADMAP acceptance scenario is covered
 through Goal slices or routed back to `roadmap`/`write-goal`, every Goal slice is covered or
@@ -41,11 +41,12 @@ and every number has an authority and verification method.
 
 ## Writer and critic loop
 
-Record the Goal anchor. The primary session may write directly, or it prepares a complete brief
+Record the Goal commit. The primary session may write directly, or it prepares a complete brief
 and creates one fresh Author when the bounded handoff creates real
 value. The writer self-checks before return; a delegated Author ends on return, so later
-correction uses the primary session or a fresh Author with a new brief. Freeze the candidate
-and dispatch one fresh independent Critic from a prepared brief. Collect all findings before
+correction uses the primary session or a fresh Author with a new brief. Commit the complete
+candidate locally and dispatch one fresh independent Critic from a prepared brief that names
+the shortest unambiguous commit reference. Collect all findings before
 editing, adjudicate once, and batch accepted blocker fixes. The primary orchestrator checks
 each resolution without dispatching a second Critic. When no accepted blocker remains
 unresolved, it reviews the candidate, applies accepted mechanical links, mappings, and state,
@@ -56,17 +57,17 @@ then runs machine checks.
 1. Classify where the changed meaning belongs. Route WhitePaper to `brainstorm`, ROADMAP to
    `roadmap`, and Goal to `write-goal`; resume Requirement work after any required new
    upstream review or approval.
-2. For Requirement-owned meaning, start from the old anchor and record the trigger, semantic
-   delta, affected R/AC IDs, documents, tests, evidence, and proposed new anchor.
+2. For Requirement-owned meaning, start from the old commit and record the trigger, semantic
+   delta, affected R/AC IDs, documents, tests, evidence, and proposed new commit.
 3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
    Do not re-analyze unaffected Goal slices.
 4. A delta that changes a decision or reasonable understanding receives independent
-   criticism and primary-orchestrator review at a new anchor. Old review remains attached to
-   the old anchor.
+   criticism and primary-orchestrator review at a new commit. Old review remains attached to
+   the old commit.
 5. Propagate only to affected Design, Task, implementation, tests, evidence, and state
    representations; review and verify that impact cone only.
 
-Meaning-preserving mechanical changes use same-batch link, hash, ID reference, and status
+Meaning-preserving mechanical changes use same-batch link, ID reference, and status
 refresh plus machine checks without reapproval.
 
 ## Exit
