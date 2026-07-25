@@ -149,7 +149,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/close-milestone/SKILL.md",
-                "mark the reconciled implementation-matching Contract commit `closed`",
+                "reconciled implementation-matching Contract marked `closed`",
                 "leave the final Contract mutable after closure",
             ),
             (
@@ -164,6 +164,15 @@ class ValidateSkillsTests(unittest.TestCase):
             with self.subTest(relative=relative):
                 result = self.run_isolated_mutation(relative, old, new)
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_closure_commit_created_after_owner_acceptance(self) -> None:
+        result = self.run_isolated_mutation(
+            "skills/close-milestone/SKILL.md",
+            "Integrate that exact commit without creating post-acceptance closure content",
+            "Create the final closure commit after owner acceptance",
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("milestone 验收关账契约", result.stdout)
 
     def test_rejects_critic_deleting_required_contract(self) -> None:
         cases = (
@@ -478,6 +487,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/roadmap/SKILL.md",
                 "Commit the complete candidate locally",
                 "Review the mutable candidate before committing it",
+            ),
+            (
+                "README.md",
+                "Full-length commit object IDs, diff/content hashes, and checksums cannot be workflow anchors",
+                "A sole writer freezes a diff/content hash",
             ),
         )
         for relative, old, new in cases:

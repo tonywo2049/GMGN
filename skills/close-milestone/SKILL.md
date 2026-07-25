@@ -5,7 +5,7 @@ description: "Use when every target-milestone task is closed and traceability is
 
 # Close a milestone
 
-<HARD-GATE>The target Milestone must have at least one ROADMAP end-to-end acceptance scenario covering its full owned outcome. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC and ROADMAP scenario must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
+<HARD-GATE>The target Milestone must have at least one ROADMAP end-to-end acceptance scenario covering its full owned outcome. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every in-scope AC and ROADMAP scenario must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
 
 ## Reconcile the closing commit
 
@@ -53,8 +53,9 @@ brief before creating that fresh single-use Author.
 The candidate contains acceptance-picture and scope reconciliation, evidence map, controlled
 debt, remaining material risks or a supported none-known statement, proposed state changes,
 the proposed final Contract commit when applicable, and a Handoff plan only when a receiving
-operator lacks an existing authority for needed information. It does not mark the Milestone or
-Contract closed before owner acceptance.
+operator lacks an existing authority for needed information. Prepare the actual Milestone,
+Contract, ROADMAP, Task, traceability, and Handoff state in an isolated closure commit; it has
+no effect on the shared baseline before owner acceptance.
 
 Commit the complete candidate locally after writer self-check and machine checks. Prepare one
 brief naming its shortest unambiguous commit reference and create a fresh independent combined
@@ -64,29 +65,37 @@ review before editing. The primary
 orchestrator adjudicates once, batches accepted blockers, checks each resolution, and runs
 affected machine checks without dispatching another Critic or Reviewer. A fix that expands
 authority, scope, or closure meaning becomes a separately scoped change. Non-blocking
-suggestions do not reopen closure. Present the candidate for owner acceptance only when
-required evidence exists and no accepted review blocker remains unresolved.
+suggestions do not reopen closure. After accepted fixes, commit the blocker-resolved final
+closure candidate and run affected machine checks. Present that exact closing commit for owner
+acceptance only when required evidence exists and no accepted review blocker remains
+unresolved.
 
 ## Structural checks
 
-Use DocStar `check`/`verify` when available and classify introduced findings. DocStar measures
+Before committing the review candidate and the blocker-resolved final candidate, use DocStar
+`check`/`verify` when available and classify introduced findings. DocStar measures
 links, entities, and structure; it does not decide scope ownership or semantic closure. A tool
 failure, unparseable result, or target-scoped unresolved finding blocks. When DocStar is absent,
 run equivalent repository link/table checks and record the substitution.
 
 ## Owner acceptance and integration
 
-Present scope, evidence, debt, risks, and the closing commit. Only explicit owner
-acceptance authorizes the primary orchestrator to:
+Present scope, evidence, debt, risks, and the shortest unambiguous closing-commit reference.
+Owner acceptance binds to that exact commit. Only explicit acceptance authorizes integrating
+it into the shared baseline. That commit already contains:
 
-- close the target Milestone and its appropriate normative chain;
-- mark the reconciled implementation-matching Contract commit `closed`; this is the final
-  frozen Contract for that Milestone;
-- create/update Handoff only when a receiver needs one, using the accepted commit, acceptance
-  reference, applicable evidence, environment, risks, authority pointers, and next command;
-- refresh ROADMAP acceptance-scenario links to accepted evidence, Task macro states, AC
+- the target Milestone and its appropriate normative chain marked closed;
+- the reconciled implementation-matching Contract marked `closed`; this is the final frozen
+  Contract for that Milestone;
+- a Handoff only when a receiver needs one, using the closing commit, applicable evidence,
+  environment, risks, authority pointers, and next command;
+- refreshed ROADMAP acceptance-scenario links to accepted evidence, Task macro states, AC
   traceability, execution links, and commit references;
-- run final diff/link/repository checks and create the local closure commit under project policy.
+- the final diff/link/repository check results.
+
+Integrate that exact commit without creating post-acceptance closure content. If it cannot be
+integrated without changing closure content, stop and prepare a new committed closure
+candidate instead of transferring the old acceptance.
 
 Do not create an Integrator agent. Do not push, publish, deploy, or release without separate
 authorization. `release` reuses commit-bound acceptance, review, and verification evidence and

@@ -65,6 +65,8 @@ PONYTAIL_REVERSE_CONTRACT = (
 )
 GIT_ANCHOR_FILES = (
     Path("GMGN.md"),
+    Path("README.md"),
+    Path("README.zh-CN.md"),
     Path("skills/brainstorm/SKILL.md"),
     Path("skills/roadmap/SKILL.md"),
     Path("skills/write-goal/SKILL.md"),
@@ -96,6 +98,7 @@ LEGACY_HASH_ANCHOR_RULES = (
     "frozen diff/content hash for a sole writer",
     "freeze a diff/content hash",
     "return the frozen diff/content hash",
+    "a sole writer freezes a diff/content hash",
     "single writer freezes a diff/content hash",
     "单 writer 回传冻结 diff/内容哈希",
     "单 writer 冻结 diff/内容哈希",
@@ -405,7 +408,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "closed `Log.md` current snapshot and final evidence",
         "every retained Contract ID against its provider implementation",
         "Closure cannot silently rewrite the contract to match code",
-        "mark the reconciled implementation-matching Contract commit `closed`",
+        "reconciled implementation-matching Contract marked `closed`",
+        "commit the blocker-resolved final\nclosure candidate",
+        "Owner acceptance binds to that exact commit",
+        "Integrate that exact commit without creating post-acceptance closure content",
     ), "milestone 验收关账契约", errors)
     require(writing_en, (
         "design | contract | task",
@@ -470,14 +476,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "Full-length commit object IDs, diff/content hashes, and\nchecksums are not workflow anchors",
     ), "run-task Git 锚点门禁", errors)
     require(dispatch_en, (
-        "Commit the complete candidate locally before review",
-        "shortest unambiguous commit reference",
         "Never put a full-length commit object ID, diff hash, content hash, archive checksum, or artifact\nchecksum in the brief or return as a workflow anchor",
         "use an isolated worktree",
     ), "派发 Git 锚点门禁", errors)
     require(pre_merge, (
-        "complete candidate committed before review",
-        "shortest unambiguous commit reference",
         "A full-length commit object ID, diff/content hash,\n   archive checksum, or artifact checksum is not a workflow anchor",
     ), "合并前 Git 锚点门禁", errors)
     require(release, (
@@ -485,6 +487,16 @@ def validate_core_contract(errors: list[str]) -> None:
         "shortest unambiguous commit reference before tagging and the release tag after\ntagging",
         "checksum is never a workflow anchor; checksums are evidence only",
     ), "发布 Git 锚点门禁", errors)
+    require(read("README.md"), (
+        "complete candidate is committed locally",
+        "shortest unambiguous commit reference",
+        "cannot be workflow anchors",
+    ), "README Git 锚点门禁", errors)
+    require(read("README.zh-CN.md"), (
+        "评审前必须把完整候选提交到本地 Git",
+        "最短无歧义 commit",
+        "不能作为流程锚点",
+    ), "中文 README Git 锚点门禁", errors)
     for path, commit_rule in (
         (Path("skills/brainstorm/SKILL.md"), "committing the complete candidate locally"),
         (Path("skills/roadmap/SKILL.md"), "Commit the complete candidate locally"),
@@ -500,52 +512,6 @@ def validate_core_contract(errors: list[str]) -> None:
             f"{path} 候选 commit 门禁",
             errors,
         )
-    require(read("agents/author.md"), (
-        "Commit the complete candidate locally",
-        "shortest unambiguous commit\nreference",
-        "Never return a full-length\ncommit object ID, diff/content hash",
-    ), "Author Git 锚点门禁", errors)
-    require(read("agents/coder.md"), (
-        "Commit the complete candidate locally",
-        "shortest unambiguous commit reference",
-        "Never return a\nfull-length commit object ID, diff/content hash",
-    ), "Coder Git 锚点门禁", errors)
-    require(read("agents/critic.md"), (
-        "shortest unambiguous commit\nreference for the locally committed complete candidate",
-        "A full-length commit object ID, diff/content hash",
-    ), "Critic Git 锚点门禁", errors)
-    require(read("agents/reviewer.md"), (
-        "shortest unambiguous commit reference for a\nlocally committed complete candidate",
-        "A full-length commit object ID, diff/content hash",
-    ), "Reviewer Git 锚点门禁", errors)
-    require(read("agents/verifier.md"), (
-        "shortest unambiguous commit\nreference for the locally committed complete final candidate",
-        "A full-length commit object ID, diff/content hash",
-    ), "Verifier Git 锚点门禁", errors)
-    require(read(".codex/agents/author.toml"), (
-        "评审前必须把完整候选提交到本地 Git",
-        "最短无歧义 commit",
-        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
-    ), "Codex Author Git 锚点门禁", errors)
-    require(read(".codex/agents/coder.toml"), (
-        "评审前必须把完整候选提交到本地 Git",
-        "最短无歧义 commit",
-        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
-    ), "Codex Coder Git 锚点门禁", errors)
-    require(read(".codex/agents/critic.toml"), (
-        "本地已提交完整候选的最短无歧义 commit",
-        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
-    ), "Codex Critic Git 锚点门禁", errors)
-    require(read(".codex/agents/reviewer.toml"), (
-        "完整候选必须在评审前提交到本地 Git",
-        "最短无歧义 commit",
-        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
-    ), "Codex Reviewer Git 锚点门禁", errors)
-    require(read(".codex/agents/verifier.toml"), (
-        "本地已提交完整最终候选的最短无歧义 commit",
-        "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
-    ), "Codex Verifier Git 锚点门禁", errors)
-
     for path in GIT_ANCHOR_FILES:
         forbid(read(path), LEGACY_HASH_ANCHOR_RULES, f"{path} Git 锚点反向门禁", errors)
 
@@ -643,6 +609,20 @@ def validate_review_policy(errors: list[str]) -> None:
 
 
 def validate_roles(errors: list[str]) -> None:
+    markdown_commit_rules = {
+        "author": "Commit the complete candidate locally",
+        "coder": "Commit the complete candidate locally",
+        "critic": "locally committed complete candidate",
+        "reviewer": "locally committed complete candidate",
+        "verifier": "locally committed complete final candidate",
+    }
+    toml_commit_rules = {
+        "author": "评审前必须把完整候选提交到本地 Git",
+        "coder": "评审前必须把完整候选提交到本地 Git",
+        "critic": "本地已提交完整候选",
+        "reviewer": "完整候选必须在评审前提交到本地 Git",
+        "verifier": "本地已提交完整最终候选",
+    }
     for role in sorted(ROLES):
         markdown = Path("agents") / f"{role}.md"
         toml = Path(".codex/agents") / f"{role}.toml"
@@ -673,6 +653,24 @@ def validate_roles(errors: list[str]) -> None:
                 errors.append(f"{toml}: sandbox_mode 无效")
             require(text, ("prepared", "brief", "single return ends"), str(markdown), errors)
             require(instructions, ("brief", "唯一一次回传后结束"), str(toml), errors)
+            require(text, (
+                "shortest unambiguous commit",
+                "full-length commit object ID",
+                "diff/content hash",
+                "workflow anchor",
+            ), f"{markdown} Git 锚点门禁", errors)
+            require(instructions, (
+                "最短无歧义 commit",
+                "不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点",
+            ), f"{toml} Git 锚点门禁", errors)
+            require(
+                text, (markdown_commit_rules[role],),
+                f"{markdown} 候选 commit 门禁", errors,
+            )
+            require(
+                instructions, (toml_commit_rules[role],),
+                f"{toml} 候选 commit 门禁", errors,
+            )
             if role == "reviewer":
                 require(text, (
                     "deterministic local checks",
