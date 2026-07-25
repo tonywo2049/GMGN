@@ -493,7 +493,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "  invariant to fail",
         "Future possibility, speculative reuse or scale, configurability, and\n"
         "  implementation convenience are not owners",
-        "every current Goal slice is covered or explicitly excluded",
+        "every in-scope Goal slice is covered; any proposed exclusion\n"
+        "routes to `write-goal`",
         "every ROADMAP acceptance scenario traces through Goal to R/AC",
         "every AC has a clear pass/fail decision",
         "no Requirement-owned decision is\n  deferred to Design or Task",
@@ -512,6 +513,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "Some in-scope Goal slices may disappear",
         "Allow R/AC to be unowned",
         "Requirement owns the deliverable's identity and final artifact pointer",
+        "every current Goal slice is covered or explicitly excluded",
     ), "write-requirement 内容边界契约", errors)
     require(write_design, (
         "Apply the first-sufficient anti-overdesign order from GMGN §7",

@@ -459,6 +459,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "  artifact pointer",
                 "Requirement owns the deliverable's identity and final artifact pointer",
             ),
+            (
+                "every in-scope Goal slice is covered; any proposed exclusion\n"
+                "routes to `write-goal`",
+                "every current Goal slice is covered or explicitly excluded",
+            ),
         )
         for old, new in cases:
             with self.subTest(new=new):

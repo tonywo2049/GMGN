@@ -80,17 +80,18 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Require one completion check: every current Goal slice is covered or explicitly excluded;
-every ROADMAP acceptance scenario traces through Goal to R/AC; every R/AC has an upstream
-owner and passes the deletion test; every AC has a clear pass/fail decision; every number has
-an authority, change boundary, and verification method; no Requirement-owned decision is
-deferred to Design or Task; and no implementation choice, execution information, or actual
-verification result has leaked into Requirement. For creation or a semantic revision, run the
-fresh-agent writer/Critic loop using the English-only dispatch contract; tell the Critic to
-emphasize upstream consistency, acceptance quality, and deletion of any R/AC that does not
-serve a current Goal outcome. Obtain primary-orchestrator review and integrate only when
-required by workspace topology. Creation then uses **REQUIRED next skill: `write-design`**. A
-revision returns to the stage that raised it and continues through the affected path only.
+Require one completion check: every in-scope Goal slice is covered; any proposed exclusion
+routes to `write-goal`; every ROADMAP acceptance scenario traces through Goal to R/AC; every
+R/AC has an upstream owner and passes the deletion test; every AC has a clear pass/fail
+decision; every number has an authority, change boundary, and verification method; no
+Requirement-owned decision is deferred to Design or Task; and no implementation choice,
+execution information, or actual verification result has leaked into Requirement. For
+creation or a semantic revision, run the fresh-agent writer/Critic loop using the English-only
+dispatch contract; tell the Critic to emphasize upstream consistency, acceptance quality, and
+deletion of any R/AC that does not serve a current Goal outcome. Obtain primary-orchestrator
+review and integrate only when required by workspace topology. Creation then uses **REQUIRED
+next skill: `write-design`**. A revision returns to the stage that raised it and continues
+through the affected path only.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could
