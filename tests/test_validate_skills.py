@@ -135,6 +135,54 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
 
+    def test_rejects_contract_working_and_final_lifecycle_drift(self) -> None:
+        cases = (
+            (
+                "skills/write-design/SKILL.md",
+                "an `approved` working baseline for implementation",
+                "the final immutable contract before implementation",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Do not mark the working Contract `closed` during run-task",
+                "Mark the working Contract `closed` during run-task",
+            ),
+            (
+                "skills/close-milestone/SKILL.md",
+                "mark the reconciled implementation-matching Contract anchor `closed`",
+                "leave the final Contract mutable after closure",
+            ),
+            (
+                "skills/gmgn/references/en/writing-contract.md",
+                "The Coder does not edit\n"
+                "the shared Design Bundle or create a separate change-request document",
+                "The Coder must edit the shared Design Bundle and create a separate "
+                "change-request document",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+    def test_rejects_critic_deleting_required_contract(self) -> None:
+        cases = (
+            (
+                "agents/critic.md",
+                "If it does,\nthe file is required",
+                "If it does, the file may be deleted",
+            ),
+            (
+                ".codex/agents/critic.toml",
+                "边界存在时必须保留文件",
+                "边界存在时也可删除文件",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, new)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
     def test_rejects_solution_minimality_drift(self) -> None:
         cases = (
             (
@@ -228,7 +276,7 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_roadmap_acceptance_picture(self) -> None:
         self.replace(
             "skills/roadmap/SKILL.md",
-            "high-level end-to-end or integration scenarios",
+            "at least one high-level end-to-end scenario",
             "general completion notes",
         )
         result = self.run_validator()

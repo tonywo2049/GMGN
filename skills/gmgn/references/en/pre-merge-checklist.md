@@ -13,8 +13,8 @@ nature: normative
 1. **Candidate identity** — Is the content being integrated exactly the reviewed content? Use
    a frozen diff/content hash for a sole writer and the complete base-to-tip diff or ordered
    commit chain for an isolated handoff.
-2. **Scope** — Are interfaces, callers, migrations, documentation, and interacting tasks in
-   the impact boundary?
+2. **Scope** — Are applicable Contract IDs, interfaces, callers, migrations, documentation,
+   and interacting tasks in the impact boundary?
 3. **Single review barrier** — Was the one Critic/Reviewer round completed, including the
    Reviewer's prepared deterministic local checks, with every finding collected and each
    accepted blocker resolved without a second independent round?
@@ -26,8 +26,9 @@ nature: normative
    blocker-resolved final combination? Missing required evidence blocks integration.
 6. **No downgrade** — Were tests removed, assertions weakened, errors swallowed, or real paths
    bypassed?
-7. **Task/Card/Log split** — Is Task macro-only, Card the stable execution/TDD authority, and
-   Log limited to the current snapshot, material decisions, and final evidence?
+7. **Authority split** — Is Task macro-only, Card the stable execution/TDD authority, the
+   implementation conformant with the current approved Design Bundle/Contract anchor, and Log
+   limited to the current snapshot, material decisions, and final evidence?
 8. **Failure isolation** — On conflict or failure, is the previous shared baseline still clean
    and is the failure recorded in Log without expanding Task?
 9. **Overdesign** — Did R-D-T criticism apply the deletion test? When the candidate contains

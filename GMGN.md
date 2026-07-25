@@ -53,16 +53,25 @@ a delegated agent and remains the integration owner; there is no Integrator-agen
 The normal semantic chain is:
 
 ```text
-WhitePaper → ROADMAP → Goal → Requirement → Design → Task
+WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
+                                              ├─ Design.md
+                                              └─ Contract.md when a cross-unit boundary exists
 ```
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
 - ROADMAP owns Milestone order, priority, cross-Milestone dependency, and each Milestone's
-  qualitative acceptance picture.
+  qualitative acceptance picture. Every Milestone has at least one end-to-end scenario that
+  traverses its full owned outcome; add more only for independently decidable paths or
+  failure/recovery outcomes.
 - Goal owns one initiated Milestone's objective, boundary, slices, and the mapping from the
   ROADMAP acceptance picture into active scope.
 - Requirement owns requirements, constraints, and acceptance criteria (ACs).
-- Design owns the implementation structure, interfaces, data, and failure paths.
+- Design owns architecture, module responsibilities, data, composition, and failure paths.
+- A boundary between independently developed modules, tasks, or teams requires
+  `Contract.md`. It owns the shared interface semantics; an interface owned by one
+  implementation unit stays in `Design.md`. Design and Contract are accepted as one bundle at
+  one working anchor. This is the shared implementation baseline, not the final frozen
+  contract; Milestone closure freezes the implementation-matching Contract.
 - Task owns task division, AC mapping, dependencies, macro status, and execution pointers.
 
 One fact has one authority. Other documents link to it instead of copying it. Approval binds
@@ -91,11 +100,17 @@ parallel. Optimize useful parallelism, not task count. Do not invent empty wrapp
 interfaces, or new design decisions merely to create concurrency, and stop when coordination
 cost exceeds the isolation benefit.
 
+Task boundaries follow independently provable outcomes, not API count. One Contract ID may
+anchor provider, consumer, and integration tasks; one cohesive task may implement several
+Contract IDs. Provider and consumer tasks that share only an approved Contract anchor can run
+in parallel with contract doubles. A real integration task may depend on both implementations.
+
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
 
 - `execution/<card_id>/Card.md` — normative stable execution/TDD contract. It links to the
-  exact Task/Requirement/Design authority and exposes `execution_log: [Log.md](Log.md)`.
+  exact Task/Requirement/Design and applicable interface-Contract authority and exposes
+  `execution_log: [Log.md](Log.md)`.
 - `execution/<card_id>/Log.md` — descriptive execution record with a replaceable current
   snapshot, material decisions only, and one final evidence summary when closed.
 
@@ -198,6 +213,20 @@ shared baseline. It applies the complete transferable candidate, resolves judgme
 conflicts before review, and integrates only content covered by required review and
 risk-triggered evidence.
 
+All Coder lanes use the same current approved Design Bundle working anchor; they do not negotiate or edit
+shared interface authority. A Coder whose implementation evidence contradicts a Contract ID
+returns only the evidence, smallest proposed semantic delta, and affected tasks. No separate
+change-request document is created. The primary orchestrator keeps unaffected lanes running
+and classifies the return:
+
+- an internal implementation issue stays in the Card;
+- a meaning-preserving clarification gets the smallest same-batch edit and machine checks;
+- a semantic Design/Contract change pauses only its provider, consumers, integration tasks,
+  and descendants, then returns to `write-design` for one newly reviewed bundle anchor.
+
+Use the normal immutable repository anchor. Formal API versions exist only when a current
+external or coexisting-version compatibility requirement needs them.
+
 Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
 event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a
 list/status/wait polling loop. Use one `list_agents` snapshot only when a scheduling/capacity
@@ -212,6 +241,17 @@ When evidence contradicts approved meaning, route the semantic change to its own
 and pause only its impact cone. Record old and new anchors and propagate only affected tasks,
 code, tests, evidence, and state. Mechanical changes need machine checks, not semantic
 reapproval.
+
+Milestone closure proves every ROADMAP end-to-end acceptance scenario. ROADMAP defines each
+scenario qualitatively; Requirement refines it into ACs, Design and Contract map the path, and
+Card/Test provide executable evidence. Do not replace an infrastructure or research outcome
+with a fabricated browser/UI test.
+
+Closure also reconciles every retained Contract ID with provider and consumer code plus
+conformance/integration evidence. A semantic mismatch returns to `write-design`; closure never
+edits authority to excuse code. Owner acceptance marks the reconciled Contract anchor
+`closed`, which is the Milestone's final frozen contract. Later Milestones create controlled
+new anchors rather than rewriting that history.
 
 Milestone closure requires:
 
@@ -264,6 +304,9 @@ Choose the first sufficient option:
 Do not add roles, state machines, identity history, configuration, wrappers, or documents
 without a current requirement. Preserve trust-boundary validation, security, accessibility,
 and data-loss protection; simplicity is not permission to remove required safeguards.
+The same deletion test applies to `Contract.md`: it is required for a current cross-unit
+interface and omitted when one implementation unit owns the interface. Never create an empty
+contract artifact or duplicate a code-native schema in prose.
 
 Code minimality is delegated to the registered
 [Ponytail](https://github.com/DietrichGebert/ponytail) plugin rather than copied into GMGN.

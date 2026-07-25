@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 # Task.md: milestone task index
 
-<HARD-GATE>`Design.md` must exist and have independent Critic plus primary-orchestrator review. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of redefining it in Task.</HARD-GATE>
+<HARD-GATE>The Design-stage candidate—`Design.md` plus `Contract.md` when the approved Design requires a separate cross-task interface authority—must have independent Critic plus primary-orchestrator review at one anchor. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, Design, or Contract authority instead of redefining it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing contract. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -20,7 +20,7 @@ task`, `nature: normative`, and this parser-facing table header:
 `Task.md` is a compact Milestone index. It owns only:
 
 - stable task IDs and one-line independently decidable outcomes;
-- Requirement AC and Design anchors;
+- Requirement AC, Design, and applicable Contract anchors;
 - the task dependency DAG;
 - current macro status;
 - the per-card execution pointer, initially `none`;
@@ -42,7 +42,9 @@ invent empty wrappers, fake interfaces, or new design decisions merely to increa
 
 - Split at an independent proof boundary, not by file count, chronology, or a final product
   qualification. One task has one primary semantic owner and one independently decidable
-  result; one AC may map to several tasks.
+  result; one AC may map to several tasks. API count is not a task boundary: one Contract ID
+  may support provider, consumer, and integration tasks, while one cohesive task may implement
+  several related Contract IDs.
 - Separate independently verifiable interface/schema enablement, implementation,
   cross-module integration, real-environment or E2E qualification, production eligibility,
   and Milestone closure.
@@ -57,13 +59,17 @@ invent empty wrappers, fake interfaces, or new design decisions merely to increa
   future hardening, or repository-wide completeness part of a task unless the approved AC
   requires them.
 - `prerequisite` forms an acyclic DAG. Add only real data, interface, or authority
-  dependencies. Order interface/schema work before consumers; do not serialize independent
-  work for convenience.
+  dependencies. An already approved Contract anchor lets provider and consumer implementation
+  proceed in parallel; do not serialize them merely because they share that contract. A real
+  integration task may depend on both implementations.
 - An external hard prerequisite may point only to an already planned upstream Milestone and
   never authorizes executing it. A current or upstream Milestone must not depend on downstream
   implementation or evidence.
 - Keep an explicit `| AC | task |` mapping and cover every in-scope AC. A task may appear in
   several rows and an AC may map to several tasks.
+- Put the applicable AC, Design decision/module, and Contract IDs or bundle anchor in `spec
+  anchor`. Do not copy interface semantics into Task or create a task whose outcome is merely
+  to decide a contract already owned by the Design stage.
 - Apply the deletion test to every task: name the current AC and approved Design element that
   would fail without it. Remove a task when all current ACs remain satisfied without its
   outcome; a possible future need is not a task owner.
@@ -78,11 +84,12 @@ survives only for speculative reuse, hardening, or coordination. Do not freeze w
 After the owner confirms the Task execution set, `run-task` materializes exactly two files for
 each selected task before any Coder dispatch:
 
-1. `execution/<card_id>/Card.md` — normative stable execution contract: Task/AC/Design
-   anchors, outcome, completion criterion, the TDD contract, and an `execution_log` link to
-   its sibling `Log.md`. Add scope exclusions or an allowed path/write set only when they
-   materially bound a delegated writer. Add conflict domains or runtime locks only for a real
-   shared-resource collision. Link the Task row instead of copying its dependency DAG.
+1. `execution/<card_id>/Card.md` — normative stable execution contract: Task/AC/Design and
+   applicable Contract anchors, outcome, completion criterion, the TDD contract, and an
+   `execution_log` link to its sibling `Log.md`. Add scope exclusions or an allowed path/write
+   set only when they materially bound a delegated writer. Add conflict domains or runtime
+   locks only for a real shared-resource collision. Link the Task row instead of copying its
+   dependency DAG.
 2. `execution/<card_id>/Log.md` — descriptive current runtime snapshot, material decisions
    only, and one final evidence summary when closed. Routine dispatch, waiting, unchanged
    status, and successful intermediate checks do not become Log entries. Its `latest_event`
@@ -96,9 +103,10 @@ executable path, and the final verification/evidence destination. Do not create 
 independent requirement for them.
 
 `Card.md` may refine implementation mechanics but cannot add scope, dependencies, acceptance
-meaning, or design decisions absent from approved authority. If materialization reveals such a
-gap, stop that task and return to the owning authority. After a Card becomes active, discovery
-does not expand it; another independently testable outcome requires a separately accepted task.
+meaning, design decisions, or cross-task interface semantics absent from approved authority.
+If materialization reveals such a gap, stop that task and return to the owning authority. After
+a Card becomes active, discovery does not expand it; another independently testable outcome
+requires a separately accepted task.
 
 ## Writer and review loop
 
@@ -122,7 +130,7 @@ use machine checks without Critic.
 ## Controlled revision and legacy migration
 
 - Revise only affected task rows, AC mappings, dependencies, and execution pointers. Pause
-  active tasks whose authority changed; do not reopen unrelated tasks.
+  active tasks whose Design or Contract authority changed; do not reopen unrelated tasks.
 - When migrating an oversized legacy `Task.md`, anchor the old version when possible, retain
   only the current macro projection, and link historical detail rather than copying it.
 - Existing per-card execution history may be summarized into the new `Log.md` only when its

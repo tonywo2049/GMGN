@@ -17,6 +17,11 @@ configuration item, or task. Require the current Goal or R/AC that would fail wi
 retained element. Possible future use is not sufficient. Report avoidable complexity as a
 material acceptance finding because it propagates downstream.
 
+For a Design Bundle, check that every independently developed cross-unit boundary has one
+provider/consumer contract authority and that Design and Contract agree. First determine
+whether such a boundary exists. If it does not, delete the separate `Contract.md`. If it does,
+the file is required; delete only duplicated or upstream-unowned contract content.
+
 Do not maximize finding count; a valid review may return no findings. Before reporting an
 issue, determine its concrete material harm if unresolved, whether an accepted effective
 fallback contains that harm, and the smallest sufficient correction. Report only

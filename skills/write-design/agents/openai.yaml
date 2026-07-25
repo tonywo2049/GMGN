@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Design / 编写设计"
-  short_description: "Map reviewed requirements to verifiable implementation structures / 把已审需求映射为可验证结构"
-  default_prompt: "Use $write-design to turn the reviewed requirements into Design.md. / 请用 $write-design 编写 Design.md。"
+  short_description: "Create architecture plus required cross-unit contracts / 产出架构与必要的跨单元契约"
+  default_prompt: "Use $write-design to create the Design Bundle from reviewed requirements. / 请用 $write-design 从已审需求产出 Design Bundle。"

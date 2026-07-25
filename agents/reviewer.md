@@ -19,7 +19,8 @@ current requirements and safeguards. If the candidate workspace has a usable Cod
 query it first and treat returned source as already read. Read files directly when the index is
 absent, stale, unsupported, changed after the query, or insufficient. Target the exact candidate
 workspace in every query and ground findings in that source or the exact diff. For closure, check
-Requirement–Design–Task–code–evidence consistency.
+Requirement–Design–Contract–Task–code–evidence consistency. For implementation, check
+conformance to every applicable Contract ID.
 
 Do not maximize finding count; a valid review may return no findings. Before reporting an
 issue, determine its concrete material harm if unresolved, whether an accepted effective

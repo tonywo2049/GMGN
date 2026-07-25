@@ -60,6 +60,19 @@ GMGN does not ship translated normative mirrors or document-layout templates. Ea
 defines required content and self-checks; the Author chooses the structure and may write
 project artifacts in the active locale.
 
+Every ROADMAP Milestone has at least one qualitative end-to-end acceptance scenario spanning
+its full owned outcome. It need not be a browser flow: infrastructure may prove a real
+input-to-observable-output path, and research may prove question-to-decision evidence.
+
+The Design stage always produces `Design.md`. A boundary between independently developed
+modules, tasks, or teams also requires `Contract.md`; without such a boundary, the interface
+stays in Design and no empty contract file is created. Both files form one reviewed Design
+Bundle. Tasks split at independently provable outcomes rather than API count and anchor the
+applicable AC, Design, and Contract authority.
+The Design-stage Contract is an approved working baseline. Coding evidence may revise it
+through `write-design`; Milestone closure reconciles it with provider/consumer code and freezes
+the accepted implementation-matching anchor as `closed`.
+
 ## Supported surfaces
 
 | Capability | Codex | Claude Code |
@@ -96,6 +109,12 @@ isolated workspaces; a sole writer may use the current workspace. Workspace, HEA
 candidate checks run only at a real handoff or material state change. A sole writer freezes a
 diff/content hash; an isolated handoff transfers the complete candidate. Before integration,
 GMGN confirms that the integrated content is the reviewed content.
+
+All Coder lanes use the same Design Bundle anchor. A Coder does not edit or negotiate shared
+interface authority; conflicting implementation evidence returns as a blocker with the
+evidence, smallest proposed delta, and affected tasks. Internal implementation issues stay in
+the Card, meaning-preserving clarifications receive machine checks, and semantic
+Design/Contract changes pause only the impact cone for one `write-design` revision.
 
 Discovery does not expand an active Card. A newly found issue stays in the task only when it
 blocks the Card outcome or a prepared required check, has no accepted effective fallback, and
@@ -248,13 +267,13 @@ claude plugin marketplace remove GMGN --scope user
 | Request | Skill | Main output |
 |---|---|---|
 | “I have an idea; research whether it is viable.” | `brainstorm` | WhitePaper |
-| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with Milestone acceptance pictures |
+| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with at least one end-to-end acceptance scenario per Milestone |
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
-| “Produce the technical design.” | `write-design` | Design.md |
+| “Produce the technical design.” | `write-design` | Design.md plus required Contract.md for cross-unit boundaries |
 | “Break the design into task cards.” | `write-task` | Task.md |
 | “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review, and any required verification evidence |
-| “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, closure record |
+| “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, final Contract freeze, closure record |
 | “Publish the accepted version / retry its release.” | `release` | Reused acceptance evidence, deterministic artifact, tag and release |
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 

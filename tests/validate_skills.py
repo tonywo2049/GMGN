@@ -142,12 +142,15 @@ def validate_core_contract(errors: list[str]) -> None:
     write_task = read(CORE_FILES[1])
     run_task = read(CORE_FILES[2])
     dispatch_en = read(CORE_FILES[3])
+    writing_en = read("skills/gmgn/references/en/writing-contract.md")
     roadmap = read("skills/roadmap/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
     write_design = read("skills/write-design/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
     release = read("skills/release/SKILL.md")
     pre_merge = read("skills/gmgn/references/en/pre-merge-checklist.md")
+    critic_role = read("agents/critic.md")
+    codex_critic_role = read(".codex/agents/critic.toml")
 
     for text, label in (
         (methodology, "GMGN 根规范全局调度契约"),
@@ -170,6 +173,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "Anything that can be deleted without losing a current accepted outcome is overdesign",
         "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
+        "Every Milestone has at least one end-to-end scenario",
+        "Task boundaries follow independently provable outcomes, not API count",
+        "All Coder lanes use the same current approved Design Bundle working anchor",
+        "Milestone's final frozen contract",
     ), "GMGN 有效兜底边界", errors)
 
     require(gmgn, (
@@ -203,6 +210,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
         "Missing Ponytail blocks that code task",
+        "requires a separate `Contract.md`",
+        "same current approved Design Bundle working anchor",
+        "evidence, smallest proposed delta, and affected tasks",
+        "`close-milestone` freezes the implementation-matching\nContract as `closed`",
     ), "gmgn 路由契约", errors)
     require(write_task, (
         TASK_HEADER,
@@ -224,6 +235,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Critic must try deleting or merging each affected task",
         "discovery\ndoes not expand it",
         "another independently testable outcome requires a separately accepted task",
+        "API count is not a task boundary",
+        "one Contract ID\n  may support provider, consumer, and integration tasks",
+        "applicable Contract anchors",
     ), "write-task 紧凑索引契约", errors)
     require(run_task, (
         "`execution/<card_id>/Card.md` first",
@@ -278,6 +292,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "loads `ponytail:ponytail` through normal discovery at `full`",
         "Reviewer loads `ponytail:ponytail-review` through normal discovery",
         "code minimality is an explicit acceptance condition",
+        "one contract blocker containing only the observed\nevidence, the smallest proposed semantic delta, and affected tasks",
+        "do not create a separate change-request document",
+        "meaning-preserving clarification",
+        "Do not mark the working Contract `closed` during run-task",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
@@ -315,7 +333,9 @@ def validate_core_contract(errors: list[str]) -> None:
     ), "英文派发契约", errors)
     require(roadmap, (
         "Milestone acceptance picture",
-        "high-level end-to-end or integration scenarios",
+        "Every Milestone acceptance picture names at least one high-level end-to-end scenario",
+        "traverses the full outcome owned by that Milestone",
+        "If no full owned path can be stated",
         "must be independently decidable from work owned by that Milestone",
         "Do not prescribe a test framework",
         "Requirement refines scenarios into ACs",
@@ -333,13 +353,39 @@ def validate_core_contract(errors: list[str]) -> None:
         "For every new module,\n  interface, state, configuration item, dependency, or failure mechanism",
         "Future reuse or possible scale is not sufficient",
         "deletion-first overdesign check against the\nsmallest sufficient design",
+        "`Design.md` plus required `Contract.md`",
+        "The contract itself is mandatory for every such boundary",
+        "an `approved` working baseline for implementation",
+        "Do not mark the Design-stage Contract `closed` here",
     ), "design 最简方案契约", errors)
     require(close_milestone, (
         "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",
         "every ROADMAP acceptance scenario",
         "ROADMAP acceptance-scenario links to accepted evidence",
         "closed `Log.md` current snapshot and final evidence",
+        "every retained Contract ID against its provider implementation",
+        "Closure cannot silently rewrite the contract to match code",
+        "mark the reconciled implementation-matching Contract anchor `closed`",
     ), "milestone 验收关账契约", errors)
+    require(writing_en, (
+        "design | contract | task",
+        "`approved` means the current shared working baseline",
+        "one normative `Contract.md` is\nrequired",
+        "outcomes, not API count",
+        "The Coder does not edit\nthe shared Design Bundle or create a separate change-request document",
+        "`close-milestone` alone marks the final\nimplementation-matching Contract anchor `closed`",
+    ), "英文 Design/Contract 写作契约", errors)
+    require(critic_role, (
+        "First determine\nwhether such a boundary exists",
+        "If it does not, delete the separate `Contract.md`",
+        "If it does,\nthe file is required",
+        "delete only duplicated or upstream-unowned contract content",
+    ), "Critic Contract 强制边界", errors)
+    require(codex_critic_role, (
+        "不存在才删除整个 Contract.md",
+        "边界存在时必须保留文件",
+        "只删除重复或无上游依据的契约内容",
+    ), "Codex Critic Contract 强制边界", errors)
     require(pre_merge, (
         "`not-required` or `required:<trigger>`",
         "Missing required evidence blocks integration",

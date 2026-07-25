@@ -34,7 +34,7 @@ nature: normative
 
 - `locale`: `en | zh-CN`
 - `status`: `draft | pending-approval | approved | closed`
-- `type`: `whitepaper | roadmap | goal | requirement | design | task | task-card |
+- `type`: `whitepaper | roadmap | goal | requirement | design | contract | task | task-card |
   execution-log | research | decision | retrospective | handoff`
 - `nature`: `normative | descriptive`
 
@@ -63,10 +63,16 @@ on the shared baseline. The Reviewer normally supplies deterministic local execu
 Any `required:<trigger>` Verifier evidence must be bound to the blocker-resolved final
 candidate.
 
+For an interface `Contract.md`, `approved` means the current shared working baseline that all
+affected Coder lanes must follow. Coding evidence may replace it through a controlled
+`write-design` revision at a new approved anchor. `closed` means Milestone closure has
+reconciled the contract with provider and consumer implementations plus evidence and the owner
+has accepted that final frozen anchor.
+
 Approval and acceptance bind an immutable commit, content hash, or equivalent version anchor.
 Editing a file does not move that decision. WhitePaper and ROADMAP need owner approval;
-Goal, Requirement, Design, and Task need independent Critic review plus primary-orchestrator
-acceptance; Milestone closure needs owner acceptance.
+Goal, Requirement, the whole Design-stage candidate, and Task need independent Critic review
+plus primary-orchestrator acceptance; Milestone closure needs owner acceptance.
 
 Each semantic change batch receives at most one Critic round. When accepted findings are fixed
 after that review, the final accepted anchor records the reviewed anchor, complete findings and
@@ -83,7 +89,7 @@ Change only the authority that owns the meaning:
 | ROADMAP | `roadmap` maintenance |
 | Goal | `write-goal` revision |
 | Requirement or AC | `write-requirement` revision |
-| Design | `write-design` revision |
+| Design or cross-task interface contract | `write-design` revision |
 | Task | `write-task` revision |
 
 A semantic change can alter scope, obligation, acceptance meaning, design intent, or execution
@@ -99,12 +105,13 @@ into every affected document.
 ## 4. Stable names and Task surface
 
 - Project: `WhitePaper.md`, `ROADMAP.md`
-- Milestone: `Goal.md`, `Requirement.md`, `Design.md`, `Task.md`
+- Milestone: `Goal.md`, `Requirement.md`, `Design.md`, optional `Contract.md`, `Task.md`
 - Card: `execution/<card_id>/Card.md`
 - Runtime record: `execution/<card_id>/Log.md`
 - Milestones: `M1`, `M2`, ...
 - Requirements: `R1`, `R2`, ...
 - ACs: `R1-AC1`, `R1-AC2`, ...
+- Cross-task contracts: `C1`, `C2`, ...
 - Tasks: `M1-T1`, `M1-T2`, ...; a single-Milestone corpus may use `T1`
 
 Never renumber an ID after downstream references exist. Keep a tombstone or decision pointer
@@ -124,14 +131,42 @@ Milestone-level pointers needed to schedule and integrate. It does not contain T
 commands, write sets, locks, blockers, candidate anchors, evidence, or progress history.
 Replace current values; do not append execution narrative.
 
-## 5. Card and Log
+## 5. Design Bundle and interface contracts
+
+`Design.md` is always the Design-stage architecture authority. When current work crosses
+independently developed module, task, or team boundaries, one normative `Contract.md` is
+required so those implementations use the same interface authority. Keep an interface owned
+by one implementation unit in `Design.md`; never create an empty contract artifact. The
+contract is mandatory at a cross-unit boundary; only the separate file is conditional on that
+boundary existing.
+
+When present, `Contract.md` and `Design.md` form one Design Bundle accepted at the same
+immutable working anchor. `Contract.md` owns stable Contract IDs, provider/consumer boundaries,
+input/output semantics, invariants, observable failures, and only the compatibility or caller
+obligations required by current R/ACs and the real call path. Link code-native interfaces,
+OpenAPI, Protobuf, JSON Schema, event schemas, commands, or file formats instead of duplicating
+them in Markdown. The contract does not imply HTTP or a network service.
+
+Task division remains many-to-many with Contract IDs. Split tasks at independently provable
+outcomes, not API count: one Contract ID may anchor provider, consumer, and integration tasks,
+and one cohesive task may implement several Contract IDs. The `spec anchor` cell links the
+applicable AC, Design decision/module, and Contract IDs or bundle anchor without copying their
+meaning.
+
+The normal immutable commit or content anchor identifies the accepted Design Bundle. Add
+formal API versions only when a current external or coexisting-version compatibility
+requirement needs them; do not create a parallel `v1`/`v2` workflow. Design acceptance makes
+this an approved implementation baseline. `close-milestone` alone marks the final
+implementation-matching Contract anchor `closed`.
+
+## 6. Card and Log
 
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
 
 - `Card.md` is normative. Its frontmatter uses `type: task-card`, links upstream to the exact
   Task row and downstream to `Log.md`. Its minimum stable contract is outcome, Requirement and
-  Design anchors, completion criterion, TDD contract, and
+  Design plus applicable interface-Contract anchors, completion criterion, TDD contract, and
   `execution_log: [Log.md](Log.md)`.
 - `Log.md` is descriptive. Its frontmatter uses `type: execution-log` and links upstream to
   Card. It contains a replaceable current snapshot, material decisions, and one final evidence
@@ -161,9 +196,12 @@ create a project-wide execution log or separate Verification, State, per-role br
 file without an independent need.
 
 Card may refine implementation mechanics but cannot add scope, dependency, acceptance
-meaning, or design decisions absent from approved authority. Log never owns normative meaning.
+meaning, design decisions, or cross-task interface semantics absent from approved authority.
+Log never owns normative meaning. When coding evidence challenges an interface contract, Log
+records only the evidence, smallest proposed delta, and affected tasks. The Coder does not edit
+the shared Design Bundle or create a separate change-request document.
 
-## 6. Content, not a template
+## 7. Content, not a template
 
 GMGN does not prescribe section names, order, or prose shape beyond the parser-facing fields
 above. The stage Skill defines what an artifact must answer and self-check. The primary

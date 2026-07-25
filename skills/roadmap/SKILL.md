@@ -1,6 +1,6 @@
 ---
 name: roadmap
-description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, priority, dependency order, qualitative Milestone acceptance pictures, closure backfill, or TODO allocation. 白皮书已批后规划里程碑、优先级、依赖和定性验收图景；也用于 ROADMAP 关账回填、新想法分配和里程碑重排。"
+description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, priority, dependency order, at least one end-to-end acceptance scenario per Milestone, closure backfill, or TODO allocation. 白皮书已批后规划里程碑、依赖及每个 Milestone 至少一个端到端验收场景。"
 ---
 
 # ROADMAP: single sequencing authority
@@ -18,12 +18,17 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 - Restate only the WhitePaper boundary and invariants needed for sequencing.
 - Define ordered Milestones with one qualitative objective, one **Milestone acceptance
   picture**, dependencies, and work state `not-started`.
-- The acceptance picture names one or more high-level end-to-end or integration scenarios.
+- Every Milestone acceptance picture names at least one high-level end-to-end scenario that
+  traverses the full outcome owned by that Milestone. Add more only for independently
+  decidable main paths, permission boundaries, or failure/recovery outcomes.
   Each scenario has a stable Markdown anchor and states the starting situation, actor or
   system action, observable outcome, and any decision-relevant failure or recovery outcome.
 - Every acceptance scenario must be independently decidable from work owned by that Milestone.
   An infrastructure Milestone may use a real input → processing → persistence/recovery →
-  observable output path; do not fabricate a user-interface E2E.
+  observable output path; a research-only Milestone may use question → method → result →
+  decision evidence. Do not fabricate a user-interface E2E.
+- If no full owned path can be stated, the Milestone is not independently acceptable: merge it
+  with the consumer that makes its outcome observable or revise its boundary.
 - Do not prescribe a test framework, command, test file, fixture, selector, or exact numeric
   threshold in ROADMAP. Requirement refines scenarios into ACs; Design and Card own executable
   verification details.
@@ -90,7 +95,8 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
 English-only dispatch contract, present remaining material risks or that none are known,
 obtain owner approval with a version anchor, and integrate only when required by workspace
-topology. A mechanical maintenance batch needs machine checks but no
+topology. Before approval, confirm every Milestone has at least one full-owned-outcome
+end-to-end scenario. A mechanical maintenance batch needs machine checks but no
 new approval. When the owner explicitly starts a target Milestone, **REQUIRED next skill:
 `write-goal`**. After a revision, return to the stage that raised it and continue only the
 affected path.

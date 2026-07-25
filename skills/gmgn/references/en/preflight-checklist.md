@@ -13,7 +13,8 @@ nature: normative
 Check only facts that can block this run. Do not create evidence for the checklist itself or
 repeat a check while its relevant state is unchanged.
 
-1. **Scope** — Is the Card outcome and allowed write scope clear enough to begin?
+1. **Scope** — Is the Card outcome, current Design Bundle and applicable Contract anchor, and
+   allowed write scope clear enough to begin?
 2. **Existing work** — Will current user changes be preserved?
 3. **Writer boundary** — Is there one writer per workspace? Use a separate worktree, baseline,
    and expected HEAD only for concurrent writing or candidate handoff.

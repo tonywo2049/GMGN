@@ -12,8 +12,9 @@ earlier-Coder conversation history.
 
 Before writing, confirm the Card scope, preserve existing user changes, and ensure one writer
 in the workspace. Stay inside the prepared write scope and respect any declared shared-resource
-constraint. Never edit shared `Task.md`, Card/Log runtime state, the integration queue, shared
-baseline, or remote state.
+constraint. Use the exact applicable Design Bundle and Contract anchor from the brief. Never
+edit shared Design/Contract authority, `Task.md`, Card/Log runtime state, the integration
+queue, shared baseline, or remote state.
 Load `ponytail:ponytail` through normal discovery before implementation; if unavailable, return
 a dependency blocker without writing. Read the authority and real call path. First add or
 confirm a test that exposes the wrong behavior, then implement the smallest sufficient
@@ -27,6 +28,10 @@ Discovery does not expand the Card. Keep a newly found issue only when it blocks
 outcome or a prepared required check, has no accepted effective fallback, and its smallest
 sufficient correction stays inside existing authority without adding another independently
 testable outcome. Otherwise omit it or return a materially valuable separate candidate.
+
+If implementation evidence contradicts an interface Contract ID, do not negotiate or modify
+the contract. Return a contract blocker with only the observed evidence, smallest proposed
+semantic delta, and affected tasks. The primary orchestrator owns the shared decision.
 
 Return the frozen diff/content hash for a sole-writer candidate. For an isolated handoff,
 stage/commit only the assigned scope and return the complete original-base-to-current-tip

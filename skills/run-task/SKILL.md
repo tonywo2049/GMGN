@@ -5,7 +5,7 @@ description: "Use when one or more approved Task.md rows are confirmed: material
 
 # Run confirmed task cards
 
-<HARD-GATE>Every dispatched task must exist in an independently reviewed and primary-orchestrator-accepted `Task.md`, belong to the confirmed `target_milestone_id` execution set, and have valid upstream authority. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
+<HARD-GATE>Every dispatched task must exist in an independently reviewed and primary-orchestrator-accepted `Task.md`, belong to the confirmed `target_milestone_id` execution set, and have valid Requirement plus Design-stage authority, including the applicable `Contract.md` anchor when one exists. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
 
 The primary orchestrator owns scheduling, adjudication, shared state, integration, Task status,
 and per-card execution documents. It may be the Coder for one task only when no useful
@@ -18,11 +18,11 @@ Before the first Coder dispatch, the primary orchestrator creates exactly two fi
 confirmed task selected for this run:
 
 1. `execution/<card_id>/Card.md` first. It is normative and contains the stable task execution
-   contract: exact Task/Requirement/Design anchors, outcome, completion criterion, TDD
-   contract, and `execution_log: [Log.md](Log.md)`. Add scope exclusions or an allowed
-   path/write set only when they materially bound a delegated writer. Add conflict domains or
-   runtime locks only for a real shared-resource collision. Do not copy the Task dependency
-   DAG into Card.
+   contract: exact Task/Requirement/Design and applicable interface-Contract anchors, outcome,
+   completion criterion, TDD contract, and `execution_log: [Log.md](Log.md)`. Add scope
+   exclusions or an allowed path/write set only when they materially bound a delegated writer.
+   Add conflict domains or runtime locks only for a real shared-resource collision. Do not copy
+   the Task dependency DAG into Card.
 2. `execution/<card_id>/Log.md` second. It is descriptive and contains a replaceable current
    snapshot—status, current candidate when one exists, next action, and only an active blocker
    or material workspace fact—followed by material decisions only. On closure it contains one
@@ -36,9 +36,10 @@ confirmed task selected for this run:
 
 The TDD contract states the RED test or test location, the wrong behavior it discriminates,
 expected GREEN behavior, replay command or executable path, and final verification/evidence
-destination. It is an implementation refinement of approved authority, not permission to add
-scope. An unresolved semantic gap returns to `write-task`, `write-design`, or the appropriate
-upstream skill.
+destination. When a cross-task Contract ID applies, include the smallest provider or consumer
+conformance check that proves the Card's side of the boundary. This is an implementation
+refinement of approved authority, not permission to add scope. An unresolved semantic gap
+returns to `write-task`, `write-design`, or the appropriate upstream skill.
 
 Do not create `Verification.md`, `State.md`, a per-role Handoff, or one project-wide execution
 log. On retries, start from the current snapshot and only the material decisions relevant to
@@ -59,6 +60,11 @@ Concurrency is the minimum of platform capacity, ready tasks, available writer w
 any real exclusive-resource capacity; never hard-code a count. Prefer dependency topology, then stable
 `card_id` order. A blocked lane does not stop unrelated lanes.
 
+The current approved interface contract is a shared working authority, not an implementation
+prerequisite or a final frozen artifact. Provider and consumer tasks that share only that
+Contract anchor may run in parallel with contract doubles; a real integration task may depend
+on their integrated implementations.
+
 If a task still contains separable responsibilities or cannot be independently tested, pause
 it and its descendants and return it to `write-task`; a Coder cannot split authority ad hoc.
 
@@ -71,7 +77,8 @@ creating it, prepare a complete brief containing:
 - authority and scope, plus immutable baseline/candidate anchors only when they already exist
   and are needed for handoff, review, or integration;
 - exact workspace, allowed write scope, permissions, and prohibitions;
-- only the required Card/current Log context and relevant accepted findings or failures;
+- only the required Card/current Log context, exact applicable interface-Contract anchor, and
+  relevant accepted findings or failures;
 - checks to run and evidence required for return.
 
 The brief may name registered skills or available tools required for the task. The agent may
@@ -110,16 +117,22 @@ workspaces. Initialization failure falls back to targeted source reads and does 
 task. Do not repeat an unchanged check or create evidence for the check itself.
 
 A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
-`Task.md`, Card/Log runtime state, the integration queue, or remote state. It first establishes
-a discriminating RED test, loads `ponytail:ponytail` through normal discovery at `full`,
-implements the smallest sufficient change without removing required safeguards, and runs the
-Card checks.
+Design/Contract authority, `Task.md`, Card/Log runtime state, the integration queue, or remote
+state. It first establishes a discriminating RED test, loads `ponytail:ponytail` through normal
+discovery at `full`, implements the smallest sufficient change without removing required
+safeguards, and runs the Card checks.
 Discovery does not expand an active Card. A newly found issue belongs to it only when leaving
 the issue unresolved prevents the Card outcome or a prepared required check, no accepted
 effective fallback contains the impact, and the smallest sufficient correction stays inside
 existing authority without adding another independently testable outcome. Otherwise omit a
 low-value issue, return a materially valuable separate candidate to the primary orchestrator,
 or route an authority change upstream; do not keep the Card open.
+
+If implementation evidence contradicts an applicable interface contract, the Coder does not
+negotiate or edit that authority. It returns one contract blocker containing only the observed
+evidence, the smallest proposed semantic delta, and affected tasks. This existing Log decision
+is sufficient; do not create a separate change-request document. Several Coders may provide
+evidence, but the primary orchestrator remains the one contract authority.
 
 For review, a sole writer freezes its exact diff or content hash. An isolated Coder handoff
 returns changed files, commands/results, deviations, material unresolved risks, and the
@@ -187,8 +200,9 @@ violates it.
 For a candidate containing implementation or test-code changes, the Reviewer loads
 `ponytail:ponytail-review` through normal discovery and applies it inside this same review round
 alongside correctness, regression, safety, data, and acceptance review.
-The Reviewer also runs the prepared deterministic local targeted, negative, integration, and project
-checks that fit its environment. Add exploratory checks only for a concrete risk. It returns
+The Reviewer also runs the prepared deterministic local targeted, negative, integration, and
+project checks that fit its environment and checks conformance to every applicable Contract
+ID. Add exploratory checks only for a concrete risk. It returns
 exact commands, environment, exit codes,
 limitations, and side effects together with its findings. A skipped or unavailable required
 Reviewer command is not a pass. If no accepted blocker changes the candidate, this execution
@@ -251,9 +265,22 @@ explicitly authorized.
 
 ## Upstream change and exit
 
-When evidence contradicts approved authority, pause only the affected task and descendants,
-record the blocking decision in Log, and route the semantic change to its owner. Resume with
-fresh agents only after the new authority anchor has the required review or approval.
+When evidence challenges an interface contract, the primary orchestrator classifies it before
+changing shared authority:
+
+- an internal implementation issue stays in the Card and does not change Contract;
+- a meaning-preserving clarification uses the smallest same-batch Contract edit, affected
+  pointer refresh, and machine checks;
+- a semantic Design/Contract change pauses only affected providers, consumers, integration
+  tasks, and descendants, records the blocker in Log, and returns to `write-design`.
+
+The Design revision produces one newly reviewed bundle anchor. Refresh only affected Task/Card
+anchors and tests, then resume with fresh Coders; unrelated lanes continue. Use the normal
+immutable repository anchor rather than a parallel `v1`/`v2` workflow unless a current
+external or coexisting-version requirement needs formal API versions. Any other evidence that
+contradicts approved authority follows the same impact-cone rule and routes to its owner.
+Do not mark the working Contract `closed` during run-task; `close-milestone` performs the final
+implementation-to-contract reconciliation and freeze.
 
 Remain in `run-task` while a confirmed task can become ready or a lane/integration entry is
 active. When every target-Milestone task is closed on one shared baseline and AC traceability

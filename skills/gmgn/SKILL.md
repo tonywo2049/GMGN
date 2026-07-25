@@ -22,15 +22,16 @@ use the active project locale.
 | Approved WhitePaper; ROADMAP absent or changing | `roadmap` |
 | Owner starts a `not-started` milestone | `write-goal` |
 | Goal exists; Requirement absent or changing | `write-requirement` |
-| Requirement reviewed; Design absent or changing | `write-design` |
-| Design reviewed; Task absent or changing | `write-task` |
+| Requirement reviewed; Design-stage candidate absent or changing | `write-design` |
+| Design-stage candidate reviewed; Task absent or changing | `write-task` |
 | Confirmed Task rows can run or a target-Milestone lane remains active | `run-task` |
 | Every target-Milestone task is closed on one baseline but closure is not accepted | `close-milestone` |
 | An immutable candidate is accepted and distribution is requested | `release` |
 
 From `write-goal` onward, record `target_milestone_id` and the available Goal, Requirement,
-Design, and Task anchors. A cross-Milestone link gives context, not execution authority. If the
-owner authorizes several Milestones, keep separate execution sets and closure decisions.
+Design, applicable interface-Contract, and Task anchors. A cross-Milestone link gives context,
+not execution authority. If the owner authorizes several Milestones, keep separate execution
+sets and closure decisions.
 
 ## Roles and fresh-agent dispatch
 
@@ -98,6 +99,15 @@ attempts deletion, reuse, native behavior, or a direct solution and treats avoid
 as a material acceptance finding because it propagates downstream. A possible future need is
 not an owner.
 
+`Design.md` is always the Design-stage authority. A current boundary between independently
+developed modules, tasks, or teams requires a separate `Contract.md`; otherwise keep the
+interface in Design. The contract is mandatory at such a boundary, while the separate file is
+conditional on the boundary existing. When present, Design and Contract form one reviewed
+bundle at one immutable working anchor. Design acceptance makes it the shared implementation
+baseline, not the final frozen contract. `close-milestone` freezes the implementation-matching
+Contract as `closed`. Do not invent a parallel API-version workflow unless a current
+compatibility requirement needs coexisting versions.
+
 Code minimality uses the separately installed
 [Ponytail](https://github.com/DietrichGebert/ponytail) plugin. Every run-task Coder brief
 requires `ponytail:ponytail` at `full`. A run-task Reviewer brief requires
@@ -143,6 +153,13 @@ independently testable outcome. Otherwise omit it, present a materially valuable
 candidate, or route changed authority upstream. Close the task as soon as the Card outcome,
 prepared checks, accepted blockers, and any required verification are satisfied.
 
+All Coder lanes use the same current approved Design Bundle working anchor. A Coder cannot edit shared
+interface authority; when implementation evidence contradicts it, the Coder returns the
+evidence, smallest proposed delta, and affected tasks. The primary orchestrator keeps
+unaffected lanes running, classifies a meaning-preserving clarification for same-batch machine
+checks, and routes a semantic Design/Contract change through `write-design` for one new bundle
+anchor and its required Critic round.
+
 Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
 primary orchestrator checks their resolution and runs affected machine checks. Dispatch a
 fresh Verifier on the resulting final candidate only for the exceptional risk triggers above.
@@ -173,7 +190,7 @@ Route a semantic change to the single authority that owns it:
 | ROADMAP sequencing, Milestone allocation, dependency, or qualitative acceptance picture | `roadmap` maintenance |
 | Goal objective, boundary, slice, non-goal, or acceptance-scenario mapping | `write-goal` revision |
 | Requirement, constraint, parameter, or AC | `write-requirement` revision |
-| Design structure, interface, data, or failure path | `write-design` revision |
+| Design structure, cross-task interface contract, data, or failure path | `write-design` revision |
 | Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |
 
 Start from the approved anchor, record the semantic delta and impact cone, and update only

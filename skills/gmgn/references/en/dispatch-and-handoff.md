@@ -62,14 +62,15 @@ only explain an existing brief fact; a new objective or changed candidate needs 
 new agent. Do not put credentials, telemetry instructions, or unrelated project history in a
 brief.
 
-For a run-task Coder, the exact `Card.md`, current `Log.md` snapshot, and authority anchors are
-the static execution input. Attach a commit-bound DocStar brief when available and verified
-against the exact baseline. It is an index, not authority. Follow omitted pointers or use
-targeted reads when needed; do not ingest all Task or Log history by default. When the assigned
-workspace has a usable CodeGraph index, use it first for source location and code relationships
-against the exact assigned workspace and treat returned source as already read. Read files
-directly when the index is absent, stale, unsupported, changed after the query, or insufficient;
-ground conclusions in that source, the diff, tests, and real execution.
+For a run-task Coder, the exact `Card.md`, current `Log.md` snapshot, Design Bundle and
+applicable interface-Contract anchors are the static execution input. Attach a commit-bound
+DocStar brief when available and verified against the exact baseline. It is an index, not
+authority. Follow omitted pointers or use targeted reads when needed; do not ingest all Task or
+Log history by default. When the assigned workspace has a usable CodeGraph index, use it first
+for source location and code relationships against the exact assigned workspace and treat
+returned source as already read. Read files directly when the index is absent, stale,
+unsupported, changed after the query, or insufficient; ground conclusions in that source, the
+diff, tests, and real execution.
 
 ## Workspace and candidate boundary
 
@@ -143,7 +144,9 @@ another boundary is not additional evidence.
   blocks the Card outcome or a prepared required check, has no accepted effective fallback,
   and its smallest sufficient correction fits the existing authority. An isolated handoff
   returns its complete candidate range. A later fix uses a fresh Coder but does not trigger
-  another Reviewer in the same task execution.
+  another Reviewer in the same task execution. It never edits shared Design/Contract
+  authority. When coding evidence contradicts a Contract ID, it returns only the evidence,
+  smallest proposed semantic delta, and affected tasks for primary-orchestrator adjudication.
 - **Reviewer** does not intentionally edit workspace files. It checks the anchored
   implementation diff for concrete correctness, regression, safety, data, or acceptance
   impact, loads `ponytail:ponytail-review` in the same round to find removable implementation

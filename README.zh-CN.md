@@ -40,6 +40,17 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 规范的翻译镜像，也不提供文档章节模板；每个阶段 Skill 规定必备内容和自检项，Author 可按项目
 活动语言组织正文。
 
+ROADMAP 中每个 Milestone 至少有一个覆盖其完整自有结果的定性端到端验收场景。它不必是浏览器
+流程：基础设施可验证真实输入到可观察输出的完整路径，研究类 Milestone 可验证问题到决策的证据
+路径。
+
+Design 阶段始终产出 `Design.md`。只要存在由不同模块、Task 或团队独立开发的交互边界，就必须
+同时产出 `Contract.md`；没有这种边界时，接口留在 Design 中，不创建空契约文件。两份文件构成
+同一锚点上的 Design Bundle。Task 按可独立证明的结果拆分，不按 API 数量拆分，并引用相关 AC、
+Design 与 Contract 权威。
+Design 阶段的 Contract 是已批准的工作基线，不是最终稿。编码证据可通过 `write-design` 受控修订；
+Milestone 关账时再核对提供方、消费方、实现与证据，并把一致的关闭锚点冻结为最终 Contract。
+
 ## 支持范围
 
 | 能力 | Codex | Claude Code |
@@ -67,6 +78,10 @@ Critic 和 Reviewer 不追求 finding 数量；没有 finding 是有效结果。
 的成功中间检查。并发 writer 使用隔离工作区，单 writer 可直接使用当前工作区；只有真实交接或
 实质状态变化才检查 workspace、HEAD 和候选身份。单 writer 冻结 diff/内容哈希，隔离交接传递
 完整候选；集成前只确认集成内容仍是已审内容。
+
+所有 Coder lane 使用同一个 Design Bundle 锚点。Coder 不直接修改或协商共享接口权威；实现证据
+与 Contract 冲突时，只回传证据、最小修改建议和受影响 Task。内部实现问题留在 Card；语义不变
+的澄清只做机器检查；语义变化只暂停影响范围，并通过一次 `write-design` 修订形成新锚点。
 
 发现问题不会扩大 active Card。新问题只有在不修会阻止 Card 结果或既定必需检查、没有已接受的
 有效兜底、且最小充分修复仍在现有权威内时才属于当前任务；否则忽略低价值问题、将确有价值的事项
@@ -216,13 +231,13 @@ claude plugin marketplace remove GMGN --scope user
 | 你的说法 | 接管的 skill | 主要产物 |
 |---|---|---|
 | “我有个想法，先调研一下可不可行” | `brainstorm` | WhitePaper |
-| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（含 Milestone 验收图景） |
+| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（每个 Milestone 至少一个端到端验收场景） |
 | “启动 M1，明确范围” | `write-goal` | Goal.md |
 | “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
-| “出技术设计和系统方案” | `write-design` | Design.md |
+| “出技术设计和系统方案” | `write-design` | Design.md；跨独立开发边界时加 Contract.md |
 | “拆实施计划和任务卡” | `write-task` | Task.md |
 | “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查和所需验证证据 |
-| “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、关账记录 |
+| “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、最终 Contract 冻结、关账记录 |
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |
 | “下一步做什么？” | `gmgn` | 状态判断与工序路由 |
 

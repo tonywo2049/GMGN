@@ -5,17 +5,25 @@ description: "Use when every target-milestone task is closed and traceability is
 
 # Close a milestone
 
-<HARD-GATE>Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC must map to a task and evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
+<HARD-GATE>The target Milestone must have at least one ROADMAP end-to-end acceptance scenario covering its full owned outcome. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`; its integration queue and active lanes must be empty; every in-scope AC and ROADMAP scenario must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
 
 ## Reconcile the closing anchor
 
-The primary orchestrator records the Goal/Requirement/Design/Task anchors and checks:
+The primary orchestrator records the Goal/Requirement/Design/applicable Contract/Task anchors
+and checks:
 
 - all target tasks and their execution pointers;
 - Card completion contracts against Log current evidence;
 - ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence coverage;
+- every retained Contract ID against its provider implementation, every in-scope consumer,
+  conformance/integration evidence, and observable failure behavior;
 - no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
 - known debt and material risk are classified without silently waiving an AC.
+
+The Design-stage Contract was an approved working baseline. If closure finds a semantic
+contract/implementation mismatch, return only that impact cone to `write-design`, obtain the
+new reviewed working anchor, refresh affected tasks and evidence, and then restart closure.
+Closure cannot silently rewrite the contract to match code.
 
 Task remains a compact macro index. Material decisions and final commands, anchors, review, and
 required evidence stay in each card's Log.
@@ -44,8 +52,9 @@ brief before creating that fresh single-use Author.
 
 The candidate contains acceptance-picture and scope reconciliation, evidence map, controlled
 debt, remaining material risks or a supported none-known statement, proposed state changes,
-and a Handoff plan only when a receiving operator lacks an existing authority for needed
-information. It does not mark the Milestone closed before owner acceptance.
+the proposed final Contract anchor when applicable, and a Handoff plan only when a receiving
+operator lacks an existing authority for needed information. It does not mark the Milestone or
+Contract closed before owner acceptance.
 
 Freeze the candidate after writer self-check and machine checks. Prepare one brief and create a
 fresh independent combined Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
@@ -70,6 +79,8 @@ Present scope, evidence, debt, risks, and immutable closing anchor. Only explici
 acceptance authorizes the primary orchestrator to:
 
 - close the target Milestone and its appropriate normative chain;
+- mark the reconciled implementation-matching Contract anchor `closed`; this is the final
+  frozen Contract for that Milestone;
 - create/update Handoff only when a receiver needs one, using the accepted anchor, acceptance
   reference, applicable evidence, environment, risks, authority pointers, and next command;
 - refresh ROADMAP acceptance-scenario links to accepted evidence, Task macro states, AC
