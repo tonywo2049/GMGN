@@ -72,7 +72,8 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   Milestone or owner is a Handoff instead.
 - Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices, and
   the mapping of ROADMAP deliverables and acceptance scenarios into active scope. Requirement
-  owns quantified parameters, constraints, and decidable acceptance criteria (ACs).
+  owns required observable behavior, quantified parameters, constraints, and decidable
+  acceptance criteria (ACs).
 - Design owns architecture, module responsibilities, data, composition, and failure paths.
 - A boundary between independently developed modules, tasks, or teams requires
   `Contract.md`. It owns the shared interface semantics; an interface owned by one

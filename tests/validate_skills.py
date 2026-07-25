@@ -229,7 +229,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every Milestone has at least one end-to-end scenario",
         "Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices",
         "mapping of ROADMAP deliverables and acceptance scenarios into active scope",
-        "Requirement\n  owns quantified parameters, constraints, and decidable acceptance criteria",
+        "Requirement\n  owns required observable behavior, quantified parameters, constraints, and decidable\n"
+        "  acceptance criteria",
         "Task boundaries follow independently provable outcomes, not API count",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
@@ -263,7 +264,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "There is no periodic list interval",
         "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, Backlog placement, or Handoff placement",
         "Goal objective, boundary, non-goal, result-based slice, or ROADMAP deliverable/acceptance-scenario mapping",
-        "Requirement quantified parameter, constraint, or decidable AC",
+        "Requirement behavior, quantified parameter, constraint, or decidable AC",
         "Requirement, Design, and Task writers keep the least structure",
         "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
@@ -464,13 +465,54 @@ def validate_core_contract(errors: list[str]) -> None:
         "include conclusions copied from downstream",
     ), "write-goal 内容边界契约", errors)
     require(write_requirement, (
-        "ROADMAP acceptance-scenario anchor",
-        "ROADMAP acceptance scenario → Goal slice → R/AC",
-        "without copying it as a second AC system",
-        "Keep the smallest requirement set that satisfies the current Goal",
-        "Delete speculative future capability, reuse, scale, configurability, or implementation\n"
-        "  convenience that has no such parent",
-    ), "requirement 验收追踪契约", errors)
+        "Derive Requirement from the approved Goal",
+        "Design, Task, implementation, tests, or evidence may trigger a\n"
+        "  controlled revision but cannot silently define or redefine Requirement",
+        "smallest necessary set of numbered requirements\n  `R1`, `R2`, ...",
+        "Each R states one coherent required behavior, capability, or constraint\n"
+        "  and names its owning Goal slice or externally imposed invariant",
+        "enough observable precondition, action or\n"
+        "  inspection, and result to determine pass or fail",
+        "Given/When/Then is optional syntax, not a\n  mandatory format",
+        "Numeric and static constraints may state their decision rule directly",
+        "Use unambiguous observable language",
+        "Keep the explicit trace: ROADMAP acceptance scenario → Goal slice → R/AC",
+        "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
+        "Preserve upstream-approved invariants and values without silent weakening",
+        "Requirement may\n  define quantified parameters it owns",
+        "name each value's authority, change boundary, and\n  verification method",
+        "ROADMAP remains the authority for the deliverable's identity and final\n"
+        "  artifact pointer",
+        "only when applicable; do not require fixed sections for absent categories",
+        "Resolve every\n  Requirement-owned decision before acceptance",
+        "leave implementation choices to Design",
+        "Do not invent or prescribe components, modules, interfaces, process structure",
+        "task division, execution order, test commands,\n"
+        "  runtime results, evidence IDs, live status, or closure history",
+        "Delete any R/AC whose removal would not cause a current Goal outcome or externally imposed\n"
+        "  invariant to fail",
+        "Future possibility, speculative reuse or scale, configurability, and\n"
+        "  implementation convenience are not owners",
+        "every current Goal slice is covered or explicitly excluded",
+        "every ROADMAP acceptance scenario traces through Goal to R/AC",
+        "every AC has a clear pass/fail decision",
+        "no Requirement-owned decision is\n  deferred to Design or Task",
+        "no implementation choice, execution information, or actual\n"
+        "verification result has leaked into Requirement",
+    ), "write-requirement 内容边界契约", errors)
+    forbid(write_requirement, (
+        "can silently define or redefine Requirement",
+        "Given/When/Then is mandatory syntax",
+        "Every quantified parameter must come from Goal",
+        "Requirement cannot define quantified parameters",
+        "Requirement owns components, modules, or interfaces",
+        "Future possibility and implementation convenience are owners",
+        "Defer every Requirement-owned decision to Design",
+        "Some ROADMAP acceptance scenarios may disappear",
+        "Some in-scope Goal slices may disappear",
+        "Allow R/AC to be unowned",
+        "Requirement owns the deliverable's identity and final artifact pointer",
+    ), "write-requirement 内容边界契约", errors)
     require(write_design, (
         "Apply the first-sufficient anti-overdesign order from GMGN §7",
         "For every new module,\n  interface, state, configuration item, dependency, or failure mechanism",

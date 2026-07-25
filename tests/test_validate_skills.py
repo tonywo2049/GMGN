@@ -196,8 +196,9 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "skills/write-requirement/SKILL.md",
-                "Keep the smallest requirement set that satisfies the current Goal",
-                "Add every potentially useful future requirement",
+                "Delete any R/AC whose removal would not cause a current Goal outcome or externally imposed\n"
+                "  invariant to fail",
+                "Keep every proposed R/AC",
             ),
             (
                 "skills/write-design/SKILL.md",
@@ -411,6 +412,62 @@ class ValidateSkillsTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("write-goal 内容边界契约", result.stdout)
+
+    def test_rejects_requirement_content_boundary_drift(self) -> None:
+        cases = (
+            (
+                "Design, Task, implementation, tests, or evidence may trigger a\n"
+                "  controlled revision but cannot silently define or redefine Requirement",
+                "Design, Task, implementation, tests, or evidence can silently define "
+                "or redefine Requirement",
+            ),
+            (
+                "Given/When/Then is optional syntax, not a\n  mandatory format",
+                "Given/When/Then is mandatory syntax",
+            ),
+            (
+                "Requirement may\n  define quantified parameters it owns",
+                "Every quantified parameter must come from Goal",
+            ),
+            (
+                "Do not invent or prescribe components, modules, interfaces, process structure",
+                "Requirement owns components, modules, or interfaces and prescribes process structure",
+            ),
+            (
+                "Future possibility, speculative reuse or scale, configurability, and\n"
+                "  implementation convenience are not owners",
+                "Future possibility and implementation convenience are owners",
+            ),
+            (
+                "Resolve every\n  Requirement-owned decision before acceptance",
+                "Defer every Requirement-owned decision to Design",
+            ),
+            (
+                "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
+                "Some ROADMAP acceptance scenarios may disappear",
+            ),
+            (
+                "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
+                "Some in-scope Goal slices may disappear",
+            ),
+            (
+                "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
+                "Allow R/AC to be unowned",
+            ),
+            (
+                "ROADMAP remains the authority for the deliverable's identity and final\n"
+                "  artifact pointer",
+                "Requirement owns the deliverable's identity and final artifact pointer",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(new=new):
+                result = self.run_isolated_mutation(
+                    "skills/write-requirement/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("write-requirement 内容边界契约", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
 
     def test_rejects_missing_fresh_agent_lifecycle(self) -> None:
         self.replace(

@@ -13,31 +13,39 @@ Before writing, load the registered `gmgn` Skill through normal discovery and fo
 writing contract. Use the Goal locale for artifact prose. Keep filename `Requirement.md`,
 `type: requirement`, and `nature: normative`.
 
-## Writer content and self-check
+## Requirement content
 
-- Translate every in-scope Goal slice into numbered requirements `R1`, `R2`, ...; the recorded
-  writer chooses the document structure.
-- Give each requirement decidable ACs `R1-AC1`, ... using observable precondition, action,
-  and result. This is the qualitative-to-quantitative boundary.
-- Carry every ROADMAP acceptance-scenario anchor through its mapped Goal slices into one or
-  more R/ACs. Keep the trace explicit as ROADMAP acceptance scenario → Goal slice → R/AC;
-  refine the scenario into decidable criteria without copying it as a second AC system.
-- Keep the smallest requirement set that satisfies the current Goal. Every R/AC must name the
-  current Goal slice or externally imposed invariant that would fail if it were removed.
-  Delete speculative future capability, reuse, scale, configurability, or implementation
-  convenience that has no such parent.
-- Clearly distinguish functional, non-functional, parameter/constraint, non-goal, and
-  open-decision content.
-- Parameterize changeable numbers; name the authority and verification method for values.
-- Maintain the ROADMAP acceptance scenario → Goal slice → R/AC traceability. No acceptance
-  scenario may disappear silently, no Goal slice may be orphaned, and no AC may be unowned.
-- For a controlled change, record trigger, affected IDs, downstream impact, and Git commit.
-
-Before return, the recorded writer checks that every ROADMAP acceptance scenario is covered
-through Goal slices or routed back to `roadmap`/`write-goal`, every Goal slice is covered or
-explicitly excluded, every AC is decidable and owned, no requirement prescribes an
-implementation structure, every retained R/AC fails a current accepted outcome when removed,
-and every number has an authority and verification method.
+- Derive Requirement from the approved Goal. Carry ROADMAP acceptance scenarios only through
+  their mapped Goal slices. Design, Task, implementation, tests, or evidence may trigger a
+  controlled revision but cannot silently define or redefine Requirement.
+- Translate each in-scope Goal slice into the smallest necessary set of numbered requirements
+  `R1`, `R2`, ... . Each R states one coherent required behavior, capability, or constraint
+  and names its owning Goal slice or externally imposed invariant.
+- Give each R decidable ACs `R1-AC1`, ... using enough observable precondition, action or
+  inspection, and result to determine pass or fail. Given/When/Then is optional syntax, not a
+  mandatory format. Numeric and static constraints may state their decision rule directly.
+  Use unambiguous observable language; terms such as reasonable, complete, sufficient,
+  high-performance, or robust require a decidable definition. Include rejection, failure,
+  recovery, or unchanged-state conditions only when required by the current outcome or invariant.
+- Keep the explicit trace: ROADMAP acceptance scenario → Goal slice → R/AC. No acceptance
+  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned.
+- Preserve upstream-approved invariants and values without silent weakening. Requirement may
+  define quantified parameters it owns; name each value's authority, change boundary, and
+  verification method, plus only the measurement conditions needed to make it decidable.
+- When a Goal slice maps to a ROADMAP deliverable, define only the acceptance conditions needed
+  for that result. ROADMAP remains the authority for the deliverable's identity and final
+  artifact pointer.
+- Include functional, non-functional, parameter/constraint, non-goal, and open-decision content
+  only when applicable; do not require fixed sections for absent categories. Resolve every
+  Requirement-owned decision before acceptance, route changed upstream meaning upstream, and
+  leave implementation choices to Design.
+- Do not invent or prescribe components, modules, interfaces, process structure, code layout,
+  data structures, implementation choices, task division, execution order, test commands,
+  runtime results, evidence IDs, live status, or closure history. Upstream-defined domain or
+  system names may be referenced without making Requirement their design authority.
+- Delete any R/AC whose removal would not cause a current Goal outcome or externally imposed
+  invariant to fail. Future possibility, speculative reuse or scale, configurability, and
+  implementation convenience are not owners.
 
 ## Writer and critic loop
 
@@ -72,14 +80,17 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Require the recorded writer to reconcile scope coverage and scan every affected AC for
-decidability. For creation or a semantic revision, run the fresh-agent writer/Critic
-loop using the English-only dispatch contract; tell the Critic to emphasize upstream
-consistency, acceptance quality, and deletion of any R/AC that does not serve a current Goal
-outcome. Obtain primary-orchestrator review and integrate only
-when required by workspace topology. Creation then uses **REQUIRED next skill:
-`write-design`**. A revision returns to the stage that raised it and continues through the
-affected path only.
+Require one completion check: every current Goal slice is covered or explicitly excluded;
+every ROADMAP acceptance scenario traces through Goal to R/AC; every R/AC has an upstream
+owner and passes the deletion test; every AC has a clear pass/fail decision; every number has
+an authority, change boundary, and verification method; no Requirement-owned decision is
+deferred to Design or Task; and no implementation choice, execution information, or actual
+verification result has leaked into Requirement. For creation or a semantic revision, run the
+fresh-agent writer/Critic loop using the English-only dispatch contract; tell the Critic to
+emphasize upstream consistency, acceptance quality, and deletion of any R/AC that does not
+serve a current Goal outcome. Obtain primary-orchestrator review and integrate only when
+required by workspace topology. Creation then uses **REQUIRED next skill: `write-design`**. A
+revision returns to the stage that raised it and continues through the affected path only.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could
