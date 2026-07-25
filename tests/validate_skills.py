@@ -187,6 +187,7 @@ def validate_core_contract(errors: list[str]) -> None:
     writing_en = read("skills/gmgn/references/en/writing-contract.md")
     roadmap = read("skills/roadmap/SKILL.md")
     roadmap_agent = read("skills/roadmap/agents/openai.yaml")
+    write_goal = read("skills/write-goal/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
     write_design = read("skills/write-design/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
@@ -226,6 +227,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Possible future work not yet\n  allocated to a Milestone belongs in the Backlog",
         "A downstream-only item with a receiving\n  Milestone or owner is a Handoff instead",
         "Every Milestone has at least one end-to-end scenario",
+        "Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices",
+        "mapping of ROADMAP deliverables and acceptance scenarios into active scope",
+        "Requirement\n  owns quantified parameters, constraints, and decidable acceptance criteria",
         "Task boundaries follow independently provable outcomes, not API count",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
@@ -258,6 +262,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "A `list_agents` snapshot is allowed only",
         "There is no periodic list interval",
         "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, Backlog placement, or Handoff placement",
+        "Goal objective, boundary, non-goal, result-based slice, or ROADMAP deliverable/acceptance-scenario mapping",
+        "Requirement quantified parameter, constraint, or decidable AC",
         "Requirement, Design, and Task writers keep the least structure",
         "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
@@ -420,6 +426,25 @@ def validate_core_contract(errors: list[str]) -> None:
         "E2E scenarios",
         "里程碑产出",
     ), "roadmap 界面元数据契约", errors)
+    require(write_goal, (
+        "Derive Goal only from the approved ROADMAP Milestone and its WhitePaper authority",
+        "Requirement, Design, Task, implementation, or evidence may trigger a controlled revision\n"
+        "  but cannot silently redefine Goal",
+        "Split slices\n  by independently meaningful results, not by team, component, or file",
+        "Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them",
+        "Map every\n  deliverable to one or more slices",
+        "require every slice to contribute to a ROADMAP\n  deliverable or acceptance scenario",
+        "Map every ROADMAP acceptance-scenario anchor to one or more slices",
+        "Requirement refines that meaning into parameters and decidable ACs",
+        "Requirement owns quantified parameters and acceptance conditions",
+        "Design\n  owns implementation choices",
+        "Task owns work division, order, and status",
+        "Resolve before Requirement every open decision owned by Goal",
+        "Route upstream-owned gaps to\n  their authority and leave downstream-owned choices to their proper stage",
+        "Do not include component or interface design, code\n  structure, test cases, commands, results, task breakdown, live status",
+        "deleting all downstream documents leaves Goal's objective and boundary complete",
+        "an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal",
+    ), "write-goal 内容边界契约", errors)
     require(write_requirement, (
         "ROADMAP acceptance-scenario anchor",
         "ROADMAP acceptance scenario → Goal slice → R/AC",

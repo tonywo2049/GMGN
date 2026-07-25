@@ -70,9 +70,9 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   planning names with canonical artifact pointers at closure. Possible future work not yet
   allocated to a Milestone belongs in the Backlog. A downstream-only item with a receiving
   Milestone or owner is a Handoff instead.
-- Goal owns one initiated Milestone's objective, boundary, slices, and the mapping from the
-  ROADMAP acceptance picture into active scope.
-- Requirement owns requirements, constraints, and acceptance criteria (ACs).
+- Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices, and
+  the mapping of ROADMAP deliverables and acceptance scenarios into active scope. Requirement
+  owns quantified parameters, constraints, and decidable acceptance criteria (ACs).
 - Design owns architecture, module responsibilities, data, composition, and failure paths.
 - A boundary between independently developed modules, tasks, or teams requires
   `Contract.md`. It owns the shared interface semantics; an interface owned by one

@@ -191,8 +191,8 @@ Route a semantic change to the single authority that owns it:
 |---|---|
 | WhitePaper problem, goal, scope, invariant, or interpretation | `brainstorm` revision |
 | ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, Backlog placement, or Handoff placement | `roadmap` maintenance |
-| Goal objective, boundary, slice, non-goal, or acceptance-scenario mapping | `write-goal` revision |
-| Requirement, constraint, parameter, or AC | `write-requirement` revision |
+| Goal objective, boundary, non-goal, result-based slice, or ROADMAP deliverable/acceptance-scenario mapping | `write-goal` revision |
+| Requirement quantified parameter, constraint, or decidable AC | `write-requirement` revision |
 | Design structure, cross-task interface contract, data, or failure path | `write-design` revision |
 | Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |
 

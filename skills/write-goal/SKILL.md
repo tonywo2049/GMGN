@@ -13,16 +13,35 @@ Before writing, load the registered `gmgn` Skill through normal discovery and fo
 writing contract. Use the ROADMAP locale unless the owner changes it explicitly. Keep filename
 `Goal.md`, `type: goal`, and `nature: normative`.
 
+## Goal content
+
+- Derive Goal only from the approved ROADMAP Milestone and its WhitePaper authority.
+  Requirement, Design, Task, implementation, or evidence may trigger a controlled revision
+  but cannot silently redefine Goal.
+- State the intended change, active boundary, non-goals, and result-based slices. Split slices
+  by independently meaningful results, not by team, component, or file.
+- Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them. Map every
+  deliverable to one or more slices, and require every slice to contribute to a ROADMAP
+  deliverable or acceptance scenario.
+- Map every ROADMAP acceptance-scenario anchor to one or more slices and a qualitative
+  observable outcome. Requirement refines that meaning into parameters and decidable ACs.
+- State only upstream-derived capabilities and qualitative constraints needed to bound
+  downstream work. Requirement owns quantified parameters and acceptance conditions; Design
+  owns implementation choices; Task owns work division, order, and status. Goal may reference
+  a number already approved upstream without becoming its parameter authority.
+- Resolve before Requirement every open decision owned by Goal. Route upstream-owned gaps to
+  their authority and leave downstream-owned choices to their proper stage.
+- Include the document map and known gaps. Do not include component or interface design, code
+  structure, test cases, commands, results, task breakdown, live status, research history,
+  candidate comparisons, closure history, or conclusions copied from downstream.
+
 ## One change batch
 
 The recorded writer performs one semantic batch:
 
 1. Change the ROADMAP row from `not-started` to `initiated` and record the owner authorization.
-2. Create the milestone directory and `Goal.md` as its single entry document. It must answer:
-   objective, boundary, slices, non-goals, document map, known gaps, and how every ROADMAP
-   acceptance-scenario anchor maps to one or more Goal slices. Goal may clarify the active
-   boundary but must not copy or redefine the ROADMAP outcome. The writer chooses the section
-   structure.
+2. Create the milestone directory and `Goal.md` as its single entry document, following
+   `Goal content`. The writer chooses the section structure.
 3. Add reciprocal ROADMAP ↔ Goal links and return one committed candidate.
 
 Do not create Requirement, Design, or Task content early. Mention absent downstream files
@@ -62,12 +81,19 @@ machine checks without reapproval.
 
 ## Exit
 
-Require the recorded writer to self-check the ROADMAP boundary and slices, and confirm that
-every ROADMAP acceptance scenario maps to Goal slices without changing its meaning. If that
-mapping is not valid, return to `roadmap` instead of hiding the gap in Goal. For creation or a
-semantic revision, run the fresh-agent writer/Critic loop using the English-only dispatch
-contract, obtain primary-orchestrator review, and integrate only when required by
-workspace topology. Creation then uses **REQUIRED next skill:
+Require the recorded writer to confirm:
+
+- deleting all downstream documents leaves Goal's objective and boundary complete;
+- every ROADMAP deliverable and acceptance scenario maps to slices, and every slice
+  contributes to at least one of them;
+- Requirement only needs to refine the stage results, not invent them;
+- every Goal-owned open decision is resolved before Requirement;
+- no component, interface, test, task, or implementation result leaks into Goal; and
+- an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal.
+
+For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
+English-only dispatch contract, obtain primary-orchestrator review, and integrate only when
+required by workspace topology. Creation then uses **REQUIRED next skill:
 `write-requirement`**. A revision returns to the stage that raised it and continues through
 the affected path only.
 

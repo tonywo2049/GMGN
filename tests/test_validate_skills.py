@@ -334,6 +334,54 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn(label, result.stdout)
 
+    def test_rejects_goal_content_boundary_drift(self) -> None:
+        cases = (
+            (
+                "Requirement, Design, Task, implementation, or evidence may trigger a controlled revision\n"
+                "  but cannot silently redefine Goal",
+                "Requirement, Design, Task, implementation, or evidence may redefine Goal",
+            ),
+            (
+                "Split slices\n  by independently meaningful results, not by team, component, or file",
+                "Split slices by team, component, or file",
+            ),
+            (
+                "Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them",
+                "Redefine ROADMAP deliverables inside Goal",
+            ),
+            (
+                "Map every\n  deliverable to one or more slices",
+                "Some ROADMAP deliverables need no slice",
+            ),
+            (
+                "Map every ROADMAP acceptance-scenario anchor to one or more slices",
+                "ROADMAP acceptance scenarios need no slice",
+            ),
+            (
+                "Requirement owns quantified parameters and acceptance conditions",
+                "Goal owns quantified parameters and acceptance conditions",
+            ),
+            (
+                "Design\n  owns implementation choices",
+                "Goal owns implementation choices",
+            ),
+            (
+                "Task owns work division, order, and status",
+                "Goal owns work division, order, and status",
+            ),
+            (
+                "Resolve before Requirement every open decision owned by Goal",
+                "Push every Goal-owned open decision to Requirement",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(old=old):
+                result = self.run_isolated_mutation(
+                    "skills/write-goal/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("write-goal 内容边界契约", result.stdout)
+
     def test_rejects_missing_fresh_agent_lifecycle(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",
