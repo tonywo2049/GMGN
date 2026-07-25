@@ -1,6 +1,6 @@
 ---
 name: roadmap
-description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, priority, dependency order, at least one end-to-end acceptance scenario per Milestone, closure backfill, or TODO allocation. 白皮书已批后规划里程碑、依赖及每个 Milestone 至少一个端到端验收场景。"
+description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, explicit deliverables, priority, dependency order, at least one end-to-end acceptance scenario per Milestone, closure backfill, or Backlog allocation. 白皮书已批后规划里程碑、明确产出、依赖及每个 Milestone 至少一个端到端验收场景。"
 ---
 
 # ROADMAP: single sequencing authority
@@ -16,8 +16,13 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 ## Create
 
 - Restate only the WhitePaper boundary and invariants needed for sequencing.
-- Define ordered Milestones with one qualitative objective, one **Milestone acceptance
-  picture**, dependencies, and work state `not-started`.
+- Define ordered Milestones with one qualitative objective, explicit **Milestone
+  deliverables**, one **Milestone acceptance picture**, dependencies, and work state
+  `not-started`.
+- Every Milestone names its concrete deliverables. A deliverable may be a named artifact such
+  as a document or report, or one or more named qualitative end-to-end scenarios for product,
+  infrastructure, or operational work. Include only deliverables owned by that Milestone. The
+  acceptance picture must cover every deliverable.
 - Every Milestone acceptance picture names at least one high-level end-to-end scenario that
   traverses the full outcome owned by that Milestone. Add more only for independently
   decidable main paths, permission boundaries, or failure/recovery outcomes.
@@ -35,17 +40,18 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 - Sequence strong dependencies from earlier Milestones to later consumers. A downstream
   implementation, confirmation, document, or evidence item must not be an earlier Milestone's
   acceptance condition.
-- Maintain one TODO list for ideas not yet allocated to a milestone.
+- Maintain one Backlog for possible future work that is not yet allocated to a Milestone.
 - Do not pre-create empty G-R-D-T files for unstarted milestones.
 
 ## Maintain
 
 - Closure backfill updates the Milestone state and links each acceptance-scenario anchor to its
   closing evidence, plus any Handoff that exists.
-- New ideas enter TODO, then are assigned to a milestone before becoming requirements.
-- Record downstream-only confirmations as a non-blocking TODO or Handoff with receiving
-  Milestone/owner, question, trigger, possible impact, and any safe default assumption. Closure
-  of the producing Milestone does not wait for the consumer to resolve it.
+- New ideas enter the Backlog, then are assigned to a Milestone before becoming requirements.
+- Record a downstream-only confirmation as a non-blocking Handoff when a receiving
+  Milestone/owner exists. Otherwise keep it in the Backlog. Record the question, trigger,
+  possible impact, and any safe default assumption. Closure of the producing Milestone does
+  not wait for the consumer to resolve it.
 - For existing pre-GMGN inventory, have the recorded writer capture each legacy ID, source,
   summary, target milestone/requirement or pending decision, rationale, and allocation state.
   Reconcile source total = allocated + explicitly rejected + pending, then archive the
@@ -77,8 +83,8 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
   rows and documents, required reviewer or approver, and proposed new commit.
 - If the changed meaning belongs to the WhitePaper, initiate `brainstorm` revision mode and
   resume ROADMAP maintenance only after the required new upstream approval.
-- Revise only ROADMAP-owned sequencing, Milestone allocation, dependencies, qualitative
-  acceptance pictures, or TODO placement. Do not reopen unaffected Milestones.
+- Revise only ROADMAP-owned sequencing, Milestone allocation, deliverables, dependencies,
+  qualitative acceptance pictures, or Backlog placement. Do not reopen unaffected Milestones.
 - A later Milestone may supersede a technical selection originating in a closed foundation or
   M0 Milestone. The M0-originated Design, Decision, or index remains semantic authority. Keep
   the historical Milestone and old closure commit closed; record the current Milestone's

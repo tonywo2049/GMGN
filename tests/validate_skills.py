@@ -215,6 +215,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Anything that can be deleted without losing a current accepted outcome is overdesign",
         "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
+        "explicit deliverables",
+        "covers every\n  deliverable",
         "Every Milestone has at least one end-to-end scenario",
         "Task boundaries follow independently provable outcomes, not API count",
         "All Coder lanes use the same current approved Design Bundle commit",
@@ -247,6 +249,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "execution/<card_id>/Log.md",
         "A `list_agents` snapshot is allowed only",
         "There is no periodic list interval",
+        "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, or Backlog placement",
         "Requirement, Design, and Task writers keep the least structure",
         "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
@@ -375,6 +378,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Code that Ponytail can\ndelete while preserving current requirements and safeguards",
     ), "英文派发契约", errors)
     require(roadmap, (
+        "explicit **Milestone\n  deliverables**",
+        "A deliverable may be a named artifact",
+        "The acceptance picture must cover every deliverable",
         "Milestone acceptance picture",
         "Every Milestone acceptance picture names at least one high-level end-to-end scenario",
         "traverses the full outcome owned by that Milestone",
@@ -382,6 +388,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "must be independently decidable from work owned by that Milestone",
         "Do not prescribe a test framework",
         "Requirement refines scenarios into ACs",
+        "Maintain one Backlog for possible future work that is not yet allocated to a Milestone",
+        "New ideas enter the Backlog",
     ), "roadmap 验收图景契约", errors)
     require(write_requirement, (
         "ROADMAP acceptance-scenario anchor",

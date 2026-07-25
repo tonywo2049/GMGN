@@ -59,9 +59,11 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
 ```
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
-- ROADMAP owns Milestone order, priority, cross-Milestone dependency, and each Milestone's
-  qualitative acceptance picture. Every Milestone has at least one end-to-end scenario that
-  traverses its full owned outcome; add more only for independently decidable paths or
+- ROADMAP owns Milestone order, priority, cross-Milestone dependency, explicit deliverables,
+  and each Milestone's qualitative acceptance picture. A deliverable may be a named artifact
+  such as a document or report, or one or more named qualitative end-to-end scenarios. Every
+  Milestone has at least one end-to-end scenario that traverses its full owned outcome and
+  covers every deliverable; add more only for independently decidable paths or
   failure/recovery outcomes.
 - Goal owns one initiated Milestone's objective, boundary, slices, and the mapping from the
   ROADMAP acceptance picture into active scope.
