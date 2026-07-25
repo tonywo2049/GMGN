@@ -216,7 +216,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/write-design/SKILL.md",
-                "Future reuse or possible scale is not sufficient",
+                "Future reuse, possible scale,\n  flexibility, and implementation "
+                "convenience are not owners",
                 "Future reuse always justifies new structure",
             ),
             (
@@ -486,6 +487,68 @@ class ValidateSkillsTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("write-requirement 内容边界契约", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
+
+    def test_rejects_design_content_boundary_drift(self) -> None:
+        cases = (
+            (
+                "Design, Task,\n  implementation, tests, or evidence cannot silently "
+                "redefine upstream meaning",
+                "Design may silently redefine Requirement",
+            ),
+            (
+                "Do not mandate a\n  fixed research funnel or test sequence for every Design",
+                "Every Design must follow a fixed research funnel",
+            ),
+            (
+                "Do not mandate a\n  fixed research funnel or test sequence for every Design",
+                "Every Design must use the same test sequence",
+            ),
+            (
+                "Design may own implementation-specific choices, configuration, and "
+                "derived values that do\n  not change Requirement meaning",
+                "Design may change Requirement-owned acceptance values",
+            ),
+            (
+                "Task executes approved values and reports evidence; a needed\n"
+                "  change returns to the authority that owns the value",
+                "Task may change authoritative parameters from trial results",
+            ),
+            (
+                "Keep commands, full results, candidate chronology, task status, "
+                "execution history,\n  and closure records downstream",
+                "Keep commands, full results, candidate chronology, task status, "
+                "execution history, and closure records in Design",
+            ),
+            (
+                "Map each R/AC as: R/AC → design structure and data → applicable "
+                "failure behavior →\n  verification point",
+                "Map R/AC only to broad sections",
+            ),
+            (
+                "Keep an interface in Design when one\n  implementation unit owns it; "
+                "never create an empty Contract",
+                "Always create Contract.md",
+            ),
+            (
+                "Future reuse, possible scale,\n  flexibility, and implementation "
+                "convenience are not owners",
+                "Future reuse, possible scale, flexibility, and implementation "
+                "convenience are owners",
+            ),
+            (
+                "Do not require fixed sections for absent\n  concerns",
+                "Every Design must define concurrency, recovery, migration, and "
+                "performance sections",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(new=new):
+                result = self.run_isolated_mutation(
+                    "skills/write-design/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("design 最简方案契约", result.stdout)
                 self.assertIn("含相反契约", result.stdout)
 
     def test_rejects_archive_context_contract_drift(self) -> None:

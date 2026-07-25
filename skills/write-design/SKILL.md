@@ -26,47 +26,60 @@ Design acceptance makes the bundle an `approved` working baseline for implementa
 final frozen contract. Controlled coding evidence may produce a newly reviewed working commit;
 `close-milestone` freezes the final implementation-matching Contract as `closed`.
 
-## Writer content and self-check
+## Design content
 
-- Inspect the existing repository and real call path before proposing structures. The recorded
+- Derive Design from the reviewed Requirement and explicitly sourced external constraints.
+  Inspect the existing repository and real call paths for feasibility, but Design, Task,
+  implementation, tests, or evidence cannot silently redefine upstream meaning. The recorded
   writer chooses the document layout.
-- `Design.md` owns architecture, module responsibilities, owned data, composition, internal
-  implementation constraints, failure paths, and the mapping from R-ACs to those structures.
-- When `Contract.md` is needed, give each retained cross-task boundary a stable Contract ID and
-  record its provider, consumers, entry or interaction form, input/output semantics,
-  invariants, observable failures, and conformance point. Add authentication, idempotency,
-  timeout, retry, ordering, concurrency, compatibility, or migration behavior only when a
-  current R/AC or real call path needs it.
+- State the smallest implementation structure needed to satisfy the current R/ACs:
+  architecture, responsibilities, owned data, composition, implementation constraints,
+  required failure or recovery behavior, and verification points.
+- Map each R/AC as: R/AC → design structure and data → applicable failure behavior →
+  verification point. Every retained design element must name the current R/AC or sourced
+  external invariant that would fail if it were removed.
+- Split responsibilities by behavior and authority, not mechanically by existing library,
+  process, repository, or deployment boundary. Keep every required responsibility, give each
+  data or security responsibility one authority, and allow one implementation to own multiple
+  responsibilities.
+- Add trust boundaries, validation, concurrency, ordering, idempotency, resource limits,
+  migration, rollback, observability, security, accessibility, and performance behavior only
+  when required by a current R/AC or real call path. Do not require fixed sections for absent
+  concerns.
+- Requirement owns observable targets, constraints, acceptance values, and decision methods.
+  Design may own implementation-specific choices, configuration, and derived values that do
+  not change Requirement meaning. Task executes approved values and reports evidence; a needed
+  change returns to the authority that owns the value.
+- When the current Milestone outcome is research or selection, or a concrete uncertainty blocks
+  a design decision, record only the uncertainty, required evidence, decision conditions, and
+  controlled revision point. Task performs research, spikes, and experiments. Do not mandate a
+  fixed research funnel or test sequence for every Design.
+- When `Contract.md` is needed, give each retained cross-unit boundary a stable Contract ID and
+  record its provider, consumers, interaction form, input/output semantics, invariants,
+  observable failures, and conformance point. Keep an interface in Design when one
+  implementation unit owns it; never create an empty Contract.
 - Link an applicable OpenAPI, Protobuf, JSON Schema, code interface, event schema, command, or
   file format as the structural authority instead of copying it into Markdown. An interface
   contract does not imply HTTP or a network service.
-- Map every R-AC to modules, applicable Contract IDs, data, failure paths, and verification
-  points. Partition technical responsibility so a provider and its consumers can implement
-  against the approved contract without waiting for each other's code.
-- Define trust boundaries, input validation, concurrency/ordering, migration, rollback,
-  observability, security, accessibility, and performance only where the requirements demand them.
-- Record choices whose alternatives or rollback matter. Give an authoritative decision a
-  stable ID, ruling, rationale, conditions, owner, and any superseded decision instead of
-  rewriting history.
-- For each external input, cache restore, migration import, permission boundary, human entry,
-  or model-output acceptance point, record the real source authority, validation, observable
-  failure behavior, negative evidence, and owner. “Validated upstream” is not a source.
-- Apply the first-sufficient anti-overdesign order from GMGN §7. For every new module,
-  interface, state, configuration item, dependency, or failure mechanism, name the current
-  R/AC that would fail if it were removed. Future reuse or possible scale is not sufficient.
-- Run a bounded feasibility spike before accepting a boundary only when a concrete uncertainty
-  in a library, protocol, serialization path, legacy integration, or required quality cannot
-  be resolved from the repository and direct evidence. The spike is evidence, not a mandatory
-  production task.
-- Use the Design Bundle's Git commit. Do not add a parallel
-  `v1`/`v2` workflow or formal API version unless a current external or coexisting-version
-  compatibility requirement needs it.
+- Record an authoritative decision only when its alternatives, conditions, or rollback matter.
+  Retain rejected alternatives only when they explain a current decision or live rollback path.
+- Implementation evidence may trigger a controlled Design revision. Keep the final adopted
+  structure, decisions, Design-owned parameter boundaries, and only necessary evidence pointers
+  in Design. Keep commands, full results, candidate chronology, task status, execution history,
+  and closure records downstream.
+- Apply the first-sufficient anti-overdesign order from GMGN §7. Delete any module, interface,
+  state, configuration item, dependency, document, or failure mechanism whose removal would not
+  cause a current R/AC or sourced external invariant to fail. Future reuse, possible scale,
+  flexibility, and implementation convenience are not owners.
+- Use the Design Bundle's Git commit. Do not add a parallel `v1`/`v2` workflow or formal API
+  version unless a current external or coexisting-version compatibility requirement needs it.
 
-Before return, check the mapping in both directions, trust boundaries and negative paths,
-existing-call-path feasibility, provider/consumer agreement on each retained Contract ID,
-rollback or failure behavior where required, and whether any new document or structure lacks a
-current R-AC or can be deleted, reused, made native, or replaced by a direct solution without
-losing a current accepted outcome.
+Before return, check that every R/AC maps to structure, necessary data, applicable failure
+behavior, and a verification point; every design element has a current R/AC or sourced external
+constraint; Requirement meaning and owned values are unchanged; every independent boundary has
+one interface authority and no empty Contract; research steps, test commands, results, and task
+status remain downstream; and no retained structure can be deleted, reused, made native, or
+replaced by a direct solution without losing a current accepted outcome.
 
 ## Writer and critic loop
 

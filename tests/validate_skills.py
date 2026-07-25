@@ -268,6 +268,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "mapping of ROADMAP deliverables and acceptance scenarios into active scope",
         "Requirement\n  owns required observable behavior, quantified parameters, constraints, and decidable\n"
         "  acceptance criteria",
+        "Design owns the smallest implementation structure and decisions needed to satisfy R/ACs",
+        "implementation-specific parameters",
+        "failure behavior, and verification points",
         "Task boundaries follow independently provable outcomes, not API count",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
@@ -302,6 +305,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, Backlog placement, or Handoff placement",
         "Goal objective, boundary, non-goal, result-based slice, or ROADMAP deliverable/acceptance-scenario mapping",
         "Requirement behavior, quantified parameter, constraint, or decidable AC",
+        "Design structure, implementation-specific parameter or decision, cross-task interface contract, data, or failure path",
         "Requirement, Design, and Task writers keep the least structure",
         "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
@@ -553,14 +557,55 @@ def validate_core_contract(errors: list[str]) -> None:
         "every current Goal slice is covered or explicitly excluded",
     ), "write-requirement 内容边界契约", errors)
     require(write_design, (
+        "Derive Design from the reviewed Requirement and explicitly sourced external constraints",
+        "Design, Task,\n  implementation, tests, or evidence cannot silently redefine upstream meaning",
+        "smallest implementation structure needed to satisfy the current R/ACs",
+        "R/AC → design structure and data → applicable failure behavior →\n  verification point",
+        "Every retained design element must name the current R/AC or sourced\n"
+        "  external invariant that would fail if it were removed",
+        "Split responsibilities by behavior and authority, not mechanically by existing library",
+        "allow one implementation to own multiple\n  responsibilities",
+        "only\n  when required by a current R/AC or real call path",
+        "Do not require fixed sections for absent\n  concerns",
+        "Requirement owns observable targets, constraints, acceptance values, and decision methods",
+        "Design may own implementation-specific choices, configuration, and derived values that do\n"
+        "  not change Requirement meaning",
+        "Task executes approved values and reports evidence",
+        "a needed\n  change returns to the authority that owns the value",
+        "current Milestone outcome is research or selection",
+        "record only the uncertainty, required evidence, decision conditions, and\n"
+        "  controlled revision point",
+        "Task performs research, spikes, and experiments",
+        "Do not mandate a\n  fixed research funnel or test sequence for every Design",
+        "Keep an interface in Design when one\n  implementation unit owns it",
+        "never create an empty Contract",
+        "Keep the final adopted\n  structure, decisions, Design-owned parameter boundaries, and only necessary evidence pointers",
+        "Keep commands, full results, candidate chronology, task status, execution history,\n"
+        "  and closure records downstream",
         "Apply the first-sufficient anti-overdesign order from GMGN §7",
-        "For every new module,\n  interface, state, configuration item, dependency, or failure mechanism",
-        "Future reuse or possible scale is not sufficient",
+        "Delete any module, interface,\n  state, configuration item, dependency, document, or failure mechanism",
+        "Future reuse, possible scale,\n  flexibility, and implementation convenience are not owners",
+        "every R/AC maps to structure, necessary data, applicable failure\n"
+        "behavior, and a verification point",
+        "Requirement meaning and owned values are unchanged",
+        "research steps, test commands, results, and task\nstatus remain downstream",
         "deletion-first overdesign check against the\nsmallest sufficient design",
         "`Design.md` plus required `Contract.md`",
         "The contract itself is mandatory for every such boundary",
         "an `approved` working baseline for implementation",
         "Do not mark the Design-stage Contract `closed` here",
+    ), "design 最简方案契约", errors)
+    forbid(write_design, (
+        "Design may silently redefine Requirement",
+        "Every Design must follow a fixed research funnel",
+        "Every Design must use the same test sequence",
+        "Design may change Requirement-owned acceptance values",
+        "Task may change authoritative parameters from trial results",
+        "Keep commands, full results, candidate chronology, task status, execution history, and closure records in Design",
+        "Map R/AC only to broad sections",
+        "Always create Contract.md",
+        "Future reuse, possible scale, flexibility, and implementation convenience are owners",
+        "Every Design must define concurrency, recovery, migration, and performance sections",
     ), "design 最简方案契约", errors)
     require(close_milestone, (
         "ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence",

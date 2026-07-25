@@ -74,7 +74,9 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   the mapping of ROADMAP deliverables and acceptance scenarios into active scope. Requirement
   owns required observable behavior, quantified parameters, constraints, and decidable
   acceptance criteria (ACs).
-- Design owns architecture, module responsibilities, data, composition, and failure paths.
+- Design owns the smallest implementation structure and decisions needed to satisfy R/ACs:
+  architecture, responsibilities, owned data, composition, implementation-specific parameters,
+  failure behavior, and verification points.
 - A boundary between independently developed modules, tasks, or teams requires
   `Contract.md`. It owns the shared interface semantics; an interface owned by one
   implementation unit stays in `Design.md`. Design and Contract are accepted as one bundle at
