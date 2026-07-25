@@ -186,8 +186,8 @@ could change the decision, acceptance, or downstream work.
   confirmed execution set, not only the current card or active lane, and dispatches every
   ready, non-conflicting task that fits currently available capacity. Wait only after useful
   dispatch, local checks, state refresh, and integration work are exhausted.
-- `agent_wait_timeout_ms = 3600000` (1 hour) is the canonical Codex wait setting. Every
-  `wait_agent` call uses it; routine progress-update cadence never shortens it.
+- Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour). Routine
+  progress-update cadence never shortens it.
 - A timeout has no workflow meaning. If an agent is known to remain `running`, immediately
   re-arm the same one-hour wait without inserting `list_agents`, another status query, or a
   user update between unchanged timeouts. A timeout alone is not a `list_agents` trigger.

@@ -240,12 +240,12 @@ and classifies the return:
 Use the normal Git commit. Formal API versions exist only when a current external or
 coexisting-version compatibility requirement needs them.
 
-Wait only after dispatch, local checks, integration, and state refresh are exhausted. Every
-Codex `wait_agent` call uses the dispatch contract's canonical
-`agent_wait_timeout_ms = 3600000` (1 hour); routine progress-update cadence never shortens it.
-A timeout has no workflow meaning. If an agent is known to remain `running`, immediately re-arm
-the same one-hour wait without inserting `list_agents`, another status query, or a user update
-between unchanged timeouts. A timeout alone is not a `list_agents` trigger. Use one
+Wait only after dispatch, local checks, integration, and state refresh are exhausted.
+Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour). Routine
+progress-update cadence never shortens it. A timeout has no workflow meaning. If an agent is
+known to remain `running`, immediately re-arm the same one-hour wait without inserting
+`list_agents`, another status query, or a user update between unchanged timeouts. A timeout
+alone is not a `list_agents` trigger. Use one
 `list_agents` snapshot only when a real scheduling/capacity decision cannot be made from
 received lifecycle events or those events conflict; do not query again until a material
 lifecycle event or scheduling condition changes.

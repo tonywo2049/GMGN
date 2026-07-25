@@ -680,7 +680,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "`agent_wait_timeout_ms = 60000` (1 minute)",
             ),
             (
-                "routine\nprogress-update cadence never shortens it",
+                "Routine\nprogress-update cadence never shortens it",
                 "routine progress-update cadence shortens it",
             ),
             (
@@ -700,6 +700,27 @@ class ValidateSkillsTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("gmgn 路由 Agent 等待契约", result.stdout)
+
+    def test_rejects_non_universal_one_hour_wait(self) -> None:
+        rule = (
+            "Every Codex `wait_agent` call uses "
+            "`agent_wait_timeout_ms = 3600000` (1 hour)"
+        )
+        for relative in (
+            "GMGN.md",
+            "skills/gmgn/SKILL.md",
+            "skills/run-task/SKILL.md",
+            "skills/gmgn/references/en/dispatch-and-handoff.md",
+        ):
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(
+                    relative,
+                    rule,
+                    "Some Codex `wait_agent` calls use "
+                    "`agent_wait_timeout_ms = 3600000` (1 hour)",
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("Agent 等待契约", result.stdout)
 
     def test_rejects_global_execution_set_scan_drift(self) -> None:
         cases = (

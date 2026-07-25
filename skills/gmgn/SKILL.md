@@ -178,8 +178,8 @@ When no implementation lane can run in parallel with useful orchestrator work, t
 session may serve as one lane's Coder. It cannot take over an assigned lane and
 cannot replace independent review or risk-triggered verification.
 
-Agent waiting is event-driven. After useful work is exhausted, every Codex `wait_agent` call
-uses the dispatch contract's canonical `agent_wait_timeout_ms = 3600000` (1 hour); routine
+Agent waiting is event-driven. After useful work is exhausted, wait for agent events.
+Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour). Routine
 progress-update cadence never shortens it. A timeout has no workflow meaning. If an agent is
 known to remain `running`, immediately re-arm the same one-hour wait without inserting
 `list_agents`, another status query, or a user update between unchanged timeouts. A timeout

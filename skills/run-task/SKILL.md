@@ -142,8 +142,8 @@ A later correction uses a fresh Coder. Full-length commit object IDs, diff/conte
 checksums are not workflow anchors.
 
 Across the confirmed execution set, wait only after ready dispatch, primary-Coder work,
-integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
-the dispatch contract's canonical `agent_wait_timeout_ms = 3600000` (1 hour); routine
+integration, state refresh, and local checks are exhausted.
+Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour). Routine
 progress-update cadence never shortens it. A timeout has no workflow meaning. If an agent is
 known to remain `running`, immediately re-arm the same one-hour wait without inserting
 `list_agents`, another status query, or a user update between unchanged timeouts. A timeout

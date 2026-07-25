@@ -50,7 +50,7 @@ GLOBAL_SCAN_CONTRACT = (
     "dispatches every ready, non-conflicting task that fits currently available capacity",
 )
 AGENT_WAIT_CONTRACT = (
-    "`agent_wait_timeout_ms = 3600000` (1 hour)",
+    "Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour)",
     "routine progress-update cadence never shortens it",
     "A timeout has no workflow meaning",
     "immediately re-arm the same one-hour wait",
