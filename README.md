@@ -130,14 +130,16 @@ findings are fixed, the primary orchestrator checks the exact fix delta and reru
 machine checks without another independent pass. Only a recorded risk trigger adds a fresh
 Verifier on the final candidate. Clean mechanical integration does not cause identical tests
 to run twice.
-Agent waiting is event-driven: exhaust useful local work, use one longest-safe wait, treat a
-timeout only as a liveness checkpoint, and never turn status/list/wait calls into a polling
-loop. Use one `list_agents` snapshot only for a scheduling decision, an ambiguous post-timeout
-state, or conflicting lifecycle events; do not query again before material state changes.
-There is no periodic list interval. Agent progress remains local to its thread; only material
-lifecycle events notify the orchestrator. A long-running primary session sends no unchanged-
-state heartbeat; it updates only for material progress, a blocker, a decision request, or the
-final result.
+Agent waiting is event-driven. Codex uses the single canonical setting
+`agent_wait_timeout_ms = 3600000` (1 hour) for every `wait_agent` call; normal progress-update
+cadence does not shorten it. If a known-running agent crosses that timeout, the orchestrator
+immediately re-arms the same one-hour wait without a list/status call or user update. Timeout
+alone never triggers `list_agents`, interruption, termination, or kill. One `list_agents`
+snapshot is reserved for a real scheduling decision that lifecycle events cannot resolve, or
+for conflicting lifecycle events. Silence, no returned content, elapsed time, and repeated
+timeouts never justify stopping an agent. While state is unchanged, the primary session does
+not report wait timeouts, heartbeats, agent counts, or running status; it updates only for
+material progress, a blocker, a decision request, or the final result.
 
 The reviewed `Task.md` row selects the work; its materialized `Card.md` is the static execution
 and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and

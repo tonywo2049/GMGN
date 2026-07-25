@@ -49,6 +49,18 @@ GLOBAL_SCAN_CONTRACT = (
     "not only the current card or active lane",
     "dispatches every ready, non-conflicting task that fits currently available capacity",
 )
+AGENT_WAIT_CONTRACT = (
+    "`agent_wait_timeout_ms = 3600000` (1 hour)",
+    "routine progress-update cadence never shortens it",
+    "A timeout has no workflow meaning",
+    "immediately re-arm the same one-hour wait",
+    "A timeout alone is not a `list_agents` trigger",
+    "one `list_agents` snapshot only when a real scheduling/capacity decision cannot be made "
+    "from received lifecycle events or those events conflict",
+    "must not interrupt, terminate, or kill an agent merely because it has not returned content",
+    "only on explicit user cancellation or concrete evidence",
+    "do not report a wait timeout, silence, absence of content, agent count, or `running` status",
+)
 PONYTAIL_CONTRACT_FILES = (
     Path("GMGN.md"),
     Path("skills/gmgn/SKILL.md"),
@@ -205,6 +217,14 @@ def validate_core_contract(errors: list[str]) -> None:
     ):
         require(text, GLOBAL_SCAN_CONTRACT, label, errors)
 
+    for text, label in (
+        (methodology, "GMGN 根规范 Agent 等待契约"),
+        (gmgn, "gmgn 路由 Agent 等待契约"),
+        (run_task, "run-task Agent 等待契约"),
+        (dispatch_en, "英文派发 Agent 等待契约"),
+    ):
+        require(text, AGENT_WAIT_CONTRACT, label, errors)
+
     archive_reverse = (
         "Archive documents may be used as authority, context, or evidence",
     )
@@ -300,8 +320,6 @@ def validate_core_contract(errors: list[str]) -> None:
         "Close the task as soon as the Card outcome",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
-        "A `list_agents` snapshot is allowed only",
-        "There is no periodic list interval",
         "ROADMAP sequencing, Milestone allocation, deliverable, dependency, qualitative acceptance picture, Backlog placement, or Handoff placement",
         "Goal objective, boundary, non-goal, result-based slice, or ROADMAP deliverable/acceptance-scenario mapping",
         "Requirement behavior, quantified parameter, constraint, or decidable AC",
@@ -397,7 +415,6 @@ def validate_core_contract(errors: list[str]) -> None:
         "does not broaden the verification plan after the recorded\nrisk is decided",
         "A failed, skipped,\ntimed-out, or unavailable required command is not a pass",
         "The Verifier must leave every tracked file unchanged",
-        "sends no heartbeat when state is unchanged",
         "Use one `list_agents` snapshot only",
         "No periodic list interval is configured or inferred",
         "Across the confirmed execution set, wait only after",
@@ -448,7 +465,6 @@ def validate_core_contract(errors: list[str]) -> None:
         "concrete material harm",
         "smallest sufficient correction",
         "minimum verification plan",
-        "sends no heartbeat when observable state is unchanged",
         "Do not query again until a material lifecycle event",
         "There is no periodic list interval",
         "initialize it once in each isolated workspace before source discovery",

@@ -666,12 +666,40 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_periodic_agent_status_polling(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",
-            "There is no periodic list interval",
-            "Use a periodic list interval",
+            "A timeout\nalone is not a `list_agents` trigger",
+            "A timeout triggers `list_agents`",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("gmgn 路由契约", result.stdout)
+        self.assertIn("gmgn 路由 Agent 等待契约", result.stdout)
+
+    def test_rejects_short_agent_wait_or_timeout_termination(self) -> None:
+        cases = (
+            (
+                "`agent_wait_timeout_ms = 3600000` (1 hour)",
+                "`agent_wait_timeout_ms = 60000` (1 minute)",
+            ),
+            (
+                "routine\nprogress-update cadence never shortens it",
+                "routine progress-update cadence shortens it",
+            ),
+            (
+                "must not interrupt, terminate, or kill an agent merely because it has\n"
+                "not returned content",
+                "may terminate an agent when it has not returned content",
+            ),
+            (
+                "immediately re-arm the same one-hour wait",
+                "return from the task after the timeout",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(old=old):
+                result = self.run_isolated_mutation(
+                    "skills/gmgn/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("gmgn 路由 Agent 等待契约", result.stdout)
 
     def test_rejects_global_execution_set_scan_drift(self) -> None:
         cases = (
@@ -776,12 +804,13 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_unchanged_state_primary_heartbeat(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",
-            "must not send a progress update while observable state is unchanged",
-            "may send a progress heartbeat while state is unchanged",
+            "do not report a wait timeout,\n"
+            "silence, absence of content, agent count, or `running` status",
+            "report each wait timeout and the agent's `running` status",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("gmgn 路由契约", result.stdout)
+        self.assertIn("gmgn 路由 Agent 等待契约", result.stdout)
 
     def test_rejects_tip_only_candidate_application(self) -> None:
         self.replace(

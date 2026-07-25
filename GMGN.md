@@ -240,13 +240,22 @@ and classifies the return:
 Use the normal Git commit. Formal API versions exist only when a current external or
 coexisting-version compatibility requirement needs them.
 
-Wait only after dispatch, local checks, integration, and state refresh are exhausted. Use one
-event-driven longest-safe wait. A timeout is a liveness checkpoint, not a reason to start a
-list/status/wait polling loop. Use one `list_agents` snapshot only when a scheduling/capacity
-decision needs current state, a wait timed out without an unambiguous agent state, or received
-lifecycle events conflict. One call serves one decision point; do not query again until a
-material lifecycle event, candidate, blocker, or scheduling condition changes. There is no
-periodic list interval; a wait timeout configures only that wait call.
+Wait only after dispatch, local checks, integration, and state refresh are exhausted. Every
+Codex `wait_agent` call uses the dispatch contract's canonical
+`agent_wait_timeout_ms = 3600000` (1 hour); routine progress-update cadence never shortens it.
+A timeout has no workflow meaning. If an agent is known to remain `running`, immediately re-arm
+the same one-hour wait without inserting `list_agents`, another status query, or a user update
+between unchanged timeouts. A timeout alone is not a `list_agents` trigger. Use one
+`list_agents` snapshot only when a real scheduling/capacity decision cannot be made from
+received lifecycle events or those events conflict; do not query again until a material
+lifecycle event or scheduling condition changes.
+
+The primary orchestrator must not interrupt, terminate, or kill an agent merely because it has
+not returned content, is silent or slow, or crossed one or more wait timeouts. Stop it only on
+explicit user cancellation or concrete evidence that it has hard-failed, its scope is invalid,
+or continuing is unsafe. While observable state is unchanged, do not report a wait timeout,
+silence, absence of content, agent count, or `running` status. Report only material progress, a
+blocker, a decision request, or the final result.
 
 ## 6. Change, closure, and release
 

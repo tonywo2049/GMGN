@@ -185,16 +185,23 @@ could change the decision, acceptance, or downstream work.
 - Before waiting or acting as a Coder, the primary orchestrator scans every task in the
   confirmed execution set, not only the current card or active lane, and dispatches every
   ready, non-conflicting task that fits currently available capacity. Wait only after useful
-  dispatch, local checks, state refresh, and integration work are exhausted. Use one
-  longest-safe event wait. A timeout is a liveness checkpoint, not a reason to start a
-  list/status/wait polling loop.
-- A long-running primary session sends no heartbeat when observable state is unchanged. It
-  updates only for material progress, a blocker, a decision request, or the final result.
-- On Codex, use one `list_agents` snapshot only when a scheduling/capacity decision needs
-  current state, a wait timed out without an unambiguous agent state, or received lifecycle
-  events conflict. Do not query again until a material lifecycle event, candidate, blocker, or
-  scheduling condition changes. `path_prefix` scopes the snapshot; it is not an interval.
-  There is no periodic list interval.
+  dispatch, local checks, state refresh, and integration work are exhausted.
+- `agent_wait_timeout_ms = 3600000` (1 hour) is the canonical Codex wait setting. Every
+  `wait_agent` call uses it; routine progress-update cadence never shortens it.
+- A timeout has no workflow meaning. If an agent is known to remain `running`, immediately
+  re-arm the same one-hour wait without inserting `list_agents`, another status query, or a
+  user update between unchanged timeouts. A timeout alone is not a `list_agents` trigger.
+- On Codex, use one `list_agents` snapshot only when a real scheduling/capacity decision cannot
+  be made from received lifecycle events or those events conflict. Do not query again until a
+  material lifecycle event or scheduling condition changes. `path_prefix` scopes the snapshot;
+  it is not an interval. There is no periodic list interval.
+- The primary orchestrator must not interrupt, terminate, or kill an agent merely because it
+  has not returned content, is silent or slow, or crossed one or more wait timeouts. Stop it
+  only on explicit user cancellation or concrete evidence that it has hard-failed, its scope
+  is invalid, or continuing is unsafe.
+- While observable state is unchanged, do not report a wait timeout, silence, absence of
+  content, agent count, or `running` status. Report only material progress, a blocker, a
+  decision request, or the final result.
 
 Surface limitations never justify silently reusing an agent, widening write permissions, or
 dropping independent review.

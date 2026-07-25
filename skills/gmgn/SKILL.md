@@ -178,15 +178,23 @@ When no implementation lane can run in parallel with useful orchestrator work, t
 session may serve as one lane's Coder. It cannot take over an assigned lane and
 cannot replace independent review or risk-triggered verification.
 
-Agent waiting is event-driven: exhaust useful work, wait once with the longest safe interval,
-and treat timeout as a liveness checkpoint rather than a polling trigger. A `list_agents`
-snapshot is allowed only when a scheduling/capacity decision needs current state, a wait timed
-out without an unambiguous agent state, or received lifecycle events conflict. One call serves
-one decision point; do not query again until a material lifecycle event, candidate, blocker, or
-scheduling condition changes. There is no periodic list interval. A long-running primary
-session sends no heartbeat when state is unchanged; it reports only material progress, a
-blocker, a decision request, or the final result. Telemetry is out-of-band observation and never
-changes routing, readiness, acceptance, or closure.
+Agent waiting is event-driven. After useful work is exhausted, every Codex `wait_agent` call
+uses the dispatch contract's canonical `agent_wait_timeout_ms = 3600000` (1 hour); routine
+progress-update cadence never shortens it. A timeout has no workflow meaning. If an agent is
+known to remain `running`, immediately re-arm the same one-hour wait without inserting
+`list_agents`, another status query, or a user update between unchanged timeouts. A timeout
+alone is not a `list_agents` trigger. Use one
+`list_agents` snapshot only when a real scheduling/capacity decision cannot be made from
+received lifecycle events or those events conflict; do not query again until a material
+lifecycle event or scheduling condition changes.
+
+The primary orchestrator must not interrupt, terminate, or kill an agent merely because it has
+not returned content, is silent or slow, or crossed one or more wait timeouts. Stop it only on
+explicit user cancellation or concrete evidence that it has hard-failed, its scope is invalid,
+or continuing is unsafe. While observable state is unchanged, do not report a wait timeout,
+silence, absence of content, agent count, or `running` status. Report only material progress, a
+blocker, a decision request, or the final result. Telemetry is out-of-band observation and
+never changes routing, readiness, acceptance, or closure.
 
 ## Controlled-change routing
 

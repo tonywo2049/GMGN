@@ -141,15 +141,24 @@ original-base-to-candidate commit range. A correction commit is not a standalone
 A later correction uses a fresh Coder. Full-length commit object IDs, diff/content hashes, and
 checksums are not workflow anchors.
 
-Across the confirmed execution set, wait only after ready dispatch, primary-Coder work, integration,
-state refresh, and local checks are exhausted. Use one event-driven longest-safe wait. A
-timeout is a liveness checkpoint; do not turn list/status/wait into a polling loop. Use one
-`list_agents` snapshot only when a scheduling/capacity decision needs current state, a wait
-timed out without an unambiguous agent state, or received lifecycle events conflict. Do not
-query again until a material lifecycle event, candidate, blocker, or scheduling condition
-changes. No periodic list interval is configured or inferred. A long-running primary session
-sends no heartbeat when state is unchanged; it reports only material progress, a blocker, a
-decision request, or the final result.
+Across the confirmed execution set, wait only after ready dispatch, primary-Coder work,
+integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
+the dispatch contract's canonical `agent_wait_timeout_ms = 3600000` (1 hour); routine
+progress-update cadence never shortens it. A timeout has no workflow meaning. If an agent is
+known to remain `running`, immediately re-arm the same one-hour wait without inserting
+`list_agents`, another status query, or a user update between unchanged timeouts. A timeout
+alone is not a `list_agents` trigger. Use one
+`list_agents` snapshot only when a real scheduling/capacity decision cannot be made from
+received lifecycle events or those events conflict; do not query again until a material
+lifecycle event or scheduling condition changes. No periodic list interval is configured or
+inferred.
+
+The primary orchestrator must not interrupt, terminate, or kill an agent merely because it has
+not returned content, is silent or slow, or crossed one or more wait timeouts. Stop it only on
+explicit user cancellation or concrete evidence that it has hard-failed, its scope is invalid,
+or continuing is unsafe. While observable state is unchanged, do not report a wait timeout,
+silence, absence of content, agent count, or `running` status. Report only material progress, a
+blocker, a decision request, or the final result.
 
 ## 5. Review the final useful candidate once
 
