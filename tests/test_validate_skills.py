@@ -152,6 +152,20 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_task_content_boundary_drift(self) -> None:
         cases = (
             (
+                "Use stable task IDs and the task-state tokens\n"
+                "  defined by the writing contract",
+                "Do not use stable task IDs or task-state tokens",
+            ),
+            (
+                "Every in-scope AC must map to at least one task",
+                "Not every in-scope AC must map to at least one task",
+            ),
+            (
+                "Do not put TDD cases,\n"
+                "  commands, file scopes",
+                "Do not put TDD cases, but put commands and file scopes",
+            ),
+            (
                 "Never create tentative, placeholder, or speculative task sets",
                 "Allow tentative, placeholder, or speculative task sets",
             ),

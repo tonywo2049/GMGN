@@ -324,7 +324,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Keep `Task.md` as a compact Milestone execution index",
         "which independently decidable results must be delivered",
         "which AC, Design, and applicable Contract anchors authorize each result",
-        "Use stable task IDs and the task-state tokens\n  defined by the writing contract",
+        "Keep the parser-facing task header unchanged. Use stable task IDs and the "
+        "task-state tokens\n  defined by the writing contract",
         "Replace current status and execution values; never append\n  execution history",
         "one primary result that can be independently judged complete or failed",
         "Split by result and verification boundary, not by file, interface, implementation step",
@@ -333,16 +334,16 @@ def validate_core_contract(errors: list[str]) -> None:
         "create only that evidence-producing task",
         "Revise Design before adding the downstream tasks",
         "Never create tentative, placeholder, or speculative task sets",
-        "Every in-scope AC must map to at least one task",
+        "- Every in-scope AC must map to at least one task",
         "A task may cover several related ACs and\n  one AC may require several tasks",
         "the Design is\n  not ready for Task planning",
         "`prerequisite` contains only real data, interface, or decision dependencies and must form\n"
         "  an acyclic DAG",
         "Sharing an approved Contract does not by itself create a dependency",
         "Do not\n  freeze execution waves",
-        "Do not put TDD cases",
-        "Do not copy Requirement, Design, or Contract meaning into Task",
-        "commands, file scopes, runtime locks, blockers, commits, candidates, review records",
+        "- Do not copy Requirement, Design, or Contract meaning into Task. Do not put TDD cases,\n"
+        "  commands, file scopes, runtime locks, blockers, commits, candidates, review records,\n"
+        "  evidence, or progress narratives in `Task.md`",
         "`execution/<card_id>/Card.md`",
         "the normative execution contract, TDD contract, and\n  completion criterion",
         "`execution/<card_id>/Log.md`",
@@ -358,6 +359,9 @@ def validate_core_contract(errors: list[str]) -> None:
     ), "write-task 紧凑索引契约", errors)
     forbid(write_task, (
         "Task may redefine upstream meaning",
+        "Do not use stable task IDs or task-state tokens",
+        "Not every in-scope AC must map to at least one task",
+        "but put commands and file scopes",
         "Allow tentative, placeholder, or speculative task sets",
         "Allow in-scope ACs to remain unmapped",
         "Freeze execution waves in Task",

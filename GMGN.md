@@ -124,18 +124,13 @@ absence leaves all current ACs and Design results satisfied.
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
 
-- `execution/<card_id>/Card.md` — normative stable execution/TDD contract. It links to the
-  exact Task/Requirement/Design and applicable interface-Contract authority and exposes
-  `execution_log: [Log.md](Log.md)`.
-- `execution/<card_id>/Log.md` — descriptive execution record with a replaceable current
-  snapshot, material decisions only, and one final evidence summary when closed.
+- `execution/<card_id>/Card.md` — normative execution and TDD contract with its completion
+  criterion.
+- `execution/<card_id>/Log.md` — replaceable current snapshot, material decisions, and final
+  evidence summary; not a full process history.
 
-Create Card first, then Log, then publish the Task execution link to Card in the same checked
-candidate. Do not create separate State, Verification, per-role Handoff, or project-wide
-execution-log files unless an independent project requirement needs one.
-For DocStar compatibility, the snapshot keeps one `latest_event` pointer: it targets
-`#current` while active and `#final-evidence` when closed. This pointer does not create an
-event ledger or require generated event IDs.
+`Task.md` links to Card without copying execution content. Detailed Card and Log rules remain
+in `run-task` and the writing contract.
 
 ## 4. Review and verification
 
