@@ -434,7 +434,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them",
         "Map every\n  deliverable to one or more slices",
         "require every slice to contribute to a ROADMAP\n  deliverable or acceptance scenario",
-        "Map every ROADMAP acceptance-scenario anchor to one or more slices",
+        "Map every ROADMAP acceptance-scenario anchor to one or more slices and a qualitative\n"
+        "  observable outcome",
         "Requirement refines that meaning into parameters and decidable ACs",
         "Requirement owns quantified parameters and acceptance conditions",
         "Design\n  owns implementation choices",
@@ -442,8 +443,25 @@ def validate_core_contract(errors: list[str]) -> None:
         "Resolve before Requirement every open decision owned by Goal",
         "Route upstream-owned gaps to\n  their authority and leave downstream-owned choices to their proper stage",
         "Do not include component or interface design, code\n  structure, test cases, commands, results, task breakdown, live status",
+        "or conclusions copied from downstream",
+        "ROADMAP-owned deliverables,\n   qualitative acceptance picture",
+        "Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP\n"
+        "   deliverable/acceptance-scenario mappings",
         "deleting all downstream documents leaves Goal's objective and boundary complete",
         "an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal",
+    ), "write-goal 内容边界契约", errors)
+    forbid(write_goal, (
+        "may redefine Goal",
+        "Split slices by team, component, or file",
+        "Redefine ROADMAP deliverables inside Goal",
+        "Some ROADMAP deliverables need no slice",
+        "ROADMAP acceptance scenarios need no slice",
+        "Goal owns quantified parameters and acceptance conditions",
+        "Goal owns implementation choices",
+        "Goal owns work division, order, and status",
+        "Push every Goal-owned open decision to Requirement",
+        "quantified pass/fail criterion",
+        "include conclusions copied from downstream",
     ), "write-goal 内容边界契约", errors)
     require(write_requirement, (
         "ROADMAP acceptance-scenario anchor",

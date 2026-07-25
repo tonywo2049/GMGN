@@ -354,7 +354,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Some ROADMAP deliverables need no slice",
             ),
             (
-                "Map every ROADMAP acceptance-scenario anchor to one or more slices",
+                "Map every ROADMAP acceptance-scenario anchor to one or more slices and a qualitative\n"
+                "  observable outcome",
                 "ROADMAP acceptance scenarios need no slice",
             ),
             (
@@ -372,6 +373,35 @@ class ValidateSkillsTests(unittest.TestCase):
             (
                 "Resolve before Requirement every open decision owned by Goal",
                 "Push every Goal-owned open decision to Requirement",
+            ),
+            (
+                "qualitative\n  observable outcome",
+                "quantified pass/fail criterion",
+            ),
+            (
+                "or conclusions copied from downstream",
+                "and include conclusions copied from downstream",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(old=old):
+                result = self.run_isolated_mutation(
+                    "skills/write-goal/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("write-goal 内容边界契约", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
+
+    def test_rejects_goal_controlled_revision_route_drift(self) -> None:
+        cases = (
+            (
+                "ROADMAP-owned deliverables,\n   qualitative acceptance picture",
+                "Goal-owned deliverables and quantitative acceptance criteria",
+            ),
+            (
+                "Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP\n"
+                "   deliverable/acceptance-scenario mappings",
+                "Goal-owned objectives and document mapping only",
             ),
         )
         for old, new in cases:

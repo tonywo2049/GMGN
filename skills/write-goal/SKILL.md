@@ -63,12 +63,12 @@ committed candidate, applies accepted mechanical propagation, and runs machine c
 
 1. Start from the old Goal commit and record the trigger, semantic delta, affected slices,
    documents, and evidence, plus the proposed new commit.
-2. Route WhitePaper-owned meaning to `brainstorm` revision mode and ROADMAP-owned sequencing,
-   cross-milestone allocation, dependency, or qualitative milestone-row meaning to `roadmap`
-   maintenance mode. Resume here after the required upstream approval; do not patch that
-   meaning into Goal.
-3. Revise only Goal-owned objectives, boundaries, slices, non-goals, acceptance-scenario
-   mapping, or document mapping. Preserve unaffected content.
+2. Route WhitePaper-owned meaning to `brainstorm` revision mode and ROADMAP-owned deliverables,
+   qualitative acceptance picture, sequencing, cross-milestone allocation, or dependency to
+   `roadmap` maintenance mode. Resume here after the required upstream approval; do not patch
+   that meaning into Goal.
+3. Revise only Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP
+   deliverable/acceptance-scenario mappings, or document mapping. Preserve unaffected content.
 4. If the delta changes a decision or reasonable understanding, run the independent critic
    and primary-orchestrator review against the affected content and bind it to a new commit.
    Old review remains attached to the old commit.
