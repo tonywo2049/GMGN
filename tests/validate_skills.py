@@ -204,6 +204,42 @@ def validate_core_contract(errors: list[str]) -> None:
     ):
         require(text, GLOBAL_SCAN_CONTRACT, label, errors)
 
+    archive_reverse = (
+        "Archive documents may be used as authority, context, or evidence",
+    )
+    require(methodology, (
+        "Documents under a project-declared archive root are historical storage, not active authority",
+        "Writers, Critics, Reviewers, and Verifiers do not read, cite, or use them as context or\n"
+        "evidence",
+        "Exclude archive roots from briefs and generated context",
+        "restore it to the active tree through its owning authority before use",
+    ), "GMGN archive 上下文边界", errors)
+    require(gmgn, (
+        "Before direct or delegated writing, Critic, Reviewer, or Verifier work",
+        "exclude every\nproject-declared archive root from reads, briefs, generated context, authority, and evidence",
+        "Never cite archived documents",
+        "Restore needed meaning to the active tree through its owning\nauthority before use",
+    ), "gmgn archive 上下文边界", errors)
+    require(writing_en, (
+        "Documents under a project-declared archive root are historical storage only",
+        "Writers do not\nread, cite, or use them as authority, context, or evidence",
+        "Restore needed meaning to the\nactive tree through its owning authority before use",
+    ), "写作 archive 上下文边界", errors)
+    require(dispatch_en, (
+        "Every Author, Critic, Reviewer, and Verifier brief names project-declared archive roots as\n"
+        "excluded paths",
+        "Generated context and indexes must honor that exclusion",
+        "These roles do not\nread, cite, or use archived documents as authority, context, or evidence",
+        "return it to the owning active authority before continuing",
+    ), "派发 archive 上下文边界", errors)
+    for text, label in (
+        (methodology, "GMGN archive 上下文边界"),
+        (gmgn, "gmgn archive 上下文边界"),
+        (writing_en, "写作 archive 上下文边界"),
+        (dispatch_en, "派发 archive 上下文边界"),
+    ):
+        forbid(text, archive_reverse, label, errors)
+
     require(methodology, (
         "Completion does not require every non-critical issue to be perfected",
         "When the accepted main path works and an effective fallback keeps a remaining "
@@ -796,6 +832,21 @@ def validate_roles(errors: list[str]) -> None:
                 instructions, (toml_commit_rules[role],),
                 f"{toml} 候选 commit 门禁", errors,
             )
+            if role in {"author", "critic", "reviewer", "verifier"}:
+                require(text, (
+                    "Do not read, cite, or use documents under a project-declared archive root as authority,\n"
+                    "context, or evidence",
+                ), f"{markdown} archive 上下文边界", errors)
+                require(instructions, (
+                    "不得读取、引用或使用项目声明的 archive 根目录中的文档作为权威、上下文或证据",
+                    "先由对应权威恢复到活动目录",
+                ), f"{toml} archive 上下文边界", errors)
+                forbid(text, (
+                    "Archive documents may be used as authority, context, or evidence",
+                ), f"{markdown} archive 上下文边界", errors)
+                forbid(instructions, (
+                    "可以读取、引用或使用项目声明的 archive 根目录中的文档作为权威、上下文或证据",
+                ), f"{toml} archive 上下文边界", errors)
             if role == "reviewer":
                 require(text, (
                     "deterministic local checks",
@@ -909,6 +960,8 @@ def validate_docstar_adapter(errors: list[str]) -> None:
     }
     if config.get("task_execution") != expected_execution:
         errors.append("DocStar task_execution 未采用紧凑 Log 兼容指针")
+    if config.get("archive_globs") != ["[Aa]rchive"]:
+        errors.append("DocStar archive_globs 未排除 archive 文档")
 
 
 def validate_relative_links(errors: list[str]) -> None:

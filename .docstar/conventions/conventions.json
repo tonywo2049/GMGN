@@ -1,5 +1,6 @@
 {
   "version": "1",
+  "archive_globs": ["[Aa]rchive"],
   "namespaces": {
     "prefix_namespaces": {},
     "kind_namespace": {"需求AC": "Requirement"},

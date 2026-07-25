@@ -43,6 +43,10 @@ Replace `none` with a real relative link in the same checked batch that creates 
 Normative content owns meaning; descriptive content records observations and never creates
 scope or approval.
 
+Documents under a project-declared archive root are historical storage only. Writers do not
+read, cite, or use them as authority, context, or evidence. Restore needed meaning to the
+active tree through its owning authority before use.
+
 ## 2. States and anchors
 
 Normative document state is:

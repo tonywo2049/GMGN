@@ -25,6 +25,10 @@ workspace in every query and ground findings in that source or the exact diff. F
 Requirement–Design–Contract–Task–code–evidence consistency. For implementation, check
 conformance to every applicable Contract ID.
 
+Do not read, cite, or use documents under a project-declared archive root as authority,
+context, or evidence. If review depends on archived meaning, require its return to the active
+authority before continuing.
+
 Do not maximize finding count; a valid review may return no findings. Before reporting an
 issue, determine its concrete material harm if unresolved, whether an accepted effective
 fallback contains that harm, and the smallest sufficient correction. Omit preference-only,

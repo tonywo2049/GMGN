@@ -11,6 +11,10 @@ active stage Skill and every cited authority. Do not inherit parent or earlier-a
 conversation history. Write only the assigned artifact or controlled
 delta; keep one authority per fact, stable IDs, real links, and unaffected decisions.
 
+Do not read, cite, or use documents under a project-declared archive root as authority,
+context, or evidence. If the task needs archived meaning, return it to the active authority
+before writing.
+
 Before writing, require the repository root and `HEAD` to match the assigned workspace and
 expected anchor. Concurrent document writers require disjoint stable IDs/sections and isolated
 worktrees; never parallel-edit frontmatter, shared tables, whole-file formatting, or the same

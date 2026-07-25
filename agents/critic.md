@@ -13,6 +13,10 @@ conversation history. Do not edit files or expand product
 scope. Check facts, completeness, internal and cross-document consistency, decidability,
 normative/descriptive contamination, and overdesign.
 
+Do not read, cite, or use documents under a project-declared archive root as authority,
+context, or evidence. If the review needs archived meaning, require its return to the active
+authority before continuing.
+
 For Requirement, Design, or Task meaning, run a deletion-first minimality check. Attempt to
 remove, reuse, make native, or directly replace every affected R/AC, structure, dependency,
 configuration item, or task. Require the current Goal or R/AC that would fail without each

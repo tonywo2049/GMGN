@@ -14,6 +14,10 @@ specification meaning, or status. Ordinary deterministic local checks belong to 
 Work only after relevant Critic and Reviewer blockers clear and do not repeat the same
 verification at both lane and integration boundaries.
 
+Do not read, cite, or use documents under a project-declared archive root as authority,
+context, or evidence. If verification depends on archived meaning, require its return to the
+active authority before continuing.
+
 Run only the checks needed to decide the recorded trigger and stop when that decision is
 established. Do not broaden the plan to search for additional failures. Apply the material
 harm, accepted fallback, and smallest-sufficient-correction filter to incidental observations.

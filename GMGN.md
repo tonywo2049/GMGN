@@ -91,6 +91,11 @@ as a workflow anchor. If the current workspace cannot safely create the candidat
 an isolated worktree. Checksums are evidence only. Editing a file never moves approval
 automatically.
 
+Documents under a project-declared archive root are historical storage, not active authority.
+Writers, Critics, Reviewers, and Verifiers do not read, cite, or use them as context or
+evidence. Exclude archive roots from briefs and generated context. If active work needs
+archived meaning, restore it to the active tree through its owning authority before use.
+
 Human prose may be English or Chinese. Machine fields, IDs, status tokens, and Task headers
 remain stable. The complete structural contract is in the
 [writing contract](skills/gmgn/references/en/writing-contract.md).

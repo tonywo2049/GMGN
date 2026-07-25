@@ -42,7 +42,8 @@ Every brief contains:
 2. exact authority and scope, plus baseline, candidate, or evidence anchors only when they
    already exist and are needed for this dispatch;
 3. required context pointers and the named questions unresolved by that context;
-4. repository/workspace facts, write permissions, allowed paths, and prohibitions;
+4. repository/workspace facts, write permissions, allowed paths, archive-root exclusions, and
+   prohibitions;
 5. prior accepted findings or failures only when they affect this dispatch;
 6. checks, expected evidence, limitations to report, and the return gate.
 
@@ -50,6 +51,11 @@ The brief may name registered skills or available tools required for the task. T
 load them through normal discovery and follow their own local resources. Put resolved workflow
 decisions, including any assurance classification, directly in the brief instead of passing
 another Skill's internal resource path.
+
+Every Author, Critic, Reviewer, and Verifier brief names project-declared archive roots as
+excluded paths. Generated context and indexes must honor that exclusion. These roles do not
+read, cite, or use archived documents as authority, context, or evidence. If active work
+depends on archived meaning, return it to the owning active authority before continuing.
 
 For run-task, every Coder brief names the registered `ponytail:ponytail` Skill at `full`. A
 Reviewer brief names `ponytail:ponytail-review` when its candidate contains implementation or

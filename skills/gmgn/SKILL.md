@@ -14,6 +14,11 @@ tokens and IDs in English. Load the English-only layout-free
 [writing contract](references/en/writing-contract.md) when writing; artifact prose may still
 use the active project locale.
 
+Before direct or delegated writing, Critic, Reviewer, or Verifier work, exclude every
+project-declared archive root from reads, briefs, generated context, authority, and evidence.
+Never cite archived documents. Restore needed meaning to the active tree through its owning
+authority before use.
+
 ## Route by observable state
 
 | State | Route |

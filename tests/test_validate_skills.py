@@ -474,6 +474,70 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertIn("write-requirement 内容边界契约", result.stdout)
                 self.assertIn("含相反契约", result.stdout)
 
+    def test_rejects_archive_context_contract_drift(self) -> None:
+        reverse = "Archive documents may be used as authority, context, or evidence"
+        global_cases = (
+            (
+                "GMGN.md",
+                "Documents under a project-declared archive root are historical storage, "
+                "not active authority",
+            ),
+            (
+                "skills/gmgn/SKILL.md",
+                "Before direct or delegated writing, Critic, Reviewer, or Verifier work",
+            ),
+            (
+                "skills/gmgn/references/en/writing-contract.md",
+                "Documents under a project-declared archive root are historical storage only",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Every Author, Critic, Reviewer, and Verifier brief names project-declared "
+                "archive roots as\nexcluded paths",
+            ),
+        )
+        for relative, old in global_cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(relative, old, reverse)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("archive 上下文边界", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
+
+        markdown_rule = (
+            "Do not read, cite, or use documents under a project-declared archive root as authority,\n"
+            "context, or evidence"
+        )
+        chinese_rule = (
+            "不得读取、引用或使用项目声明的 archive 根目录中的文档作为权威、上下文或证据"
+        )
+        chinese_reverse = (
+            "可以读取、引用或使用项目声明的 archive 根目录中的文档作为权威、上下文或证据"
+        )
+        for role in ("author", "critic", "reviewer", "verifier"):
+            with self.subTest(role=role, surface="markdown"):
+                result = self.run_isolated_mutation(
+                    f"agents/{role}.md", markdown_rule, reverse,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("archive 上下文边界", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
+            with self.subTest(role=role, surface="toml"):
+                result = self.run_isolated_mutation(
+                    f".codex/agents/{role}.toml", chinese_rule, chinese_reverse,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("archive 上下文边界", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
+
+    def test_rejects_missing_docstar_archive_filter(self) -> None:
+        path = self.root / ".docstar/conventions/conventions.json"
+        value = json.loads(path.read_text(encoding="utf-8"))
+        value.pop("archive_globs")
+        path.write_text(json.dumps(value), encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("DocStar archive_globs 未排除 archive 文档", result.stdout)
+
     def test_rejects_missing_fresh_agent_lifecycle(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",

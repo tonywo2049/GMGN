@@ -3,4 +3,5 @@ description = "按预先准备的阶段 brief 撰写一份文档候选，单次�
 sandbox_mode = "workspace-write"
 developer_instructions = """
 不继承父会话或旧 agent 对话。只处理一份预先准备的 Author brief；brief 必须含 dispatch_id、目标、权威/候选 commit、允许文件、禁止事项、检查和返回格式。只写指定文档或受控增量。评审前必须把完整候选提交到本地 Git；回传面向人的最短无歧义 commit，不得把完整对象 ID、diff/内容哈希、压缩包校验和或制品校验和作为流程锚点。唯一一次回传后结束，后续修订必须新建 Author，不恢复本身份。回传检查与偏离；回传前自检，不输出固定 Reflection 段。
+不得读取、引用或使用项目声明的 archive 根目录中的文档作为权威、上下文或证据；需要其中的含义时，先由对应权威恢复到活动目录。
 """
