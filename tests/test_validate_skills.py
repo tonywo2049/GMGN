@@ -14,7 +14,17 @@ class ValidateSkillsTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name) / "repo"
-        shutil.copytree(ROOT, self.root, ignore=shutil.ignore_patterns(".git", "__pycache__", "dist"))
+        config = json.loads(
+            (ROOT / ".docstar/conventions/conventions.json").read_text(encoding="utf-8")
+        )
+        self.archive_globs = tuple(config["archive_globs"])
+        shutil.copytree(
+            ROOT,
+            self.root,
+            ignore=shutil.ignore_patterns(
+                ".git", "__pycache__", "dist", *self.archive_globs,
+            ),
+        )
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -37,7 +47,11 @@ class ValidateSkillsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "repo"
             shutil.copytree(
-                ROOT, root, ignore=shutil.ignore_patterns(".git", "__pycache__", "dist"),
+                ROOT,
+                root,
+                ignore=shutil.ignore_patterns(
+                    ".git", "__pycache__", "dist", *self.archive_globs,
+                ),
             )
             path = root / relative
             text = path.read_text(encoding="utf-8")
@@ -982,6 +996,27 @@ class ValidateSkillsTests(unittest.TestCase):
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
         self.assertIn("链接目标不存在", result.stdout)
+
+    def test_ignores_broken_links_inside_archive_roots(self) -> None:
+        for relative in ("archive/frozen.md", "nested/Archive/frozen.md"):
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("[bad](missing.md)\n", encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_rejects_active_link_to_archive_document(self) -> None:
+        archived = self.root / "Archive" / "frozen.md"
+        archived.parent.mkdir(parents=True)
+        archived.write_text("historical\n", encoding="utf-8")
+        readme = self.root / "README.md"
+        readme.write_text(
+            readme.read_text(encoding="utf-8") + "\n[old](Archive/frozen.md)\n",
+            encoding="utf-8",
+        )
+        result = self.run_validator()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("活动文档不得引用 archive 文档", result.stdout)
 
 
 if __name__ == "__main__":

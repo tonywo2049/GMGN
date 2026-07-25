@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Validate GMGN's small set of structural and workflow invariants."""
 
-from pathlib import Path
+from fnmatch import fnmatchcase
 import json
+from pathlib import Path
 import re
 import sys
 import tomllib
@@ -965,9 +966,30 @@ def validate_docstar_adapter(errors: list[str]) -> None:
 
 
 def validate_relative_links(errors: list[str]) -> None:
+    try:
+        config = json.loads(read(".docstar/conventions/conventions.json"))
+    except (AssertionError, json.JSONDecodeError):
+        return
+    archive_globs = config.get("archive_globs")
+    if (
+        not isinstance(archive_globs, list)
+        or not archive_globs
+        or any(not isinstance(pattern, str) or not pattern for pattern in archive_globs)
+    ):
+        return
+
+    def is_archived(relative: Path) -> bool:
+        return any(
+            fnmatchcase(part, pattern)
+            for part in relative.parts
+            for pattern in archive_globs
+        )
+
     link_pattern = re.compile(r"(?<!!)\[[^\]\n]+\]\(([^)\n]+)\)")
+    root = ROOT.resolve()
     for path in sorted(ROOT.rglob("*.md")):
-        if any(part in {".git", "dist"} for part in path.parts):
+        relative = path.relative_to(ROOT)
+        if any(part in {".git", "dist"} for part in relative.parts) or is_archived(relative):
             continue
         text = path.read_text(encoding="utf-8")
         visible_lines: list[str] = []
@@ -987,12 +1009,15 @@ def validate_relative_links(errors: list[str]) -> None:
                 continue
             resolved = (path.parent / file_part).resolve()
             try:
-                resolved.relative_to(ROOT.resolve())
+                target_relative = resolved.relative_to(root)
             except ValueError:
-                errors.append(f"{path.relative_to(ROOT)}: 链接越出仓库 {target}")
+                errors.append(f"{relative}: 链接越出仓库 {target}")
+                continue
+            if is_archived(target_relative):
+                errors.append(f"{relative}: 活动文档不得引用 archive 文档 {target}")
                 continue
             if not resolved.exists():
-                errors.append(f"{path.relative_to(ROOT)}: 链接目标不存在 {target}")
+                errors.append(f"{relative}: 链接目标不存在 {target}")
                 continue
             skill_parent = path.parent.parent
             if path.name == "SKILL.md" and skill_parent == ROOT / "skills":
@@ -1000,7 +1025,7 @@ def validate_relative_links(errors: list[str]) -> None:
                     resolved.relative_to(path.parent.resolve())
                 except ValueError:
                     errors.append(
-                        f"{path.relative_to(ROOT)}: Skill 运行时链接越出自身目录 {target}"
+                        f"{relative}: Skill 运行时链接越出自身目录 {target}"
                     )
 
 
