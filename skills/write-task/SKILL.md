@@ -15,98 +15,52 @@ task`, `nature: normative`, and this parser-facing table header:
 | # | task | spec anchor | prerequisite | status | execution |
 ```
 
-## What Task.md owns
+## Task content
 
-`Task.md` is a compact Milestone index. It owns only:
+- Derive Task only from the reviewed Requirement, Design, and applicable Contract. If task
+  planning requires changing upstream meaning or making a missing design decision, return to
+  the authority that owns it.
+- Keep `Task.md` as a compact Milestone execution index. It answers only:
+  - which independently decidable results must be delivered;
+  - which AC, Design, and applicable Contract anchors authorize each result;
+  - which real prerequisites prevent a task from starting;
+  - the current macro status;
+  - where the execution contract is linked.
+- Keep the parser-facing task header unchanged. Use stable task IDs and the task-state tokens
+  defined by the writing contract. Replace current status and execution values; never append
+  execution history.
+- Give each task one primary result that can be independently judged complete or failed.
+  Split by result and verification boundary, not by file, interface, implementation step,
+  chronology, or person. Separate implementation, integration, or qualification only when
+  each result is independently decidable.
+- Keep only task boundaries supported by the current approved Design. When an approved
+  research or selection task must produce evidence before downstream tasks can be defined,
+  create only that evidence-producing task. Revise Design before adding the downstream tasks.
+  Never create tentative, placeholder, or speculative task sets.
+- Every in-scope AC must map to at least one task. A task may cover several related ACs and
+  one AC may require several tasks. If the current ACs cannot be fully mapped, the Design is
+  not ready for Task planning.
+- `prerequisite` contains only real data, interface, or decision dependencies and must form
+  an acyclic DAG. Sharing an approved Contract does not by itself create a dependency. Do not
+  freeze execution waves; `run-task` derives the rolling ready set.
+- Apply the deletion test to every task. Remove a task when deleting its result leaves every
+  current AC and approved Design result satisfied. Future reuse, possible hardening, and
+  coordination convenience are not task owners.
+- Do not copy Requirement, Design, or Contract meaning into Task. Do not put TDD cases,
+  commands, file scopes, runtime locks, blockers, commits, candidates, review records,
+  evidence, or progress narratives in `Task.md`.
 
-- stable task IDs and one-line independently decidable outcomes;
-- Requirement AC, Design, and applicable Contract anchors;
-- the task dependency DAG;
-- current macro status;
-- the per-card execution pointer, initially `none`;
-- the target Milestone execution set, shared-baseline pointer, integration-queue pointer, and
-  an AC → task traceability table.
+## Execution boundary
 
-Do not put TDD cases, commands, allowed paths, write sets, locks, candidate commit references, blockers,
-review rounds, verification evidence, or progress narratives in `Task.md`. Those facts belong
-to the per-card execution documents created by `run-task`. Updating Task status or its
-execution link replaces the old value; it never appends history.
+After the owner confirms the execution set, `run-task` creates:
 
-## Decompose work
+- `execution/<card_id>/Card.md` — the normative execution contract, TDD contract, and
+  completion criterion;
+- `execution/<card_id>/Log.md` — the replaceable current snapshot, material decisions, and
+  final evidence summary.
 
-Within the approved Design, optimize decomposition for useful independent execution. Give each
-task one primary responsibility and one independently decidable, testable result. Minimize
-unnecessary task dependencies, shared writes, and runtime conflicts so work with no real
-dependency can run in parallel. The objective is useful parallelism, not more task cards. Never
-invent empty wrappers, fake interfaces, or new design decisions merely to increase concurrency.
-
-- Split at an independent proof boundary, not by file count, chronology, or a final product
-  qualification. One task has one primary semantic owner and one independently decidable
-  result; one AC may map to several tasks. API count is not a task boundary: one Contract ID
-  may support provider, consumer, and integration tasks, while one cohesive task may implement
-  several related Contract IDs.
-- Separate independently verifiable interface/schema enablement, implementation,
-  cross-module integration, real-environment or E2E qualification, production eligibility,
-  and Milestone closure.
-- An intermediate task may integrate only while unfinished product paths remain unreachable,
-  disabled, or fail-closed, with that containment proved by its later Card TDD contract.
-- Continue splitting when a task still combines separable responsibilities, unrelated
-  failure causes, independent modules, or qualification with implementation.
-- Stop when a smaller unit would not have an independently testable result, would leave
-  required responsibility without an owner, or would add more coordination cost than
-  isolation benefit.
-- Define each outcome so satisfying it closes the task. Do not make cleanup, adjacent defects,
-  future hardening, or repository-wide completeness part of a task unless the approved AC
-  requires them.
-- `prerequisite` forms an acyclic DAG. Add only real data, interface, or authority
-  dependencies. An already approved Contract anchor lets provider and consumer implementation
-  proceed in parallel; do not serialize them merely because they share that contract. A real
-  integration task may depend on both implementations.
-- An external hard prerequisite may point only to an already planned upstream Milestone and
-  never authorizes executing it. A current or upstream Milestone must not depend on downstream
-  implementation or evidence.
-- Keep an explicit `| AC | task |` mapping and cover every in-scope AC. A task may appear in
-  several rows and an AC may map to several tasks.
-- Put the applicable AC, Design decision/module, and Contract IDs or bundle anchor in `spec
-  anchor`. Do not copy interface semantics into Task or create a task whose outcome is merely
-  to decide a contract already owned by the Design stage.
-- Apply the deletion test to every task: name the current AC and approved Design element that
-  would fail without it. Remove a task when all current ACs remain satisfied without its
-  outcome; a possible future need is not a task owner.
-
-Before return, check that every task is independently decidable, the DAG is acyclic, no
-reverse Milestone dependency exists, every in-scope AC maps to at least one task, and no task
-survives only for speculative reuse, hardening, or coordination. Do not freeze waves;
-`run-task` derives the rolling ready set.
-
-## Per-card execution contract
-
-After the owner confirms the Task execution set, `run-task` materializes exactly two files for
-each selected task before any Coder dispatch:
-
-1. `execution/<card_id>/Card.md` — normative stable execution contract: Task/AC/Design and
-   applicable Contract anchors, outcome, completion criterion, the TDD contract, and an
-   `execution_log` link to its sibling `Log.md`. Add scope exclusions or an allowed path/write
-   set only when they materially bound a delegated writer. Add conflict domains or runtime
-   locks only for a real shared-resource collision. Link the Task row instead of copying its
-   dependency DAG.
-2. `execution/<card_id>/Log.md` — descriptive current runtime snapshot, material decisions
-   only, and one final evidence summary when closed. Routine dispatch, waiting, unchanged
-   status, and successful intermediate checks do not become Log entries. Its `latest_event`
-   field is only a DocStar compatibility pointer to `#current` or `#final-evidence`, not a
-   general event ledger.
-
-The TDD contract belongs in `Card.md`, not Task. It identifies the test case or test location,
-the wrong behavior it must expose in RED, expected GREEN behavior, the replay command or
-executable path, and the final verification/evidence destination. Do not create separate
-`Verification.md`, `State.md`, handoff, or per-role brief files unless the project has an
-independent requirement for them.
-
-`Card.md` may refine implementation mechanics but cannot add scope, dependencies, acceptance
-meaning, design decisions, or cross-task interface semantics absent from approved authority.
-If materialization reveals such a gap, stop that task and return to the owning authority. After
-a Card becomes active, discovery does not expand it; another independently testable outcome
-requires a separately accepted task.
+`Task.md` links to Card and does not copy execution content. `Log.md` is not a full process
+history. Do not require `card_id` to equal the Task ID.
 
 ## Writer and review loop
 

@@ -104,8 +104,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_verbose_log_contract(self) -> None:
         self.replace(
             "skills/write-task/SKILL.md",
-            "material decisions\n   only",
-            "latest_event and append-only events",
+            "material decisions, and\n  final evidence summary",
+            "full process history, including every event",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
@@ -142,12 +142,36 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_task_decomposition_objective(self) -> None:
         self.replace(
             "skills/write-task/SKILL.md",
-            "The objective is useful parallelism, not more task cards.",
-            "The objective is to create as many task cards as possible.",
+            "Keep `Task.md` as a compact Milestone execution index.",
+            "Maximize task count in `Task.md`.",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
+
+    def test_rejects_task_content_boundary_drift(self) -> None:
+        cases = (
+            (
+                "Never create tentative, placeholder, or speculative task sets",
+                "Allow tentative, placeholder, or speculative task sets",
+            ),
+            (
+                "Every in-scope AC must map to at least one task",
+                "Allow in-scope ACs to remain unmapped",
+            ),
+            (
+                "`Log.md` is not a full process\nhistory",
+                "`Log.md` records the full process history",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(new=new):
+                result = self.run_isolated_mutation(
+                    "skills/write-task/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("write-task 紧凑索引契约", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
 
     def test_rejects_contract_working_and_final_lifecycle_drift(self) -> None:
         cases = (

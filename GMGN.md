@@ -114,17 +114,12 @@ It also contains the AC-to-task mapping and Milestone-level execution pointers. 
 contain TDD cases, commands, write sets, locks, blockers, candidate commit references, review rounds,
 verification evidence, or progress history.
 
-Within the approved Design, Task decomposition targets useful independent execution. Give each
-task one primary responsibility and an independently decidable result; minimize unnecessary
-dependencies, shared writes, and runtime conflicts so work with no real dependency can run in
-parallel. Optimize useful parallelism, not task count. Do not invent empty wrapper tasks, fake
-interfaces, or new design decisions merely to create concurrency, and stop when coordination
-cost exceeds the isolation benefit.
-
-Task boundaries follow independently provable outcomes, not API count. One Contract ID may
-anchor provider, consumer, and integration tasks; one cohesive task may implement several
-Contract IDs. Provider and consumer tasks that share only an approved Contract anchor can run
-in parallel with contract doubles. A real integration task may depend on both implementations.
+Within the approved Design, each Task row names one independently decidable result and links
+its AC, Design, and applicable Contract authority. Split by result and verification boundary,
+not files, interfaces, steps, or people. Keep only boundaries supported by the current Design;
+never create tentative or placeholder tasks for unknown downstream work. Every in-scope AC
+must remain covered, dependencies must be real and acyclic, and a task is removed when its
+absence leaves all current ACs and Design results satisfied.
 
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
