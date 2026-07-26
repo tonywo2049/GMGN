@@ -198,6 +198,7 @@ def validate_core_contract(errors: list[str]) -> None:
     writing_en = read("skills/gmgn/references/en/writing-contract.md")
     roadmap = read("skills/roadmap/SKILL.md")
     roadmap_agent = read("skills/roadmap/agents/openai.yaml")
+    readme_zh = read("README.zh-CN.md")
     write_goal = read("skills/write-goal/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
     write_design = read("skills/write-design/SKILL.md")
@@ -499,6 +500,18 @@ def validate_core_contract(errors: list[str]) -> None:
         "里程碑产出",
         "按需核心 E2E",
     ), "roadmap 界面元数据契约", errors)
+    require(readme_zh, (
+        "只有当实际产品或运营路径\n本身就是产出物时，才写核心 E2E；否则省略",
+        "Goal 展开完整的定性 Close\n图景",
+        "产出物、简短验收摘要及按需核心 E2E",
+        "适用的回归/E2E 证据",
+    ), "中文 README Roadmap 契约", errors)
+    forbid(readme_zh, (
+        "每个 Milestone 至少一个端到端验收场景",
+    ), "中文 README Roadmap 契约", errors)
+    forbid(roadmap, (
+        "Every Milestone must invent E2E content",
+    ), "roadmap 产出与可选 E2E 契约", errors)
     require(write_goal, (
         "Derive Goal only from the approved ROADMAP Milestone and its WhitePaper authority",
         "Requirement, Design, Task, implementation, or evidence may trigger a controlled revision\n"
@@ -649,6 +662,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "commit the blocker-resolved final\nclosure candidate",
         "Owner acceptance binds to that exact commit",
         "Integrate that exact commit without creating post-acceptance closure content",
+    ), "milestone 验收关账契约", errors)
+    forbid(close_milestone, (
+        "Every Milestone needs E2E evidence",
     ), "milestone 验收关账契约", errors)
     require(writing_en, (
         "design | contract | task",

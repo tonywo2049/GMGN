@@ -338,7 +338,8 @@ class ValidateSkillsTests(unittest.TestCase):
         self.replace(
             "skills/roadmap/SKILL.md",
             "Otherwise omit E2E content; never invent one",
-            "Every Milestone must invent E2E content",
+            "Otherwise omit E2E content; never invent one\n"
+            "- Every Milestone must invent E2E content",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
@@ -382,6 +383,7 @@ class ValidateSkillsTests(unittest.TestCase):
             (
                 "skills/close-milestone/SKILL.md",
                 "A Milestone without a ROADMAP core E2E does not need E2E evidence",
+                "A Milestone without a ROADMAP core E2E does not need E2E evidence. "
                 "Every Milestone needs E2E evidence",
                 "milestone 验收关账契约",
             ),

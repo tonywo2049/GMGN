@@ -40,9 +40,9 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 规范的翻译镜像，也不提供文档章节模板；每个阶段 Skill 规定必备内容和自检项，Author 可按项目
 活动语言组织正文。
 
-ROADMAP 中每个 Milestone 至少有一个覆盖其完整自有结果的定性端到端验收场景。它不必是浏览器
-流程：基础设施可验证真实输入到可观察输出的完整路径，研究类 Milestone 可验证问题到决策的证据
-路径。
+ROADMAP 中每个 Milestone 都要写明具体产出物和简短的定性验收摘要。只有当实际产品或运营路径
+本身就是产出物时，才写核心 E2E；否则省略。Milestone 启动后，由 Goal 展开完整的定性 Close
+图景。
 
 Design 阶段始终产出根 `Design.md`。只有模块权威确有价值时才增加
 `design/<module-id>.md`；存在独立开发边界时才要求 `design/Contract.md`，拆分契约与
@@ -237,13 +237,13 @@ claude plugin marketplace remove GMGN --scope user
 | 你的说法 | 接管的 skill | 主要产物 |
 |---|---|---|
 | “我有个想法，先调研一下可不可行” | `brainstorm` | WhitePaper |
-| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（每个 Milestone 至少一个端到端验收场景） |
+| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（产出物、简短验收摘要及按需核心 E2E） |
 | “启动 M1，明确范围” | `write-goal` | Goal.md |
 | “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
 | “出技术设计和系统方案” | `write-design` | 根 Design.md 与按需的模块、契约、结构权威 |
 | “拆实施计划和任务卡” | `write-task` | Task.md |
 | “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查和所需验证证据 |
-| “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、最终 Contract 冻结、关账记录 |
+| “里程碑完成了，准备上线关账” | `close-milestone` | 适用的回归/E2E 证据、最终 Contract 冻结、关账记录 |
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |
 | “下一步做什么？” | `gmgn` | 状态判断与工序路由 |
 
