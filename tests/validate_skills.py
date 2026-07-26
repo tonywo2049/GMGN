@@ -159,6 +159,29 @@ def forbid(text: str, fragments: tuple[str, ...], label: str, errors: list[str])
         errors.append(f"{label}: 含相反契约 {present}")
 
 
+def forbid_stage_owned_workflow(text: str, label: str, errors: list[str]) -> None:
+    direct_targets = [
+        marker
+        for skill in sorted(SKILLS - {"gmgn"})
+        for marker in (f"`{skill}`", f"${skill}")
+        if marker.casefold() in text.casefold()
+    ]
+    planned_map = re.search(
+        r"(?is)(?<!not )\b(?:include|create|add|maintain|record|require)\b"
+        r".{0,80}\b(?:map|index|catalog|inventory)\b"
+        r".{0,100}\b(?:planned|future|downstream|absent|missing|not yet)\b"
+        r"|(?<!not )\b(?:include|create|add|maintain|record|require)\b"
+        r".{0,80}\b(?:planned|future|downstream|absent|missing|not yet)\b"
+        r".{0,80}\b(?:map|index|catalog|inventory)\b",
+        text,
+    )
+    present = direct_targets
+    if planned_map:
+        present.append(planned_map.group(0))
+    if present:
+        errors.append(f"{label}: 含相反契约 {present}")
+
+
 def validate_release(errors: list[str]) -> None:
     try:
         release_metadata(ROOT)
@@ -285,7 +308,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Requirement translates Goal into required observable behavior, quantified parameters",
         "Stage documents do not\ncontain document maps without real children, downstream propagation rules, downstream gates",
         "The GMGN router owns cross-stage routing and impact propagation",
-        "`Design.md` owns global architecture, module boundaries, the Bundle index",
+        "`Design.md` is the root Design authority and complete R/AC mapping entry",
+        "Add architecture,\n  module boundaries, and `design/<module-id>.md` only when current R/ACs need them",
+        "Add a\n  Bundle index only when linked child artifacts exist",
         "If two non-communicating Coders could produce incompatible conforming\n  implementations",
         "consumer validation entries, success/errors, and state effects",
         "each Task row names one independently decidable result",
@@ -337,7 +362,7 @@ def validate_core_contract(errors: list[str]) -> None:
         TASK_HEADER,
         "Derive Task only from the reviewed Requirement, Design, and applicable Contract",
         "changing upstream meaning or making a missing design decision",
-        "return to\n  the authority that owns it",
+        "return the issue to `gmgn` for routing",
         "Keep `Task.md` as a compact Milestone execution index",
         "which independently decidable results must be delivered",
         "which AC, Design, and applicable Contract anchors authorize each result",
@@ -349,7 +374,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "only when\n  each result is independently decidable",
         "Keep only task boundaries supported by the current approved Design",
         "Only when research or\n  selection is itself the current Milestone result",
-        "revise Design before defining implementation tasks",
+        "return a missing decision to `gmgn` for routing\n"
+        "  before defining implementation tasks",
         "Never create tentative, placeholder, or speculative task sets",
         "- Every in-scope AC must map to at least one task",
         "A task may cover several related ACs and\n  one AC may require several tasks",
@@ -461,6 +487,8 @@ def validate_core_contract(errors: list[str]) -> None:
     ), "英文派发契约", errors)
     require(roadmap, (
         "explicit **Milestone\n  deliverables**",
+        "Link only the WhitePaper boundary and invariant anchors needed for sequencing",
+        "do not\n  restate their text",
         "one concise qualitative acceptance summary",
         "later artifacts or evidence cannot silently redefine it",
         "Name what will exist at the end, not how well it must perform",
@@ -505,7 +533,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "later artifacts or evidence may redefine it",
         "New ideas bypass the Backlog",
         "## Handoff",
+        "explicit deliverables, priority",
     ), "roadmap 产出与可选 E2E 契约", errors)
+    forbid(methodology, (
+        "ROADMAP owns Milestone order, priority",
+    ), "GMGN Roadmap 最小权威契约", errors)
     require(write_goal, (
         "Derive Goal only from the approved ROADMAP Milestone and its WhitePaper authority",
         "Later documents, implementation, or evidence may expose a needed revision but cannot\n"
@@ -523,7 +555,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "Keep exact numeric criteria, technical design, task division,\n  execution, and evidence out of Goal",
         "Do not include a document map, known gaps, downstream propagation or gates, next-stage\n"
         "  instructions",
-        "ROADMAP-owned deliverables,\n   concise acceptance summaries, optional core E2E paths",
+        "Return WhitePaper- or ROADMAP-owned changes to `gmgn` for routing",
         "Goal-owned results, boundaries, non-goals, result slices, ROADMAP\n"
         "   deliverable/core-E2E mappings, or qualitative Close outcomes",
         "the refined result, boundary, and non-goals are complete",
@@ -532,7 +564,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "deleting any retained item would remove necessary Requirement input or change the Close\n"
         "  decision",
         "no document map, downstream rule, component, interface, exact criterion, test, task",
-        "an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal",
+        "an invalid mapping returns to `gmgn` for routing instead of changing upstream meaning in\n"
+        "  Goal",
     ), "write-goal 内容边界契约", errors)
     forbid(write_goal, (
         "may redefine Goal",
@@ -599,7 +632,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "every current Goal result is covered or explicitly excluded",
     ), "write-requirement 内容边界契约", errors)
     require(write_design, (
-        "`Design.md` always exists and owns global architecture",
+        "`Design.md` always exists as the root Design authority and complete R/AC mapping entry",
+        "Add\narchitecture and module boundaries only when current R/ACs need them",
+        "add a Bundle index\nonly when linked child artifacts exist",
         "`design/Contract.md` is required only when current work crosses an independently developed",
         "Do not create an empty file or directory",
         "Every child links to `Design.md`",
@@ -636,6 +671,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Keep commands, full results, candidate chronology, work status, execution history, and closure records in Design",
         "Map R/AC only to broad sections",
         "Always create Contract.md",
+        "Always add architecture and module boundaries",
+        "Always add a Bundle index",
         "Every module must have a separate design document",
         "Every interface must have a schema",
         "Future reuse, possible scale, flexibility, and implementation convenience are owners",
@@ -653,6 +690,9 @@ def validate_core_contract(errors: list[str]) -> None:
             "Propagate only to affected",
             "Propagate the approved delta only to affected",
         ), f"{stage_label} 文档自治契约", errors)
+        forbid_stage_owned_workflow(
+            stage_text, f"{stage_label} 文档自治契约", errors,
+        )
     require(close_milestone, (
         "every ROADMAP deliverable, Goal Close outcome, in-scope AC, and optional ROADMAP core E2E must map to evidence",
         "A Milestone without a ROADMAP core E2E does not need E2E evidence",

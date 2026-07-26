@@ -5,7 +5,7 @@ description: "Use after milestone initiation and Goal.md to analyze, clarify, cr
 
 # Requirement.md: single milestone requirement authority
 
-<HARD-GATE>`Goal.md` must exist for an initiated milestone; otherwise return to `write-goal`. If requirement work exposes a changed WhitePaper, ROADMAP, or Goal premise, route to its authority before editing Requirement. Do not prescribe implementation structures in requirements or redefine upstream meaning here.</HARD-GATE>
+<HARD-GATE>`Goal.md` must exist for an initiated milestone. If it is missing or requirement work exposes a changed WhitePaper, ROADMAP, or Goal premise, stop and return the issue to `gmgn` for routing. Do not prescribe implementation structures in requirements or redefine upstream meaning here.</HARD-GATE>
 
 ## Language and contract
 
@@ -58,11 +58,9 @@ then runs machine checks.
 
 ## Controlled revision
 
-1. Classify where the changed meaning belongs. Route WhitePaper to `brainstorm`, ROADMAP to
-   `roadmap`, and Goal to `write-goal`; resume Requirement work after any required new
-   upstream review or approval.
+1. Return meaning outside Requirement authority to `gmgn` for routing before editing.
 2. For Requirement-owned meaning, start from the old commit and record the trigger, semantic
-   delta, affected R/AC IDs, documents, tests, evidence, and proposed new commit.
+   delta, affected R/AC IDs, and proposed new commit.
 3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
    Do not re-analyze unaffected Goal slices.
 4. A delta that changes a decision or reasonable understanding receives independent
@@ -74,10 +72,10 @@ refresh plus machine checks without reapproval.
 ## Exit
 
 Require one completion check: every in-scope Goal result and Close outcome is covered; any
-proposed exclusion routes to `write-goal`; every R/AC has an upstream owner and passes the
-deletion test; every AC has a clear pass/fail decision; every number has an authority, change
-boundary, and verification method; every Requirement-owned decision is resolved; and no
-technical solution, task, execution information, or actual verification result has leaked
+proposed exclusion returns to `gmgn` for routing; every R/AC has an upstream owner and passes
+the deletion test; every AC has a clear pass/fail decision; every number has an authority,
+change boundary, and verification method; every Requirement-owned decision is resolved; and
+no technical solution, task, execution information, or actual verification result has leaked
 into Requirement. For
 creation or a semantic revision, run the fresh-agent writer/Critic loop using the English-only
 dispatch contract; tell the Critic to emphasize upstream consistency, acceptance quality, and

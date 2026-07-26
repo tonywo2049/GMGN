@@ -59,7 +59,7 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
 ```
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
-- ROADMAP owns Milestone order, priority, cross-Milestone dependency, explicit deliverables,
+- ROADMAP owns Milestone order, cross-Milestone dependency, explicit deliverables,
   concise qualitative acceptance summaries, and optional core E2E paths. A deliverable is a
   final object; a real product/operational E2E is a deliverable only when the realized path
   itself is the Milestone result. A Milestone without such a deliverable has no E2E content.
@@ -74,8 +74,9 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   Close outcomes.
 - Requirement translates Goal into required observable behavior, quantified parameters,
   constraints, and decidable acceptance criteria (ACs).
-- `Design.md` owns global architecture, module boundaries, the Bundle index, and complete R/AC
-  mapping. Add `design/<module-id>.md` only for a useful module authority. A boundary between
+- `Design.md` is the root Design authority and complete R/AC mapping entry. Add architecture,
+  module boundaries, and `design/<module-id>.md` only when current R/ACs need them. Add a
+  Bundle index only when linked child artifacts exist. A boundary between
   independently developed modules, tasks, teams, processes, or repositories requires
   `design/Contract.md`; split contracts and structural authorities under `design/contracts/`
   and `design/schemas/` only when current correctness or independent review needs them.

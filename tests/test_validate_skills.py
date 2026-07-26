@@ -167,7 +167,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Do not put TDD cases, but put commands and file scopes",
             ),
             (
-                "Never create tentative, placeholder, or speculative task sets",
+                "Never create tentative, placeholder, or speculative\n"
+                "  task sets",
                 "Allow tentative, placeholder, or speculative task sets",
             ),
             (
@@ -362,7 +363,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/write-design/SKILL.md",
-                "# Design stage: requirements → architecture and executable boundaries",
+                "# Design stage: requirements → implementation decisions",
                 "write-design",
             ),
             ("skills/write-task/SKILL.md", "# Task.md: milestone task index", "write-task"),
@@ -386,6 +387,24 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("write-goal 文档自治契约", result.stdout)
+
+        result = self.run_isolated_mutation(
+            "skills/write-design/SKILL.md",
+            "# Design stage: requirements → implementation decisions",
+            "# Design stage: requirements → implementation decisions\n\n"
+            "After Design approval, continue with $write-task.",
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("write-design 文档自治契约", result.stdout)
+
+        result = self.run_isolated_mutation(
+            "skills/write-requirement/SKILL.md",
+            "# Requirement.md: single milestone requirement authority",
+            "# Requirement.md: single milestone requirement authority\n\n"
+            "Include an index of planned downstream artifacts before those artifacts exist.",
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("write-requirement 文档自治契约", result.stdout)
 
     def test_rejects_roadmap_backlog_or_metadata_drift(self) -> None:
         cases = (
@@ -414,6 +433,13 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/roadmap/SKILL.md",
                 "later artifacts or evidence cannot silently redefine it",
                 "later artifacts or evidence may redefine it",
+                "roadmap 产出与可选 E2E 契约",
+            ),
+            (
+                "skills/roadmap/SKILL.md",
+                "Link only the WhitePaper boundary and invariant anchors needed for sequencing; "
+                "do not\n  restate their text",
+                "Restate the WhitePaper boundary and invariants in ROADMAP",
                 "roadmap 产出与可选 E2E 契约",
             ),
             (
@@ -486,8 +512,7 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_goal_controlled_revision_route_drift(self) -> None:
         cases = (
             (
-                "ROADMAP-owned deliverables,\n"
-                "   concise acceptance summaries, optional core E2E paths",
+                "Return WhitePaper- or ROADMAP-owned changes to `gmgn` for routing",
                 "Goal-owned deliverables and quantitative acceptance criteria",
             ),
             (
@@ -543,7 +568,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "every in-scope Goal result and Close outcome is covered; any\n"
-                "proposed exclusion routes to `write-goal`",
+                "proposed exclusion returns to `gmgn` for routing",
                 "every current Goal result is covered or explicitly excluded",
             ),
         )
@@ -591,6 +616,14 @@ class ValidateSkillsTests(unittest.TestCase):
             (
                 "Do not create an empty file or directory",
                 "Always create Contract.md",
+            ),
+            (
+                "Add\narchitecture and module boundaries only when current R/ACs need them",
+                "Always add architecture and module boundaries",
+            ),
+            (
+                "add a Bundle index\nonly when linked child artifacts exist",
+                "Always add a Bundle index",
             ),
             (
                 "Future reuse, possible scale, flexibility, or implementation\n"

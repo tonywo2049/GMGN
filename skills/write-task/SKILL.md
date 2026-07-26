@@ -1,11 +1,11 @@
 ---
 name: write-task
-description: "Use after Design review to create or change Task.md: milestone task decomposition, AC-to-task mapping, dependencies, orchestration status, and pointers to per-card execution contracts. Design 已过审后拆任务、维护 AC→Task 映射、依赖与宏观执行状态；单卡 TDD 与执行细节在 run-task 创建的 execution 文档中维护。"
+description: "Use after Design review to create or change Task.md: milestone task decomposition, AC-to-task mapping, dependencies, orchestration status, and pointers to per-card execution contracts. Design 已过审后拆任务、维护 AC→Task 映射、依赖、宏观执行状态及执行入口；单卡 TDD 与执行细节不写入 Task.md。"
 ---
 
 # Task.md: milestone task index
 
-<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have independent Critic plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, revise its WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of deciding it in Task.</HARD-GATE>
+<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have independent Critic plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing contract. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -18,8 +18,8 @@ task`, `nature: normative`, and this parser-facing table header:
 ## Task content
 
 - Derive Task only from the reviewed Requirement, Design, and applicable Contract. If task
-  planning requires changing upstream meaning or making a missing design decision, return to
-  the authority that owns it.
+  planning requires changing upstream meaning or making a missing design decision, stop and
+  return the issue to `gmgn` for routing.
 - Keep `Task.md` as a compact Milestone execution index. It answers only:
   - which independently decidable results must be delivered;
   - which AC, Design, and applicable Contract anchors authorize each result;
@@ -35,8 +35,9 @@ task`, `nature: normative`, and this parser-facing table header:
   each result is independently decidable.
 - Keep only task boundaries supported by the current approved Design. Only when research or
   selection is itself the current Milestone result may an approved task produce that evidence.
-  Task never chooses production semantics; revise Design before defining implementation tasks.
-  Never create tentative, placeholder, or speculative task sets.
+  Task never chooses production semantics; return a missing decision to `gmgn` for routing
+  before defining implementation tasks. Never create tentative, placeholder, or speculative
+  task sets.
 - Every in-scope AC must map to at least one task. A task may cover several related ACs and
   one AC may require several tasks. If the current ACs cannot be fully mapped, the Design is
   not ready for Task planning.

@@ -1,11 +1,11 @@
 ---
 name: write-design
-description: "Use after Requirement review to create or change the Design-stage bundle: root Design.md, conditional module design, and design/Contract.md only for independently developed boundaries. Requirement 已过审后确定可直接实现的架构、模块职责与按需的跨单元接口契约。"
+description: "Use after Requirement review to create or change the Design-stage bundle: required implementation decisions in root Design.md, conditional module design, and design/Contract.md only for independently developed boundaries. Requirement 已过审后确定必要实现决定与按需的模块或跨单元接口权威。"
 ---
 
-# Design stage: requirements → architecture and executable boundaries
+# Design stage: requirements → implementation decisions
 
-<HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-requirement`. If design work exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, or Requirement authority instead of redefining it in Design.</HARD-GATE>
+<HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. If it is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
 
 ## Language, bundle, and authority
 
@@ -13,8 +13,9 @@ Before writing, load the registered `gmgn` Skill through normal discovery and fo
 writing contract. Use the Requirement locale for artifact prose. Every Design-stage artifact
 is normative.
 
-`Design.md` always exists and owns global architecture, module boundaries, the Bundle index,
-and the complete R/AC mapping. Add only the files current work needs:
+`Design.md` always exists as the root Design authority and complete R/AC mapping entry. Add
+architecture and module boundaries only when current R/ACs need them, and add a Bundle index
+only when linked child artifacts exist. Add only the files current work needs:
 
 ```text
 Design.md
@@ -38,7 +39,8 @@ design/
 Do not create an empty file or directory, split a normal in-process module merely to justify a
 contract, or copy one definition into several artifacts. Every child links to `Design.md`;
 every cross-unit contract links its provider, consumers, applicable module documents, and
-structural authority. `Design.md` indexes those links without duplicating their owned meaning.
+structural authority. When children exist, `Design.md` indexes those links without duplicating
+their owned meaning.
 
 The Design-stage candidate is `Design.md` plus every linked Design-stage artifact at one Git
 commit. Design acceptance marks that complete Bundle `approved`.
@@ -140,9 +142,7 @@ Bundle at one commit as the shared Design baseline.
 
 ## Controlled revision
 
-1. Classify the authority before editing. Route WhitePaper to `brainstorm`, ROADMAP to
-   `roadmap`, Goal to `write-goal`, and Requirement or R-AC meaning to `write-requirement`.
-   Resume after any required new upstream review or approval.
+1. Return meaning outside Design authority to `gmgn` for routing before editing.
 2. A meaning-preserving clarification only aligns a duplicate representation with an existing
    unambiguous authority. It uses the smallest same-batch edit, affected pointer refresh, and
    machine checks without semantic reapproval.

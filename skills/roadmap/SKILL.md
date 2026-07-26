@@ -1,11 +1,11 @@
 ---
 name: roadmap
-description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, explicit deliverables, priority, dependency order, concise acceptance summaries, optional core E2E paths, closure backfill, or Backlog allocation. 白皮书已批后规划里程碑、明确产出、依赖、简要验收摘要及按需核心 E2E。"
+description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, explicit deliverables, dependency order, concise acceptance summaries, optional core E2E paths, closure backfill, or Backlog allocation. 白皮书已批后规划里程碑、明确产出、依赖、简要验收摘要及按需核心 E2E。"
 ---
 
 # ROADMAP: single sequencing authority
 
-<HARD-GATE>An approved, commit-bound WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP stays at project-sequencing level and must not contain detailed Milestone closure conditions, R-AC IDs, quantitative requirement metrics, technical design, task breakdown, or executable test cases.</HARD-GATE>
+<HARD-GATE>An approved, commit-bound WhitePaper must exist. If it is missing or ROADMAP work exposes a WhitePaper premise that must change, stop and return the issue to `gmgn` for routing. ROADMAP stays at project-sequencing level and must not contain detailed Milestone closure conditions, R-AC IDs, quantitative requirement metrics, technical design, task breakdown, or executable test cases.</HARD-GATE>
 
 ## Language and contract
 
@@ -15,7 +15,8 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 
 ## Create
 
-- Restate only the WhitePaper boundary and invariants needed for sequencing.
+- Link only the WhitePaper boundary and invariant anchors needed for sequencing; do not
+  restate their text.
 - Define ordered Milestones with one qualitative objective, explicit **Milestone
   deliverables**, one concise qualitative acceptance summary, dependencies, and work state
   `not-started`.
@@ -82,9 +83,9 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 ## Controlled revision
 
 - Start from the approved old commit. Record the trigger, semantic delta, affected milestone
-  rows and documents, required reviewer or approver, and proposed new commit.
-- If the changed meaning belongs to the WhitePaper, initiate `brainstorm` revision mode and
-  resume ROADMAP maintenance only after the required new upstream approval.
+  rows, required reviewer or approver, and proposed new commit.
+- If the changed meaning is outside ROADMAP authority, stop and return the delta to `gmgn` for
+  routing.
 - Revise only ROADMAP-owned sequencing, Milestone allocation, deliverables, dependencies,
   concise qualitative acceptance summaries, optional core E2E paths, or Backlog placement.
   Do not reopen unaffected Milestones.

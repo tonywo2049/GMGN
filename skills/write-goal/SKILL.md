@@ -5,7 +5,7 @@ description: "Use when an approved ROADMAP exists and the owner explicitly start
 
 # Initiate a milestone and write Goal.md
 
-<HARD-GATE>Creation mode requires an approved ROADMAP commit, a `not-started` milestone row, and explicit owner initiation; otherwise return to `roadmap`. Revision mode requires an existing initiated Goal and its approved ROADMAP commit, but does not require re-initiation. If the changed meaning belongs to WhitePaper or ROADMAP, return to `brainstorm` or `roadmap` before editing Goal. Work on an uninitiated milestone is out of scope.</HARD-GATE>
+<HARD-GATE>Creation mode requires an approved ROADMAP commit, a `not-started` milestone row, and explicit owner initiation. Revision mode requires an existing initiated Goal and its approved ROADMAP commit, but does not require re-initiation. If a prerequisite is missing or the changed meaning belongs to WhitePaper or ROADMAP, stop and return the issue to `gmgn` for routing. Work on an uninitiated milestone is out of scope.</HARD-GATE>
 
 ## Language and contract
 
@@ -55,16 +55,14 @@ Commit the complete candidate locally and dispatch one fresh independent Critic 
 prepared brief that names the shortest unambiguous commit reference. Collect all
 findings before editing, adjudicate once, and batch accepted blocker fixes. The primary
 orchestrator checks each resolution without dispatching a second Critic, then reviews the
-committed candidate, applies accepted mechanical propagation, and runs machine checks.
+committed candidate, applies accepted mechanical links and state, and runs machine checks.
 
 ## Controlled revision
 
 1. Start from the old Goal commit and record the trigger, semantic delta, affected slices and
    Close outcomes, plus the proposed new commit.
-2. Route WhitePaper-owned meaning to `brainstorm` revision mode and ROADMAP-owned deliverables,
-   concise acceptance summaries, optional core E2E paths, sequencing, cross-milestone
-   allocation, or dependency to `roadmap` maintenance mode. Resume here after the required
-   upstream approval; do not patch that meaning into Goal.
+2. Return WhitePaper- or ROADMAP-owned changes to `gmgn` for routing; do not patch that
+   meaning into Goal.
 3. Revise only Goal-owned results, boundaries, non-goals, result slices, ROADMAP
    deliverable/core-E2E mappings, or qualitative Close outcomes. Preserve unaffected content.
 4. If the delta changes a decision or reasonable understanding, run the independent critic
@@ -85,7 +83,8 @@ Require the recorded writer to confirm:
   decision;
 - no document map, downstream rule, component, interface, exact criterion, test, task,
   execution, evidence, or history leaks into Goal; and
-- an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal.
+- an invalid mapping returns to `gmgn` for routing instead of changing upstream meaning in
+  Goal.
 
 For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
 English-only dispatch contract, obtain primary-orchestrator review, and integrate only when
