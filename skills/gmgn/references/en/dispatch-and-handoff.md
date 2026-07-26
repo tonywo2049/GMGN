@@ -52,31 +52,19 @@ load them through normal discovery and follow their own local resources. Put res
 decisions, including any assurance classification, directly in the brief instead of passing
 another Skill's internal resource path.
 
+When preparing a Reviewer brief, use the shared [code-review contract](code-review.md) for the
+review surface, evidence, and finding gate. Put the applicable resolved rules in the brief;
+the delegated role does not need another Skill's internal path.
+
 Every Author, Critic, Reviewer, and Verifier brief names project-declared archive roots as
 excluded paths. Generated context and indexes must honor that exclusion. These roles do not
 read, cite, or use archived documents as authority, context, or evidence. If active work
 depends on archived meaning, return it to the owning active authority before continuing.
 
-For run-task, every Coder brief names the registered `ponytail:ponytail` Skill at `full`. A
-Reviewer brief names `ponytail:ponytail-review` when its candidate contains implementation or
-test-code changes. The role loads the named Skill through normal discovery before writing or
-accepting that code. Missing Ponytail blocks that code task; do not copy its rules or continue
-without it.
-
 Do not create an agent and then expand its scope through follow-up messages. A clarification may
 only explain an existing brief fact; a new objective or changed candidate needs a new brief and
 new agent. Do not put credentials, telemetry instructions, or unrelated project history in a
 brief.
-
-For a run-task Coder, the exact `Card.md`, current `Log.md` snapshot, Design Bundle and
-applicable interface-Contract anchors are the static execution input. Attach a commit-bound
-DocStar brief when available and verified against the exact baseline. It is an index, not
-authority. Follow omitted pointers or use targeted reads when needed; do not ingest all Task or
-Log history by default. When the assigned workspace has a usable CodeGraph index, use it first
-for source location and code relationships against the exact assigned workspace and treat
-returned source as already read. Read files directly when the index is absent, stale,
-unsupported, changed after the query, or insufficient; ground conclusions in that source, the
-diff, tests, and real execution.
 
 ## Workspace and candidate boundary
 
@@ -85,10 +73,7 @@ starting a task. Before the first write, confirm the assigned scope, preservatio
 user changes, and one writer per workspace. Use an independent worktree or equivalent
 workspace for concurrent writers; a single writer may use the current workspace. Require a
 resolved baseline and expected HEAD only when a candidate will cross an agent/workspace
-boundary or concurrent writing makes that identity necessary. When CodeGraph indexing is
-authorized and the CLI is available, initialize it once in each isolated workspace before
-source discovery; do not share an index across workspaces, and fall back to targeted source
-reads if initialization fails.
+boundary or concurrent writing makes that identity necessary.
 
 Commit the complete candidate locally before review and identify it in the brief with the
 shortest unambiguous commit reference. An isolated handoff also returns changed files,
@@ -109,99 +94,39 @@ independent review. Each semantic change batch or task execution uses
 round when both evidence surfaces changed. Once review starts, collect every active return
 before editing. The primary orchestrator
 adjudicates once, batches accepted blocker fixes, checks each resolution against its finding,
-and runs the affected machine checks. Do not send fixes from that round to another Critic or
-Reviewer. If a fix expands authority, scope, or behavior beyond the accepted findings, split
-it into a separately scoped change instead of treating it as a recheck. Non-blocking
-suggestions do not reopen a candidate. The final accepted commit records the reviewed commit, complete
-findings and rulings, exact fix delta, and post-fix checks.
+and runs the affected machine checks. A fix that only aligns a duplicate representation with
+an existing unambiguous authority is not sent to another Critic or Reviewer. If it must invent
+or change authority, scope, public behavior, interface obligation, error priority, or state
+order, narrow it or open a separately scoped semantic batch with its own single round.
+Non-blocking suggestions do not reopen a candidate. The final accepted commit records the
+reviewed commit, complete findings and rulings, exact fix delta, and post-fix checks.
 
 Critic and Reviewer are not expected to maximize finding count, and a valid review may return
-no findings. Before reporting an issue, they consider its concrete material harm if left
-unresolved, whether an effective fallback already keeps the impact within accepted bounds,
-and the smallest sufficient correction. Omit preference-only, speculative, low-impact, or
-adequately contained issues when they do not change acceptance or the next action. Do not
-propose a broader redesign when a smaller correction or effective fallback is sufficient.
-Avoidable R-D-T complexity is material because it propagates downstream. Code that Ponytail can
-delete while preserving current requirements and safeguards violates code minimality; neither
-case is omitted as cleanup or refactoring.
-
-The Reviewer runs the prepared deterministic local checks and returns exact commands,
-environment, exit codes, limitations, and side effects together with code findings. After
-accepted fixes, the primary orchestrator checks the exact fix delta and reruns affected machine
-checks without another independent round.
-
-A fresh Verifier is exceptional, not default. Classify the final candidate as `not-required`
-or `required:<trigger>`. Do not dispatch it while relevant Critic or Reviewer blockers remain.
-When required, put the classification, reason, and minimum verification plan in its brief and
-bind its evidence to the blocker-resolved final candidate. It stops once the recorded trigger
-is decided. Apply the same materiality and fallback filter to incidental observations, but
-never waive a failed, skipped, timed-out, or unavailable required check unless an accepted
-fallback is itself the required and successfully verified path. Repeating identical tests at
-another boundary is not additional evidence.
+no findings. Report only concrete material harm with no accepted effective fallback and a
+smallest sufficient correction. Omit preference-only, speculative, low-impact, or adequately
+contained issues that do not change acceptance or the next action.
 
 ## Role returns
 
-- **Author** returns the assigned document candidate, self-check evidence, and deviations.
-- **Critic** is read-only. It reports only contradictions or omissions that could materially
-  change the decision, scope, invariants, acceptance, or downstream work; wording preferences
-  and hypothetical completeness are omitted. For an affected R-D-T candidate it attempts
-  deletion, reuse, native behavior, and a direct solution, then requires the current upstream
-  outcome that would fail without each retained element.
-- **Coder** implements one Card attempt, stays inside its write set, produces discriminating
-  tests, loads `ponytail:ponytail` at `full`, and does not absorb adjacent work. A discovered
-  issue stays in the Card only when it
-  blocks the Card outcome or a prepared required check, has no accepted effective fallback,
-  and its smallest sufficient correction fits the existing authority. An isolated handoff
-  returns its complete candidate range. A later fix uses a fresh Coder but does not trigger
-  another Reviewer in the same task execution. It never edits shared Design/Contract
-  authority. When coding evidence contradicts a Contract ID, it returns only the evidence,
-  smallest proposed semantic delta, and affected tasks for primary-orchestrator adjudication.
-- **Reviewer** does not intentionally edit workspace files. It checks the candidate-commit
-  implementation diff for concrete correctness, regression, safety, data, or acceptance
-  impact, loads `ponytail:ponytail-review` in the same round to find removable implementation
-  complexity, then runs the prepared deterministic local checks. Cleanup, refactoring, and
-  broader coverage are not blockers unless required to contain a material risk or the code
-  minimality acceptance condition. It compares tracked workspace content with the candidate
-  commit after commands that could change it.
-- **Verifier** is a risk-triggered final-candidate role. It leaves every tracked file unchanged
-  on both pass and failure, does not broaden the assigned risk after it is decided, and returns
-  exact evidence for the non-transferable or explicitly independent plan. Evidence generation
-  or refresh runs before this independent check.
-- **Researcher** distinguishes direct observation, sourced fact, and inference. Research does
-  not become authority without orchestrator adjudication.
+- **Author** returns its bounded candidate, self-check evidence, and deviations.
+- **Critic** and **Reviewer** are read-only and return material findings or `no findings`.
+- **Coder** returns its bounded implementation candidate, checks, deviations, and unresolved
+  material risk; an isolated handoff also returns the complete candidate range.
+- **Verifier** returns exact evidence for its recorded final-candidate trigger and leaves
+  tracked files unchanged.
+- **Researcher** distinguishes direct observation, sourced fact, and inference.
 
 Every agent self-checks before its single return and directly corrects defects inside its
-scope. Do not emit a fixed `Reflection` section. Report only unresolved material risk that
-could change the decision, acceptance, or downstream work.
+scope. The stage Skill and role definition own role-specific content. Do not emit a fixed
+`Reflection` section. Report only unresolved material risk that could change the decision,
+acceptance, or downstream work.
 
 ## Platform notes
 
-- On Codex, create each role with no parent-context fork. Agent progress remains local; only
-  blockers, rulings, candidates, findings, verification results, and completion are material
-  orchestrator events.
+- On Codex, create each role with no parent-context fork.
 - On Claude Code, use a new custom or general-purpose agent for every dispatch. Do not use
   resume or SendMessage to assign later work to a returned role. Agent Teams do not provide
   worktree isolation automatically.
-- Before waiting or acting as a Coder, the primary orchestrator scans every task in the
-  confirmed execution set, not only the current card or active lane, and dispatches every
-  ready, non-conflicting task that fits currently available capacity. Wait only after useful
-  dispatch, local checks, state refresh, and integration work are exhausted.
-- Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour). Routine
-  progress-update cadence never shortens it.
-- A timeout has no workflow meaning. If an agent is known to remain `running`, immediately
-  re-arm the same one-hour wait without inserting `list_agents`, another status query, or a
-  user update between unchanged timeouts. A timeout alone is not a `list_agents` trigger.
-- On Codex, use one `list_agents` snapshot only when a real scheduling/capacity decision cannot
-  be made from received lifecycle events or those events conflict. Do not query again until a
-  material lifecycle event or scheduling condition changes. `path_prefix` scopes the snapshot;
-  it is not an interval. There is no periodic list interval.
-- The primary orchestrator must not interrupt, terminate, or kill an agent merely because it
-  has not returned content, is silent or slow, or crossed one or more wait timeouts. Stop it
-  only on explicit user cancellation or concrete evidence that it has hard-failed, its scope
-  is invalid, or continuing is unsafe.
-- While observable state is unchanged, do not report a wait timeout, silence, absence of
-  content, agent count, or `running` status. Report only material progress, a blocker, a
-  decision request, or the final result.
 
 Surface limitations never justify silently reusing an agent, widening write permissions, or
 dropping independent review.

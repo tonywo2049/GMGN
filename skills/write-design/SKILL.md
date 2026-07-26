@@ -1,101 +1,149 @@
 ---
 name: write-design
-description: "Use after Requirement review to create or change the Design-stage bundle: Design.md plus Contract.md only when independently developed boundaries need a separate interface authority. Requirement 已过审后确定架构、模块职责与按需的跨任务接口契约。"
+description: "Use after Requirement review to create or change the Design-stage bundle: root Design.md, conditional module design, and design/Contract.md only for independently developed boundaries. Requirement 已过审后确定可直接实现的架构、模块职责与按需的跨单元接口契约。"
 ---
 
 # Design stage: requirements → architecture and executable boundaries
 
 <HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. Otherwise return to `write-requirement`. If design work exposes changed upstream meaning, route to the WhitePaper, ROADMAP, Goal, or Requirement authority instead of redefining it in Design.</HARD-GATE>
 
-## Language and contract
+## Language, bundle, and authority
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
-writing contract. Use the Requirement locale for artifact prose. `Design.md` uses `type:
-design`; an independently needed `Contract.md` uses `type: contract`; both are normative.
+writing contract. Use the Requirement locale for artifact prose. Every Design-stage artifact
+is normative.
 
-The Design-stage candidate is:
+`Design.md` always exists and owns global architecture, module boundaries, the Bundle index,
+and the complete R/AC mapping. Add only the files current work needs:
 
-- `Design.md` alone when there is no cross-unit interface; or
-- one Design Bundle—`Design.md` plus required `Contract.md` at the same Git commit—when
-  current work crosses independently developed module, task, or team boundaries.
+```text
+Design.md
+design/
+├── <module-id>.md
+├── Contract.md
+├── contracts/<contract-id>.md
+└── schemas/<structural-authority>
+```
 
-The contract itself is mandatory for every such boundary; only the separate file is
-conditional on that boundary existing. Do not create an empty `Contract.md`. Do not split a
-normal in-process module into services merely to justify a contract artifact.
-Design acceptance makes the bundle an `approved` working baseline for implementation, not the
-final frozen contract. Controlled coding evidence may produce a newly reviewed working commit;
-`close-milestone` freezes the final implementation-matching Contract as `closed`.
+- `design/<module-id>.md` owns one module's private design when size, specialization, or
+  parallel authoring makes a separate authority useful.
+- `design/Contract.md` is required only when current work crosses an independently developed
+  module, task, team, process, or repository boundary. It owns the cross-unit interface index
+  and shared contract rules.
+- Keep a small interface directly in `design/Contract.md`; split
+  `design/contracts/<contract-id>.md` only when independent review or size requires it.
+- Put an exact machine-readable or compilable interface authority under `design/schemas/`
+  only when correctness depends on it. Do not pre-create format subdirectories.
 
-## Design content
+Do not create an empty file or directory, split a normal in-process module merely to justify a
+contract, or copy one definition into several artifacts. Every child links to `Design.md`;
+every cross-unit contract links its provider, consumers, applicable module documents, and
+structural authority. `Design.md` indexes those links without duplicating their owned meaning.
 
-- Derive Design from the reviewed Requirement and explicitly sourced external constraints.
-  Inspect the existing repository and real call paths for feasibility, but Design, Task,
-  implementation, tests, or evidence cannot silently redefine upstream meaning. The recorded
-  writer chooses the document layout.
-- State the smallest implementation structure needed to satisfy the current R/ACs:
-  architecture, responsibilities, owned data, composition, implementation constraints,
-  required failure or recovery behavior, and verification points.
-- Map each R/AC as: R/AC → design structure and data → applicable failure behavior →
-  verification point. Every retained design element must name the current R/AC or sourced
-  external invariant that would fail if it were removed.
-- Split responsibilities by behavior and authority, not mechanically by existing library,
-  process, repository, or deployment boundary. Keep every required responsibility, give each
-  data or security responsibility one authority, and allow one implementation to own multiple
-  responsibilities.
-- Add trust boundaries, validation, concurrency, ordering, idempotency, resource limits,
-  migration, rollback, observability, security, accessibility, and performance behavior only
-  when required by a current R/AC or real call path. Do not require fixed sections for absent
-  concerns.
-- Requirement owns observable targets, constraints, acceptance values, and decision methods.
-  Design may own implementation-specific choices, configuration, and derived values that do
-  not change Requirement meaning. Task executes approved values and reports evidence; a needed
-  change returns to the authority that owns the value.
-- When the current Milestone outcome is research or selection, or a concrete uncertainty blocks
-  a design decision, record only the uncertainty, required evidence, decision conditions, and
-  controlled revision point. Task performs research, spikes, and experiments. Do not mandate a
-  fixed research funnel or test sequence for every Design.
-- When `Contract.md` is needed, give each retained cross-unit boundary a stable Contract ID and
-  record its provider, consumers, interaction form, input/output semantics, invariants,
-  observable failures, and conformance point. Keep an interface in Design when one
-  implementation unit owns it; never create an empty Contract.
-- Link an applicable OpenAPI, Protobuf, JSON Schema, code interface, event schema, command, or
-  file format as the structural authority instead of copying it into Markdown. An interface
-  contract does not imply HTTP or a network service.
-- Record an authoritative decision only when its alternatives, conditions, or rollback matter.
-  Retain rejected alternatives only when they explain a current decision or live rollback path.
-- Implementation evidence may trigger a controlled Design revision. Keep the final adopted
-  structure, decisions, Design-owned parameter boundaries, and only necessary evidence pointers
-  in Design. Keep commands, full results, candidate chronology, task status, execution history,
-  and closure records downstream.
-- Apply the first-sufficient anti-overdesign order from GMGN §7. Delete any module, interface,
-  state, configuration item, dependency, document, or failure mechanism whose removal would not
-  cause a current R/AC or sourced external invariant to fail. Future reuse, possible scale,
-  flexibility, and implementation convenience are not owners.
-- Use the Design Bundle's Git commit. Do not add a parallel `v1`/`v2` workflow or formal API
-  version unless a current external or coexisting-version compatibility requirement needs it.
+The Design-stage candidate is `Design.md` plus every linked Design-stage artifact at one Git
+commit. Design acceptance makes that Bundle the `approved` working implementation baseline.
+Controlled implementation evidence may produce a newly reviewed Bundle commit;
+`close-milestone` alone freezes the implementation-matching Contract as `closed`.
 
-Before return, check that every R/AC maps to structure, necessary data, applicable failure
-behavior, and a verification point; every design element has a current R/AC or sourced external
-constraint; Requirement meaning and owned values are unchanged; every independent boundary has
-one interface authority and no empty Contract; research steps, test commands, results, and task
-status remain downstream; and no retained structure can be deleted, reused, made native, or
-replaced by a direct solution without losing a current accepted outcome.
+## Design content and completion
+
+Design determines how to implement the reviewed Requirement. A Coder may choose only local,
+replaceable expressions that cannot change another unit's result. A choice that can change an
+R/AC, public or cross-unit data, authority source, validation order, observable error,
+atomicity, recovery, security, compatibility, or resource behavior belongs to the Design
+Bundle. If two non-communicating Coders could produce incompatible implementations while both
+claiming conformance, the Bundle is not ready.
+
+The following are applicability checks, not required headings or a document template:
+
+- Derive every decision from reviewed R/ACs or an explicitly sourced external constraint.
+  Inspect the repository and real call paths for feasibility without redefining upstream
+  meaning.
+- Determine the smallest sufficient technical stack, dependency and build choices, source
+  locations, components, responsibilities, owned data, dependency direction, and trust
+  boundaries.
+- Determine required call and data flows, state transitions, non-trivial algorithms, storage
+  keys and indexes, transaction boundaries, migrations, concurrency, ordering, idempotency,
+  failure recovery, rollback, security, performance, resource, and observability behavior
+  whenever the current R/AC or real call path makes them implementation-significant.
+- Map each R/AC once in root `Design.md` to the owning design structure, necessary data,
+  applicable failure behavior, interface authority, and verification point. Child artifacts
+  link their applicable R/ACs without copying the complete map.
+- Give each retained design element one owner and the current R/AC or sourced invariant that
+  would fail if it were removed. Future reuse, possible scale, flexibility, or implementation
+  convenience is not an owner.
+
+Every applicable cross-unit boundary must close the whole path from authoritative producer,
+through specified derivation or conversion, to consumer validation and state effect. Define
+legal object phases and conversions; every invariant's single validation authority and every
+required production call site; success, observable failures, and state effects; and applicable
+atomicity, concurrency, ordering, retry, cancellation, idempotency, recovery, compatibility,
+authentication, authorization, and resource behavior. Define one-to-many completeness,
+uniqueness, and zero-effect semantics when present. When several checks can fail and first
+error changes compatibility, safety, or retry behavior, define one authoritative error order.
+Naming a validator without binding every required entry point does not close the boundary.
+
+For each cross-unit interface, assign a stable Contract ID, provider, consumers, interaction
+form, exact request, success, error, preconditions, postconditions, invariants, state effects,
+and conformance point. When compatibility or correctness depends on exact fields, presence,
+types, widths, tags, encoding, byte order, canonicalization, hash preimage, signature domain,
+state key, error enum, or method signature, link one machine-readable or compilable authority
+such as OpenAPI, Protobuf, JSON Schema, an event schema, or code-native trait/types. Markdown
+explains semantics and does not copy the complete signature. Add the smallest reducer, golden
+vector, or conformance specification only when the structural authority cannot express a
+required derivation, ordering, or byte result. Design defines these authorities; it does not
+implement production I/O, storage, or providers.
+
+An implementation Milestone cannot send an implementation-significant unknown to Task.
+Record the blocker, impact cone, owning authority, required evidence, and release condition;
+keep the affected Bundle `draft`. Only when research or selection is itself the current
+Milestone result may Task produce the evidence. Task never chooses production semantics; any
+later choice returns to its Requirement or Design authority.
+
+Record alternatives only when they explain a current decision or live rollback path. Keep
+commands, full results, candidate chronology, task status, execution history, and closure
+records downstream. Do not add formal API versions unless a current external or
+coexisting-version compatibility requirement needs them.
+
+Before return, apply this Design Ready gate:
+
+1. No implementation-significant question, hidden default, or unapproved parameter remains.
+2. Every applicable boundary has one structure authority and a closed producer-to-state path.
+3. Every R/AC and retained design element has one resolvable owner, implementation result, and
+   verification point without duplicated authority.
+4. Applicable schema compiles or lints, and required vectors or conformance checks reproduce.
+5. Removing, reusing, making native, or directly replacing any retained structure would lose a
+   current accepted outcome or safeguard.
 
 ## Writer and critic loop
 
-Record the Requirement commit. The primary session may write directly, or it prepares a
-complete brief and creates one fresh Author when the bounded handoff creates
-real value. The writer self-checks before return; a delegated Author ends on return, so later
-correction uses the primary session or a fresh Author with a new brief. Commit the whole
-Design-stage candidate locally and dispatch one fresh independent Critic from a prepared brief
-that names the shortest unambiguous commit reference. When
-`Contract.md` exists, the Critic checks both provider and consumer feasibility, the
-Design-to-Contract mapping, and whether the separate artifact can be deleted. Collect all
-findings before editing, adjudicate once, and batch accepted blocker fixes. The primary
-orchestrator checks each resolution without dispatching a second Critic. With no accepted
-blocker unresolved, it reviews and accepts the Design Bundle at one commit, applies accepted
-mechanical mappings, links, and state, then runs machine checks. This commit is the shared
-working baseline for Task creation and Coder dispatch.
+Record the Requirement commit. For a small Bundle, the primary session writes it directly.
+For useful parallelism, it first creates root `Design.md` with the global architecture, module
+boundaries, dependency direction, planned artifacts, and ownership; root remains the primary
+session's write surface. Dispatch fresh Authors by bounded semantic module, not mechanically by
+file count. Each Author writes only its declared child artifacts and self-checks their links
+and local closure.
+
+The primary session integrates provider/consumer seams, shared state, error order, and schema
+references, then commits one complete immutable Bundle candidate and identifies it by the
+shortest unambiguous commit reference. Run one Critic round after that integration. A small
+Bundle uses one fresh Critic; a large Bundle may use parallel fresh Critics on bounded module
+scopes plus one Bundle-seam scope in the same round. Every Critic reads the same candidate
+commit, all returns are collected before editing, and physical file count never determines
+the number of Critics.
+
+Critics ask what a later implementer must still decide. Reject any public or cross-unit
+decision, authority, validation entry, state effect, failure, recovery, or parameter left to
+Coder judgment. Check provider and consumer feasibility, object-phase legality, structural
+authority consistency, global-versus-local rule conflicts, R/AC traceability, and whether each
+separate artifact can be deleted.
+
+Adjudicate once and batch accepted blocker fixes. A fix is mechanical only when it makes a
+duplicate representation conform to an already unambiguous reviewed authority without changing
+meaning. The primary orchestrator checks those resolutions and affected machine checks without
+another Critic. If the fix must invent or change Design-owned meaning, it is a new semantic
+batch under Controlled revision, not a recheck of the old batch. Accept only the complete
+Bundle at one commit as the shared baseline for Task creation and Coder dispatch.
 
 ## Controlled revision
 
@@ -106,17 +154,21 @@ working baseline for Task creation and Coder dispatch.
    the shared contract in its Card. The primary orchestrator classifies the return as an
    internal implementation issue, a meaning-preserving clarification, or a semantic
    Design/Contract change.
-3. A meaning-preserving clarification uses the smallest same-batch edit, affected pointer
-   refresh, and machine checks. It does not trigger semantic reapproval.
+3. A meaning-preserving clarification only aligns a duplicate representation with an existing
+   unambiguous authority. It uses the smallest same-batch edit, affected pointer refresh, and
+   machine checks without semantic reapproval.
 4. For Design- or Contract-owned meaning, start from the old bundle commit and record the
    trigger, smallest semantic delta, affected Contract IDs, R-AC mappings, structures,
    providers, consumers, tasks, code, tests, evidence, and proposed new commit. Pause only that
    impact cone.
-5. Revise only the affected design, contract, and bidirectional mapping; do not redesign
-   unrelated structures. A semantic delta receives one fresh independent Critic round and
-   primary-orchestrator review at the new bundle commit. Old review remains attached to the
-   old commit.
-6. Propagate only to affected Task cards, implementation, tests, evidence, and state
+5. Adding or changing a public type or Port, authority source, required validation call site,
+   error priority, state or durability order, or provider/consumer obligation is a semantic
+   delta. Narrow it back to the reviewed authority or open a new batch.
+6. Revise only the affected design, contract, schema, and links; do not redesign unrelated
+   structures. A semantic delta receives one fresh independent Critic round scoped to that
+   delta and its direct impact surface, plus primary-orchestrator review at the new Bundle
+   commit. Old review remains attached to the old commit.
+7. Propagate only to affected Task cards, implementation, tests, evidence, and state
    representations. Unaffected lanes continue.
 
 Meaning-preserving mechanical changes use same-batch link, mapping pointer, and status
@@ -124,13 +176,11 @@ refresh plus machine checks without reapproval.
 
 ## Exit
 
-Require the recorded writer to reconcile the affected mapping in both directions: no orphan
-design or contract, no unmapped R-AC, and no cross-task boundary with multiple competing
-authorities. For creation or a semantic revision, run the fresh-agent writer/Critic loop using
-the English-only dispatch contract; tell the Critic to emphasize provider/consumer feasibility,
-upstream/downstream consistency, and a deletion-first overdesign check against the smallest
-sufficient Design Bundle. Obtain primary-orchestrator review and integrate only when required
-by workspace topology. Creation then uses **REQUIRED next skill: `write-task`**. A revision
+Require the recorded writer to reconcile the Bundle links: no orphan child, unmapped R/AC,
+unresolved structure authority, or cross-unit boundary with competing definitions. For
+creation or a semantic revision, run the writer/Critic loop above using the English-only
+dispatch contract. Obtain primary-orchestrator review and integrate only when required by
+workspace topology. Creation then uses **REQUIRED next skill: `write-task`**. A revision
 returns to the stage that raised it and continues through the affected path only.
 Do not mark the Design-stage Contract `closed` here; final freezing belongs to accepted
 Milestone closure after implementation and contract evidence agree.

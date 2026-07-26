@@ -64,11 +64,12 @@ Every ROADMAP Milestone has at least one qualitative end-to-end acceptance scena
 its full owned outcome. It need not be a browser flow: infrastructure may prove a real
 input-to-observable-output path, and research may prove question-to-decision evidence.
 
-The Design stage always produces `Design.md`. A boundary between independently developed
-modules, tasks, or teams also requires `Contract.md`; without such a boundary, the interface
-stays in Design and no empty contract file is created. Both files form one reviewed Design
-Bundle. Tasks split at independently provable outcomes rather than API count and anchor the
-applicable AC, Design, and Contract authority.
+The Design stage always produces root `Design.md`. Add `design/<module-id>.md` only for a
+useful module authority. A boundary between independently developed units requires
+`design/Contract.md`; split contracts and `design/schemas/` authorities are conditional.
+No empty scaffolding is created. The complete linked files form one reviewed Design Bundle.
+It is ready only when independent Coders no longer need to invent a public or cross-unit
+decision and would produce compatible results from the same authority.
 The Design-stage Contract is an approved working baseline. Coding evidence may revise it
 through `write-design`; Milestone closure reconciles it with provider/consumer code and marks
 the accepted implementation-matching commit as `closed`.
@@ -90,7 +91,9 @@ Every delegated role receives a complete brief before creation, returns once, an
 Later authoring, coding, or verification uses a fresh agent without parent or earlier-agent
 history. Each semantic change batch or task execution gets at most one Critic/Reviewer round;
 accepted fixes are checked by the primary orchestrator and are not sent back for a second
-independent round. A separate Verifier is exceptional: classify it from the
+independent round when they only align with an existing unambiguous authority. A fix that
+must invent or change public meaning starts a separately scoped semantic batch. A separate
+Verifier is exceptional: classify it from the
 [`gmgn-assurance-v1` policy](skills/gmgn/references/en/assurance-policy.json) as
 `not-required` or `required:<trigger>`, and run it only when required.
 Critic and Reviewer do not maximize finding count; no findings is a valid result. They report
@@ -275,7 +278,7 @@ claude plugin marketplace remove GMGN --scope user
 | “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with at least one end-to-end acceptance scenario per Milestone |
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
-| “Produce the technical design.” | `write-design` | Design.md plus required Contract.md for cross-unit boundaries |
+| “Produce the technical design.” | `write-design` | Root Design.md plus conditional module, contract, and schema authorities |
 | “Break the design into task cards.” | `write-task` | Task.md |
 | “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review, and any required verification evidence |
 | “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, final Contract freeze, closure record |
@@ -345,7 +348,7 @@ installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/repo
 ```text
 skills/                         ten cross-platform skills
   */agents/openai.yaml          Codex display metadata and default prompts
-  gmgn/references/en/           English normative contracts and checklists
+  gmgn/references/en/           English shared writing, dispatch, review, and assurance contracts
 agents/                         Claude Code plugin subagent roles
 .docstar/conventions/           DocStar-compatible GMGN convention set
 .codex-plugin/plugin.json       Codex plugin manifest

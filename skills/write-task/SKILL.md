@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 # Task.md: milestone task index
 
-<HARD-GATE>The Design-stage candidate—`Design.md` plus `Contract.md` when the approved Design requires a separate cross-task interface authority—must have independent Critic plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning, revise its WhitePaper, ROADMAP, Goal, Requirement, Design, or Contract authority instead of redefining it in Task.</HARD-GATE>
+<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have independent Critic plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, revise its WhitePaper, ROADMAP, Goal, Requirement, or Design authority instead of deciding it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing contract. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -33,9 +33,9 @@ task`, `nature: normative`, and this parser-facing table header:
   Split by result and verification boundary, not by file, interface, implementation step,
   chronology, or person. Separate implementation, integration, or qualification only when
   each result is independently decidable.
-- Keep only task boundaries supported by the current approved Design. When an approved
-  research or selection task must produce evidence before downstream tasks can be defined,
-  create only that evidence-producing task. Revise Design before adding the downstream tasks.
+- Keep only task boundaries supported by the current approved Design. Only when research or
+  selection is itself the current Milestone result may an approved task produce that evidence.
+  Task never chooses production semantics; revise Design before defining implementation tasks.
   Never create tentative, placeholder, or speculative task sets.
 - Every in-scope AC must map to at least one task. A task may cover several related ACs and
   one AC may require several tasks. If the current ACs cannot be fully mapped, the Design is

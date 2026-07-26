@@ -5,7 +5,7 @@ description: "Use when one or more approved Task.md rows are confirmed: material
 
 # Run confirmed task cards
 
-<HARD-GATE>Every dispatched task must exist in an independently reviewed and primary-orchestrator-accepted `Task.md`, belong to the confirmed `target_milestone_id` execution set, and have valid Requirement plus Design-stage authority, including the applicable `Contract.md` anchor when one exists. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
+<HARD-GATE>Every dispatched task must exist in an independently reviewed and primary-orchestrator-accepted `Task.md`, belong to the confirmed `target_milestone_id` execution set, and have valid Requirement plus Design-stage authority, including the applicable `design/Contract.md`, split contract, and structural-authority anchors when they exist. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
 
 The primary orchestrator owns scheduling, adjudication, shared state, integration, Task status,
 and per-card execution documents. It may be the Coder for one task only when no useful
@@ -120,7 +120,8 @@ A Coder writes only the prepared brief's allowed scope and any Card `write_set`,
 Design/Contract authority, `Task.md`, Card/Log runtime state, the integration queue, or remote
 state. It first establishes a discriminating RED test, loads `ponytail:ponytail` through normal
 discovery at `full`, implements the smallest sufficient change without removing required
-safeguards, and runs the Card checks.
+safeguards, and runs the Card checks. It does not make a check pass by removing a required
+test, weakening an assertion, swallowing an error, or bypassing the real production path.
 Discovery does not expand an active Card. A newly found issue belongs to it only when leaving
 the issue unresolved prevents the Card outcome or a prepared required check, no accepted
 effective fallback contains the impact, and the smallest sufficient correction stays inside
@@ -192,10 +193,11 @@ and batches accepted blocker fixes into one revision. Each task execution uses
 `review_policy: single-pass` and has at most this one Critic/Reviewer round. The primary
 orchestrator checks each resolution and runs affected machine checks. This bounded resolution
 check does not search for new findings; do not resume or create a Critic/Reviewer for the
-fixes. A fix that
-expands authority, scope, or behavior beyond the accepted findings becomes a separately scoped
-change. Put the reviewed anchor, complete findings and rulings, exact fix delta, and post-fix
-checks in the final evidence summary. Non-blocking suggestions do not reopen the candidate.
+fixes when they only align implementation with an existing unambiguous authority. A fix that
+must invent or change authority, scope, public behavior, interface obligation, error priority,
+or state order becomes a separately scoped semantic change. Put the reviewed anchor, complete
+findings and rulings, exact fix delta, and post-fix checks in the final evidence summary.
+Non-blocking suggestions do not reopen the candidate.
 Do not keep a task open to perfect a non-blocking issue when its Card outcome works and an
 effective fallback keeps the remaining impact within accepted bounds.
 
@@ -269,6 +271,10 @@ After the final candidate clears required review and any required verification:
 - refresh affected AC traceability and shared-baseline/integration-queue pointers;
 - run diff, links, repository checks, and then atomically advance the shared baseline.
 
+Before advancing it, confirm that every applicable Contract ID, provider, consumer, caller,
+migration, structural authority, and interacting task is inside the checked impact boundary
+and that the integrated content still matches the reviewed candidate.
+
 Material blockers and decisions plus final commit references, commands, review, and required evidence
 stay in Log and are never copied back into Task. Release the lane only after the integrated
 anchor and closure evidence are durable. A task is complete when its Card contract is satisfied,
@@ -281,8 +287,9 @@ When evidence challenges an interface contract, the primary orchestrator classif
 changing shared authority:
 
 - an internal implementation issue stays in the Card and does not change Contract;
-- a meaning-preserving clarification uses the smallest same-batch Contract edit, affected
-  pointer refresh, and machine checks;
+- a meaning-preserving clarification only aligns a duplicate representation with an existing
+  unambiguous Contract authority, using the smallest same-batch pointer refresh and machine
+  checks;
 - a semantic Design/Contract change pauses only affected providers, consumers, integration
   tasks, and descendants, records the blocker in Log, and returns to `write-design`.
 

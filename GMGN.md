@@ -2,7 +2,7 @@
 locale: en
 purpose: Define GMGN roles, document chains, hard gates, independent review, and closure discipline.
 upstream: none
-downstream: [writing contract](skills/gmgn/references/en/writing-contract.md), [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md), [preflight checklist](skills/gmgn/references/en/preflight-checklist.md), [pre-merge checklist](skills/gmgn/references/en/pre-merge-checklist.md), [pre-close checklist](skills/gmgn/references/en/pre-close-checklist.md)
+downstream: [writing contract](skills/gmgn/references/en/writing-contract.md), [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md), [code-review contract](skills/gmgn/references/en/code-review.md)
 status: approved
 type: whitepaper
 nature: normative
@@ -55,7 +55,7 @@ The normal semantic chain is:
 ```text
 WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
                                               ├─ Design.md
-                                              └─ Contract.md when a cross-unit boundary exists
+                                              └─ design/ only for needed module, contract, or schema authorities
 ```
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
@@ -74,14 +74,20 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   the mapping of ROADMAP deliverables and acceptance scenarios into active scope. Requirement
   owns required observable behavior, quantified parameters, constraints, and decidable
   acceptance criteria (ACs).
-- Design owns the smallest implementation structure and decisions needed to satisfy R/ACs:
-  architecture, responsibilities, owned data, composition, implementation-specific parameters,
-  failure behavior, and verification points.
-- A boundary between independently developed modules, tasks, or teams requires
-  `Contract.md`. It owns the shared interface semantics; an interface owned by one
-  implementation unit stays in `Design.md`. Design and Contract are accepted as one bundle at
-  one Git commit. This is the shared implementation baseline, not the final frozen
-  contract; Milestone closure freezes the implementation-matching Contract.
+- `Design.md` owns global architecture, module boundaries, the Bundle index, and complete R/AC
+  mapping. Add `design/<module-id>.md` only for a useful module authority. A boundary between
+  independently developed modules, tasks, teams, processes, or repositories requires
+  `design/Contract.md`; split contracts and structural authorities under `design/contracts/`
+  and `design/schemas/` only when current correctness or independent review needs them.
+  The complete linked Bundle is accepted at one Git commit.
+- Design must determine every implementation-significant choice that could change another
+  unit's data, authority, validation, error, state, recovery, security, compatibility, or
+  resource behavior. If two non-communicating Coders could produce incompatible conforming
+  implementations, Design is not ready. Task cannot supply the missing decision.
+- Every applicable cross-unit boundary closes its authoritative producer, derivation,
+  consumer validation entries, success/errors, and state effects. Exact compatibility-
+  significant structure has one machine-readable or compilable authority; Markdown links it
+  and owns only semantics that structure cannot express.
 - Task owns task division, AC mapping, dependencies, macro status, and execution pointers.
 
 One fact has one authority. Other documents link to it instead of copying it. Every review,
@@ -152,9 +158,11 @@ independent Critic/Reviewer round. When both surfaces changed, both roles may ru
 round. Collect every finding before editing. The primary orchestrator adjudicates once,
 batches accepted blocker fixes,
 checks each resolution against the finding, and runs the affected machine checks. This bounded
-resolution check does not search for new findings. Do not resume or create a Critic/Reviewer
-for those fixes. A fix that expands authority, scope, or behavior
-beyond the accepted findings becomes a separately scoped change rather than a review recheck.
+resolution check does not search for new findings. A fix that only aligns a duplicate
+representation with an existing unambiguous authority does not receive another review. If it
+must invent or change authority, scope, public behavior, interface obligation, error priority,
+or state order, narrow it or open a separately scoped semantic batch with its own single
+round.
 The final accepted commit records the reviewed commit, complete findings and rulings, exact fix delta,
 and post-fix checks. Non-blocking suggestions do not reopen an otherwise acceptable candidate.
 
@@ -233,7 +241,8 @@ change-request document is created. The primary orchestrator keeps unaffected la
 and classifies the return:
 
 - an internal implementation issue stays in the Card;
-- a meaning-preserving clarification gets the smallest same-batch edit and machine checks;
+- a meaning-preserving clarification only aligns a duplicate representation with an existing
+  unambiguous authority and gets the smallest same-batch link edit plus machine checks;
 - a semantic Design/Contract change pauses only its provider, consumers, integration tasks,
   and descendants, then returns to `write-design` for one newly reviewed bundle commit.
 
@@ -326,9 +335,10 @@ Choose the first sufficient option:
 Do not add roles, state machines, identity history, configuration, wrappers, or documents
 without a current requirement. Preserve trust-boundary validation, security, accessibility,
 and data-loss protection; simplicity is not permission to remove required safeguards.
-The same deletion test applies to `Contract.md`: it is required for a current cross-unit
-interface and omitted when one implementation unit owns the interface. Never create an empty
-contract artifact or duplicate a code-native schema in prose.
+The same deletion test applies to `design/Contract.md`: it is required for a current
+independently developed boundary and omitted when one implementation unit owns the interface.
+Never create an empty contract, module document, schema directory, or duplicate a code-native
+schema in prose.
 
 Code minimality is delegated to the registered
 [Ponytail](https://github.com/DietrichGebert/ponytail) plugin rather than copied into GMGN.
@@ -355,6 +365,3 @@ Operational detail lives in the stage Skills and these shared contracts:
 - [dispatch](skills/gmgn/references/en/dispatch-and-handoff.md)
 - [writing](skills/gmgn/references/en/writing-contract.md)
 - [code review](skills/gmgn/references/en/code-review.md)
-- [preflight](skills/gmgn/references/en/preflight-checklist.md)
-- [pre-merge](skills/gmgn/references/en/pre-merge-checklist.md)
-- [pre-close](skills/gmgn/references/en/pre-close-checklist.md)

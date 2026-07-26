@@ -44,10 +44,11 @@ ROADMAP 中每个 Milestone 至少有一个覆盖其完整自有结果的定性�
 流程：基础设施可验证真实输入到可观察输出的完整路径，研究类 Milestone 可验证问题到决策的证据
 路径。
 
-Design 阶段始终产出 `Design.md`。只要存在由不同模块、Task 或团队独立开发的交互边界，就必须
-同时产出 `Contract.md`；没有这种边界时，接口留在 Design 中，不创建空契约文件。两份文件构成
-同一锚点上的 Design Bundle。Task 按可独立证明的结果拆分，不按 API 数量拆分，并引用相关 AC、
-Design 与 Contract 权威。
+Design 阶段始终产出根 `Design.md`。只有模块权威确有价值时才增加
+`design/<module-id>.md`；存在独立开发边界时才要求 `design/Contract.md`，拆分契约与
+`design/schemas/` 结构权威也按需创建，不生成空脚手架。所有链接文件构成同一锚点上的 Design
+Bundle。只有两个互不沟通的 Coder 无需补充公共或跨单元决定，并能从同一权威得到兼容结果时，
+Design 才可批准。
 Design 阶段的 Contract 是已批准的工作基线，不是最终稿。编码证据可通过 `write-design` 受控修订；
 Milestone 关账时再核对提供方、消费方、实现与证据，并把一致的关闭 commit 冻结为最终 Contract。
 
@@ -63,8 +64,9 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并把一�
 
 Reviewer 在同一轮内完成代码判断与既定的确定性本地检查。每个受委派角色在创建前取得完整 brief，
 只回传一次后结束；后续写作、编码或验证使用全新 agent，不继承父会话或旧 agent 历史。每个语义
-变更批次或任务执行最多只有一轮 Critic/Reviewer；已采纳 finding 由主编排者核对修复并重跑受影响
-的机器检查，不再做第二轮独立检查。单独的 Verifier 是例外：按
+变更批次或任务执行最多只有一轮 Critic/Reviewer；仅与既有明确权威对齐的 finding 修复由主编排者
+核对并重跑受影响机器检查，不做第二轮独立检查；必须发明或改变公共语义的修复另立语义批次。单独
+的 Verifier 是例外：按
 [`gmgn-assurance-v1` 策略](skills/gmgn/references/en/assurance-policy.json)分类为
 `not-required` 或 `required:<trigger>`，只有后者才派发。
 Critic 和 Reviewer 不追求 finding 数量；没有 finding 是有效结果。只报告没有被已接受有效兜底
@@ -238,7 +240,7 @@ claude plugin marketplace remove GMGN --scope user
 | “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（每个 Milestone 至少一个端到端验收场景） |
 | “启动 M1，明确范围” | `write-goal` | Goal.md |
 | “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
-| “出技术设计和系统方案” | `write-design` | Design.md；跨独立开发边界时加 Contract.md |
+| “出技术设计和系统方案” | `write-design` | 根 Design.md 与按需的模块、契约、结构权威 |
 | “拆实施计划和任务卡” | `write-task` | Task.md |
 | “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查和所需验证证据 |
 | “里程碑完成了，准备上线关账” | `close-milestone` | 回归、E2E、最终 Contract 冻结、关账记录 |

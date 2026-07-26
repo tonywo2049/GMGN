@@ -1,8 +1,8 @@
 ---
 locale: en
 purpose: Unify incremental code-review scope, execution evidence, and finding format across Codex, Claude Code, and no-edit reviewers.
-upstream: [dispatch and handoff](dispatch-and-handoff.md)
-downstream: [pre-merge checklist](pre-merge-checklist.md)
+upstream: [GMGN methodology](../../../../GMGN.md), [dispatch and handoff](dispatch-and-handoff.md)
+downstream: [Reviewer role](../../../../agents/reviewer.md)
 status: approved
 type: task
 nature: normative
@@ -75,10 +75,11 @@ normative task content are unchanged. Each task execution uses
 `review_policy: single-pass` and has at most one Reviewer round.
 After that round, the primary orchestrator adjudicates once, batches accepted fixes, checks
 each resolution against its finding, and runs affected machine checks. Do not dispatch another
-Reviewer to recheck those fixes. A fix that changes dependency/specification meaning or
-expands behavior beyond the accepted findings becomes a separately scoped change. The primary
-orchestrator reruns affected machine checks after accepted fixes. A separate Verifier is not a
-default second stage; use it only for a recorded `required:<trigger>` classification on the
-blocker-resolved final candidate. The final accepted commit records the reviewed commit, findings and
-rulings, exact fix delta, post-fix checks, verification classification, and any
+Reviewer when a fix only aligns implementation with an existing unambiguous authority. A fix
+that invents or changes specification meaning, public behavior, interface obligations, error
+priority, or state order becomes a separately scoped semantic batch. The primary orchestrator
+reruns affected machine checks after accepted fixes. A separate Verifier is not a default
+second stage; use it only for a recorded `required:<trigger>` classification on the
+blocker-resolved final candidate. The final accepted commit records the reviewed commit,
+findings and rulings, exact fix delta, post-fix checks, verification classification, and any
 trigger-specific evidence.

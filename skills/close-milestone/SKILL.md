@@ -17,14 +17,15 @@ and checks:
 - ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence coverage;
 - every ROADMAP deliverable against its accepted result and required canonical pointer;
 - every retained Contract ID against its provider implementation, every in-scope consumer,
-  conformance/integration evidence, and observable failure behavior;
+  conformance/integration evidence, structural authority, and observable failure behavior;
 - no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
 - known debt and material risk are classified without silently waiving an AC.
 
-The Design-stage Contract was an approved working baseline. If closure finds a semantic
-contract/implementation mismatch, return only that impact cone to `write-design`, obtain the
-new reviewed working commit, refresh affected tasks and evidence, and then restart closure.
-Closure cannot silently rewrite the contract to match code.
+The Design-stage `design/Contract.md`, its split contracts, and structural authorities were
+one approved working baseline. If closure finds a semantic contract/implementation mismatch,
+return only that impact cone to `write-design`, obtain the new reviewed Bundle commit, refresh
+affected tasks and evidence, and then restart closure. Closure cannot silently rewrite the
+contract to match code.
 
 Task remains a compact macro index. Material decisions and final commands, anchors, review, and
 required evidence stay in each card's Log.

@@ -191,7 +191,7 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "skills/write-design/SKILL.md",
-                "an `approved` working baseline for implementation",
+                "the `approved` working implementation baseline",
                 "the final immutable contract before implementation",
             ),
             (
@@ -206,10 +206,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/writing-contract.md",
-                "The Coder does not edit\n"
-                "the shared Design Bundle or create a separate change-request document",
-                "The Coder must edit the shared Design Bundle and create a separate "
-                "change-request document",
+                "`approved` means the current shared working baseline",
+                "`approved` means the final immutable implementation",
             ),
         )
         for relative, old, new in cases:
@@ -230,13 +228,13 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "agents/critic.md",
-                "If it does,\nthe file is required",
-                "If it does, the file may be deleted",
+                "when one exists, the catalog is required",
+                "when one exists, the catalog may be deleted",
             ),
             (
                 ".codex/agents/critic.toml",
-                "边界存在时必须保留文件",
-                "边界存在时也可删除文件",
+                "存在时必须保留契约目录",
+                "存在时也可删除契约目录",
             ),
         )
         for relative, old, new in cases:
@@ -254,8 +252,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/write-design/SKILL.md",
-                "Future reuse, possible scale,\n  flexibility, and implementation "
-                "convenience are not owners",
+                "Future reuse, possible scale, flexibility, or implementation\n"
+                "  convenience is not an owner",
                 "Future reuse always justifies new structure",
             ),
             (
@@ -530,52 +528,47 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_design_content_boundary_drift(self) -> None:
         cases = (
             (
-                "Design, Task,\n  implementation, tests, or evidence cannot silently "
-                "redefine upstream meaning",
+                "real call paths for feasibility without redefining upstream\n  meaning",
                 "Design may silently redefine Requirement",
             ),
             (
-                "Do not mandate a\n  fixed research funnel or test sequence for every Design",
+                "not required headings or a document template",
                 "Every Design must follow a fixed research funnel",
             ),
             (
-                "Do not mandate a\n  fixed research funnel or test sequence for every Design",
+                "not required headings or a document template",
                 "Every Design must use the same test sequence",
             ),
             (
-                "Design may own implementation-specific choices, configuration, and "
-                "derived values that do\n  not change Requirement meaning",
+                "A choice that can change an\nR/AC",
                 "Design may change Requirement-owned acceptance values",
             ),
             (
-                "Task executes approved values and reports evidence; a needed\n"
-                "  change returns to the authority that owns the value",
+                "Task never chooses production semantics",
                 "Task may change authoritative parameters from trial results",
             ),
             (
-                "Keep commands, full results, candidate chronology, task status, "
-                "execution history,\n  and closure records downstream",
+                "commands, full results, candidate chronology, task status, "
+                "execution history, and closure\nrecords downstream",
                 "Keep commands, full results, candidate chronology, task status, "
                 "execution history, and closure records in Design",
             ),
             (
-                "Map each R/AC as: R/AC → design structure and data → applicable "
-                "failure behavior →\n  verification point",
+                "Map each R/AC once in root `Design.md`",
                 "Map R/AC only to broad sections",
             ),
             (
-                "Keep an interface in Design when one\n  implementation unit owns it; "
-                "never create an empty Contract",
+                "Do not create an empty file or directory",
                 "Always create Contract.md",
             ),
             (
-                "Future reuse, possible scale,\n  flexibility, and implementation "
-                "convenience are not owners",
+                "Future reuse, possible scale, flexibility, or implementation\n"
+                "  convenience is not an owner",
                 "Future reuse, possible scale, flexibility, and implementation "
                 "convenience are owners",
             ),
             (
-                "Do not require fixed sections for absent\n  concerns",
+                "not required headings or a document template",
                 "Every Design must define concurrency, recovery, migration, and "
                 "performance sections",
             ),
@@ -588,6 +581,36 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("design 最简方案契约", result.stdout)
                 self.assertIn("含相反契约", result.stdout)
+
+    def test_rejects_design_closure_drift(self) -> None:
+        cases = (
+            (
+                "If two non-communicating Coders could produce incompatible implementations "
+                "while both\nclaiming conformance, the Bundle is not ready",
+                "Incompatible conforming implementations are acceptable",
+            ),
+            (
+                "Naming a validator without binding every required entry point does not close "
+                "the boundary",
+                "Naming a validator closes the boundary without call sites",
+            ),
+            (
+                "global-versus-local rule conflicts",
+                "global-versus-local conflicts may be ignored",
+            ),
+            (
+                "If the fix must invent or change Design-owned meaning, it is a new semantic\n"
+                "batch",
+                "A finding fix may invent new Design meaning without another semantic batch",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(new=new):
+                result = self.run_isolated_mutation(
+                    "skills/write-design/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("design 最简方案契约", result.stdout)
 
     def test_rejects_archive_context_contract_drift(self) -> None:
         reverse = "Archive documents may be used as authority, context, or evidence"
@@ -710,7 +733,6 @@ class ValidateSkillsTests(unittest.TestCase):
             "GMGN.md",
             "skills/gmgn/SKILL.md",
             "skills/run-task/SKILL.md",
-            "skills/gmgn/references/en/dispatch-and-handoff.md",
         ):
             with self.subTest(relative=relative):
                 result = self.run_isolated_mutation(
@@ -810,7 +832,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/run-task/SKILL.md",
-                "do not resume or create a Critic/Reviewer for the\nfixes",
+                "existing unambiguous authority",
             ),
         )
         for relative, rule in cases:
@@ -1000,13 +1022,13 @@ class ValidateSkillsTests(unittest.TestCase):
 
     def test_rejects_missing_required_verifier_gate(self) -> None:
         self.replace(
-            "skills/gmgn/references/en/pre-merge-checklist.md",
-            "Missing required evidence blocks integration",
-            "Missing required evidence may be ignored",
+            "skills/run-task/SKILL.md",
+            "A failed, skipped,\ntimed-out, or unavailable required command is not a pass",
+            "A failed, skipped, timed-out, or unavailable required command may pass",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("合并前双向验证门禁", result.stdout)
+        self.assertIn("run-task 执行与验证契约", result.stdout)
 
     def test_rejects_release_without_risk_triggered_artifact_verifier(self) -> None:
         self.replace(

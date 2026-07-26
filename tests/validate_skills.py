@@ -65,7 +65,6 @@ PONYTAIL_CONTRACT_FILES = (
     Path("GMGN.md"),
     Path("skills/gmgn/SKILL.md"),
     Path("skills/run-task/SKILL.md"),
-    Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
     Path("skills/gmgn/references/en/code-review.md"),
     Path("agents/coder.md"),
     Path("agents/reviewer.md"),
@@ -93,7 +92,6 @@ GIT_ANCHOR_FILES = (
     Path("skills/gmgn/references/en/writing-contract.md"),
     Path("skills/gmgn/references/en/dispatch-and-handoff.md"),
     Path("skills/gmgn/references/en/code-review.md"),
-    Path("skills/gmgn/references/en/pre-merge-checklist.md"),
     Path("agents/author.md"),
     Path("agents/coder.md"),
     Path("agents/critic.md"),
@@ -205,7 +203,6 @@ def validate_core_contract(errors: list[str]) -> None:
     write_design = read("skills/write-design/SKILL.md")
     close_milestone = read("skills/close-milestone/SKILL.md")
     release = read("skills/release/SKILL.md")
-    pre_merge = read("skills/gmgn/references/en/pre-merge-checklist.md")
     critic_role = read("agents/critic.md")
     codex_critic_role = read(".codex/agents/critic.toml")
 
@@ -213,7 +210,6 @@ def validate_core_contract(errors: list[str]) -> None:
         (methodology, "GMGN 根规范全局调度契约"),
         (gmgn, "gmgn 路由全局调度契约"),
         (run_task, "run-task 全局调度契约"),
-        (dispatch_en, "英文派发全局调度契约"),
     ):
         require(text, GLOBAL_SCAN_CONTRACT, label, errors)
 
@@ -221,7 +217,6 @@ def validate_core_contract(errors: list[str]) -> None:
         (methodology, "GMGN 根规范 Agent 等待契约"),
         (gmgn, "gmgn 路由 Agent 等待契约"),
         (run_task, "run-task Agent 等待契约"),
-        (dispatch_en, "英文派发 Agent 等待契约"),
     ):
         require(text, AGENT_WAIT_CONTRACT, label, errors)
 
@@ -269,7 +264,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "An accepted finding fix remains part of that reviewed batch and does not\n"
         "re-enter role selection",
         "bounded\nresolution check does not search for new findings",
-        "Do not resume or create a Critic/Reviewer\nfor those fixes",
+        "A fix that only aligns a duplicate\nrepresentation with an existing unambiguous authority",
         "Solution minimality is an acceptance condition across Requirement, Design, and Task",
         "Anything that can be deleted without losing a current accepted outcome is overdesign",
         "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
@@ -288,9 +283,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "mapping of ROADMAP deliverables and acceptance scenarios into active scope",
         "Requirement\n  owns required observable behavior, quantified parameters, constraints, and decidable\n"
         "  acceptance criteria",
-        "Design owns the smallest implementation structure and decisions needed to satisfy R/ACs",
-        "implementation-specific parameters",
-        "failure behavior, and verification points",
+        "`Design.md` owns global architecture, module boundaries, the Bundle index",
+        "If two non-communicating Coders could produce incompatible conforming\n  implementations",
+        "consumer validation entries, success/errors, and state effects",
         "each Task row names one independently decidable result",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
@@ -301,7 +296,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "Prepare the full role brief before creation",
         "Collect all active findings before changing the candidate",
         "Each semantic change batch or task execution uses `review_policy: single-pass`",
-        "Do not resume or create a\nCritic/Reviewer for those fixes",
+        "A fix is mechanical only when it\naligns a duplicate representation",
         "The Critic/Reviewer rows above are evaluated only once",
         "An accepted finding fix remains part of that reviewed batch and does not\n"
         "re-enter role selection",
@@ -329,7 +324,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
         "Missing Ponytail blocks that code task",
-        "requires a separate `Contract.md`",
+        "requires\n`design/Contract.md`",
         "same current approved Design Bundle commit",
         "evidence, smallest proposed delta, and affected tasks",
         "`close-milestone` freezes the implementation-matching\nContract as `closed`",
@@ -349,8 +344,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Split by result and verification boundary, not by file, interface, implementation step",
         "only when\n  each result is independently decidable",
         "Keep only task boundaries supported by the current approved Design",
-        "create only that evidence-producing task",
-        "Revise Design before adding the downstream tasks",
+        "Only when research or\n  selection is itself the current Milestone result",
+        "revise Design before defining implementation tasks",
         "Never create tentative, placeholder, or speculative task sets",
         "- Every in-scope AC must map to at least one task",
         "A task may cover several related ACs and\n  one AC may require several tasks",
@@ -395,7 +390,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "The Critic/Reviewer rows above are evaluated only once",
         "does not re-enter role selection",
         "bounded resolution\ncheck does not search for new findings",
-        "do not resume or create a Critic/Reviewer for the\nfixes",
+        "existing unambiguous authority",
         "Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain",
         "The Reviewer also runs the prepared deterministic local",
         "A fresh Verifier is exceptional, not default",
@@ -449,14 +444,12 @@ def validate_core_contract(errors: list[str]) -> None:
         "One return ends the agent",
         "collect every active return before editing",
         "Each semantic change batch or task execution uses `review_policy: single-pass`",
-        "Do not send fixes from that round to another Critic or Reviewer",
+        "existing unambiguous authority",
         "The final accepted commit records the reviewed commit",
-        "The Reviewer runs the prepared deterministic local checks",
-        "A fresh Verifier is exceptional, not default",
-        "Classify the final candidate as `not-required`\nor `required:<trigger>`",
         "registered skills or available tools required for the task",
         "load them through normal discovery",
         "instead of passing\nanother Skill's internal resource path",
+        "use the shared [code-review contract](code-review.md)",
         "Compliance checks are triggered by a real boundary or material state change",
         "Commit the complete candidate locally before review",
         "shortest unambiguous commit reference",
@@ -464,18 +457,7 @@ def validate_core_contract(errors: list[str]) -> None:
         "valid review may return\nno findings",
         "concrete material harm",
         "smallest sufficient correction",
-        "minimum verification plan",
-        "Do not query again until a material lifecycle event",
-        "There is no periodic list interval",
-        "initialize it once in each isolated workspace before source discovery",
-        "against the exact assigned workspace",
-        "treat returned source as already read",
-        "index is absent, stale,\nunsupported, changed after the query, or insufficient",
-        "every Coder brief names the registered `ponytail:ponytail` Skill at `full`",
-        "A\nReviewer brief names `ponytail:ponytail-review` when its candidate contains implementation or\ntest-code changes",
-        "Missing Ponytail blocks that code task",
-        "Avoidable R-D-T complexity is material because it propagates downstream",
-        "Code that Ponytail can\ndelete while preserving current requirements and safeguards",
+        "The stage Skill and role definition own role-specific content",
     ), "英文派发契约", errors)
     require(roadmap, (
         "explicit **Milestone\n  deliverables**",
@@ -601,42 +583,32 @@ def validate_core_contract(errors: list[str]) -> None:
         "every current Goal slice is covered or explicitly excluded",
     ), "write-requirement 内容边界契约", errors)
     require(write_design, (
-        "Derive Design from the reviewed Requirement and explicitly sourced external constraints",
-        "Design, Task,\n  implementation, tests, or evidence cannot silently redefine upstream meaning",
-        "smallest implementation structure needed to satisfy the current R/ACs",
-        "R/AC → design structure and data → applicable failure behavior →\n  verification point",
-        "Every retained design element must name the current R/AC or sourced\n"
-        "  external invariant that would fail if it were removed",
-        "Split responsibilities by behavior and authority, not mechanically by existing library",
-        "allow one implementation to own multiple\n  responsibilities",
-        "only\n  when required by a current R/AC or real call path",
-        "Do not require fixed sections for absent\n  concerns",
-        "Requirement owns observable targets, constraints, acceptance values, and decision methods",
-        "Design may own implementation-specific choices, configuration, and derived values that do\n"
-        "  not change Requirement meaning",
-        "Task executes approved values and reports evidence",
-        "a needed\n  change returns to the authority that owns the value",
-        "current Milestone outcome is research or selection",
-        "record only the uncertainty, required evidence, decision conditions, and\n"
-        "  controlled revision point",
-        "Task performs research, spikes, and experiments",
-        "Do not mandate a\n  fixed research funnel or test sequence for every Design",
-        "Keep an interface in Design when one\n  implementation unit owns it",
-        "never create an empty Contract",
-        "Keep the final adopted\n  structure, decisions, Design-owned parameter boundaries, and only necessary evidence pointers",
+        "`Design.md` always exists and owns global architecture",
+        "`design/Contract.md` is required only when current work crosses an independently developed",
+        "Do not create an empty file or directory",
+        "Every child links to `Design.md`",
+        "the `approved` working implementation baseline",
+        "If two non-communicating Coders could produce incompatible implementations",
+        "not required headings or a document template",
+        "Map each R/AC once in root `Design.md`",
+        "Future reuse, possible scale, flexibility, or implementation\n"
+        "convenience is not an owner",
+        "Every applicable cross-unit boundary must close the whole path",
+        "Naming a validator without binding every required entry point does not close the boundary",
+        "one machine-readable or compilable authority",
+        "Markdown\nexplains semantics and does not copy the complete signature",
+        "it does not\nimplement production I/O, storage, or providers",
+        "An implementation Milestone cannot send an implementation-significant unknown to Task",
+        "Task never chooses production semantics",
         "Keep commands, full results, candidate chronology, task status, execution history,\n"
-        "  and closure records downstream",
-        "Apply the first-sufficient anti-overdesign order from GMGN §7",
-        "Delete any module, interface,\n  state, configuration item, dependency, document, or failure mechanism",
-        "Future reuse, possible scale,\n  flexibility, and implementation convenience are not owners",
-        "every R/AC maps to structure, necessary data, applicable failure\n"
-        "behavior, and a verification point",
-        "Requirement meaning and owned values are unchanged",
-        "research steps, test commands, results, and task\nstatus remain downstream",
-        "deletion-first overdesign check against the\nsmallest sufficient design",
-        "`Design.md` plus required `Contract.md`",
-        "The contract itself is mandatory for every such boundary",
-        "an `approved` working baseline for implementation",
+        "and closure\nrecords downstream",
+        "No implementation-significant question, hidden default, or unapproved parameter remains",
+        "Run one Critic round after\nthat integration",
+        "physical file\ncount never determines the number of Critics",
+        "Critics ask what a later implementer must still decide",
+        "global-versus-local rule conflicts",
+        "If the fix must invent or change Design-owned meaning, it is a new semantic\nbatch",
+        "Adding or changing a public type or Port",
         "Do not mark the Design-stage Contract `closed` here",
     ), "design 最简方案契约", errors)
     forbid(write_design, (
@@ -648,6 +620,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Keep commands, full results, candidate chronology, task status, execution history, and closure records in Design",
         "Map R/AC only to broad sections",
         "Always create Contract.md",
+        "Every module must have a separate design document",
+        "Every interface must have a schema",
         "Future reuse, possible scale, flexibility, and implementation convenience are owners",
         "Every Design must define concurrency, recovery, migration, and performance sections",
     ), "design 最简方案契约", errors)
@@ -667,31 +641,36 @@ def validate_core_contract(errors: list[str]) -> None:
     require(writing_en, (
         "design | contract | task",
         "`approved` means the current shared working baseline",
-        "one normative `Contract.md` is\nrequired",
-        "outcomes, not API count",
-        "The Coder does not edit\nthe shared Design Bundle or create a separate change-request document",
-        "`close-milestone` alone marks the final\nimplementation-matching Contract commit `closed`",
+        "Design module: `design/<module-id>.md`",
+        "Cross-unit catalog: `design/Contract.md`",
+        "Structural authority: `design/schemas/<schema-or-compilable-interface>`",
+        "Every child under `design/` links back to it",
+        "The stage Skills own Design completeness",
+        "Content, not a template",
     ), "英文 Design/Contract 写作契约", errors)
     require(critic_role, (
-        "First determine\nwhether such a boundary exists",
-        "If it does not, delete the separate `Contract.md`",
-        "If it does,\nthe file is required",
-        "delete only duplicated or upstream-unowned contract content",
+        "ask what a later Coder must still decide",
+        "two conforming but incompatible implementations",
+        "closed producer-to-validation-to-state path",
+        "delete `design/Contract.md`",
+        "when one exists, the catalog is required",
+        "global\nand local ordering or error rules",
     ), "Critic Contract 强制边界", errors)
     require(codex_critic_role, (
-        "不存在才删除整个 Contract.md",
-        "边界存在时必须保留文件",
-        "只删除重复或无上游依据的契约内容",
+        "后续 Coder 还需要决定什么",
+        "两个实现可能都声称符合却不兼容",
+        "闭合权威生产者、派生、所有必需校验入口、错误与状态效果",
+        "不存在这种边界时删除 design/Contract.md",
+        "存在时必须保留契约目录",
     ), "Codex Critic Contract 强制边界", errors)
-    require(pre_merge, (
+    require(run_task, (
         "`not-required` or `required:<trigger>`",
-        "Missing required evidence blocks integration",
-        "complete candidate committed before review",
+        "Before review, a sole writer commits the complete candidate locally",
         "shortest unambiguous commit reference",
-        "different\n   integration commit is acceptable only when the reviewed source",
-        "current snapshot, material decisions, and final evidence",
-        "Did R-D-T criticism apply the deletion test",
-        "When the candidate contains\nimplementation or test-code changes",
+        "integrated content still matches the reviewed candidate",
+        "does not make a check pass by removing a required\n"
+        "test, weakening an assertion, swallowing an error, or bypassing the real production path",
+        "Card.md` unchanged as the stable contract",
         "`ponytail:ponytail-review`",
     ), "合并前双向验证门禁", errors)
     require(release, (
@@ -730,9 +709,6 @@ def validate_core_contract(errors: list[str]) -> None:
         "Never put a full-length commit object ID, diff hash, content hash, archive checksum, or artifact\nchecksum in the brief or return as a workflow anchor",
         "use an isolated worktree",
     ), "派发 Git 锚点门禁", errors)
-    require(pre_merge, (
-        "A full-length commit object ID, diff/content hash,\n   archive checksum, or artifact checksum is not a workflow anchor",
-    ), "合并前 Git 锚点门禁", errors)
     require(release, (
         "Require an accepted Git commit",
         "shortest unambiguous commit reference before tagging and the release tag after\ntagging",
@@ -753,7 +729,7 @@ def validate_core_contract(errors: list[str]) -> None:
         (Path("skills/roadmap/SKILL.md"), "Commit the complete candidate locally"),
         (Path("skills/write-goal/SKILL.md"), "Commit the complete candidate locally"),
         (Path("skills/write-requirement/SKILL.md"), "Commit the complete\ncandidate locally"),
-        (Path("skills/write-design/SKILL.md"), "Commit the whole\nDesign-stage candidate locally"),
+        (Path("skills/write-design/SKILL.md"), "commits one complete immutable Bundle candidate"),
         (Path("skills/write-task/SKILL.md"), "commit the complete candidate locally"),
         (Path("skills/close-milestone/SKILL.md"), "Commit the complete candidate locally"),
     ):

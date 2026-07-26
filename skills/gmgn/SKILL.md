@@ -74,10 +74,13 @@ Commit the complete candidate locally before review. Each semantic change batch 
 round when both surfaces changed. Collect all active findings before changing the candidate.
 The primary orchestrator adjudicates once,
 batches accepted blockers, checks their resolution, and runs affected machine checks. This
-bounded resolution check does not search for new findings. Do not resume or create a
-Critic/Reviewer for those fixes. If a fix expands authority, scope, or behavior
-beyond the accepted findings, split it into a separately scoped change. Record the reviewed
-commit, findings and rulings, exact fix delta, and post-fix checks at the final accepted commit.
+bounded resolution check does not search for new findings. A fix is mechanical only when it
+aligns a duplicate representation with an already unambiguous reviewed authority without
+changing meaning. Do not resume or create a Critic/Reviewer for such fixes. If a fix must
+invent or change authority, scope, public behavior, interface obligations, error priority, or
+state order, narrow it or open a separately scoped semantic batch with its own single review
+round. Record the reviewed commit, findings and rulings, exact fix delta, and post-fix checks
+at the final accepted commit.
 Non-blocking suggestions do not reopen an otherwise acceptable candidate. The Reviewer runs
 the prepared deterministic local checks and returns the commands and results with its code
 findings. After accepted fixes, the primary orchestrator checks the fix delta and reruns
@@ -104,14 +107,16 @@ attempts deletion, reuse, native behavior, or a direct solution and treats avoid
 as a material acceptance finding because it propagates downstream. A possible future need is
 not an owner.
 
-`Design.md` is always the Design-stage authority. A current boundary between independently
-developed modules, tasks, or teams requires a separate `Contract.md`; otherwise keep the
-interface in Design. The contract is mandatory at such a boundary, while the separate file is
-conditional on the boundary existing. When present, Design and Contract form one reviewed
-bundle at one Git commit. Design acceptance makes it the shared implementation
-baseline, not the final frozen contract. `close-milestone` freezes the implementation-matching
-Contract as `closed`. Do not invent a parallel API-version workflow unless a current
-compatibility requirement needs coexisting versions.
+`Design.md` is always the root Design-stage authority and Bundle index. Add
+`design/<module-id>.md` only for a useful module authority. A current boundary between
+independently developed modules, tasks, teams, processes, or repositories requires
+`design/Contract.md`; otherwise keep the interface in Design. Split
+`design/contracts/<contract-id>.md` or add `design/schemas/` authority only when the current
+boundary needs it. Never create empty scaffolding. The complete linked Bundle is reviewed at
+one Git commit. Design acceptance makes it the shared implementation baseline, not the final
+frozen contract. `close-milestone` freezes the implementation-matching Contract as `closed`.
+Do not invent a parallel API-version workflow unless a current compatibility requirement
+needs coexisting versions.
 
 Code minimality uses the separately installed
 [Ponytail](https://github.com/DietrichGebert/ponytail) plugin. Every run-task Coder brief
