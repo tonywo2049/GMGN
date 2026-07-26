@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Tasks / 拆分任务"
-  short_description: "Split reviewed design into anchored executable task cards / 把已审设计拆成带锚任务卡"
+  short_description: "Index executable results, anchors, dependencies, and status / 索引可执行结果、锚点、依赖与状态"
   default_prompt: "Use $write-task to split the reviewed design into Task.md cards. / 请用 $write-task 拆分 Task.md 任务卡。"

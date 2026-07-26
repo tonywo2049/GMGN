@@ -100,12 +100,16 @@ accepted fallback is itself successfully verified.
 
 ## Minimality gates
 
-Requirement, Design, and Task writers keep the least structure that satisfies the current Goal
-and R/ACs. Each retained R/AC, design element, dependency, configuration item, and task must
-name the current upstream outcome that would fail if it were removed. Their fresh Critic
-attempts deletion, reuse, native behavior, or a direct solution and treats avoidable complexity
-as a material acceptance finding because it propagates downstream. A possible future need is
-not an owner.
+Every stage writer keeps only content required for that document's own purpose. A retained
+item must change the document's result if removed. Stage documents do not contain downstream
+propagation rules, downstream gates, next-stage instructions, speculative placeholders, or
+document maps without real children. Cross-stage routing and impact propagation belong here
+in the GMGN router. A possible future need is not an owner.
+
+Requirement, Design, and Task additionally apply the same deletion test to each R/AC, design
+element, dependency, configuration item, and task. Their fresh Critic attempts deletion,
+reuse, native behavior, or a direct solution and treats avoidable complexity as a material
+acceptance finding.
 
 `Design.md` is always the root Design-stage authority and Bundle index. Add
 `design/<module-id>.md` only for a useful module authority. A current boundary between
@@ -208,8 +212,8 @@ Route a semantic change to the single authority that owns it:
 | Authority changed | Route |
 |---|---|
 | WhitePaper problem, goal, scope, invariant, or interpretation | `brainstorm` revision |
-| ROADMAP sequencing, Milestone allocation, deliverable, dependency, concise acceptance summary, optional core E2E, Backlog placement, or Handoff placement | `roadmap` maintenance |
-| Goal objective, boundary, non-goal, result-based slice, detailed qualitative Close picture, or ROADMAP deliverable/core-E2E mapping | `write-goal` revision |
+| ROADMAP sequencing, Milestone allocation, deliverable, dependency, concise acceptance summary, optional core E2E, or Backlog placement | `roadmap` maintenance |
+| Goal result, boundary, non-goal, result slice, qualitative Close outcome, or ROADMAP deliverable/core-E2E mapping | `write-goal` revision |
 | Requirement behavior, quantified parameter, constraint, or decidable AC | `write-requirement` revision |
 | Design structure, implementation-specific parameter or decision, cross-task interface contract, data, or failure path | `write-design` revision |
 | Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |

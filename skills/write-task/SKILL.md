@@ -42,7 +42,7 @@ task`, `nature: normative`, and this parser-facing table header:
   not ready for Task planning.
 - `prerequisite` contains only real data, interface, or decision dependencies and must form
   an acyclic DAG. Sharing an approved Contract does not by itself create a dependency. Do not
-  freeze execution waves; `run-task` derives the rolling ready set.
+  freeze execution waves.
 - Apply the deletion test to every task. Remove a task when deleting its result leaves every
   current AC and approved Design result satisfied. Future reuse, possible hardening, and
   coordination convenience are not task owners.
@@ -50,17 +50,11 @@ task`, `nature: normative`, and this parser-facing table header:
   commands, file scopes, runtime locks, blockers, commits, candidates, review records,
   evidence, or progress narratives in `Task.md`.
 
-## Execution boundary
+## Execution link
 
-After the owner confirms the execution set, `run-task` creates:
-
-- `execution/<card_id>/Card.md` — the normative execution contract, TDD contract, and
-  completion criterion;
-- `execution/<card_id>/Log.md` — the replaceable current snapshot, material decisions, and
-  final evidence summary.
-
-`Task.md` links to Card and does not copy execution content. `Log.md` is not a full process
-history. Do not require `card_id` to equal the Task ID.
+The `execution` column stores only the current execution entry link when one exists. Do not
+copy execution content or history into `Task.md`, and do not require the execution ID to equal
+the Task ID.
 
 ## Writer and review loop
 
@@ -82,22 +76,15 @@ accepted findings becomes a separately scoped change. Non-blocking suggestions d
 an otherwise acceptable candidate. Meaning-preserving links, formatting, and status refresh
 use machine checks without Critic.
 
-## Controlled revision and legacy migration
+## Controlled revision
 
-- Revise only affected task rows, AC mappings, dependencies, and execution pointers. Pause
-  active tasks whose Design or Contract authority changed; do not reopen unrelated tasks.
-- When migrating an oversized legacy `Task.md`, anchor the old version when possible, retain
-  only the current macro projection, and link historical detail rather than copying it.
-- Existing per-card execution history may be summarized into the new `Log.md` only when its
-  ownership and evidence are unambiguous. Preserve material decisions and final acceptance
-  evidence; otherwise keep the legacy anchor and state the limitation. Never invent event
-  order, commands, or acceptance evidence.
-- Existing projects may keep their old layout until a controlled migration. New or revised
-  cards use the two-file execution layout.
+- Revise only affected task rows, AC mappings, dependencies, status, and execution pointers.
+  Do not reopen unrelated tasks.
 
 ## Exit
 
-After Task semantic review, primary-orchestrator acceptance, and owner confirmation of the
-target execution set, use **REQUIRED next skill: `run-task`**. Before every substantive return,
-perform a task-specific self-check and correct defects. Do not output a fixed `Reflection`
-section. Disclose only unresolved material risk.
+Before acceptance, confirm every task has one independently decidable result, an upstream
+anchor, only real prerequisites, and current status/execution values; every in-scope AC is
+covered; the dependency graph is acyclic; and no design decision or execution detail appears
+in `Task.md`. Before every substantive return, perform a task-specific self-check and correct
+defects. Do not output a fixed `Reflection` section. Disclose only unresolved material risk.

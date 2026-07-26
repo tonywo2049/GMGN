@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Goal / 编写目标"
-  short_description: "Initiate a milestone and define its objective and boundary / 立项并明确目标与边界"
+  short_description: "Refine a Milestone for requirements and Close / 细化里程碑作为需求依据和 Close 标准"
   default_prompt: "Use $write-goal to initiate this milestone and write Goal.md. / 请用 $write-goal 立项并编写 Goal.md。"

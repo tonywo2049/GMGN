@@ -5,7 +5,7 @@ description: "Use after owner approval of the WhitePaper to create or maintain t
 
 # ROADMAP: single sequencing authority
 
-<HARD-GATE>An approved, commit-bound WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs, quantitative requirement metrics, executable test cases, or the detailed qualitative Close picture owned by Goal.</HARD-GATE>
+<HARD-GATE>An approved, commit-bound WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP stays at project-sequencing level and must not contain detailed Milestone closure conditions, R-AC IDs, quantitative requirement metrics, technical design, task breakdown, or executable test cases.</HARD-GATE>
 
 ## Language and contract
 
@@ -20,20 +20,20 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
   deliverables**, one concise qualitative acceptance summary, dependencies, and work state
   `not-started`.
 - Derive each deliverable from the approved WhitePaper and that Milestone's expected outcome;
-  never infer ROADMAP deliverables backward from a downstream Goal.
+  later artifacts or evidence cannot silently redefine it.
 - Name what will exist at the end, not how well it must perform. Choose only the concrete
   objects appropriate to the Milestone: a specification, repository state, release, running
   network or environment, tool, report, ledger, or a realized product/operational E2E when that
   path itself is the final result. The acceptance summary states what counts as the stage
-  result without expanding every close condition. Evidence is produced downstream and linked
-  at closure.
+  result without expanding every close condition. Keep evidence out of planning rows; closure
+  backfill links the accepted result.
 - Write a core E2E only when the realized product or operational path is itself a Milestone
   deliverable. Otherwise omit E2E content; never invent one for a specification, research,
   report, infrastructure component, or other artifact merely to satisfy the workflow.
 - When applicable, write the core E2E under a stable Markdown anchor as the shortest complete
   path from its start through key actions to an observable result. The Milestone row links to
   that anchor. Do not expand permission branches, failure/recovery paths, exact parameters, or
-  test details in ROADMAP. Goal owns the detailed qualitative Close picture after initiation.
+  test details in ROADMAP.
 - When a deliverable such as a complete
   specification already contains its functions, E2E, failure, and recovery definitions, list
   that artifact once instead of repeating its contained paths as deliverables.
@@ -41,14 +41,12 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
   repository when known. Refine the name at Milestone start or closure when the owned outcome
   is unchanged; otherwise use controlled revision. In a shared table cell, number deliverables
   consecutively and put one item on each line.
-- Do not prescribe a test framework, command, test file, fixture, selector, or exact numeric
-  threshold in ROADMAP. Goal expands the detailed qualitative Close picture, Requirement
-  refines it into decidable ACs, and Design and Card own executable verification details.
-- Sequence strong dependencies from earlier Milestones to later consumers. A downstream
+- Do not prescribe a test framework, command, test file, fixture, selector, exact numeric
+  threshold, technical solution, task, execution instruction, or evidence record in ROADMAP.
+- Sequence strong dependencies from earlier Milestones to later consumers. A later
   implementation, confirmation, document, or evidence item must not be an earlier Milestone's
   acceptance condition.
 - Maintain one Backlog for possible future work that is not yet allocated to a Milestone.
-- Do not pre-create empty G-R-D-T files for unstarted milestones.
 
 ## Maintain
 
@@ -58,17 +56,8 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
   tag and release page; a network or environment uses its applicable stable identity and
   access pointers, such as an ID, identity or genesis hash, manifest, and endpoints; and a
   document, report, or tool links directly to the accepted artifact. Omit pointers that do not
-  apply. When a core E2E anchor exists, link it to accepted evidence. Add any Handoff that
-  exists.
-- New ideas enter the Backlog, then are assigned to a Milestone before becoming requirements.
-- Record a downstream-only confirmation as a non-blocking Handoff when a receiving
-  Milestone/owner exists. Otherwise keep it in the Backlog. Record the question, trigger,
-  possible impact, and any safe default assumption. Closure of the producing Milestone does
-  not wait for the consumer to resolve it.
-- For existing pre-GMGN inventory, have the recorded writer capture each legacy ID, source,
-  summary, target milestone/requirement or pending decision, rationale, and allocation state.
-  Reconcile source total = allocated + explicitly rejected + pending, then archive the
-  migration record. Do not create this layer for new work.
+  apply. When a core E2E anchor exists, link it to accepted evidence.
+- New ideas remain in the Backlog until allocated to a Milestone.
 
 ## Writer and critic loop
 
@@ -99,18 +88,10 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 - Revise only ROADMAP-owned sequencing, Milestone allocation, deliverables, dependencies,
   concise qualitative acceptance summaries, optional core E2E paths, or Backlog placement.
   Do not reopen unaffected Milestones.
-- A later Milestone may supersede a technical selection originating in a closed foundation or
-  M0 Milestone. The M0-originated Design, Decision, or index remains semantic authority. Keep
-  the historical Milestone and old closure commit closed; record the current Milestone's
-  change card, trigger, old commit, new commit, `supersedes`, and impact cone instead of
-  reopening or
-  rerunning M0. That current card owns change, implementation, and verification work.
 - A change that alters a decision or reasonable understanding receives independent criticism
   and owner approval at a new commit. Old approval remains attached to the old commit.
 - Meaning-preserving mechanical changes use same-batch link and status refresh plus
   machine checks without reapproval.
-- Propagate the approved delta only to affected Goal, Requirement, Design, Task, execution,
-  test, evidence, and state representations; review and verify that impact cone only.
 
 ## Exit
 
@@ -120,10 +101,7 @@ obtain owner approval bound to the candidate commit, and integrate only when req
 topology. Before approval, confirm every Milestone has concrete deliverables and a concise
 qualitative acceptance summary; a core E2E appears only
 when that path is itself a deliverable, and no E2E is fabricated for other Milestones. A
-mechanical maintenance batch needs machine checks but no new approval. When the owner
-explicitly starts a target Milestone, **REQUIRED next skill:
-`write-goal`**. After a revision, return to the stage that raised it and continue only the
-affected path.
+mechanical maintenance batch needs machine checks but no new approval.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

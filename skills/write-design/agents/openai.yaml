@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Design / 编写设计"
-  short_description: "Create architecture plus required cross-unit contracts / 产出架构与必要的跨单元契约"
+  short_description: "Resolve only the technical decisions required by ACs / 只确定 AC 所需的技术决定"
   default_prompt: "Use $write-design to create the Design Bundle from reviewed requirements. / 请用 $write-design 从已审需求产出 Design Bundle。"

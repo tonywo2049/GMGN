@@ -1,6 +1,6 @@
 ---
 name: write-goal
-description: "Use when an approved ROADMAP exists and the owner explicitly starts or initiates a not-started milestone, phase, or version; create Goal.md with objective decomposition, scope boundary, and slices. Also use for a controlled semantic revision of an existing Goal authority. ROADMAP 已批且负责人点名启动/开工某个 Milestone、版本或阶段时立项，撰写 Goal、目标拆解、范围边界与切片；也用于既有 Goal 权威的受控语义修订。触发词包括启动 M2、开做里程碑、立项。"
+description: "Use when an approved ROADMAP exists and the owner explicitly starts or initiates a not-started milestone, phase, or version; refine that Milestone into Requirement input and qualitative Close criteria in Goal.md. Also use for a controlled semantic revision of an existing Goal authority. ROADMAP 已批且负责人点名启动 Milestone 时，用 Goal.md 细化目标，作为 Requirement 依据和 Milestone Close 标准；也用于既有 Goal 的受控语义修订。"
 ---
 
 # Initiate a milestone and write Goal.md
@@ -16,27 +16,23 @@ writing contract. Use the ROADMAP locale unless the owner changes it explicitly.
 ## Goal content
 
 - Derive Goal only from the approved ROADMAP Milestone and its WhitePaper authority.
-  Requirement, Design, Task, implementation, or evidence may trigger a controlled revision
-  but cannot silently redefine Goal.
-- State the intended change, active boundary, non-goals, and result-based slices. Split slices
-  by independently meaningful results, not by team, component, or file.
-- Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them. Map every
-  deliverable to one or more slices and a qualitative observable Close outcome.
-- Expand the detailed qualitative Close picture needed for the active Milestone. When ROADMAP
-  has a core E2E anchor, map it to one or more slices and expand only the current stage's
-  necessary main, permission, failure, or recovery outcomes. A Milestone without a ROADMAP
-  core E2E needs no E2E content or missing-E2E gap.
-- Require every slice to contribute to a ROADMAP deliverable or Goal Close outcome.
-  Requirement refines the Close outcomes into parameters and decidable ACs.
-- State only upstream-derived capabilities and qualitative constraints needed to bound
-  downstream work. Requirement owns quantified parameters and acceptance conditions; Design
-  owns implementation choices; Task owns work division, order, and status. Goal may reference
-  a number already approved upstream without becoming its parameter authority.
-- Resolve before Requirement every open decision owned by Goal. Route upstream-owned gaps to
-  their authority and leave downstream-owned choices to their proper stage.
-- Include the document map and known gaps. Do not include component or interface design, code
-  structure, test cases, commands, results, task breakdown, live status, research history,
-  candidate comparisons, closure history, or conclusions copied from downstream.
+  Later documents, implementation, or evidence may expose a needed revision but cannot
+  silently redefine Goal.
+- Include only content that either gives Requirement a necessary basis or decides whether the
+  Milestone can Close. Delete anything that serves neither purpose.
+- State the refined Milestone result, active boundary, and non-goals. Split it into
+  independently meaningful result slices, not teams, components, files, or work steps.
+- Cover every ROADMAP deliverable with one or more result slices and a qualitative observable
+  Close outcome. Every slice must contribute to a deliverable or Close outcome.
+- When ROADMAP has a core E2E anchor, carry it into the applicable slices and add only the
+  qualitative main, permission, failure, or recovery outcomes needed to judge Close. A
+  Milestone without a ROADMAP core E2E has no E2E content.
+- Resolve every Goal-owned ambiguity into the result, boundary, slices, or Close outcomes
+  before accepting Goal. Keep exact numeric criteria, technical design, task division,
+  execution, and evidence out of Goal.
+- Do not include a document map, known gaps, downstream propagation or gates, next-stage
+  instructions, component or interface design, code structure, test cases, commands, results,
+  task status, research history, candidate comparisons, or closure history.
 
 ## One change batch
 
@@ -47,8 +43,7 @@ The recorded writer performs one semantic batch:
    `Goal content`. The writer chooses the section structure.
 3. Add reciprocal ROADMAP ↔ Goal links and return one committed candidate.
 
-Do not create Requirement, Design, or Task content early. Mention absent downstream files
-as gaps; create each only when its stage starts.
+This batch changes only the ROADMAP initiation state/link and Goal.
 
 ## Writer and critic loop
 
@@ -64,22 +59,17 @@ committed candidate, applies accepted mechanical propagation, and runs machine c
 
 ## Controlled revision
 
-1. Start from the old Goal commit and record the trigger, semantic delta, affected slices,
-   documents, and evidence, plus the proposed new commit.
+1. Start from the old Goal commit and record the trigger, semantic delta, affected slices and
+   Close outcomes, plus the proposed new commit.
 2. Route WhitePaper-owned meaning to `brainstorm` revision mode and ROADMAP-owned deliverables,
    concise acceptance summaries, optional core E2E paths, sequencing, cross-milestone
    allocation, or dependency to `roadmap` maintenance mode. Resume here after the required
    upstream approval; do not patch that meaning into Goal.
-3. Revise only Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP
-   deliverable/core-E2E mappings, detailed qualitative Close picture, or document mapping.
-   Preserve unaffected content.
+3. Revise only Goal-owned results, boundaries, non-goals, result slices, ROADMAP
+   deliverable/core-E2E mappings, or qualitative Close outcomes. Preserve unaffected content.
 4. If the delta changes a decision or reasonable understanding, run the independent critic
    and primary-orchestrator review against the affected content and bind it to a new commit.
    Old review remains attached to the old commit.
-5. Propagate only to affected Requirement, Design, Task, implementation, test, evidence, and
-   state representations. Review and verify that impact cone only; do not rerun unrelated
-   stages.
-
 Meaning-preserving mechanical changes use same-batch link and status refresh plus
 machine checks without reapproval.
 
@@ -87,19 +77,19 @@ machine checks without reapproval.
 
 Require the recorded writer to confirm:
 
-- deleting all downstream documents leaves Goal's objective and boundary complete;
+- the refined result, boundary, and non-goals are complete;
 - every ROADMAP deliverable maps to slices and qualitative Close outcomes, every optional core
   E2E maps when present, and every slice contributes to a deliverable or Goal Close outcome;
-- Requirement only needs to refine the stage results, not invent them;
-- every Goal-owned open decision is resolved before Requirement;
-- no component, interface, test, task, or implementation result leaks into Goal; and
+- every Goal-owned ambiguity is resolved into accepted Goal content;
+- deleting any retained item would remove necessary Requirement input or change the Close
+  decision;
+- no document map, downstream rule, component, interface, exact criterion, test, task,
+  execution, evidence, or history leaks into Goal; and
 - an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal.
 
 For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
 English-only dispatch contract, obtain primary-orchestrator review, and integrate only when
-required by workspace topology. Creation then uses **REQUIRED next skill:
-`write-requirement`**. A revision returns to the stage that raised it and continues through
-the affected path only.
+required by workspace topology.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

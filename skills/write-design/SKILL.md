@@ -41,18 +41,15 @@ every cross-unit contract links its provider, consumers, applicable module docum
 structural authority. `Design.md` indexes those links without duplicating their owned meaning.
 
 The Design-stage candidate is `Design.md` plus every linked Design-stage artifact at one Git
-commit. Design acceptance makes that Bundle the `approved` working implementation baseline.
-Controlled implementation evidence may produce a newly reviewed Bundle commit;
-`close-milestone` alone freezes the implementation-matching Contract as `closed`.
+commit. Design acceptance marks that complete Bundle `approved`.
 
 ## Design content and completion
 
-Design determines how to implement the reviewed Requirement. A Coder may choose only local,
-replaceable expressions that cannot change another unit's result. A choice that can change an
-R/AC, public or cross-unit data, authority source, validation order, observable error,
-atomicity, recovery, security, compatibility, or resource behavior belongs to the Design
-Bundle. If two non-communicating Coders could produce incompatible implementations while both
-claiming conformance, the Bundle is not ready.
+Design determines how to implement the reviewed Requirement. Specify every choice that can
+change an R/AC, public or cross-unit data, authority source, validation order, observable
+error, atomicity, recovery, security, compatibility, or resource behavior. Local replaceable
+expressions that cannot change another unit's result need no Design content. If the approved
+Bundle permits incompatible implementations of a shared boundary, it is incomplete.
 
 The following are applicability checks, not required headings or a document template:
 
@@ -94,15 +91,11 @@ vector, or conformance specification only when the structural authority cannot e
 required derivation, ordering, or byte result. Design defines these authorities; it does not
 implement production I/O, storage, or providers.
 
-An implementation Milestone cannot send an implementation-significant unknown to Task.
-Record the blocker, impact cone, owning authority, required evidence, and release condition;
-keep the affected Bundle `draft`. Only when research or selection is itself the current
-Milestone result may Task produce the evidence. Task never chooses production semantics; any
-later choice returns to its Requirement or Design authority.
+Keep the Bundle `draft` while any implementation-significant decision remains unresolved.
 
-Record alternatives only when they explain a current decision or live rollback path. Keep
-commands, full results, candidate chronology, task status, execution history, and closure
-records downstream. Do not add formal API versions unless a current external or
+Record alternatives only when they explain a current decision or live rollback path. Do not
+include commands, full results, candidate chronology, work status, execution history, or
+closure records. Do not add formal API versions unless a current external or
 coexisting-version compatibility requirement needs them.
 
 Before return, apply this Design Ready gate:
@@ -132,44 +125,37 @@ scopes plus one Bundle-seam scope in the same round. Every Critic reads the same
 commit, all returns are collected before editing, and physical file count never determines
 the number of Critics.
 
-Critics ask what a later implementer must still decide. Reject any public or cross-unit
-decision, authority, validation entry, state effect, failure, recovery, or parameter left to
-Coder judgment. Check provider and consumer feasibility, object-phase legality, structural
-authority consistency, global-versus-local rule conflicts, R/AC traceability, and whether each
-separate artifact can be deleted.
+Critics find any implementation-significant decision still unspecified. Reject any public or
+cross-unit decision, authority, validation entry, state effect, failure, recovery, or
+parameter left ambiguous. Check provider and consumer feasibility, object-phase legality,
+structural authority consistency, global-versus-local rule conflicts, R/AC traceability, and
+whether each separate artifact can be deleted.
 
 Adjudicate once and batch accepted blocker fixes. A fix is mechanical only when it makes a
 duplicate representation conform to an already unambiguous reviewed authority without changing
 meaning. The primary orchestrator checks those resolutions and affected machine checks without
 another Critic. If the fix must invent or change Design-owned meaning, it is a new semantic
 batch under Controlled revision, not a recheck of the old batch. Accept only the complete
-Bundle at one commit as the shared baseline for Task creation and Coder dispatch.
+Bundle at one commit as the shared Design baseline.
 
 ## Controlled revision
 
 1. Classify the authority before editing. Route WhitePaper to `brainstorm`, ROADMAP to
    `roadmap`, Goal to `write-goal`, and Requirement or R-AC meaning to `write-requirement`.
    Resume after any required new upstream review or approval.
-2. A Coder may challenge an interface contract with implementation evidence but cannot change
-   the shared contract in its Card. The primary orchestrator classifies the return as an
-   internal implementation issue, a meaning-preserving clarification, or a semantic
-   Design/Contract change.
-3. A meaning-preserving clarification only aligns a duplicate representation with an existing
+2. A meaning-preserving clarification only aligns a duplicate representation with an existing
    unambiguous authority. It uses the smallest same-batch edit, affected pointer refresh, and
    machine checks without semantic reapproval.
-4. For Design- or Contract-owned meaning, start from the old bundle commit and record the
+3. For Design- or Contract-owned meaning, start from the old Bundle commit and record the
    trigger, smallest semantic delta, affected Contract IDs, R-AC mappings, structures,
-   providers, consumers, tasks, code, tests, evidence, and proposed new commit. Pause only that
-   impact cone.
-5. Adding or changing a public type or Port, authority source, required validation call site,
+   providers, consumers, and proposed new commit.
+4. Adding or changing a public type or Port, authority source, required validation call site,
    error priority, state or durability order, or provider/consumer obligation is a semantic
    delta. Narrow it back to the reviewed authority or open a new batch.
-6. Revise only the affected design, contract, schema, and links; do not redesign unrelated
+5. Revise only the affected design, contract, schema, and links; do not redesign unrelated
    structures. A semantic delta receives one fresh independent Critic round scoped to that
    delta and its direct impact surface, plus primary-orchestrator review at the new Bundle
    commit. Old review remains attached to the old commit.
-7. Propagate only to affected Task cards, implementation, tests, evidence, and state
-   representations. Unaffected lanes continue.
 
 Meaning-preserving mechanical changes use same-batch link, mapping pointer, and status
 refresh plus machine checks without reapproval.
@@ -180,10 +166,7 @@ Require the recorded writer to reconcile the Bundle links: no orphan child, unma
 unresolved structure authority, or cross-unit boundary with competing definitions. For
 creation or a semantic revision, run the writer/Critic loop above using the English-only
 dispatch contract. Obtain primary-orchestrator review and integrate only when required by
-workspace topology. Creation then uses **REQUIRED next skill: `write-task`**. A revision
-returns to the stage that raised it and continues through the affected path only.
-Do not mark the Design-stage Contract `closed` here; final freezing belongs to accepted
-Milestone closure after implementation and contract evidence agree.
+workspace topology. Design acceptance marks the complete Bundle `approved`, not `closed`.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

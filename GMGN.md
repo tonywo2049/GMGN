@@ -63,16 +63,17 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   concise qualitative acceptance summaries, and optional core E2E paths. A deliverable is a
   final object; a real product/operational E2E is a deliverable only when the realized path
   itself is the Milestone result. A Milestone without such a deliverable has no E2E content.
-  When present, keep only the shortest stable core path; Goal owns its detailed qualitative
-  Close picture. Derive deliverables from the WhitePaper and Milestone outcome, never backward
-  from Goal; name the resulting object rather than its acceptance quality, avoid duplicate
-  representations, and replace planning names with canonical artifact pointers at closure.
-  Possible future work not yet allocated to a Milestone belongs in the Backlog. A
-  downstream-only item with a receiving Milestone or owner is a Handoff instead.
-- Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices, and
-  detailed qualitative Close picture, including the mapping of ROADMAP deliverables and any
-  optional core E2E into active scope. Requirement owns required observable behavior,
-  quantified parameters, constraints, and decidable acceptance criteria (ACs).
+  When present, keep only the shortest stable core path. Derive deliverables from the
+  WhitePaper and Milestone outcome; name the resulting object rather than its acceptance
+  quality, avoid duplicate representations, and replace planning names with canonical
+  artifact pointers at closure. Possible future work not yet allocated to a Milestone belongs
+  in the Backlog.
+- Goal refines one initiated Milestone for exactly two purposes: provide the basis for
+  Requirement and define qualitative Milestone Close criteria. It owns the refined result,
+  boundary, non-goals, result slices, ROADMAP deliverable/core-E2E coverage, and qualitative
+  Close outcomes.
+- Requirement translates Goal into required observable behavior, quantified parameters,
+  constraints, and decidable acceptance criteria (ACs).
 - `Design.md` owns global architecture, module boundaries, the Bundle index, and complete R/AC
   mapping. Add `design/<module-id>.md` only for a useful module authority. A boundary between
   independently developed modules, tasks, teams, processes, or repositories requires
@@ -88,6 +89,10 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
   significant structure has one machine-readable or compilable authority; Markdown links it
   and owns only semantics that structure cannot express.
 - Task owns task division, AC mapping, dependencies, macro status, and execution pointers.
+
+Each stage document contains only facts needed for its own purpose. Stage documents do not
+contain document maps without real children, downstream propagation rules, downstream gates,
+or next-stage instructions. The GMGN router owns cross-stage routing and impact propagation.
 
 One fact has one authority. Other documents link to it instead of copying it. Every review,
 approval, acceptance, Milestone closure, and release binds to a Git commit or release tag.
@@ -311,15 +316,12 @@ approval. DocStar is optional structural tooling; CodeGraph is optional navigati
 documents, source, diffs, tests, and runtime behavior remain evidence. Telemetry is out-of-band
 observation and never changes routing, readiness, acceptance, or closure.
 
-Solution minimality is an acceptance condition across Requirement, Design, and Task. Writers
-choose the least structure that satisfies the current Goal, R/ACs, and required safeguards.
-Every requirement, criterion, module, interface, state, configuration item, dependency, and
-task must name the current upstream outcome that would fail if it were removed. A possible
-future need, speculative reuse, or implementation convenience is not an upstream outcome.
-Anything that can be deleted without losing a current accepted outcome is overdesign and must
-not propagate downstream.
+Solution minimality is an acceptance condition for every stage document. A retained item must
+change that document's own result if removed. A possible future need, speculative reuse,
+workflow narration, downstream management, or implementation convenience is not an owner.
+Anything removable without weakening the document's purpose is overdesign.
 
-The independent Critic applies the same deletion test to every affected R-D-T candidate. It
+The independent Critic applies the same deletion test to every affected stage candidate. It
 first attempts deletion, reuse, native behavior, or a direct solution; unresolved overdesign is
 a material acceptance finding, not a wording, cleanup, or low-impact preference.
 

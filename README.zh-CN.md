@@ -41,8 +41,12 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 活动语言组织正文。
 
 ROADMAP 中每个 Milestone 都要写明具体产出物和简短的定性验收摘要。只有当实际产品或运营路径
-本身就是产出物时，才写核心 E2E；否则省略。Milestone 启动后，由 Goal 展开完整的定性 Close
-图景。
+本身就是产出物时，才写核心 E2E；否则省略。
+
+每个阶段文档只增加一种信息：ROADMAP 编排 Milestone 及其产出；Goal 把当前 Milestone 细化为
+Requirement 依据和定性 Close 标准；Requirement 定义可观察要求和可判定 AC；Design 确定实现
+所需的技术决定；Task 只索引可独立完成的结果、依赖、状态和执行入口。阶段文档不写下游门禁、
+传导规则、下一阶段指令或推测性占位。
 
 Design 阶段始终产出根 `Design.md`。只有模块权威确有价值时才增加
 `design/<module-id>.md`；存在独立开发边界时才要求 `design/Contract.md`，拆分契约与
@@ -238,10 +242,10 @@ claude plugin marketplace remove GMGN --scope user
 |---|---|---|
 | “我有个想法，先调研一下可不可行” | `brainstorm` | WhitePaper |
 | “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（产出物、简短验收摘要及按需核心 E2E） |
-| “启动 M1，明确范围” | `write-goal` | Goal.md |
-| “写 PRD 和验收标准” | `write-requirement` | Requirement.md |
-| “出技术设计和系统方案” | `write-design` | 根 Design.md 与按需的模块、契约、结构权威 |
-| “拆实施计划和任务卡” | `write-task` | Task.md |
+| “启动 M1，明确范围” | `write-goal` | Goal.md（Requirement 依据和定性 Close 标准） |
+| “写 PRD 和验收标准” | `write-requirement` | 可观察需求与可判定 AC |
+| “出技术设计和系统方案” | `write-design` | 根 Design.md 中的必要技术决定及按需权威 |
+| “拆实施计划和任务” | `write-task` | 紧凑的 Task.md 执行索引 |
 | “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查和所需验证证据 |
 | “里程碑完成了，准备上线关账” | `close-milestone` | 适用的回归/E2E 证据、最终 Contract 冻结、关账记录 |
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |

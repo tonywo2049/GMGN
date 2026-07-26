@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Requirement / 编写需求"
-  short_description: "Create numbered requirements and decidable ACs / 编写编号需求与可判定 AC"
+  short_description: "Turn Goal into observable requirements and ACs / 把 Goal 细化为可观察需求与 AC"
   default_prompt: "Use $write-requirement to write this milestone's requirements and ACs. / 请用 $write-requirement 编写需求与验收标准。"

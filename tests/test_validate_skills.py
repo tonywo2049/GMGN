@@ -103,13 +103,14 @@ class ValidateSkillsTests(unittest.TestCase):
 
     def test_rejects_verbose_log_contract(self) -> None:
         self.replace(
-            "skills/write-task/SKILL.md",
-            "material decisions, and\n  final evidence summary",
+            "skills/run-task/SKILL.md",
+            "Routine dispatch, waiting, unchanged status, and successful\n"
+            "   intermediate checks are not Log entries",
             "full process history, including every event",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("write-task 紧凑索引契约", result.stdout)
+        self.assertIn("run-task 执行与验证契约", result.stdout)
 
     def test_allows_negated_legacy_log_term(self) -> None:
         self.replace(
@@ -174,8 +175,13 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Allow in-scope ACs to remain unmapped",
             ),
             (
-                "`Log.md` is not a full process\nhistory",
-                "`Log.md` records the full process history",
+                "Do not\ncopy execution content or history into `Task.md`",
+                "Task.md records execution content or history",
+            ),
+            (
+                "do not require the execution ID to equal\n"
+                "the Task ID",
+                "execution ID must equal the Task ID",
             ),
         )
         for old, new in cases:
@@ -191,8 +197,8 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "skills/write-design/SKILL.md",
-                "the `approved` working implementation baseline",
-                "the final immutable contract before implementation",
+                "Design acceptance marks the complete Bundle `approved`, not `closed`",
+                "Design acceptance marks the complete Bundle `closed`",
             ),
             (
                 "skills/run-task/SKILL.md",
@@ -345,17 +351,53 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("roadmap 产出与可选 E2E 契约", result.stdout)
 
-    def test_rejects_roadmap_backlog_handoff_or_metadata_drift(self) -> None:
+    def test_rejects_stage_owned_next_step_or_propagation(self) -> None:
+        cases = (
+            ("skills/roadmap/SKILL.md", "# ROADMAP: single sequencing authority", "roadmap"),
+            ("skills/write-goal/SKILL.md", "# Initiate a milestone and write Goal.md", "write-goal"),
+            (
+                "skills/write-requirement/SKILL.md",
+                "# Requirement.md: single milestone requirement authority",
+                "write-requirement",
+            ),
+            (
+                "skills/write-design/SKILL.md",
+                "# Design stage: requirements → architecture and executable boundaries",
+                "write-design",
+            ),
+            ("skills/write-task/SKILL.md", "# Task.md: milestone task index", "write-task"),
+        )
+        for relative, heading, label in cases:
+            with self.subTest(relative=relative):
+                result = self.run_isolated_mutation(
+                    relative,
+                    heading,
+                    f"{heading}\n\nCreation then uses **REQUIRED next skill: downstream**.",
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(f"{label} 文档自治契约", result.stdout)
+                self.assertIn("含相反契约", result.stdout)
+
+        result = self.run_isolated_mutation(
+            "skills/write-goal/SKILL.md",
+            "# Initiate a milestone and write Goal.md",
+            "# Initiate a milestone and write Goal.md\n\n"
+            "Propagate only to affected Requirement documents.",
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("write-goal 文档自治契约", result.stdout)
+
+    def test_rejects_roadmap_backlog_or_metadata_drift(self) -> None:
         cases = (
             (
                 "skills/roadmap/SKILL.md",
-                "Otherwise keep it in the Backlog",
-                "Otherwise keep it as an unclassified item",
+                "New ideas remain in the Backlog until allocated to a Milestone",
+                "New ideas bypass the Backlog",
                 "roadmap 产出与可选 E2E 契约",
             ),
             (
                 "skills/roadmap/agents/openai.yaml",
-                "Define Milestone deliverables and optional core E2E paths",
+                "Sequence Milestones, outputs, dependencies, and Backlog",
                 "Define a generic project timeline",
                 "roadmap 界面元数据契约",
             ),
@@ -370,8 +412,8 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "skills/roadmap/SKILL.md",
-                "never infer ROADMAP deliverables backward from a downstream Goal",
-                "infer ROADMAP deliverables from the downstream Goal",
+                "later artifacts or evidence cannot silently redefine it",
+                "later artifacts or evidence may redefine it",
                 "roadmap 产出与可选 E2E 契约",
             ),
             (
@@ -397,50 +439,39 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_goal_content_boundary_drift(self) -> None:
         cases = (
             (
-                "Requirement, Design, Task, implementation, or evidence may trigger a controlled revision\n"
-                "  but cannot silently redefine Goal",
-                "Requirement, Design, Task, implementation, or evidence may redefine Goal",
+                "Later documents, implementation, or evidence may expose a needed revision but cannot\n"
+                "  silently redefine Goal",
+                "Later documents, implementation, or evidence may silently redefine Goal",
             ),
             (
-                "Split slices\n  by independently meaningful results, not by team, component, or file",
+                "independently meaningful result slices, not teams, components, files, or work steps",
                 "Split slices by team, component, or file",
             ),
             (
-                "Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them",
-                "Redefine ROADMAP deliverables inside Goal",
-            ),
-            (
-                "Map every\n  deliverable to one or more slices",
+                "Cover every ROADMAP deliverable with one or more result slices",
                 "Some ROADMAP deliverables need no slice",
             ),
             (
-                "When ROADMAP\n"
-                "  has a core E2E anchor, map it to one or more slices",
+                "When ROADMAP has a core E2E anchor, carry it into the applicable slices",
                 "Ignore an existing ROADMAP core E2E",
             ),
             (
-                "Requirement owns quantified parameters and acceptance conditions",
-                "Goal owns quantified parameters and acceptance conditions",
+                "Keep exact numeric criteria, technical design, task division,\n"
+                "  execution, and evidence out of Goal",
+                "Goal includes exact numeric criteria",
             ),
             (
-                "Design\n  owns implementation choices",
-                "Goal owns implementation choices",
+                "Resolve every Goal-owned ambiguity into the result, boundary, slices, or Close outcomes",
+                "Push every Goal-owned ambiguity to Requirement",
             ),
             (
-                "Task owns work division, order, and status",
-                "Goal owns work division, order, and status",
+                "Include only content that either gives Requirement a necessary basis or decides whether the\n"
+                "  Milestone can Close",
+                "Include unrelated content in Goal",
             ),
             (
-                "Resolve before Requirement every open decision owned by Goal",
-                "Push every Goal-owned open decision to Requirement",
-            ),
-            (
-                "qualitative observable Close outcome",
-                "quantified pass/fail criterion",
-            ),
-            (
-                "or conclusions copied from downstream",
-                "and include conclusions copied from downstream",
+                "Delete anything that serves neither purpose",
+                "Keep content that serves neither purpose",
             ),
         )
         for old, new in cases:
@@ -460,8 +491,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Goal-owned deliverables and quantitative acceptance criteria",
             ),
             (
-                "Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP\n"
-                "   deliverable/core-E2E mappings, detailed qualitative Close picture",
+                "Goal-owned results, boundaries, non-goals, result slices, ROADMAP\n"
+                "   deliverable/core-E2E mappings, or qualitative Close outcomes",
                 "Goal-owned objectives and document mapping only",
             ),
         )
@@ -476,9 +507,9 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_requirement_content_boundary_drift(self) -> None:
         cases = (
             (
-                "Design, Task, implementation, tests, or evidence may\n"
-                "  trigger a controlled revision but cannot silently define or redefine Requirement",
-                "Design, Task, implementation, tests, or evidence can silently define "
+                "Later documents, implementation, tests, or evidence may expose a needed revision but cannot\n"
+                "  silently define or redefine Requirement",
+                "Later documents, implementation, tests, or evidence can silently define "
                 "or redefine Requirement",
             ),
             (
@@ -503,30 +534,17 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Defer every Requirement-owned decision to Design",
             ),
             (
-                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
-                "Some Goal Close outcomes may disappear",
+                "No in-scope Goal result or\n  Close outcome may disappear",
+                "Some Goal results or Close outcomes may disappear",
             ),
             (
-                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
-                "An existing ROADMAP core E2E may disappear",
-            ),
-            (
-                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
-                "Some in-scope Goal slices may disappear",
-            ),
-            (
-                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
+                "no R/AC may be unowned",
                 "Allow R/AC to be unowned",
             ),
             (
-                "ROADMAP remains the authority for the deliverable's identity and final\n"
-                "  artifact pointer",
-                "Requirement owns the deliverable's identity and final artifact pointer",
-            ),
-            (
-                "every in-scope Goal slice is covered; any proposed exclusion\n"
-                "routes to `write-goal`",
-                "every current Goal slice is covered or explicitly excluded",
+                "every in-scope Goal result and Close outcome is covered; any\n"
+                "proposed exclusion routes to `write-goal`",
+                "every current Goal result is covered or explicitly excluded",
             ),
         )
         for old, new in cases:
@@ -553,17 +571,17 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Every Design must use the same test sequence",
             ),
             (
-                "A choice that can change an\nR/AC",
+                "Specify every choice that can\nchange an R/AC",
                 "Design may change Requirement-owned acceptance values",
             ),
             (
-                "Task never chooses production semantics",
-                "Task may change authoritative parameters from trial results",
+                "Keep the Bundle `draft` while any implementation-significant decision remains unresolved",
+                "Allow unresolved implementation-significant decisions in approved Design",
             ),
             (
-                "commands, full results, candidate chronology, task status, "
-                "execution history, and closure\nrecords downstream",
-                "Keep commands, full results, candidate chronology, task status, "
+                "include commands, full results, candidate chronology, work status, execution history, or\n"
+                "closure records",
+                "Keep commands, full results, candidate chronology, work status, "
                 "execution history, and closure records in Design",
             ),
             (
@@ -598,8 +616,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_design_closure_drift(self) -> None:
         cases = (
             (
-                "If two non-communicating Coders could produce incompatible implementations "
-                "while both\nclaiming conformance, the Bundle is not ready",
+                "If the approved\nBundle permits incompatible implementations of a shared boundary, "
+                "it is incomplete",
                 "Incompatible conforming implementations are acceptable",
             ),
             (

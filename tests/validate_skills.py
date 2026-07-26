@@ -266,26 +266,25 @@ def validate_core_contract(errors: list[str]) -> None:
         "re-enter role selection",
         "bounded\nresolution check does not search for new findings",
         "A fix that only aligns a duplicate\nrepresentation with an existing unambiguous authority",
-        "Solution minimality is an acceptance condition across Requirement, Design, and Task",
-        "Anything that can be deleted without losing a current accepted outcome is overdesign",
+        "Solution minimality is an acceptance condition for every stage document",
+        "A retained item must\nchange that document's own result if removed",
+        "Anything removable without weakening the document's purpose is overdesign",
         "Every run-task Coder brief requires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief\nrequires `ponytail:ponytail-review` when its candidate contains implementation or test-code\nchanges",
         "explicit deliverables",
         "A deliverable is a final object",
         "a real\n  product/operational E2E is a deliverable only when the realized path itself is the Milestone\n  result",
         "A Milestone without such a deliverable has no E2E content",
-        "When present, keep only the shortest stable core path; Goal owns its detailed qualitative\n"
-        "  Close picture",
-        "Derive deliverables from the\n  WhitePaper and Milestone outcome, never backward from Goal",
+        "When present, keep only the shortest stable core path",
+        "Derive deliverables from the\n  WhitePaper and Milestone outcome",
         "name the resulting object rather\n  than its acceptance quality",
         "replace planning names\n  with canonical artifact pointers at closure",
         "Possible future work not yet\n  allocated to a Milestone belongs in the Backlog",
-        "A downstream-only item with a receiving\n  Milestone or owner is a Handoff instead",
-        "Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices",
-        "detailed qualitative Close picture, including the mapping of ROADMAP deliverables and any\n"
-        "  optional core E2E into active scope",
-        "Requirement\n  owns required observable behavior, quantified parameters, constraints, and decidable\n"
-        "  acceptance criteria",
+        "Goal refines one initiated Milestone for exactly two purposes",
+        "provide the basis for\n  Requirement and define qualitative Milestone Close criteria",
+        "Requirement translates Goal into required observable behavior, quantified parameters",
+        "Stage documents do not\ncontain document maps without real children, downstream propagation rules, downstream gates",
+        "The GMGN router owns cross-stage routing and impact propagation",
         "`Design.md` owns global architecture, module boundaries, the Bundle index",
         "If two non-communicating Coders could produce incompatible conforming\n  implementations",
         "consumer validation entries, success/errors, and state effects",
@@ -318,12 +317,14 @@ def validate_core_contract(errors: list[str]) -> None:
         "Close the task as soon as the Card outcome",
         "execution/<card_id>/Card.md",
         "execution/<card_id>/Log.md",
-        "ROADMAP sequencing, Milestone allocation, deliverable, dependency, concise acceptance summary, optional core E2E, Backlog placement, or Handoff placement",
-        "Goal objective, boundary, non-goal, result-based slice, detailed qualitative Close picture, or ROADMAP deliverable/core-E2E mapping",
+        "ROADMAP sequencing, Milestone allocation, deliverable, dependency, concise acceptance summary, optional core E2E, or Backlog placement",
+        "Goal result, boundary, non-goal, result slice, qualitative Close outcome, or ROADMAP deliverable/core-E2E mapping",
         "Requirement behavior, quantified parameter, constraint, or decidable AC",
         "Design structure, implementation-specific parameter or decision, cross-task interface contract, data, or failure path",
-        "Requirement, Design, and Task writers keep the least structure",
-        "Their fresh Critic\nattempts deletion, reuse, native behavior, or a direct solution",
+        "Every stage writer keeps only content required for that document's own purpose",
+        "Stage documents do not contain downstream\npropagation rules, downstream gates, next-stage instructions",
+        "Cross-stage routing and impact propagation belong here\nin the GMGN router",
+        "Their fresh Critic attempts deletion,\nreuse, native behavior, or a direct solution",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
         "Missing Ponytail blocks that code task",
@@ -360,13 +361,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "- Do not copy Requirement, Design, or Contract meaning into Task. Do not put TDD cases,\n"
         "  commands, file scopes, runtime locks, blockers, commits, candidates, review records,\n"
         "  evidence, or progress narratives in `Task.md`",
-        "`execution/<card_id>/Card.md`",
-        "the normative execution contract, TDD contract, and\n  completion criterion",
-        "`execution/<card_id>/Log.md`",
-        "the replaceable current snapshot, material decisions, and\n  final evidence summary",
-        "`Task.md` links to Card and does not copy execution content",
-        "`Log.md` is not a full process\nhistory",
-        "Do not require `card_id` to equal the Task ID",
+        "The `execution` column stores only the current execution entry link when one exists",
+        "Do not\ncopy execution content or history into `Task.md`",
+        "do not require the execution ID to equal\nthe Task ID",
         "Apply the deletion test to every task",
         "Remove a task when deleting its result leaves every\n"
         "  current AC and approved Design result satisfied",
@@ -381,8 +378,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Allow tentative, placeholder, or speculative task sets",
         "Allow in-scope ACs to remain unmapped",
         "Freeze execution waves in Task",
-        "`Log.md` records the full process history",
-        "`card_id` must equal the Task ID",
+        "Task.md records execution content or history",
+        "execution ID must equal the Task ID",
     ), "write-task 紧凑索引契约", errors)
     require(run_task, (
         "`execution/<card_id>/Card.md` first",
@@ -465,26 +462,22 @@ def validate_core_contract(errors: list[str]) -> None:
     require(roadmap, (
         "explicit **Milestone\n  deliverables**",
         "one concise qualitative acceptance summary",
-        "never infer ROADMAP deliverables backward from a downstream Goal",
+        "later artifacts or evidence cannot silently redefine it",
         "Name what will exist at the end, not how well it must perform",
         "realized product/operational E2E when that\n  path itself is the final result",
         "The acceptance summary states what counts as the stage\n  result without expanding every close condition",
-        "Evidence is produced downstream and linked at\n  closure",
+        "Keep evidence out of planning rows; closure\n  backfill links the accepted result",
         "Write a core E2E only when the realized product or operational path is itself a Milestone\n"
         "  deliverable",
         "Otherwise omit E2E content; never invent one",
         "When applicable, write the core E2E under a stable Markdown anchor as the shortest complete\n"
         "  path from its start through key actions to an observable result",
-        "Goal owns the detailed qualitative Close picture after initiation",
         "list\n  that artifact once instead of repeating its contained paths as deliverables",
         "point an internal-code deliverable to its\n  repository when known",
         "number deliverables\n  consecutively and put one item on each line",
         "Do not prescribe a test framework",
-        "Requirement\n  refines it into decidable ACs",
         "Maintain one Backlog for possible future work that is not yet allocated to a Milestone",
-        "New ideas enter the Backlog",
-        "Record a downstream-only confirmation as a non-blocking Handoff when a receiving",
-        "Otherwise keep it in the Backlog",
+        "New ideas remain in the Backlog until allocated to a Milestone",
         "`repository@<accepted-commit>`",
         "release\n  tag and release page",
         "a network or environment uses its applicable stable identity and\n  access pointers",
@@ -495,14 +488,12 @@ def validate_core_contract(errors: list[str]) -> None:
         "no E2E is fabricated for other Milestones",
     ), "roadmap 产出与可选 E2E 契约", errors)
     require(roadmap_agent, (
-        "Milestone deliverables",
-        "optional core E2E paths",
-        "里程碑产出",
-        "按需核心 E2E",
+        "Sequence Milestones, outputs, dependencies, and Backlog",
+        "编排里程碑、产出、依赖与 Backlog",
     ), "roadmap 界面元数据契约", errors)
     require(readme_zh, (
         "只有当实际产品或运营路径\n本身就是产出物时，才写核心 E2E；否则省略",
-        "Goal 展开完整的定性 Close\n图景",
+        "Goal 把当前 Milestone 细化为\nRequirement 依据和定性 Close 标准",
         "产出物、简短验收摘要及按需核心 E2E",
         "适用的回归/E2E 证据",
     ), "中文 README Roadmap 契约", errors)
@@ -511,70 +502,75 @@ def validate_core_contract(errors: list[str]) -> None:
     ), "中文 README Roadmap 契约", errors)
     forbid(roadmap, (
         "Every Milestone must invent E2E content",
+        "later artifacts or evidence may redefine it",
+        "New ideas bypass the Backlog",
+        "## Handoff",
     ), "roadmap 产出与可选 E2E 契约", errors)
     require(write_goal, (
         "Derive Goal only from the approved ROADMAP Milestone and its WhitePaper authority",
-        "Requirement, Design, Task, implementation, or evidence may trigger a controlled revision\n"
-        "  but cannot silently redefine Goal",
-        "Split slices\n  by independently meaningful results, not by team, component, or file",
-        "Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them",
-        "Map every\n  deliverable to one or more slices and a qualitative observable Close outcome",
-        "Expand the detailed qualitative Close picture needed for the active Milestone",
-        "When ROADMAP\n  has a core E2E anchor, map it to one or more slices",
-        "A Milestone without a ROADMAP\n  core E2E needs no E2E content or missing-E2E gap",
-        "Require every slice to contribute to a ROADMAP deliverable or Goal Close outcome",
-        "Requirement refines the Close outcomes into parameters and decidable ACs",
-        "Requirement owns quantified parameters and acceptance conditions",
-        "Design\n  owns implementation choices",
-        "Task owns work division, order, and status",
-        "Resolve before Requirement every open decision owned by Goal",
-        "Route upstream-owned gaps to\n  their authority and leave downstream-owned choices to their proper stage",
-        "Do not include component or interface design, code\n  structure, test cases, commands, results, task breakdown, live status",
-        "or conclusions copied from downstream",
+        "Later documents, implementation, or evidence may expose a needed revision but cannot\n"
+        "  silently redefine Goal",
+        "Include only content that either gives Requirement a necessary basis or decides whether the\n"
+        "  Milestone can Close",
+        "Delete anything that serves neither purpose",
+        "independently meaningful result slices, not teams, components, files, or work steps",
+        "Cover every ROADMAP deliverable with one or more result slices and a qualitative observable\n"
+        "  Close outcome",
+        "Every slice must contribute to a deliverable or Close outcome",
+        "When ROADMAP has a core E2E anchor, carry it into the applicable slices",
+        "A\n  Milestone without a ROADMAP core E2E has no E2E content",
+        "Resolve every Goal-owned ambiguity into the result, boundary, slices, or Close outcomes",
+        "Keep exact numeric criteria, technical design, task division,\n  execution, and evidence out of Goal",
+        "Do not include a document map, known gaps, downstream propagation or gates, next-stage\n"
+        "  instructions",
         "ROADMAP-owned deliverables,\n   concise acceptance summaries, optional core E2E paths",
-        "Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP\n"
-        "   deliverable/core-E2E mappings, detailed qualitative Close picture",
-        "deleting all downstream documents leaves Goal's objective and boundary complete",
+        "Goal-owned results, boundaries, non-goals, result slices, ROADMAP\n"
+        "   deliverable/core-E2E mappings, or qualitative Close outcomes",
+        "the refined result, boundary, and non-goals are complete",
         "every ROADMAP deliverable maps to slices and qualitative Close outcomes, every optional core\n"
         "  E2E maps when present",
+        "deleting any retained item would remove necessary Requirement input or change the Close\n"
+        "  decision",
+        "no document map, downstream rule, component, interface, exact criterion, test, task",
         "an invalid mapping returns to `roadmap` instead of changing upstream meaning in Goal",
     ), "write-goal 内容边界契约", errors)
     forbid(write_goal, (
         "may redefine Goal",
+        "may silently redefine Goal",
         "Split slices by team, component, or file",
         "Redefine ROADMAP deliverables inside Goal",
         "Some ROADMAP deliverables need no slice",
         "Ignore an existing ROADMAP core E2E",
-        "Goal owns quantified parameters and acceptance conditions",
-        "Goal owns implementation choices",
-        "Goal owns work division, order, and status",
-        "Push every Goal-owned open decision to Requirement",
+        "Goal includes exact numeric criteria",
+        "Push every Goal-owned ambiguity to Requirement",
+        "Include unrelated content in Goal",
+        "Keep content that serves neither purpose",
+        "Include the document map and known gaps",
+        "Mention absent downstream files as gaps",
+        "Creation then uses **REQUIRED next skill",
+        "Propagate only to affected Requirement",
         "quantified pass/fail criterion",
-        "include conclusions copied from downstream",
+        "include downstream propagation requirements",
     ), "write-goal 内容边界契约", errors)
     require(write_requirement, (
-        "Derive Requirement from the approved Goal",
-        "Design, Task, implementation, tests, or evidence may trigger a\n"
-        "  controlled revision but cannot silently define or redefine Requirement",
+        "Derive Requirement only from the approved Goal and explicitly sourced external constraints",
+        "Later documents, implementation, tests, or evidence may expose a needed revision but cannot\n"
+        "  silently define or redefine Requirement",
         "smallest necessary set of numbered requirements\n  `R1`, `R2`, ...",
         "Each R states one coherent required behavior, capability, or constraint\n"
-        "  and names its owning Goal slice or externally imposed invariant",
+        "  and names its owning Goal result or external constraint",
         "enough observable precondition, action or\n"
         "  inspection, and result to determine pass or fail",
         "Given/When/Then is optional syntax, not a\n  mandatory format",
         "Numeric and static constraints may state their decision rule directly",
         "Use unambiguous observable language",
-        "Keep the explicit trace: ROADMAP deliverable or optional core E2E → Goal Close outcome and\n"
-        "  slice → R/AC",
-        "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
+        "Keep the explicit trace: Goal result or Close outcome → R/AC",
+        "No in-scope Goal result or\n  Close outcome may disappear",
         "Preserve upstream-approved invariants and values without silent weakening",
         "Requirement may\n  define quantified parameters it owns",
         "name each value's authority, change boundary, and\n  verification method",
-        "ROADMAP remains the authority for the deliverable's identity and final\n"
-        "  artifact pointer",
         "only when applicable; do not require fixed sections for absent categories",
         "Resolve every\n  Requirement-owned decision before acceptance",
-        "leave implementation choices to Design",
         "Do not invent or prescribe components, modules, interfaces, process structure",
         "task division, execution order, test commands,\n"
         "  runtime results, evidence IDs, live status, or closure history",
@@ -582,13 +578,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "  invariant to fail",
         "Future possibility, speculative reuse or scale, configurability, and\n"
         "  implementation convenience are not owners",
-        "every in-scope Goal slice is covered; any proposed exclusion\n"
-        "routes to `write-goal`",
-        "every Goal Close outcome and optional ROADMAP core E2E traces to R/AC",
+        "every in-scope Goal result and Close outcome is covered",
         "every AC has a clear pass/fail decision",
-        "no Requirement-owned decision is\n  deferred to Design or Task",
-        "no implementation choice, execution information, or actual\n"
-        "verification result has leaked into Requirement",
+        "every Requirement-owned decision is resolved",
+        "no\ntechnical solution, task, execution information, or actual verification result has leaked\n"
+        "into Requirement",
     ), "write-requirement 内容边界契约", errors)
     forbid(write_requirement, (
         "can silently define or redefine Requirement",
@@ -598,20 +592,19 @@ def validate_core_contract(errors: list[str]) -> None:
         "Requirement owns components, modules, or interfaces",
         "Future possibility and implementation convenience are owners",
         "Defer every Requirement-owned decision to Design",
-        "Some Goal Close outcomes may disappear",
-        "An existing ROADMAP core E2E may disappear",
-        "Some in-scope Goal slices may disappear",
+        "Some Goal results or Close outcomes may disappear",
         "Allow R/AC to be unowned",
-        "Requirement owns the deliverable's identity and final artifact pointer",
-        "every current Goal slice is covered or explicitly excluded",
+        "Propagate only to affected Design",
+        "Creation then uses **REQUIRED next skill",
+        "every current Goal result is covered or explicitly excluded",
     ), "write-requirement 内容边界契约", errors)
     require(write_design, (
         "`Design.md` always exists and owns global architecture",
         "`design/Contract.md` is required only when current work crosses an independently developed",
         "Do not create an empty file or directory",
         "Every child links to `Design.md`",
-        "the `approved` working implementation baseline",
-        "If two non-communicating Coders could produce incompatible implementations",
+        "Design acceptance marks that complete Bundle `approved`",
+        "If the approved\nBundle permits incompatible implementations of a shared boundary",
         "not required headings or a document template",
         "Map each R/AC once in root `Design.md`",
         "Future reuse, possible scale, flexibility, or implementation\n"
@@ -621,18 +614,17 @@ def validate_core_contract(errors: list[str]) -> None:
         "one machine-readable or compilable authority",
         "Markdown\nexplains semantics and does not copy the complete signature",
         "it does not\nimplement production I/O, storage, or providers",
-        "An implementation Milestone cannot send an implementation-significant unknown to Task",
-        "Task never chooses production semantics",
-        "Keep commands, full results, candidate chronology, task status, execution history,\n"
-        "and closure\nrecords downstream",
+        "Keep the Bundle `draft` while any implementation-significant decision remains unresolved",
+        "Do not\ninclude commands, full results, candidate chronology, work status, execution history, or\n"
+        "closure records",
         "No implementation-significant question, hidden default, or unapproved parameter remains",
         "Run one Critic round after\nthat integration",
         "physical file\ncount never determines the number of Critics",
-        "Critics ask what a later implementer must still decide",
+        "Critics find any implementation-significant decision still unspecified",
         "global-versus-local rule conflicts",
         "If the fix must invent or change Design-owned meaning, it is a new semantic\nbatch",
         "Adding or changing a public type or Port",
-        "Do not mark the Design-stage Contract `closed` here",
+        "Design acceptance marks the complete Bundle `approved`, not `closed`",
     ), "design 最简方案契约", errors)
     forbid(write_design, (
         "Design may silently redefine Requirement",
@@ -640,7 +632,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every Design must use the same test sequence",
         "Design may change Requirement-owned acceptance values",
         "Task may change authoritative parameters from trial results",
-        "Keep commands, full results, candidate chronology, task status, execution history, and closure records in Design",
+        "Allow unresolved implementation-significant decisions in approved Design",
+        "Keep commands, full results, candidate chronology, work status, execution history, and closure records in Design",
         "Map R/AC only to broad sections",
         "Always create Contract.md",
         "Every module must have a separate design document",
@@ -648,6 +641,18 @@ def validate_core_contract(errors: list[str]) -> None:
         "Future reuse, possible scale, flexibility, and implementation convenience are owners",
         "Every Design must define concurrency, recovery, migration, and performance sections",
     ), "design 最简方案契约", errors)
+    for stage_text, stage_label in (
+        (roadmap, "roadmap"),
+        (write_goal, "write-goal"),
+        (write_requirement, "write-requirement"),
+        (write_design, "write-design"),
+        (write_task, "write-task"),
+    ):
+        forbid(stage_text, (
+            "REQUIRED next skill",
+            "Propagate only to affected",
+            "Propagate the approved delta only to affected",
+        ), f"{stage_label} 文档自治契约", errors)
     require(close_milestone, (
         "every ROADMAP deliverable, Goal Close outcome, in-scope AC, and optional ROADMAP core E2E must map to evidence",
         "A Milestone without a ROADMAP core E2E does not need E2E evidence",
