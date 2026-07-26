@@ -21,10 +21,13 @@ writing contract. Use the ROADMAP locale unless the owner changes it explicitly.
 - State the intended change, active boundary, non-goals, and result-based slices. Split slices
   by independently meaningful results, not by team, component, or file.
 - Carry ROADMAP deliverables forward only as mappings; Goal does not redefine them. Map every
-  deliverable to one or more slices, and require every slice to contribute to a ROADMAP
-  deliverable or acceptance scenario.
-- Map every ROADMAP acceptance-scenario anchor to one or more slices and a qualitative
-  observable outcome. Requirement refines that meaning into parameters and decidable ACs.
+  deliverable to one or more slices and a qualitative observable Close outcome.
+- Expand the detailed qualitative Close picture needed for the active Milestone. When ROADMAP
+  has a core E2E anchor, map it to one or more slices and expand only the current stage's
+  necessary main, permission, failure, or recovery outcomes. A Milestone without a ROADMAP
+  core E2E needs no E2E content or missing-E2E gap.
+- Require every slice to contribute to a ROADMAP deliverable or Goal Close outcome.
+  Requirement refines the Close outcomes into parameters and decidable ACs.
 - State only upstream-derived capabilities and qualitative constraints needed to bound
   downstream work. Requirement owns quantified parameters and acceptance conditions; Design
   owns implementation choices; Task owns work division, order, and status. Goal may reference
@@ -64,11 +67,12 @@ committed candidate, applies accepted mechanical propagation, and runs machine c
 1. Start from the old Goal commit and record the trigger, semantic delta, affected slices,
    documents, and evidence, plus the proposed new commit.
 2. Route WhitePaper-owned meaning to `brainstorm` revision mode and ROADMAP-owned deliverables,
-   qualitative acceptance picture, sequencing, cross-milestone allocation, or dependency to
-   `roadmap` maintenance mode. Resume here after the required upstream approval; do not patch
-   that meaning into Goal.
+   concise acceptance summaries, optional core E2E paths, sequencing, cross-milestone
+   allocation, or dependency to `roadmap` maintenance mode. Resume here after the required
+   upstream approval; do not patch that meaning into Goal.
 3. Revise only Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP
-   deliverable/acceptance-scenario mappings, or document mapping. Preserve unaffected content.
+   deliverable/core-E2E mappings, detailed qualitative Close picture, or document mapping.
+   Preserve unaffected content.
 4. If the delta changes a decision or reasonable understanding, run the independent critic
    and primary-orchestrator review against the affected content and bind it to a new commit.
    Old review remains attached to the old commit.
@@ -84,8 +88,8 @@ machine checks without reapproval.
 Require the recorded writer to confirm:
 
 - deleting all downstream documents leaves Goal's objective and boundary complete;
-- every ROADMAP deliverable and acceptance scenario maps to slices, and every slice
-  contributes to at least one of them;
+- every ROADMAP deliverable maps to slices and qualitative Close outcomes, every optional core
+  E2E maps when present, and every slice contributes to a deliverable or Goal Close outcome;
 - Requirement only needs to refine the stage results, not invent them;
 - every Goal-owned open decision is resolved before Requirement;
 - no component, interface, test, task, or implementation result leaks into Goal; and

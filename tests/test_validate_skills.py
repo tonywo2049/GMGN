@@ -334,15 +334,15 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("Ponytail 安装契约", result.stdout)
 
-    def test_rejects_missing_roadmap_acceptance_picture(self) -> None:
+    def test_rejects_forced_roadmap_e2e(self) -> None:
         self.replace(
             "skills/roadmap/SKILL.md",
-            "at least one high-level end-to-end scenario",
-            "general completion notes",
+            "Otherwise omit E2E content; never invent one",
+            "Every Milestone must invent E2E content",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("roadmap 验收图景契约", result.stdout)
+        self.assertIn("roadmap 产出与可选 E2E 契约", result.stdout)
 
     def test_rejects_roadmap_backlog_handoff_or_metadata_drift(self) -> None:
         cases = (
@@ -350,11 +350,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/roadmap/SKILL.md",
                 "Otherwise keep it in the Backlog",
                 "Otherwise keep it as an unclassified item",
-                "roadmap 验收图景契约",
+                "roadmap 产出与可选 E2E 契约",
             ),
             (
                 "skills/roadmap/agents/openai.yaml",
-                "Define Milestone deliverables and full-outcome E2E scenarios",
+                "Define Milestone deliverables and optional core E2E paths",
                 "Define a generic project timeline",
                 "roadmap 界面元数据契约",
             ),
@@ -371,12 +371,18 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/roadmap/SKILL.md",
                 "never infer ROADMAP deliverables backward from a downstream Goal",
                 "infer ROADMAP deliverables from the downstream Goal",
-                "roadmap 验收图景契约",
+                "roadmap 产出与可选 E2E 契约",
             ),
             (
                 "skills/close-milestone/SKILL.md",
                 "every ROADMAP deliverable against its accepted result and required canonical pointer",
                 "ROADMAP deliverable names without accepted pointers",
+                "milestone 验收关账契约",
+            ),
+            (
+                "skills/close-milestone/SKILL.md",
+                "A Milestone without a ROADMAP core E2E does not need E2E evidence",
+                "Every Milestone needs E2E evidence",
                 "milestone 验收关账契约",
             ),
         )
@@ -406,9 +412,9 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Some ROADMAP deliverables need no slice",
             ),
             (
-                "Map every ROADMAP acceptance-scenario anchor to one or more slices and a qualitative\n"
-                "  observable outcome",
-                "ROADMAP acceptance scenarios need no slice",
+                "When ROADMAP\n"
+                "  has a core E2E anchor, map it to one or more slices",
+                "Ignore an existing ROADMAP core E2E",
             ),
             (
                 "Requirement owns quantified parameters and acceptance conditions",
@@ -427,7 +433,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Push every Goal-owned open decision to Requirement",
             ),
             (
-                "qualitative\n  observable outcome",
+                "qualitative observable Close outcome",
                 "quantified pass/fail criterion",
             ),
             (
@@ -447,12 +453,13 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_goal_controlled_revision_route_drift(self) -> None:
         cases = (
             (
-                "ROADMAP-owned deliverables,\n   qualitative acceptance picture",
+                "ROADMAP-owned deliverables,\n"
+                "   concise acceptance summaries, optional core E2E paths",
                 "Goal-owned deliverables and quantitative acceptance criteria",
             ),
             (
                 "Goal-owned objectives, boundaries, non-goals, result-based slices, ROADMAP\n"
-                "   deliverable/acceptance-scenario mappings",
+                "   deliverable/core-E2E mappings, detailed qualitative Close picture",
                 "Goal-owned objectives and document mapping only",
             ),
         )
@@ -467,8 +474,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_requirement_content_boundary_drift(self) -> None:
         cases = (
             (
-                "Design, Task, implementation, tests, or evidence may trigger a\n"
-                "  controlled revision but cannot silently define or redefine Requirement",
+                "Design, Task, implementation, tests, or evidence may\n"
+                "  trigger a controlled revision but cannot silently define or redefine Requirement",
                 "Design, Task, implementation, tests, or evidence can silently define "
                 "or redefine Requirement",
             ),
@@ -494,15 +501,19 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Defer every Requirement-owned decision to Design",
             ),
             (
-                "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
-                "Some ROADMAP acceptance scenarios may disappear",
+                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
+                "Some Goal Close outcomes may disappear",
             ),
             (
-                "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
+                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
+                "An existing ROADMAP core E2E may disappear",
+            ),
+            (
+                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
                 "Some in-scope Goal slices may disappear",
             ),
             (
-                "No acceptance\n  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned",
+                "No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear",
                 "Allow R/AC to be unowned",
             ),
             (

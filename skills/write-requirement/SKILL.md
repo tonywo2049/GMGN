@@ -15,9 +15,9 @@ writing contract. Use the Goal locale for artifact prose. Keep filename `Require
 
 ## Requirement content
 
-- Derive Requirement from the approved Goal. Carry ROADMAP acceptance scenarios only through
-  their mapped Goal slices. Design, Task, implementation, tests, or evidence may trigger a
-  controlled revision but cannot silently define or redefine Requirement.
+- Derive Requirement from the approved Goal. Carry ROADMAP deliverables and any optional core
+  E2E only through their Goal mappings. Design, Task, implementation, tests, or evidence may
+  trigger a controlled revision but cannot silently define or redefine Requirement.
 - Translate each in-scope Goal slice into the smallest necessary set of numbered requirements
   `R1`, `R2`, ... . Each R states one coherent required behavior, capability, or constraint
   and names its owning Goal slice or externally imposed invariant.
@@ -27,8 +27,9 @@ writing contract. Use the Goal locale for artifact prose. Keep filename `Require
   Use unambiguous observable language; terms such as reasonable, complete, sufficient,
   high-performance, or robust require a decidable definition. Include rejection, failure,
   recovery, or unchanged-state conditions only when required by the current outcome or invariant.
-- Keep the explicit trace: ROADMAP acceptance scenario → Goal slice → R/AC. No acceptance
-  scenario or in-scope Goal slice may disappear, and no R/AC may be unowned.
+- Keep the explicit trace: ROADMAP deliverable or optional core E2E → Goal Close outcome and
+  slice → R/AC. No Goal Close outcome, optional core E2E, or in-scope Goal slice may disappear,
+  and no R/AC may be unowned.
 - Preserve upstream-approved invariants and values without silent weakening. Requirement may
   define quantified parameters it owns; name each value's authority, change boundary, and
   verification method, plus only the measurement conditions needed to make it decidable.
@@ -81,8 +82,8 @@ refresh plus machine checks without reapproval.
 ## Exit
 
 Require one completion check: every in-scope Goal slice is covered; any proposed exclusion
-routes to `write-goal`; every ROADMAP acceptance scenario traces through Goal to R/AC; every
-R/AC has an upstream owner and passes the deletion test; every AC has a clear pass/fail
+routes to `write-goal`; every Goal Close outcome and optional ROADMAP core E2E traces to R/AC;
+every R/AC has an upstream owner and passes the deletion test; every AC has a clear pass/fail
 decision; every number has an authority, change boundary, and verification method; no
 Requirement-owned decision is deferred to Design or Task; and no implementation choice,
 execution information, or actual verification result has leaked into Requirement. For

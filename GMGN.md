@@ -60,20 +60,19 @@ WhitePaper → ROADMAP → Goal → Requirement → Design Bundle → Task
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
 - ROADMAP owns Milestone order, priority, cross-Milestone dependency, explicit deliverables,
-  and each Milestone's qualitative acceptance picture. A deliverable is a final object; a real
-  product/operational E2E is a deliverable only when the realized path itself is the Milestone
-  result. Every Milestone has at least one end-to-end scenario that traverses its full owned
-  outcome; the acceptance picture's scenarios collectively cover every deliverable. Add more
-  only for independently decidable paths or failure/recovery outcomes. Derive deliverables
-  from the WhitePaper and Milestone outcome, never backward from Goal; name the resulting
-  object rather than its acceptance quality, avoid duplicate representations, and replace
-  planning names with canonical artifact pointers at closure. Possible future work not yet
-  allocated to a Milestone belongs in the Backlog. A downstream-only item with a receiving
-  Milestone or owner is a Handoff instead.
+  concise qualitative acceptance summaries, and optional core E2E paths. A deliverable is a
+  final object; a real product/operational E2E is a deliverable only when the realized path
+  itself is the Milestone result. A Milestone without such a deliverable has no E2E content.
+  When present, keep only the shortest stable core path; Goal owns its detailed qualitative
+  Close picture. Derive deliverables from the WhitePaper and Milestone outcome, never backward
+  from Goal; name the resulting object rather than its acceptance quality, avoid duplicate
+  representations, and replace planning names with canonical artifact pointers at closure.
+  Possible future work not yet allocated to a Milestone belongs in the Backlog. A
+  downstream-only item with a receiving Milestone or owner is a Handoff instead.
 - Goal owns one initiated Milestone's objective, boundary, non-goals, result-based slices, and
-  the mapping of ROADMAP deliverables and acceptance scenarios into active scope. Requirement
-  owns required observable behavior, quantified parameters, constraints, and decidable
-  acceptance criteria (ACs).
+  detailed qualitative Close picture, including the mapping of ROADMAP deliverables and any
+  optional core E2E into active scope. Requirement owns required observable behavior,
+  quantified parameters, constraints, and decidable acceptance criteria (ACs).
 - `Design.md` owns global architecture, module boundaries, the Bundle index, and complete R/AC
   mapping. Add `design/<module-id>.md` only for a useful module authority. A boundary between
   independently developed modules, tasks, teams, processes, or repositories requires
@@ -273,10 +272,10 @@ and pause only its impact cone. Record old and new commits and propagate only af
 code, tests, evidence, and state. Mechanical changes need machine checks, not semantic
 reapproval.
 
-Milestone closure proves every ROADMAP end-to-end acceptance scenario. ROADMAP defines each
-scenario qualitatively; Requirement refines it into ACs, Design and Contract map the path, and
-Card/Test provide executable evidence. Do not replace an infrastructure or research outcome
-with a fabricated browser/UI test.
+Milestone closure proves every ROADMAP deliverable and every Goal Close outcome. When ROADMAP
+contains a core E2E, closure also proves that path through Goal, Requirement, Design or
+Contract when applicable, Card/Test, and evidence. A Milestone without a core E2E does not
+need fabricated E2E evidence.
 
 Closure also reconciles every retained Contract ID with provider and consumer code plus
 conformance/integration evidence. A semantic mismatch returns to `write-design`; closure never
@@ -286,7 +285,8 @@ new commits rather than rewriting that history.
 
 Milestone closure requires:
 
-1. every ROADMAP acceptance scenario traced through Goal slices and in-scope ACs to evidence;
+1. every ROADMAP deliverable and Goal Close outcome traced through in-scope ACs to evidence,
+   plus every optional ROADMAP core E2E when present;
 2. every in-scope AC completed or semantically removed/reassigned at a new authority commit;
 3. replayable evidence for each retained criterion;
 4. Task, Card/Log, traceability, and ROADMAP refreshed in the same batch;

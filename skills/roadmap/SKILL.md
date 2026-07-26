@@ -1,11 +1,11 @@
 ---
 name: roadmap
-description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, explicit deliverables, priority, dependency order, at least one end-to-end acceptance scenario per Milestone, closure backfill, or Backlog allocation. 白皮书已批后规划里程碑、明确产出、依赖及每个 Milestone 至少一个端到端验收场景。"
+description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, explicit deliverables, priority, dependency order, concise acceptance summaries, optional core E2E paths, closure backfill, or Backlog allocation. 白皮书已批后规划里程碑、明确产出、依赖、简要验收摘要及按需核心 E2E。"
 ---
 
 # ROADMAP: single sequencing authority
 
-<HARD-GATE>An approved, commit-bound WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs, quantitative requirement metrics, or executable test cases. It precedes Milestone requirements, so acceptance pictures stay qualitative.</HARD-GATE>
+<HARD-GATE>An approved, commit-bound WhitePaper must exist; otherwise return to `brainstorm`. If ROADMAP work exposes a WhitePaper premise that must change, use `brainstorm` revision mode instead of redefining it here. ROADMAP must not contain R-AC IDs, quantitative requirement metrics, executable test cases, or the detailed qualitative Close picture owned by Goal.</HARD-GATE>
 
 ## Language and contract
 
@@ -17,38 +17,33 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 
 - Restate only the WhitePaper boundary and invariants needed for sequencing.
 - Define ordered Milestones with one qualitative objective, explicit **Milestone
-  deliverables**, one **Milestone acceptance picture**, dependencies, and work state
+  deliverables**, one concise qualitative acceptance summary, dependencies, and work state
   `not-started`.
 - Derive each deliverable from the approved WhitePaper and that Milestone's expected outcome;
   never infer ROADMAP deliverables backward from a downstream Goal.
 - Name what will exist at the end, not how well it must perform. Choose only the concrete
   objects appropriate to the Milestone: a specification, repository state, release, running
   network or environment, tool, report, ledger, or a realized product/operational E2E when that
-  path itself is the final result. The acceptance picture states qualitative success
-  conditions and must cover every deliverable. Evidence is produced downstream and linked at
-  closure.
-- Write a real E2E as a short complete path from start through key actions to an observable
-  result, not as a test path or acceptance document. When a deliverable such as a complete
+  path itself is the final result. The acceptance summary states what counts as the stage
+  result without expanding every close condition. Evidence is produced downstream and linked
+  at closure.
+- Write a core E2E only when the realized product or operational path is itself a Milestone
+  deliverable. Otherwise omit E2E content; never invent one for a specification, research,
+  report, infrastructure component, or other artifact merely to satisfy the workflow.
+- When applicable, write the core E2E under a stable Markdown anchor as the shortest complete
+  path from its start through key actions to an observable result. The Milestone row links to
+  that anchor. Do not expand permission branches, failure/recovery paths, exact parameters, or
+  test details in ROADMAP. Goal owns the detailed qualitative Close picture after initiation.
+- When a deliverable such as a complete
   specification already contains its functions, E2E, failure, and recovery definitions, list
   that artifact once instead of repeating its contained paths as deliverables.
 - Use a candidate name during planning, and point an internal-code deliverable to its
   repository when known. Refine the name at Milestone start or closure when the owned outcome
   is unchanged; otherwise use controlled revision. In a shared table cell, number deliverables
   consecutively and put one item on each line.
-- Every Milestone acceptance picture names at least one high-level end-to-end scenario that
-  traverses the full outcome owned by that Milestone. Add more only for independently
-  decidable main paths, permission boundaries, or failure/recovery outcomes.
-  Each scenario has a stable Markdown anchor and states the starting situation, actor or
-  system action, observable outcome, and any decision-relevant failure or recovery outcome.
-- Every acceptance scenario must be independently decidable from work owned by that Milestone.
-  An infrastructure Milestone may use a real input → processing → persistence/recovery →
-  observable output path; a research-only Milestone may use question → method → result →
-  decision evidence. Do not fabricate a user-interface E2E.
-- If no full owned path can be stated, the Milestone is not independently acceptable: merge it
-  with the consumer that makes its outcome observable or revise its boundary.
 - Do not prescribe a test framework, command, test file, fixture, selector, or exact numeric
-  threshold in ROADMAP. Requirement refines scenarios into ACs; Design and Card own executable
-  verification details.
+  threshold in ROADMAP. Goal expands the detailed qualitative Close picture, Requirement
+  refines it into decidable ACs, and Design and Card own executable verification details.
 - Sequence strong dependencies from earlier Milestones to later consumers. A downstream
   implementation, confirmation, document, or evidence item must not be an earlier Milestone's
   acceptance condition.
@@ -57,13 +52,14 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
 
 ## Maintain
 
-- Closure backfill updates the Milestone state, links each acceptance-scenario anchor to its
-  closing evidence, and replaces candidate deliverable identities with canonical pointers:
+- Closure backfill updates the Milestone state and replaces candidate deliverable identities
+  with canonical pointers:
   internal code uses `repository@<accepted-commit>`; an external distribution uses its release
   tag and release page; a network or environment uses its applicable stable identity and
   access pointers, such as an ID, identity or genesis hash, manifest, and endpoints; and a
   document, report, or tool links directly to the accepted artifact. Omit pointers that do not
-  apply. Add any Handoff that exists.
+  apply. When a core E2E anchor exists, link it to accepted evidence. Add any Handoff that
+  exists.
 - New ideas enter the Backlog, then are assigned to a Milestone before becoming requirements.
 - Record a downstream-only confirmation as a non-blocking Handoff when a receiving
   Milestone/owner exists. Otherwise keep it in the Backlog. Record the question, trigger,
@@ -101,7 +97,8 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 - If the changed meaning belongs to the WhitePaper, initiate `brainstorm` revision mode and
   resume ROADMAP maintenance only after the required new upstream approval.
 - Revise only ROADMAP-owned sequencing, Milestone allocation, deliverables, dependencies,
-  qualitative acceptance pictures, or Backlog placement. Do not reopen unaffected Milestones.
+  concise qualitative acceptance summaries, optional core E2E paths, or Backlog placement.
+  Do not reopen unaffected Milestones.
 - A later Milestone may supersede a technical selection originating in a closed foundation or
   M0 Milestone. The M0-originated Design, Decision, or index remains semantic authority. Keep
   the historical Milestone and old closure commit closed; record the current Milestone's
@@ -120,9 +117,11 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
 English-only dispatch contract, present remaining material risks or that none are known,
 obtain owner approval bound to the candidate commit, and integrate only when required by workspace
-topology. Before approval, confirm every Milestone has at least one full-owned-outcome
-end-to-end scenario. A mechanical maintenance batch needs machine checks but no
-new approval. When the owner explicitly starts a target Milestone, **REQUIRED next skill:
+topology. Before approval, confirm every Milestone has concrete deliverables and a concise
+qualitative acceptance summary; a core E2E appears only
+when that path is itself a deliverable, and no E2E is fabricated for other Milestones. A
+mechanical maintenance batch needs machine checks but no new approval. When the owner
+explicitly starts a target Milestone, **REQUIRED next skill:
 `write-goal`**. After a revision, return to the stage that raised it and continue only the
 affected path.
 

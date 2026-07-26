@@ -5,7 +5,7 @@ description: "Use when every target-milestone task is closed and traceability is
 
 # Close a milestone
 
-<HARD-GATE>The target Milestone must have at least one ROADMAP end-to-end acceptance scenario covering its full owned outcome. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every in-scope AC and ROADMAP scenario must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
+<HARD-GATE>Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every ROADMAP deliverable, Goal Close outcome, in-scope AC, and optional ROADMAP core E2E must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. A Milestone without a ROADMAP core E2E does not need E2E evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
 
 ## Reconcile the closing commit
 
@@ -14,7 +14,8 @@ and checks:
 
 - all target tasks and their execution pointers;
 - Card completion contracts against Log current evidence;
-- ROADMAP acceptance scenario → Goal slice → AC → task → test → evidence coverage;
+- ROADMAP deliverable → Goal Close outcome and slice → AC → task → test → evidence coverage,
+  plus the same trace for each optional ROADMAP core E2E;
 - every ROADMAP deliverable against its accepted result and required canonical pointer;
 - every retained Contract ID against its provider implementation, every in-scope consumer,
   conformance/integration evidence, structural authority, and observable failure behavior;
@@ -34,9 +35,9 @@ required evidence stay in each card's Log.
 
 Do not dispatch a Verifier merely because closure started. Reuse Reviewer execution, post-fix
 machine checks, and any risk-triggered verification when they are bound to the exact closing
-commit and already cover every ROADMAP acceptance scenario, the Milestone's required
-regression, real end-to-end or integration path, relevant negative/recovery outcomes,
-environment, and limitations.
+commit and already cover every ROADMAP deliverable, Goal Close outcome, applicable core E2E,
+the Milestone's required regression or integration paths, relevant negative/recovery
+outcomes, environment, and limitations.
 
 Put missing or stale deterministic local checks in the closure Reviewer's prepared plan.
 Classify remaining final-candidate evidence as `not-required` or `required:<trigger>` using the
@@ -52,12 +53,13 @@ The primary session normally writes the closure candidate because it owns the co
 Milestone state. Delegate only when a bounded Author handoff has real value; prepare its full
 brief before creating that fresh single-use Author.
 
-The candidate contains deliverable and acceptance-picture reconciliation, evidence map,
-controlled debt, remaining material risks or a supported none-known statement, proposed state
-changes, the proposed final Contract commit when applicable, and a Handoff plan only when a
-receiving operator lacks an existing authority for needed information. Prepare the actual
-Milestone, Contract, ROADMAP, Task, traceability, and Handoff state in an isolated closure
-commit; it has no effect on the shared baseline before owner acceptance.
+The candidate contains deliverable and Goal Close-outcome reconciliation, any applicable core
+E2E reconciliation, evidence map, controlled debt, remaining material risks or a supported
+none-known statement, proposed state changes, the proposed final Contract commit when
+applicable, and a Handoff plan only when a receiving operator lacks an existing authority for
+needed information. Prepare the actual Milestone, Contract, ROADMAP, Task, traceability, and
+Handoff state in an isolated closure commit; it has no effect on the shared baseline before
+owner acceptance.
 
 Commit the complete candidate locally after writer self-check and machine checks. Prepare one
 brief naming its shortest unambiguous commit reference and create a fresh independent combined
@@ -91,8 +93,8 @@ it into the shared baseline. That commit already contains:
   Contract for that Milestone;
 - a Handoff only when a receiver needs one, using the closing commit, applicable evidence,
   environment, risks, authority pointers, and next command;
-- refreshed ROADMAP deliverable pointers and acceptance-scenario links to accepted evidence,
-  Task macro states, AC traceability, execution links, and commit references;
+- refreshed ROADMAP deliverable pointers and, when present, core-E2E links to accepted
+  evidence, Task macro states, AC traceability, execution links, and commit references;
 - the final diff/link/repository check results.
 
 Integrate that exact commit without creating post-acceptance closure content. If it cannot be

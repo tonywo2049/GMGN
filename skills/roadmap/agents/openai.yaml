@@ -1,4 +1,4 @@
 interface:
   display_name: "Roadmap / 项目路线图"
-  short_description: "Define Milestone deliverables and full-outcome E2E scenarios / 定义里程碑产出与完整结果 E2E 场景"
+  short_description: "Define Milestone deliverables and optional core E2E paths / 定义里程碑产出与按需核心 E2E"
   default_prompt: "Use $roadmap to turn the approved WhitePaper into a project roadmap. / 请用 $roadmap 编排项目路线图。"

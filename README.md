@@ -60,9 +60,10 @@ GMGN does not ship translated normative mirrors or document-layout templates. Ea
 defines required content and self-checks; the Author chooses the structure and may write
 project artifacts in the active locale.
 
-Every ROADMAP Milestone has at least one qualitative end-to-end acceptance scenario spanning
-its full owned outcome. It need not be a browser flow: infrastructure may prove a real
-input-to-observable-output path, and research may prove question-to-decision evidence.
+Every ROADMAP Milestone names concrete deliverables and a concise qualitative acceptance
+summary. Include a core E2E only when the realized product or operational path is itself a
+deliverable; otherwise omit it. Goal expands the detailed qualitative Close picture when the
+Milestone starts.
 
 The Design stage always produces root `Design.md`. Add `design/<module-id>.md` only for a
 useful module authority. A boundary between independently developed units requires
@@ -275,13 +276,13 @@ claude plugin marketplace remove GMGN --scope user
 | Request | Skill | Main output |
 |---|---|---|
 | “I have an idea; research whether it is viable.” | `brainstorm` | WhitePaper |
-| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with at least one end-to-end acceptance scenario per Milestone |
+| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with deliverables, concise acceptance summaries, and optional core E2E paths |
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Requirement.md |
 | “Produce the technical design.” | `write-design` | Root Design.md plus conditional module, contract, and schema authorities |
 | “Break the design into task cards.” | `write-task` | Task.md |
 | “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review, and any required verification evidence |
-| “The milestone is complete; validate and close it.” | `close-milestone` | Regression, E2E, final Contract freeze, closure record |
+| “The milestone is complete; validate and close it.” | `close-milestone` | Applicable regression/E2E evidence, final Contract freeze, closure record |
 | “Publish the accepted version / retry its release.” | `release` | Reused acceptance evidence, deterministic artifact, tag and release |
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 
