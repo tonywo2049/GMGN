@@ -442,8 +442,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not keep a task open to perfect a non-blocking issue when its Card outcome works "
         "and an effective fallback keeps the remaining impact within accepted bounds",
         "A task is complete when its Card contract is satisfied",
+        "Before creating a delegated role that will discover source in an isolated workspace, the\n"
+        "primary orchestrator prepares that exact workspace",
         "run `codegraph init <workspace>`\nonce before source discovery",
         "CodeGraph indexing is\nauthorized",
+        "A read-only role, including Reviewer, never initializes the index",
         "Do not share an index between workspaces",
         "target the exact assigned workspace in every query",
         "treat returned source as already read",

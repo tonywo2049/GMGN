@@ -98,6 +98,15 @@ verification gets a new agent and a new brief. Critic and Reviewer are not redis
 recheck fixes from their completed round. Fresh identity does not mean every role is dispatched
 after every change.
 
+Before creating a delegated role that will discover source in an isolated workspace, the
+primary orchestrator prepares that exact workspace. When CodeGraph indexing is
+authorized, the CLI is available, and the workspace has no `.codegraph/`, it must
+run `codegraph init <workspace>`
+once before source discovery and confirm that a query can use the index.
+A read-only role, including Reviewer, never initializes the index. Do not share an index between
+workspaces. If initialization fails, record the reason and targeted-read fallback in the brief;
+the failure does not block the task.
+
 Use a commit-bound DocStar brief only when candidate handoff needs it; treat it as an index,
 not authority. When the workspace has a usable CodeGraph index, use it first for source
 location and code relationships, target the exact assigned workspace in every query, and treat
@@ -110,11 +119,8 @@ Compliance checks are triggered by a real boundary or material state change, not
 starting a task. Before the first write, confirm Card scope, preservation of existing user
 changes, and one writer per workspace. Use an isolated workspace for each concurrent writing
 lane; a sole writer may use the current workspace. Require baseline/HEAD checks and record
-candidate transfer facts only for concurrent work or handoff. When CodeGraph indexing is
-authorized, the CLI is available, and an isolated workspace has no `.codegraph/`, run
-`codegraph init <workspace>` once before source discovery. Do not share an index between
-workspaces. Initialization failure falls back to targeted source reads and does not block the
-task. Do not repeat an unchanged check or create evidence for the check itself.
+candidate transfer facts only for concurrent work or handoff. Do not repeat an unchanged check
+or create evidence for the check itself.
 
 A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
 Design/Contract authority, `Task.md`, Card/Log runtime state, the integration queue, or remote
