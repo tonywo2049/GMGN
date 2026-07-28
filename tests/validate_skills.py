@@ -369,16 +369,21 @@ def validate_core_contract(errors: list[str]) -> None:
         "Keep the parser-facing task header unchanged. Use stable task IDs and the "
         "task-state tokens\n  defined by the writing contract",
         "Replace current status and execution values; never append\n  execution history",
-        "one primary result that can be independently judged complete or failed",
-        "Split by result and verification boundary, not by file, interface, implementation step",
-        "only when\n  each result is independently decidable",
+        "exactly one approved result that can be independently accepted or failed",
+        "Apply the split test",
+        "two or more approved results and each has its own\n"
+        "  upstream anchor and pass/fail check",
+        "a dependency is not a reason to merge them",
+        "or merely to occupy capacity",
         "Keep only task boundaries supported by the current approved Design",
         "Only when research or\n  selection is itself the current Milestone result",
         "return a missing decision to `gmgn` for routing\n"
         "  before defining implementation tasks",
         "Never create tentative, placeholder, or speculative task sets",
         "- Every in-scope AC must map to at least one task",
-        "A task may cover several related ACs and\n  one AC may require several tasks",
+        "AC coverage belongs to the task set",
+        "one AC may require several tasks, and no individual task must\n"
+        "  satisfy that AC alone",
         "the Design is\n  not ready for Task planning",
         "`prerequisite` contains only real data, interface, or decision dependencies and must form\n"
         "  an acyclic DAG",
@@ -394,7 +399,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "Remove a task when deleting its result leaves every\n"
         "  current AC and approved Design result satisfied",
         "Future reuse, possible hardening, and\n  coordination convenience are not task owners",
-        "Critic must try deleting or merging each affected task",
+        "Critic must try splitting, deleting, and merging each affected task",
+        "Report under-splitting",
+        "merging them loses\n"
+        "neither an independent acceptance boundary nor a real dependency boundary",
+        "no task contains another\nresult that passes the split test",
     ), "write-task 紧凑索引契约", errors)
     forbid(write_task, (
         "Task may redefine upstream meaning",
@@ -470,6 +479,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "do not create a separate change-request document",
         "meaning-preserving clarification",
         "Do not mark the working Contract `closed` during run-task",
+        "When capacity cannot fit every\nready task",
+        "closure would make the largest number of currently blocked\n"
+        "tasks ready",
+        "break ties by stable `card_id`",
     ), "run-task 执行与验证契约", errors)
     require(dispatch_en, (
         "One dispatch, one fresh agent",
@@ -491,6 +504,12 @@ def validate_core_contract(errors: list[str]) -> None:
         "concrete material harm",
         "smallest sufficient correction",
         "The stage Skill and role definition own role-specific content",
+        "A platform-interrupted or hard-failed delegated agent is also retired",
+        "continue with a fresh agent and a new prepared brief",
+        "Treat retained workspace\nchanges as an unverified draft",
+        "never resume the interrupted conversation",
+        "only one primary orchestrator may\nmutate shared state and integrate candidates at a time",
+        "Other sessions remain read-only",
     ), "英文派发契约", errors)
     require(roadmap, (
         "explicit **Milestone\n  deliverables**",

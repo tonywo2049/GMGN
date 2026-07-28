@@ -57,8 +57,9 @@ or resource-capacity change. Before waiting or acting as a Coder, the primary or
 scans every task in the confirmed execution set, not only the current card or active lane, and
 dispatches every ready, non-conflicting task that fits currently available capacity.
 Concurrency is the minimum of platform capacity, ready tasks, available writer workspaces, and
-any real exclusive-resource capacity; never hard-code a count. Prefer dependency topology, then stable
-`card_id` order. A blocked lane does not stop unrelated lanes.
+any real exclusive-resource capacity; never hard-code a count. When capacity cannot fit every
+ready task, prefer the task whose closure would make the largest number of currently blocked
+tasks ready; break ties by stable `card_id`. A blocked lane does not stop unrelated lanes.
 
 The current approved interface contract is a shared working authority, not an implementation
 prerequisite or a final frozen artifact. Provider and consumer tasks that share only that

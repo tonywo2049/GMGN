@@ -29,18 +29,20 @@ task`, `nature: normative`, and this parser-facing table header:
 - Keep the parser-facing task header unchanged. Use stable task IDs and the task-state tokens
   defined by the writing contract. Replace current status and execution values; never append
   execution history.
-- Give each task one primary result that can be independently judged complete or failed.
-  Split by result and verification boundary, not by file, interface, implementation step,
-  chronology, or person. Separate implementation, integration, or qualification only when
-  each result is independently decidable.
+- Give each task exactly one approved result that can be independently accepted or failed.
+  Apply the split test: if a row contains two or more approved results and each has its own
+  upstream anchor and pass/fail check, split the row. Keep any real dependencies between the
+  resulting tasks in `prerequisite`; a dependency is not a reason to merge them. Do not split
+  by file, interface, implementation step, chronology, person, or merely to occupy capacity.
 - Keep only task boundaries supported by the current approved Design. Only when research or
   selection is itself the current Milestone result may an approved task produce that evidence.
   Task never chooses production semantics; return a missing decision to `gmgn` for routing
   before defining implementation tasks. Never create tentative, placeholder, or speculative
   task sets.
-- Every in-scope AC must map to at least one task. A task may cover several related ACs and
-  one AC may require several tasks. If the current ACs cannot be fully mapped, the Design is
-  not ready for Task planning.
+- Every in-scope AC must map to at least one task. AC coverage belongs to the task set: a task
+  may cover several related ACs, one AC may require several tasks, and no individual task must
+  satisfy that AC alone. If the current ACs cannot be fully mapped, the Design is not ready
+  for Task planning.
 - `prerequisite` contains only real data, interface, or decision dependencies and must form
   an acyclic DAG. Sharing an approved Contract does not by itself create a dependency. Do not
   freeze execution waves.
@@ -68,8 +70,10 @@ format. Do not resume or repurpose a returned agent.
 After the writer self-check and machine checks, commit the complete candidate locally and
 dispatch one fresh independent Critic for semantic review from a brief that names the shortest
 unambiguous commit reference. Collect all findings before changing the candidate.
-The Critic must try deleting or merging each affected task and report any task whose removal
-preserves all current ACs and approved Design outcomes as overdesign.
+The Critic must try splitting, deleting, and merging each affected task. Report under-splitting
+when a row contains more than one result that passes the split test. Report overdesign when a
+task can be deleted, or when two rows are only steps of one result and merging them loses
+neither an independent acceptance boundary nor a real dependency boundary.
 The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches
 a fresh Author with a revision brief. It checks each resolution and runs affected machine
 checks without dispatching a second Critic. A fix that expands authority or scope beyond the
@@ -85,7 +89,8 @@ use machine checks without Critic.
 ## Exit
 
 Before acceptance, confirm every task has one independently decidable result, an upstream
-anchor, only real prerequisites, and current status/execution values; every in-scope AC is
-covered; the dependency graph is acyclic; and no design decision or execution detail appears
-in `Task.md`. Before every substantive return, perform a task-specific self-check and correct
-defects. Do not output a fixed `Reflection` section. Disclose only unresolved material risk.
+anchor, only real prerequisites, and current status/execution values; no task contains another
+result that passes the split test; every in-scope AC is covered; the dependency graph is
+acyclic; and no design decision or execution detail appears in `Task.md`. Before every
+substantive return, perform a task-specific self-check and correct defects. Do not output a
+fixed `Reflection` section. Disclose only unresolved material risk.

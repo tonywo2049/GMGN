@@ -21,10 +21,19 @@ authoring or coding attempt, separately scoped semantic or implementation change
 verification creates another agent from another prepared brief. Critic and Reviewer are not
 redispatched to recheck fixes from their completed round.
 
+A platform-interrupted or hard-failed delegated agent is also retired. If the objective
+remains valid, continue with a fresh agent and a new prepared brief. Treat retained workspace
+changes as an unverified draft until the primary orchestrator checks the candidate boundary;
+never resume the interrupted conversation.
+
 The primary orchestrator is persistent coordination authority, not a delegated agent. It may
 write specification documents directly when it holds the clearest context and may act as one
 Coder only under the explicit no-parallelism rule. Those choices do not remove independent
 review or required verification.
+
+For overlapping shared-baseline or target-Milestone scope, only one primary orchestrator may
+mutate shared state and integrate candidates at a time. Other sessions remain read-only or
+use an explicitly isolated, non-overlapping scope until ownership is handed over.
 
 Fresh identity is not a reason to dispatch every role. Select a role only when its evidence
 surface changed:

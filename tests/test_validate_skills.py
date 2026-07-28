@@ -150,6 +150,35 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("write-task 紧凑索引契约", result.stdout)
 
+    def test_rejects_task_split_contract_drift(self) -> None:
+        cases = (
+            (
+                "Apply the split test",
+                "The split test is optional",
+            ),
+            (
+                "a dependency is not a reason to merge them",
+                "a dependency is a reason to merge them",
+            ),
+            (
+                "no individual task must\n"
+                "  satisfy that AC alone",
+                "every individual task must\n"
+                "  satisfy that AC alone",
+            ),
+            (
+                "Critic must try splitting, deleting, and merging each affected task",
+                "Critic must try deleting and merging each affected task",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(new=new):
+                result = self.run_isolated_mutation(
+                    "skills/write-task/SKILL.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("write-task 紧凑索引契约", result.stdout)
+
     def test_rejects_task_content_boundary_drift(self) -> None:
         cases = (
             (
@@ -826,6 +855,37 @@ class ValidateSkillsTests(unittest.TestCase):
                 result = self.run_isolated_mutation(relative, old, new)
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("全局调度契约", result.stdout)
+
+    def test_rejects_ready_set_priority_drift(self) -> None:
+        result = self.run_isolated_mutation(
+            "skills/run-task/SKILL.md",
+            "closure would make the largest number of currently blocked\n"
+            "tasks ready",
+            "card title sorts first",
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("run-task 执行与验证契约", result.stdout)
+
+    def test_rejects_agent_retirement_and_ownership_drift(self) -> None:
+        cases = (
+            (
+                "A platform-interrupted or hard-failed delegated agent is also retired",
+                "A platform-interrupted delegated agent may be resumed",
+            ),
+            (
+                "only one primary orchestrator may\n"
+                "mutate shared state and integrate candidates at a time",
+                "several primary orchestrators may\n"
+                "mutate shared state and integrate candidates at a time",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(new=new):
+                result = self.run_isolated_mutation(
+                    "skills/gmgn/references/en/dispatch-and-handoff.md", old, new,
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("英文派发契约", result.stdout)
 
     def test_rejects_missing_fallback_stop_rule(self) -> None:
         cases = (
