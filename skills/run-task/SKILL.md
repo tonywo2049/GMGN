@@ -50,7 +50,7 @@ with this preparation candidate.
 
 ## 2. Build and refill the ready set
 
-Read the compact Task rows for the confirmed execution set and the selected tasks' Card current
+Read the Task rows for the confirmed execution set and the selected tasks' Card current
 contracts. A ready task has every prerequisite integrated and no collision with a declared
 shared-resource constraint. Recompute after every material agent return, block, integration,
 or resource-capacity change. Before waiting or acting as a Coder, the primary orchestrator

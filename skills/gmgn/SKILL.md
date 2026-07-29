@@ -114,10 +114,9 @@ document maps without real children. Cross-stage routing and impact propagation 
 in the GMGN router. A possible future need is not an owner.
 
 Requirement and Design additionally apply the same deletion test to each R/AC, design element,
-dependency, and configuration item. Task instead omits work with no current AC or approved
-Design contribution. When dispatched, its Critic must not remove a Task boundary by moving
-necessary work into another Task; necessary work with its own execution and acceptance
-boundary stays separate, and merging must not reduce feasible parallelism.
+dependency, and configuration item. [`write-task`](../write-task/SKILL.md) solely owns Task
+necessity and boundary semantics; Task count itself is not a measure of simplicity or
+overdesign.
 
 `Design.md` is always the root Design-stage authority and Bundle index. Add
 `design/<module-id>.md` only for a useful module authority. A current boundary between
@@ -151,9 +150,9 @@ machine checks, and integration. Do not create an Integrator agent.
 
 ## Task execution
 
-`Task.md` is the compact Milestone index: stable task rows, AC mapping, dependencies, macro
-status, and execution pointers. After the execution set is confirmed, `run-task` creates for
-each selected task:
+`Task.md` is the Milestone index: stable task rows, AC mapping, dependencies, macro status, and
+execution pointers. After the execution set is confirmed, `run-task` creates for each selected
+task:
 
 - `execution/<card_id>/Card.md` — normative execution and TDD contract, linked to `Log.md`;
 - `execution/<card_id>/Log.md` — descriptive current snapshot, material decisions, and final

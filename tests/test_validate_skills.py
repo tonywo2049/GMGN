@@ -99,7 +99,7 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("write-task 紧凑索引契约", result.stdout)
+        self.assertIn("write-task 任务边界契约", result.stdout)
 
     def test_rejects_verbose_log_contract(self) -> None:
         self.replace(
@@ -143,12 +143,12 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_task_decomposition_objective(self) -> None:
         self.replace(
             "skills/write-task/SKILL.md",
-            "Split Tasks to the smallest independently executable and independently acceptable",
-            "Split Tasks into convenient implementation batches",
+            "Apply this Task boundary to every row",
+            "Batch related results into convenient Tasks",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("write-task 紧凑索引契约", result.stdout)
+        self.assertIn("write-task 任务边界契约", result.stdout)
 
     def test_rejects_task_split_contract_drift(self) -> None:
         cases = (
@@ -157,13 +157,12 @@ class ValidateSkillsTests(unittest.TestCase):
                 "The split test is optional",
             ),
             (
-                "maximize parallel execution across the task",
-                "minimize parallel execution across the task",
+                "cannot be split further into smaller results",
+                "may still contain smaller independent results",
             ),
             (
-                "make them separate\n"
-                "  Tasks even when one depends on the other",
-                "merge them whenever one depends on the other",
+                "A dependency relationship is not a basis for Task decomposition",
+                "A dependency relationship is the basis for Task decomposition",
             ),
             (
                 "no individual task must\n"
@@ -172,14 +171,18 @@ class ValidateSkillsTests(unittest.TestCase):
                 "  satisfy that AC alone",
             ),
             (
-                "Critic must test splitting and merging each affected Task",
-                "Critic may merge every affected Task",
+                "Maximize parallel execution by keeping every result that passes the Task boundary",
+                "Minimize parallel execution by grouping results that pass the Task boundary",
             ),
             (
-                "must not treat moving necessary work into another Task\n"
-                "as deletion",
-                "may treat moving necessary work into another Task\n"
-                "as deletion",
+                "Critic must apply the Task boundary to every affected row",
+                "Critic may sample a few affected rows",
+            ),
+            (
+                "AC coverage and an acyclic dependency DAG do not substitute for this\n"
+                "check",
+                "AC coverage and an acyclic dependency DAG substitute for this\n"
+                "check",
             ),
         )
         for old, new in cases:
@@ -188,7 +191,7 @@ class ValidateSkillsTests(unittest.TestCase):
                     "skills/write-task/SKILL.md", old, new,
                 )
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-                self.assertIn("write-task 紧凑索引契约", result.stdout)
+                self.assertIn("write-task 任务边界契约", result.stdout)
 
     def test_rejects_task_content_boundary_drift(self) -> None:
         cases = (
@@ -231,7 +234,7 @@ class ValidateSkillsTests(unittest.TestCase):
                     "skills/write-task/SKILL.md", old, new,
                 )
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-                self.assertIn("write-task 紧凑索引契约", result.stdout)
+                self.assertIn("write-task 任务边界契约", result.stdout)
                 self.assertIn("含相反契约", result.stdout)
 
     def test_rejects_contract_working_and_final_lifecycle_drift(self) -> None:

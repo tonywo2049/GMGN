@@ -161,11 +161,9 @@ and TDD authority. Run-task roles receive exact authority pointers, current Log 
 lane facts, not the parent conversation or a duplicated per-agent handoff.
 
 R-D-T minimality is enforced by GMGN itself. Requirements and design elements use the
-deletion-first check. Task omits work with no current AC or approved Design contribution, but
-necessary work with its own execution and acceptance boundary remains separate instead of
-being moved into another Task; merging must not reduce feasible parallelism. Code minimality
-uses the external [Ponytail](https://github.com/DietrichGebert/ponytail) plugin instead of
-duplicating its rules.
+deletion-first check; `write-task` owns Task boundary and granularity rules, and Task count
+alone is not a simplicity or overdesign metric. Code minimality uses the external
+[Ponytail](https://github.com/DietrichGebert/ponytail) plugin instead of duplicating its rules.
 Run-task requires `ponytail:ponytail` at `full` for Coder. A Reviewer candidate containing
 implementation or test-code changes requires `ponytail:ponytail-review`. Ponytail review is
 part of the same Reviewer round and does not replace correctness or safety review. If Ponytail
@@ -293,7 +291,7 @@ claude plugin marketplace remove GMGN --scope user
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md with Requirement input and qualitative Close criteria |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Observable requirements and decidable ACs |
 | “Produce the technical design.” | `write-design` | Required technical decisions in root Design.md plus conditional authorities |
-| “Break the design into tasks.” | `write-task` | Compact Task.md execution index |
+| “Break the design into tasks.” | `write-task` | Task.md execution index |
 | “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review, and any required verification evidence |
 | “The milestone is complete; validate and close it.” | `close-milestone` | Applicable regression/E2E evidence, final Contract freeze, closure record |
 | “Publish the accepted version / retry its release.” | `release` | Reused acceptance evidence, deterministic artifact, tag and release |

@@ -20,11 +20,11 @@ authority before continuing.
 For Requirement or Design meaning, run a deletion-first minimality check. Attempt to remove,
 reuse, make native, or directly replace every affected R/AC, structure, dependency, or
 configuration item. Require the current Goal or R/AC that would fail without each retained
-element. Possible future use is not sufficient. For Task meaning, reject work with no current
-AC or approved Design contribution, but do not satisfy that check by moving necessary work
-into another Task. Preserve necessary work with its own execution and acceptance boundary;
-merge only when no independent boundary is lost and feasible parallelism is unchanged. Report
-avoidable complexity as a material acceptance finding because it propagates downstream.
+element. Possible future use is not sufficient. For Task meaning, apply the Task boundary
+defined by `write-task` to every affected row and report under-splitting or an incorrect
+boundary. AC coverage and an acyclic dependency DAG do not substitute for this check, and Task
+count alone is not a finding. Report avoidable complexity as a material acceptance finding
+because it propagates downstream.
 
 For a Design Bundle, ask what a later Coder must still decide. Reject any implementation-
 significant public or cross-unit decision, authority, validation entry, state effect, failure,

@@ -111,9 +111,8 @@ interrupt、terminate 或 kill；只有用户明确取消，或有具体证据�
 已评审的 `Task.md` 行选择工作，物化后的 `Card.md` 是静态执行/TDD 权威。run-task 角色只接收精确
 权威指针、Log 当前快照与 lane 事实，不继承父会话，也不复制逐 agent handoff。
 
-R-D-T 的方案最简性由 GMGN 自己检查：Requirement 和 Design 使用删除优先检查。Task 删除对当前
-AC 或已审批 Design 没有贡献的工作，但具有独立执行和验收边界的必要工作必须保持为独立 Task，
-不得移入其他 Task；合并不得减少可行的并行执行。代码最简性调用外部
+R-D-T 的方案最简性由 GMGN 自己检查：Requirement 和 Design 使用删除优先检查；`write-task`
+负责 Task 边界与颗粒度规则，Task 数量本身不是简单性或过度设计的判断指标。代码最简性调用外部
 [Ponytail](https://github.com/DietrichGebert/ponytail) 插件，不复制它的规则。run-task 要求
 Coder 使用 `ponytail:ponytail` 的 `full` 模式；含实现或测试代码差异的 Reviewer 候选要求
 `ponytail:ponytail-review`。Ponytail 与正确性、安全性审查在同一轮完成。未安装 Ponytail
@@ -248,7 +247,7 @@ claude plugin marketplace remove GMGN --scope user
 | “启动 M1，明确范围” | `write-goal` | Goal.md（Requirement 依据和定性 Close 标准） |
 | “写 PRD 和验收标准” | `write-requirement` | 可观察需求与可判定 AC |
 | “出技术设计和系统方案” | `write-design` | 根 Design.md 中的必要技术决定及按需权威 |
-| “拆实施计划和任务” | `write-task` | 紧凑的 Task.md 执行索引 |
+| “拆实施计划和任务” | `write-task` | Task.md 执行索引 |
 | “实现这些 ready 卡 / 修这个 bug” | `run-task` | 已集成代码、测试、审查和所需验证证据 |
 | “里程碑完成了，准备上线关账” | `close-milestone` | 适用的回归/E2E 证据、最终 Contract 冻结、关账记录 |
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |

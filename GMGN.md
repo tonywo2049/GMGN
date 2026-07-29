@@ -113,7 +113,7 @@ Human prose may be English or Chinese. Machine fields, IDs, status tokens, and T
 remain stable. The complete structural contract is in the
 [writing contract](skills/gmgn/references/en/writing-contract.md).
 
-## 3. Compact Task and per-card execution
+## 3. Task index and per-card execution
 
 `Task.md` is a Milestone index, not an execution diary:
 
@@ -125,17 +125,9 @@ It also contains the AC-to-task mapping and Milestone-level execution pointers. 
 contain TDD cases, commands, write sets, locks, blockers, candidate commit references, review rounds,
 verification evidence, or progress history.
 
-Within the approved Design, split Tasks to the smallest independently executable and
-independently acceptable granularity, maximize parallel execution, and give every Task one
-clear acceptance criterion. State that criterion as one observable pass/fail result and link
-its AC, Design, and applicable Contract authority. If two parts can be executed and accepted
-separately, split them and record any real dependency instead of merging them. Do not split by
-files, interfaces, steps, or people without a separate acceptance boundary. Never create
-tentative or placeholder tasks for unknown downstream work. Every in-scope AC must remain
-covered, and dependencies must be real and acyclic. Omit work with no current AC or approved
-Design contribution, but do not move necessary work into another Task to justify removing its
-boundary. Necessary work with its own execution and acceptance boundary remains a separate
-Task; merge only when merging loses neither an independent boundary nor feasible parallelism.
+[`write-task`](skills/write-task/SKILL.md) solely owns the per-row Task boundary, dependency
+semantics, AC mapping, and granularity check; Task count itself is not a measure of simplicity
+or overdesign.
 
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
@@ -337,11 +329,10 @@ workflow narration, downstream management, or implementation convenience is not 
 Anything removable without weakening the document's purpose is overdesign.
 
 When dispatched, the independent Critic applies the deletion test to affected stage candidates
-except Task division. For Task, it rejects work with no current AC or approved Design
-contribution but cannot satisfy that check by moving necessary work into another Task; Task
-split and merge follow §3. For other candidates it first attempts deletion, reuse, native
-behavior, or a direct solution. Unresolved overdesign is a material acceptance finding, not a
-wording, cleanup, or low-impact preference.
+except Task division, whose necessity and boundary checks are owned by
+[`write-task`](skills/write-task/SKILL.md). For other candidates it first attempts deletion,
+reuse, native behavior, or a direct solution. Unresolved overdesign is a material acceptance
+finding, not a wording, cleanup, or low-impact preference.
 
 Choose the first sufficient option:
 

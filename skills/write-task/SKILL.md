@@ -20,7 +20,7 @@ task`, `nature: normative`, and this parser-facing table header:
 - Derive Task only from the reviewed Requirement, Design, and applicable Contract. If task
   planning requires changing upstream meaning or making a missing design decision, stop and
   return the issue to `gmgn` for routing.
-- Keep `Task.md` as a compact Milestone execution index. It answers only:
+- Keep `Task.md` as a Milestone execution index. It answers only:
   - which independently decidable results must be delivered;
   - which AC, Design, and applicable Contract anchors authorize each result;
   - which real prerequisites prevent a task from starting;
@@ -29,15 +29,14 @@ task`, `nature: normative`, and this parser-facing table header:
 - Keep the parser-facing task header unchanged. Use stable task IDs and the task-state tokens
   defined by the writing contract. Replace current status and execution values; never append
   execution history.
-- Split Tasks to the smallest independently executable and independently acceptable
-  granularity supported by the approved Design, maximize parallel execution across the task
-  set, and give every Task one clear acceptance criterion. Apply the split test: if two parts
-  can each be executed and accepted against a clear pass/fail criterion, make them separate
-  Tasks even when one depends on the other; record the real dependency in `prerequisite`.
-  State each criterion in `task` as one observable pass/fail result and link its governing
-  anchors in `spec anchor`. Do not split work that lacks its own acceptance boundary, such as
-  a file edit, interface fragment, implementation step, chronology, person assignment, or
-  work created merely to occupy capacity.
+- Apply this Task boundary to every row: each Task names one necessary result that can be
+  executed as its own unit after its prerequisites are satisfied, has one clear pass/fail
+  acceptance criterion, and cannot be split further into smaller results that each meet these
+  conditions. Independently executable does not mean prerequisite-free. Task count itself is
+  not a measure of simplicity or overdesign. State the criterion in `task` as one observable
+  result and link its governing anchors in `spec anchor`.
+- Apply the split test to every Task row: if it can be divided into two or more results that
+  each meet the Task boundary, split it. Repeat until every row passes the split test.
 - Keep only task boundaries supported by the current approved Design. Only when research or
   selection is itself the current Milestone result may an approved task produce that evidence.
   Task never chooses production semantics; return a missing decision to `gmgn` for routing
@@ -46,15 +45,17 @@ task`, `nature: normative`, and this parser-facing table header:
 - Every in-scope AC must map to at least one task. AC coverage belongs to the task set: a task
   may cover several related ACs, one AC may require several tasks, and no individual task must
   satisfy that AC alone. If the current ACs cannot be fully mapped, the Design is not ready
-  for Task planning.
+  for Task planning. AC coverage does not prove that each row passes the Task boundary.
 - `prerequisite` contains only real data, interface, or decision dependencies and must form
-  an acyclic DAG. Sharing an approved Contract does not by itself create a dependency. Do not
-  freeze execution waves.
+  an acyclic DAG. A dependency relationship is not a basis for Task decomposition. Whether a
+  dependency exists does not determine the Task boundary. Sharing an approved Contract does
+  not by itself create a dependency. Do not freeze execution waves.
+- Maximize parallel execution by keeping every result that passes the Task boundary as a
+  separate Task. Whether ready Tasks can run simultaneously is an orchestration decision and
+  does not change their boundaries.
 - Omit work that contributes to no current AC or approved Design result. This contribution
   check must not be satisfied by deleting a Task row while moving its necessary work into
-  another Task. Keep necessary work as a separate Task whenever it has its own execution and
-  acceptance boundary. Merge Tasks only when no independent boundary is lost and feasible
-  parallelism is unchanged.
+  another Task. The Task boundary determines whether necessary work remains a separate row.
 - Do not copy Requirement, Design, or Contract meaning into Task. Do not put TDD cases,
   commands, file scopes, runtime locks, blockers, commits, candidates, review records,
   evidence, or progress narratives in `Task.md`.
@@ -77,14 +78,10 @@ After the writer self-check and machine checks, commit the complete candidate lo
 apply the registered `gmgn` Skill's Critic necessity gate. When Critic is required, dispatch
 one fresh independent Critic for semantic review from a brief that names the shortest
 unambiguous commit reference. Collect all findings before changing the candidate. The
-Critic must test splitting and merging each affected Task and reject work with no current AC
-or approved Design contribution. It
-must not treat moving necessary work into another Task
-as deletion. Report under-splitting when a Task can be divided into smaller parts that each
-pass the split test, especially when doing so exposes parallel work. Report overdesign when
-two rows are only steps of one result and merging them loses neither a separate
-execution-and-acceptance boundary nor feasible parallelism. When Critic is skipped, record
-the one-sentence reason and run the affected machine checks.
+Critic must apply the Task boundary to every affected row and report under-splitting or an
+incorrect boundary. AC coverage and an acyclic dependency DAG do not substitute for this
+check, and Task count alone is not a finding. When Critic is skipped, record the one-sentence
+reason and run the affected machine checks.
 When Critic runs, the primary orchestrator adjudicates its findings once and applies accepted
 fixes itself or dispatches a fresh Author with a revision brief. It checks each resolution and
 runs affected machine checks without dispatching a second Critic. A fix that expands authority
@@ -99,11 +96,9 @@ formatting, and status refresh use machine checks without Critic.
 
 ## Exit
 
-Before acceptance, confirm every Task is the smallest independently executable and acceptable
-unit supported by the Design, states one observable pass/fail result as its clear acceptance
-criterion, has an upstream anchor, only real prerequisites, and current status/execution
-values; the task set exposes all parallelism not prevented by those prerequisites; every
-in-scope AC is covered; the dependency graph is acyclic; and no design decision or execution
-detail appears in `Task.md`. Before every substantive return, perform a task-specific
-self-check and correct defects. Do not output a fixed `Reflection` section. Disclose only
-unresolved material risk.
+Before acceptance, confirm every row passes the Task boundary and split test; every Task has
+an upstream anchor, only real prerequisites, and current status/execution values; every
+in-scope AC is covered; the dependency graph is acyclic; every result that passes the Task
+boundary remains separately visible; and no design decision or execution detail appears in
+`Task.md`. Before every substantive return, perform a task-specific self-check and correct
+defects. Do not output a fixed `Reflection` section. Disclose only unresolved material risk.

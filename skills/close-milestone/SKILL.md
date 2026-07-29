@@ -28,7 +28,7 @@ return only that impact cone to `write-design`, obtain the new reviewed Bundle c
 affected tasks and evidence, and then restart closure. Closure cannot silently rewrite the
 contract to match code.
 
-Task remains a compact macro index. Material decisions and final commands, anchors, review, and
+Task remains a macro index. Material decisions and final commands, anchors, review, and
 required evidence stay in each card's Log.
 
 ## Reuse evidence before rerunning it

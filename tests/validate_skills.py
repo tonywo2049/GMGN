@@ -222,6 +222,7 @@ def validate_core_contract(errors: list[str]) -> None:
     brainstorm = read("skills/brainstorm/SKILL.md")
     roadmap = read("skills/roadmap/SKILL.md")
     roadmap_agent = read("skills/roadmap/agents/openai.yaml")
+    write_task_agent = read("skills/write-task/agents/openai.yaml")
     readme_zh = read("README.zh-CN.md")
     write_goal = read("skills/write-goal/SKILL.md")
     write_requirement = read("skills/write-requirement/SKILL.md")
@@ -375,16 +376,11 @@ def validate_core_contract(errors: list[str]) -> None:
         "Add a\n  Bundle index only when linked child artifacts exist",
         "If two non-communicating Coders could produce incompatible conforming\n  implementations",
         "consumer validation entries, success/errors, and state effects",
-        "split Tasks to the smallest independently executable and\n"
-        "independently acceptable granularity, maximize parallel execution, and give every Task one\n"
-        "clear acceptance criterion",
-        "Omit work with no current AC or approved\n"
-        "Design contribution, but do not move necessary work into another Task",
-        "Necessary work with its own execution and acceptance boundary remains a separate\n"
-        "Task; merge only when merging loses neither an independent boundary nor feasible parallelism",
-        "deletion test to affected stage candidates except Task\n"
-        "division",
-        "cannot satisfy that check by moving necessary work into another Task",
+        "[`write-task`](skills/write-task/SKILL.md) solely owns the per-row Task boundary, dependency\n"
+        "semantics, AC mapping, and granularity check",
+        "Task count itself is not a measure of simplicity\nor overdesign",
+        "except Task division, whose necessity and boundary checks are owned by\n"
+        "[`write-task`](skills/write-task/SKILL.md)",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
     ), "GMGN 有效兜底边界", errors)
@@ -420,10 +416,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every stage writer keeps only content required for that document's own purpose",
         "Stage documents do not contain downstream\npropagation rules, downstream gates, next-stage instructions",
         "Cross-stage routing and impact propagation belong here\nin the GMGN router",
-        "Task instead omits work with no current AC or approved\nDesign contribution",
-        "must not remove a Task boundary by moving necessary work into\nanother Task",
-        "necessary work with its own execution and acceptance boundary stays separate",
-        "merging must not reduce feasible parallelism",
+        "[`write-task`](../write-task/SKILL.md) solely owns Task\nnecessity and boundary semantics",
+        "Task count itself is not a measure of simplicity or\noverdesign",
+        "`Task.md` is the Milestone index",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
         "Missing Ponytail blocks that code task",
@@ -437,22 +432,22 @@ def validate_core_contract(errors: list[str]) -> None:
         "Derive Task only from the reviewed Requirement, Design, and applicable Contract",
         "changing upstream meaning or making a missing design decision",
         "return the issue to `gmgn` for routing",
-        "Keep `Task.md` as a compact Milestone execution index",
+        "Keep `Task.md` as a Milestone execution index",
         "which independently decidable results must be delivered",
         "which AC, Design, and applicable Contract anchors authorize each result",
         "Keep the parser-facing task header unchanged. Use stable task IDs and the "
         "task-state tokens\n  defined by the writing contract",
         "Replace current status and execution values; never append\n  execution history",
-        "Split Tasks to the smallest independently executable and independently acceptable\n"
-        "  granularity supported by the approved Design, maximize parallel execution across the task\n"
-        "  set, and give every Task one clear acceptance criterion",
-        "Apply the split test",
-        "if two parts\n"
-        "  can each be executed and accepted against a clear pass/fail criterion",
-        "make them separate\n"
-        "  Tasks even when one depends on the other",
-        "State each criterion in `task` as one observable pass/fail result",
-        "work created merely to occupy capacity",
+        "Apply this Task boundary to every row: each Task names one necessary result that can be\n"
+        "  executed as its own unit after its prerequisites are satisfied, has one clear pass/fail\n"
+        "  acceptance criterion, and cannot be split further into smaller results that each meet these\n"
+        "  conditions",
+        "Independently executable does not mean prerequisite-free",
+        "Task count itself is\n  not a measure of simplicity or overdesign",
+        "Apply the split test to every Task row",
+        "if it can be divided into two or more results that\n"
+        "  each meet the Task boundary, split it",
+        "Repeat until every row passes the split test",
         "Keep only task boundaries supported by the current approved Design",
         "Only when research or\n  selection is itself the current Milestone result",
         "return a missing decision to `gmgn` for routing\n"
@@ -463,10 +458,16 @@ def validate_core_contract(errors: list[str]) -> None:
         "one AC may require several tasks, and no individual task must\n"
         "  satisfy that AC alone",
         "the Design is\n  not ready for Task planning",
+        "AC coverage does not prove that each row passes the Task boundary",
         "`prerequisite` contains only real data, interface, or decision dependencies and must form\n"
         "  an acyclic DAG",
+        "A dependency relationship is not a basis for Task decomposition",
+        "Whether a\n  dependency exists does not determine the Task boundary",
         "Sharing an approved Contract does not by itself create a dependency",
         "Do not\n  freeze execution waves",
+        "Maximize parallel execution by keeping every result that passes the Task boundary as a\n"
+        "  separate Task",
+        "Whether ready Tasks can run simultaneously is an orchestration decision",
         "- Do not copy Requirement, Design, or Contract meaning into Task. Do not put TDD cases,\n"
         "  commands, file scopes, runtime locks, blockers, commits, candidates, review records,\n"
         "  evidence, or progress narratives in `Task.md`",
@@ -476,24 +477,25 @@ def validate_core_contract(errors: list[str]) -> None:
         "Omit work that contributes to no current AC or approved Design result",
         "contribution\n  check must not be satisfied by deleting a Task row while moving its necessary work into\n"
         "  another Task",
-        "Keep necessary work as a separate Task whenever it has its own execution and\n"
-        "  acceptance boundary",
-        "Merge Tasks only when no independent boundary is lost and feasible\n"
-        "  parallelism is unchanged",
-        "Critic must test splitting and merging each affected Task",
-        "must not treat moving necessary work into another Task\nas deletion",
-        "Report under-splitting\nwhen a Task can be divided into smaller parts that each pass the split test",
-        "merging them loses neither a separate\n"
-        "execution-and-acceptance boundary nor feasible parallelism",
-        "every Task is the smallest independently executable and acceptable\n"
-        "unit supported by the Design",
-        "the task set exposes all parallelism not prevented by those prerequisites",
-    ), "write-task 紧凑索引契约", errors)
+        "The Task boundary determines whether necessary work remains a separate row",
+        "Critic must apply the Task boundary to every affected row and report under-splitting or an\n"
+        "incorrect boundary",
+        "AC coverage and an acyclic dependency DAG do not substitute for this\ncheck",
+        "Task count alone is not a finding",
+        "every row passes the Task boundary and split test",
+        "every result that passes the Task\nboundary remains separately visible",
+    ), "write-task 任务边界契约", errors)
     forbid(write_task, (
         "Task may redefine upstream meaning",
         "Do not use stable task IDs or task-state tokens",
         "Not every in-scope AC must map to at least one task",
         "but put commands and file scopes",
+        "compact Milestone execution index",
+        "Do not split work that lacks its own acceptance boundary",
+        "work created merely to occupy capacity",
+        "Merge Tasks only",
+        "test splitting and merging each affected Task",
+        "merging them loses neither",
         "Apply the deletion test to every task",
         "Remove a task when deleting its result",
         "Allow tentative, placeholder, or speculative task sets",
@@ -501,7 +503,23 @@ def validate_core_contract(errors: list[str]) -> None:
         "Freeze execution waves in Task",
         "Task.md records execution content or history",
         "execution ID must equal the Task ID",
-    ), "write-task 紧凑索引契约", errors)
+    ), "write-task 任务边界契约", errors)
+    require(writing_en, (
+        "| **M1-T1** | <task result> | R1-AC1 | none | not-started | none |",
+        "Task owns task\nrows, spec anchors, the dependency DAG, macro status, execution pointers",
+    ), "Task 写作表面契约", errors)
+    forbid(writing_en, (
+        "smallest independently executable and acceptable granularity",
+        "The task set exposes all parallelism",
+    ), "Task 写作表面契约", errors)
+    require(write_task_agent, (
+        "Use $write-task to create or revise Task.md from the reviewed Design",
+        "请用 $write-task 根据已评审的 Design 创建或修改 Task.md",
+    ), "write-task 默认入口", errors)
+    forbid(write_task_agent, (
+        "smallest independently executable and acceptable Tasks",
+        "maximize parallel execution",
+    ), "write-task 默认入口", errors)
     require(run_task, (
         "`execution/<card_id>/Card.md` first",
         "`execution/<card_id>/Log.md` second",
@@ -1175,11 +1193,11 @@ def validate_roles(errors: list[str]) -> None:
                     "smallest sufficient correction",
                     "deletion-first minimality check",
                     "Possible future use is not sufficient",
-                    "For Task meaning, reject work with no current\n"
-                    "AC or approved Design contribution",
-                    "do not satisfy that check by moving necessary work\n"
-                    "into another Task",
-                    "feasible parallelism is unchanged",
+                    "For Task meaning, apply the Task boundary\n"
+                    "defined by `write-task` to every affected row",
+                    "report under-splitting or an incorrect\nboundary",
+                    "AC coverage and an acyclic dependency DAG do not substitute for this check",
+                    "Task\ncount alone is not a finding",
                     "avoidable complexity as a\nmaterial acceptance finding",
                 ), str(markdown), errors)
                 require(instructions, (
@@ -1187,9 +1205,10 @@ def validate_roles(errors: list[str]) -> None:
                     "已接受的有效兜底", "最小充分修复",
                     "删除优先的最简性检查",
                     "未来可能使用不能作为理由",
-                    "对 Task，删除对当前 AC 或已审批 Design 没有贡献的工作",
-                    "不得通过把必要工作移入其他 Task 来删除 Task 边界",
-                    "合并不得减少可行并行",
+                    "对 Task，按照 `write-task` 定义的 Task 边界逐行检查",
+                    "报告欠拆或错误边界",
+                    "AC 覆盖和依赖 DAG 无环不能替代该检查",
+                    "Task 数量本身不能构成 finding",
                     "属于实质验收 finding",
                 ), str(toml), errors)
             if len(text.splitlines()) > 80:
