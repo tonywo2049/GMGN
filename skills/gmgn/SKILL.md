@@ -65,11 +65,11 @@ Fresh identity does not require a full role set after each edit. Select roles by
 | Recorded trigger from the local [assurance policy](references/en/assurance-policy.json) | Verifier after review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
-Before dispatching a Critic, identify a concrete material harm that is not contained by an
-accepted effective fallback and that independent criticism could plausibly use to change
-acceptance or the next action. Dispatch one fresh Critic only when such a risk can be named or
-the primary orchestrator cannot decide. Otherwise skip Critic, record one sentence explaining
-why, and run the affected machine checks.
+Before dispatching a Critic, identify a concrete material harm that the owner has not
+accepted, that no accepted effective fallback contains, and that independent criticism could
+plausibly use to change acceptance or the next action. Dispatch one fresh Critic only when
+such a risk can be named or the primary orchestrator cannot decide. Otherwise skip Critic,
+record one sentence explaining why, and run the affected machine checks.
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
 review round. An accepted finding fix remains part of that reviewed batch and does not
@@ -85,8 +85,9 @@ aligns a duplicate representation with an already unambiguous reviewed authority
 changing meaning. Do not resume or create a Critic/Reviewer for such fixes. If a fix must
 invent or change authority, scope, public behavior, interface obligations, error priority, or
 state order, narrow it or open a separately scoped semantic batch with its own single review
-round. Record the reviewed commit, findings and rulings, exact fix delta, and post-fix checks
-at the final accepted commit.
+round. When review runs, record the reviewed commit, findings and rulings, exact fix delta,
+and post-fix checks at the final accepted commit. When Critic is skipped, record the
+one-sentence reason and affected machine checks.
 Non-blocking suggestions do not reopen an otherwise acceptable candidate. The Reviewer runs
 the prepared deterministic local checks and returns the commands and results with its code
 findings. After accepted fixes, the primary orchestrator checks the fix delta and reruns

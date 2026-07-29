@@ -160,10 +160,10 @@ Commit the complete candidate locally before independent checks. Select roles by
 | equivalent links, formatting, pointers, or status | machine checks only |
 
 Before dispatching a Critic, the primary orchestrator must identify a concrete material harm
-that is not contained by an accepted effective fallback and that independent criticism could
-plausibly use to change acceptance or the next action. Dispatch a fresh Critic only when such
-a risk can be named or the orchestrator cannot decide. Otherwise skip Critic, record one
-sentence explaining why, and run the affected machine checks.
+that the owner has not accepted, that no accepted effective fallback contains, and that
+independent criticism could plausibly use to change acceptance or the next action. Dispatch a
+fresh Critic only when such a risk can be named or the orchestrator cannot decide. Otherwise
+skip Critic, record one sentence explaining why, and run the affected machine checks.
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
 review round. An accepted finding fix remains part of that reviewed batch and does not

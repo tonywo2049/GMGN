@@ -979,6 +979,19 @@ class ValidateSkillsTests(unittest.TestCase):
                 )
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
+    def test_rejects_unconditional_stage_critic_dispatch(self) -> None:
+        old = (
+            "Commit the complete candidate locally and apply the registered `gmgn` Skill's "
+            "Critic\nnecessity gate."
+        )
+        result = self.run_isolated_mutation(
+            "skills/write-goal/SKILL.md",
+            old,
+            old + " Commit the complete candidate locally and dispatch one fresh independent Critic.",
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("write-goal Critic 必要性门槛", result.stdout)
+
     def test_rejects_unchanged_state_primary_heartbeat(self) -> None:
         self.replace(
             "skills/gmgn/SKILL.md",

@@ -234,6 +234,7 @@ def validate_core_contract(errors: list[str]) -> None:
     critic_gate_contract = (
         "Before dispatching a Critic",
         "concrete material harm",
+        "owner has not accepted",
         "accepted effective fallback",
         "change acceptance or the next action",
         "cannot decide",
@@ -264,12 +265,30 @@ def validate_core_contract(errors: list[str]) -> None:
         "semantic document change → Critic;",
         "WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | fresh Critic",
         "specification or document meaning | fresh Critic",
+        "Commit the complete candidate locally and dispatch one fresh independent Critic",
+        "3. Prepare one brief naming the shortest unambiguous commit reference and create one "
+        "fresh independent Critic",
+        "Run one Critic round after that integration",
+        "A semantic delta receives one fresh independent Critic round",
+        "A change that alters a decision or reasonable understanding receives independent "
+        "criticism",
+        "If the delta changes a decision or reasonable understanding, run the independent critic",
+        "Commit the complete candidate locally after writer self-check and machine checks. "
+        "Prepare one brief naming its shortest unambiguous commit reference and create a fresh "
+        "independent combined Critic/Reviewer",
     )
     for text, label in (
         (methodology, "GMGN 根规范 Critic 必要性门槛"),
         (gmgn, "gmgn 路由 Critic 必要性门槛"),
         (dispatch_en, "派发契约 Critic 必要性门槛"),
+        (brainstorm, "brainstorm Critic 必要性门槛"),
+        (roadmap, "roadmap Critic 必要性门槛"),
+        (write_goal, "write-goal Critic 必要性门槛"),
+        (write_requirement, "write-requirement Critic 必要性门槛"),
+        (write_design, "write-design Critic 必要性门槛"),
+        (write_task, "write-task Critic 必要性门槛"),
         (run_task, "run-task Critic 必要性门槛"),
+        (close_milestone, "close-milestone Critic 必要性门槛"),
     ):
         forbid(text, unconditional_critic, label, errors)
 

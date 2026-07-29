@@ -44,10 +44,11 @@ surface changed:
 - equivalent mechanical links, formatting, pointers, and status → machine checks.
 
 Before dispatching a Critic, the primary orchestrator must identify a concrete material harm
-that is not contained by an accepted effective fallback and that independent criticism could
-plausibly use to change acceptance or the next action. Dispatch a fresh Critic only when such
-a risk can be named or the primary orchestrator cannot decide. Otherwise skip Critic, record
-one sentence explaining why, and run the affected machine checks.
+that the owner has not accepted, that no accepted effective fallback contains, and that
+independent criticism could plausibly use to change acceptance or the next action. Dispatch a
+fresh Critic only when such a risk can be named or the primary orchestrator cannot decide.
+Otherwise skip Critic, record one sentence explaining why, and run the affected machine
+checks.
 
 ## Prepare the brief before creating the agent
 
