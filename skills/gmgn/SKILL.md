@@ -60,10 +60,16 @@ Fresh identity does not require a full role set after each edit. Select roles by
 
 | Changed surface | Independent role |
 |---|---|
-| WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | Critic |
+| WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | Critic necessity gate |
 | Implementation or test-code diff, including deterministic local execution | Reviewer |
 | Recorded trigger from the local [assurance policy](references/en/assurance-policy.json) | Verifier after review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
+
+Before dispatching a Critic, identify a concrete material harm that is not contained by an
+accepted effective fallback and that independent criticism could plausibly use to change
+acceptance or the next action. Dispatch one fresh Critic only when such a risk can be named or
+the primary orchestrator cannot decide. Otherwise skip Critic, record one sentence explaining
+why, and run the affected machine checks.
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
 review round. An accepted finding fix remains part of that reviewed batch and does not
@@ -108,9 +114,9 @@ in the GMGN router. A possible future need is not an owner.
 
 Requirement and Design additionally apply the same deletion test to each R/AC, design element,
 dependency, and configuration item. Task instead omits work with no current AC or approved
-Design contribution. Its Critic must not remove a Task boundary by moving necessary work into
-another Task; necessary work with its own execution and acceptance boundary stays separate,
-and merging must not reduce feasible parallelism.
+Design contribution. When dispatched, its Critic must not remove a Task boundary by moving
+necessary work into another Task; necessary work with its own execution and acceptance
+boundary stays separate, and merging must not reduce feasible parallelism.
 
 `Design.md` is always the root Design-stage authority and Bundle index. Add
 `design/<module-id>.md` only for a useful module authority. A current boundary between
@@ -135,11 +141,12 @@ deterministic local execution.
 ## Document nodes
 
 The primary session or a fresh Author creates one candidate, self-checks it, and anchors it.
-Every semantic change batch receives one fresh independent Critic. If blockers are accepted,
-the primary session fixes them directly or uses a fresh Author, then checks each resolution
-and runs affected machine checks without another Critic. The primary orchestrator performs
-mechanical propagation, links, machine checks, and integration. Do not create an Integrator
-agent.
+Every semantic change batch applies the Critic necessity gate. When Critic is required, use
+one fresh independent Critic; if blockers are accepted, the primary session fixes them
+directly or uses a fresh Author, then checks each resolution and runs affected machine checks
+without another Critic. When Critic is skipped, record the one-sentence reason and run the
+affected machine checks. The primary orchestrator performs mechanical propagation, links,
+machine checks, and integration. Do not create an Integrator agent.
 
 ## Task execution
 
@@ -176,7 +183,7 @@ interface authority; when implementation evidence contradicts it, the Coder retu
 evidence, smallest proposed delta, and affected tasks. The primary orchestrator keeps
 unaffected lanes running, classifies a meaning-preserving clarification for same-batch machine
 checks, and routes a semantic Design/Contract change through `write-design` for one new bundle
-commit and its required Critic round.
+commit, its Critic necessity gate, and any required Critic round.
 
 Accepted fixes may use another fresh Coder, but they are not sent to another Reviewer. The
 primary orchestrator checks their resolution and runs affected machine checks. Dispatch a

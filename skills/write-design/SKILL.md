@@ -5,7 +5,7 @@ description: "Use after Requirement review to create or change the Design-stage 
 
 # Design stage: requirements → implementation decisions
 
-<HARD-GATE>`Requirement.md` must exist and have independent-critic plus primary-orchestrator review. If it is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
+<HARD-GATE>`Requirement.md` must exist, have passed the Critic necessity gate and any required Critic review, and have primary-orchestrator review. If it is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
 
 ## Language, bundle, and authority
 
@@ -110,7 +110,7 @@ Before return, apply this Design Ready gate:
 5. Removing, reusing, making native, or directly replacing any retained structure would lose a
    current accepted outcome or safeguard.
 
-## Writer and critic loop
+## Writer and review-selection loop
 
 Record the Requirement commit. For a small Bundle, the primary session writes it directly.
 For useful parallelism, it first creates root `Design.md` with the global architecture, module
@@ -121,22 +121,23 @@ and local closure.
 
 The primary session integrates provider/consumer seams, shared state, error order, and schema
 references, then commits one complete immutable Bundle candidate and identifies it by the
-shortest unambiguous commit reference. Run one Critic round after that integration. A small
-Bundle uses one fresh Critic; a large Bundle may use parallel fresh Critics on bounded module
-scopes plus one Bundle-seam scope in the same round. Every Critic reads the same candidate
-commit, all returns are collected before editing, and physical file count never determines
-the number of Critics.
+shortest unambiguous commit reference. Apply the registered `gmgn` Skill's Critic necessity
+gate after that integration. When Critic is required, a small Bundle uses one fresh Critic; a
+large Bundle may use parallel fresh Critics on bounded module scopes plus one Bundle-seam
+scope in the same round. Every Critic reads the same candidate commit, all returns are
+collected before editing, and physical file count never determines the number of Critics.
+When Critic is skipped, record the one-sentence reason and run the affected machine checks.
 
-Critics find any implementation-significant decision still unspecified. Reject any public or
-cross-unit decision, authority, validation entry, state effect, failure, recovery, or
-parameter left ambiguous. Check provider and consumer feasibility, object-phase legality,
-structural authority consistency, global-versus-local rule conflicts, R/AC traceability, and
-whether each separate artifact can be deleted.
+When dispatched, Critics find any implementation-significant decision still unspecified.
+Reject any public or cross-unit decision, authority, validation entry, state effect, failure,
+recovery, or parameter left ambiguous. Check provider and consumer feasibility, object-phase
+legality, structural authority consistency, global-versus-local rule conflicts, R/AC
+traceability, and whether each separate artifact can be deleted.
 
-Adjudicate once and batch accepted blocker fixes. A fix is mechanical only when it makes a
-duplicate representation conform to an already unambiguous reviewed authority without changing
-meaning. The primary orchestrator checks those resolutions and affected machine checks without
-another Critic. If the fix must invent or change Design-owned meaning, it is a new semantic
+When Critic runs, adjudicate once and batch accepted blocker fixes. A fix is mechanical only
+when it makes a duplicate representation conform to an already unambiguous reviewed authority
+without changing meaning. The primary orchestrator checks those resolutions and affected
+machine checks without another Critic. If the fix must invent or change Design-owned meaning, it is a new semantic
 batch under Controlled revision, not a recheck of the old batch. Accept only the complete
 Bundle at one commit as the shared Design baseline.
 
@@ -153,9 +154,10 @@ Bundle at one commit as the shared Design baseline.
    error priority, state or durability order, or provider/consumer obligation is a semantic
    delta. Narrow it back to the reviewed authority or open a new batch.
 5. Revise only the affected design, contract, schema, and links; do not redesign unrelated
-   structures. A semantic delta receives one fresh independent Critic round scoped to that
-   delta and its direct impact surface, plus primary-orchestrator review at the new Bundle
-   commit. Old review remains attached to the old commit.
+   structures. A semantic delta applies the Critic necessity gate and receives any required
+   fresh independent Critic round scoped to that delta and its direct impact surface, plus
+   primary-orchestrator review at the new Bundle commit. Old review remains attached to the
+   old commit.
 
 Meaning-preserving mechanical changes use same-batch link, mapping pointer, and status
 refresh plus machine checks without reapproval.
@@ -164,9 +166,9 @@ refresh plus machine checks without reapproval.
 
 Require the recorded writer to reconcile the Bundle links: no orphan child, unmapped R/AC,
 unresolved structure authority, or cross-unit boundary with competing definitions. For
-creation or a semantic revision, run the writer/Critic loop above using the English-only
-dispatch contract. Obtain primary-orchestrator review and integrate only when required by
-workspace topology. Design acceptance marks the complete Bundle `approved`, not `closed`.
+creation or a semantic revision, run the writer/review-selection loop above using the
+English-only dispatch contract. Obtain primary-orchestrator review and integrate only when
+required by workspace topology. Design acceptance marks the complete Bundle `approved`, not `closed`.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

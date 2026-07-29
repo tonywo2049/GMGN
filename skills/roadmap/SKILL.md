@@ -60,25 +60,27 @@ writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `t
   apply. When a core E2E anchor exists, link it to accepted evidence.
 - New ideas remain in the Backlog until allocated to a Milestone.
 
-## Writer and critic loop
+## Writer and review-selection loop
 
 1. Record the WhitePaper commit and mode. The primary session may write directly, or it may
    prepare a complete brief and create one fresh Author when the bounded handoff creates real
    value.
 2. The writer self-checks before return. A delegated Author ends after that return; missing
    inputs or later revision use the primary session or a fresh Author with a new brief.
-3. Commit the complete candidate locally and dispatch one fresh independent Critic from a
+3. Commit the complete candidate locally and apply the registered `gmgn` Skill's Critic
+   necessity gate. When Critic is required, dispatch one fresh independent Critic from a
    prepared brief that names the shortest unambiguous commit reference. Collect all findings
-   before editing, adjudicate once, and batch accepted blocker fixes.
-   Check each resolution and run affected machine checks; do not dispatch a second Critic to
-   recheck this round's fixes.
+   before editing, adjudicate once, and batch accepted blocker fixes. Check each resolution
+   and run affected machine checks; do not dispatch a second Critic to recheck this round's
+   fixes. When Critic is skipped, record the one-sentence reason and run the affected machine
+   checks.
 4. With no blocker, owner approval binds the candidate commit. The primary orchestrator applies
    accepted mechanical reciprocal links, state, and evidence pointers, then runs machine checks.
 
 Closure backfill and other meaning-preserving maintenance skip semantic criticism. The primary
 session applies the mechanical batch directly, including across an integration boundary. Run
 machine checks and preserve the existing approval through an
-equivalence record. Any semantic ambiguity returns to the full writer/Critic loop.
+equivalence record. Any semantic ambiguity returns to the full writer/review-selection loop.
 
 ## Controlled revision
 
@@ -89,14 +91,15 @@ equivalence record. Any semantic ambiguity returns to the full writer/Critic loo
 - Revise only ROADMAP-owned sequencing, Milestone allocation, deliverables, dependencies,
   concise qualitative acceptance summaries, optional core E2E paths, or Backlog placement.
   Do not reopen unaffected Milestones.
-- A change that alters a decision or reasonable understanding receives independent criticism
-  and owner approval at a new commit. Old approval remains attached to the old commit.
+- A change that alters a decision or reasonable understanding applies the Critic necessity
+  gate and receives owner approval at a new commit. Run independent criticism only when the
+  gate requires it. Old approval remains attached to the old commit.
 - Meaning-preserving mechanical changes use same-batch link and status refresh plus
   machine checks without reapproval.
 
 ## Exit
 
-For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
+For creation or a semantic revision, run the fresh-agent writer/review-selection loop using the
 English-only dispatch contract, present remaining material risks or that none are known,
 obtain owner approval bound to the candidate commit, and integrate only when required by workspace
 topology. Before approval, confirm every Milestone has concrete deliverables and a concise

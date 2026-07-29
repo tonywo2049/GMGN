@@ -96,7 +96,11 @@ Codex, a custom review prompt and scope flags are mutually exclusive; after revi
 `git status --short` for generated side effects.
 Every delegated role receives a complete brief before creation, returns once, and is retired.
 Later authoring, coding, or verification uses a fresh agent without parent or earlier-agent
-history. Each semantic change batch or task execution gets at most one Critic/Reviewer round;
+history. Before dispatching a Critic, the primary orchestrator must name a concrete,
+uncontained material risk that independent criticism could use to change acceptance or the
+next action. If no such risk exists, it records one sentence explaining why, skips Critic, and
+runs affected machine checks; uncertainty requires Critic. Each semantic change batch or task
+execution gets at most one Critic/Reviewer round;
 accepted fixes are checked by the primary orchestrator and are not sent back for a second
 independent round when they only align with an existing unambiguous authority. A fix that
 must invent or change public meaning starts a separately scoped semantic batch. A separate

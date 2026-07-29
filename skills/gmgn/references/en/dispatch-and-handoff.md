@@ -29,7 +29,7 @@ never resume the interrupted conversation.
 The primary orchestrator is persistent coordination authority, not a delegated agent. It may
 write specification documents directly when it holds the clearest context and may act as one
 Coder only under the explicit no-parallelism rule. Those choices do not remove independent
-review or required verification.
+review when required or required verification.
 
 For overlapping shared-baseline or target-Milestone scope, only one primary orchestrator may
 mutate shared state and integrate candidates at a time. Other sessions remain read-only or
@@ -38,10 +38,16 @@ use an explicitly isolated, non-overlapping scope until ownership is handed over
 Fresh identity is not a reason to dispatch every role. Select a role only when its evidence
 surface changed:
 
-- semantic document change → Critic;
+- semantic document change → Critic necessity gate;
 - implementation or test-code diff, including deterministic local execution → Reviewer;
 - recorded `required:<trigger>` classification → Verifier after review clears;
 - equivalent mechanical links, formatting, pointers, and status → machine checks.
+
+Before dispatching a Critic, the primary orchestrator must identify a concrete material harm
+that is not contained by an accepted effective fallback and that independent criticism could
+plausibly use to change acceptance or the next action. Dispatch a fresh Critic only when such
+a risk can be named or the primary orchestrator cannot decide. Otherwise skip Critic, record
+one sentence explaining why, and run the affected machine checks.
 
 ## Prepare the brief before creating the agent
 
@@ -107,8 +113,10 @@ and runs the affected machine checks. A fix that only aligns a duplicate represe
 an existing unambiguous authority is not sent to another Critic or Reviewer. If it must invent
 or change authority, scope, public behavior, interface obligation, error priority, or state
 order, narrow it or open a separately scoped semantic batch with its own single round.
-Non-blocking suggestions do not reopen a candidate. The final accepted commit records the
-reviewed commit, complete findings and rulings, exact fix delta, and post-fix checks.
+Non-blocking suggestions do not reopen a candidate. When review runs, the final accepted
+commit records the reviewed commit, complete findings and rulings, exact fix delta, and
+post-fix checks. When Critic is skipped, the acceptance evidence records the one-sentence
+reason and affected machine checks.
 
 Critic and Reviewer are not expected to maximize finding count, and a valid review may return
 no findings. Report only concrete material harm with no accepted effective fallback and a
@@ -138,4 +146,4 @@ acceptance, or downstream work.
   worktree isolation automatically.
 
 Surface limitations never justify silently reusing an agent, widening write permissions, or
-dropping independent review.
+dropping required independent review.

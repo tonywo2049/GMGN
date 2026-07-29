@@ -45,17 +45,19 @@ The recorded writer performs one semantic batch:
 
 This batch changes only the ROADMAP initiation state/link and Goal.
 
-## Writer and critic loop
+## Writer and review-selection loop
 
 Record the ROADMAP commit and owner initiation. The primary session may write directly, or it
 prepares a complete brief and creates one fresh Author when the bounded
 handoff creates real value. The writer self-checks before return; a delegated Author ends on
 return, so later correction uses the primary session or a fresh Author with a new brief.
-Commit the complete candidate locally and dispatch one fresh independent Critic from a
-prepared brief that names the shortest unambiguous commit reference. Collect all
-findings before editing, adjudicate once, and batch accepted blocker fixes. The primary
-orchestrator checks each resolution without dispatching a second Critic, then reviews the
-committed candidate, applies accepted mechanical links and state, and runs machine checks.
+Commit the complete candidate locally and apply the registered `gmgn` Skill's Critic
+necessity gate. When Critic is required, dispatch one fresh independent Critic from a prepared
+brief that names the shortest unambiguous commit reference. Collect all findings before
+editing, adjudicate once, and batch accepted blocker fixes. The primary orchestrator checks
+each resolution without dispatching a second Critic. When Critic is skipped, record the
+one-sentence reason. The primary orchestrator then reviews the committed candidate, applies
+accepted mechanical links and state, and runs affected machine checks.
 
 ## Controlled revision
 
@@ -65,9 +67,10 @@ committed candidate, applies accepted mechanical links and state, and runs machi
    meaning into Goal.
 3. Revise only Goal-owned results, boundaries, non-goals, result slices, ROADMAP
    deliverable/core-E2E mappings, or qualitative Close outcomes. Preserve unaffected content.
-4. If the delta changes a decision or reasonable understanding, run the independent critic
-   and primary-orchestrator review against the affected content and bind it to a new commit.
-   Old review remains attached to the old commit.
+4. If the delta changes a decision or reasonable understanding, apply the Critic necessity
+   gate, run any required independent criticism and primary-orchestrator review against the
+   affected content, and bind it to a new commit. Old review remains attached to the old
+   commit.
 Meaning-preserving mechanical changes use same-batch link and status refresh plus
 machine checks without reapproval.
 
@@ -86,7 +89,7 @@ Require the recorded writer to confirm:
 - an invalid mapping returns to `gmgn` for routing instead of changing upstream meaning in
   Goal.
 
-For creation or a semantic revision, run the fresh-agent writer/Critic loop using the
+For creation or a semantic revision, run the fresh-agent writer/review-selection loop using the
 English-only dispatch contract, obtain primary-orchestrator review, and integrate only when
 required by workspace topology.
 

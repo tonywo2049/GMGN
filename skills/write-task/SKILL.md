@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 # Task.md: milestone task index
 
-<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have independent Critic plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
+<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have passed the Critic necessity gate and any required Critic review plus primary-orchestrator review at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing contract. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -74,20 +74,23 @@ objective, required commit references, required context, scope and prohibitions,
 format. Do not resume or repurpose a returned agent.
 
 After the writer self-check and machine checks, commit the complete candidate locally and
-dispatch one fresh independent Critic for semantic review from a brief that names the shortest
-unambiguous commit reference. Collect all findings before changing the candidate.
-The Critic must test splitting and merging each affected Task and reject work with no current
-AC or approved Design contribution. It must not treat moving necessary work into another Task
-as deletion. Report under-splitting when a Task can be divided into smaller parts that each pass
-the split test, especially when doing so exposes parallel work. Report overdesign when two rows
-are only steps of one result and merging them loses neither a separate
-execution-and-acceptance boundary nor feasible parallelism.
-The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches
-a fresh Author with a revision brief. It checks each resolution and runs affected machine
-checks without dispatching a second Critic. A fix that expands authority or scope beyond the
-accepted findings becomes a separately scoped change. Non-blocking suggestions do not reopen
-an otherwise acceptable candidate. Meaning-preserving links, formatting, and status refresh
-use machine checks without Critic.
+apply the registered `gmgn` Skill's Critic necessity gate. When Critic is required, dispatch
+one fresh independent Critic for semantic review from a brief that names the shortest
+unambiguous commit reference. Collect all findings before changing the candidate. The
+Critic must test splitting and merging each affected Task and reject work with no current AC
+or approved Design contribution. It
+must not treat moving necessary work into another Task
+as deletion. Report under-splitting when a Task can be divided into smaller parts that each
+pass the split test, especially when doing so exposes parallel work. Report overdesign when
+two rows are only steps of one result and merging them loses neither a separate
+execution-and-acceptance boundary nor feasible parallelism. When Critic is skipped, record
+the one-sentence reason and run the affected machine checks.
+When Critic runs, the primary orchestrator adjudicates its findings once and applies accepted
+fixes itself or dispatches a fresh Author with a revision brief. It checks each resolution and
+runs affected machine checks without dispatching a second Critic. A fix that expands authority
+or scope beyond the accepted findings becomes a separately scoped change. Non-blocking
+suggestions do not reopen an otherwise acceptable candidate. Meaning-preserving links,
+formatting, and status refresh use machine checks without Critic.
 
 ## Controlled revision
 

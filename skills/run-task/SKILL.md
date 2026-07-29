@@ -5,7 +5,7 @@ description: "Use when one or more approved Task.md rows are confirmed: material
 
 # Run confirmed task cards
 
-<HARD-GATE>Every dispatched task must exist in an independently reviewed and primary-orchestrator-accepted `Task.md`, belong to the confirmed `target_milestone_id` execution set, and have valid Requirement plus Design-stage authority, including the applicable `design/Contract.md`, split contract, and structural-authority anchors when they exist. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
+<HARD-GATE>Every dispatched task must exist in a `Task.md` that passed the Critic necessity gate and any required Critic review and was accepted by the primary orchestrator, belong to the confirmed `target_milestone_id` execution set, and have valid Requirement plus Design-stage authority, including the applicable `design/Contract.md`, split contract, and structural-authority anchors when they exist. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
 
 The primary orchestrator owns scheduling, adjudication, shared state, integration, Task status,
 and per-card execution documents. It may be the Coder for one task only when no useful
@@ -185,18 +185,21 @@ Select roles by impact:
 
 | changed surface | required independent role |
 |---|---|
-| specification or document meaning | fresh Critic |
+| specification or document meaning | Critic necessity gate |
 | implementation diff or test code, including deterministic local execution | fresh Reviewer |
 | recorded `required:<trigger>` classification | fresh Verifier, but only after review blockers clear |
 | formatting, links, pointers, or equivalent mechanical state | machine checks only |
+
+Before dispatching a Critic, apply the registered `gmgn` Skill's Critic necessity gate. When
+Critic is skipped, record the one-sentence reason and run the affected machine checks.
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the task
 execution's review round. An accepted finding fix remains part of that reviewed execution and
 does not re-enter role selection.
 
-Critic and Reviewer may run together when both surfaces changed. Collect every active review
-return before editing. The primary orchestrator adjudicates once, rejects scope expansion,
-and batches accepted blocker fixes into one revision. Each task execution uses
+When required, Critic and Reviewer may run together when both surfaces changed. Collect every
+active review return before editing. The primary orchestrator adjudicates once, rejects scope
+expansion, and batches accepted blocker fixes into one revision. Each task execution uses
 `review_policy: single-pass` and has at most this one Critic/Reviewer round. The primary
 orchestrator checks each resolution and runs affected machine checks. This bounded resolution
 check does not search for new findings; do not resume or create a Critic/Reviewer for the
@@ -300,9 +303,10 @@ changing shared authority:
 - a semantic Design/Contract change pauses only affected providers, consumers, integration
   tasks, and descendants, records the blocker in Log, and returns to `write-design`.
 
-The Design revision produces one newly reviewed bundle commit. Refresh only affected Task/Card
-anchors and tests, then resume with fresh Coders; unrelated lanes continue. Use the normal
-Git commit rather than a parallel `v1`/`v2` workflow unless a current
+The Design revision produces one newly accepted Bundle commit after its Critic necessity gate
+and any required review. Refresh only affected Task/Card anchors and tests, then resume with
+fresh Coders; unrelated lanes continue. Use the normal Git commit rather than a parallel
+`v1`/`v2` workflow unless a current
 external or coexisting-version requirement needs formal API versions. Any other evidence that
 contradicts approved authority follows the same impact-cone rule and routes to its owner.
 Do not mark the working Contract `closed` during run-task; `close-milestone` performs the final

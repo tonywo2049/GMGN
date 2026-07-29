@@ -219,6 +219,7 @@ def validate_core_contract(errors: list[str]) -> None:
     run_task = read(CORE_FILES[2])
     dispatch_en = read(CORE_FILES[3])
     writing_en = read("skills/gmgn/references/en/writing-contract.md")
+    brainstorm = read("skills/brainstorm/SKILL.md")
     roadmap = read("skills/roadmap/SKILL.md")
     roadmap_agent = read("skills/roadmap/agents/openai.yaml")
     readme_zh = read("README.zh-CN.md")
@@ -229,6 +230,48 @@ def validate_core_contract(errors: list[str]) -> None:
     release = read("skills/release/SKILL.md")
     critic_role = read("agents/critic.md")
     codex_critic_role = read(".codex/agents/critic.toml")
+
+    critic_gate_contract = (
+        "Before dispatching a Critic",
+        "concrete material harm",
+        "accepted effective fallback",
+        "change acceptance or the next action",
+        "cannot decide",
+        "skip Critic, record one sentence explaining why",
+        "affected machine checks",
+    )
+    for text, label in (
+        (methodology, "GMGN 根规范 Critic 必要性门槛"),
+        (gmgn, "gmgn 路由 Critic 必要性门槛"),
+        (dispatch_en, "派发契约 Critic 必要性门槛"),
+    ):
+        require(text, critic_gate_contract, label, errors)
+
+    for text, label in (
+        (brainstorm, "brainstorm"),
+        (roadmap, "roadmap"),
+        (write_goal, "write-goal"),
+        (write_requirement, "write-requirement"),
+        (write_design, "write-design"),
+        (write_task, "write-task"),
+        (run_task, "run-task"),
+        (close_milestone, "close-milestone"),
+    ):
+        require(text, ("Critic necessity gate",), f"{label} Critic 必要性门槛", errors)
+
+    unconditional_critic = (
+        "Every semantic change batch receives one fresh independent Critic",
+        "semantic document change → Critic;",
+        "WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | fresh Critic",
+        "specification or document meaning | fresh Critic",
+    )
+    for text, label in (
+        (methodology, "GMGN 根规范 Critic 必要性门槛"),
+        (gmgn, "gmgn 路由 Critic 必要性门槛"),
+        (dispatch_en, "派发契约 Critic 必要性门槛"),
+        (run_task, "run-task Critic 必要性门槛"),
+    ):
+        forbid(text, unconditional_critic, label, errors)
 
     for text, label in (
         (methodology, "GMGN 根规范全局调度契约"),
@@ -703,7 +746,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not\ninclude commands, full results, candidate chronology, work status, execution history, or\n"
         "closure records",
         "No implementation-significant question, hidden default, or unapproved parameter remains",
-        "Run one Critic round after\nthat integration",
+        "Apply the registered `gmgn` Skill's Critic necessity\n"
+        "gate after that integration",
         "physical file\ncount never determines the number of Critics",
         "Critics find any implementation-significant decision still unspecified",
         "global-versus-local rule conflicts",

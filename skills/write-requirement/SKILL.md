@@ -43,18 +43,19 @@ writing contract. Use the Goal locale for artifact prose. Keep filename `Require
   invariant to fail. Future possibility, speculative reuse or scale, configurability, and
   implementation convenience are not owners.
 
-## Writer and critic loop
+## Writer and review-selection loop
 
 Record the Goal commit. The primary session may write directly, or it prepares a complete brief
 and creates one fresh Author when the bounded handoff creates real
 value. The writer self-checks before return; a delegated Author ends on return, so later
 correction uses the primary session or a fresh Author with a new brief. Commit the complete
-candidate locally and dispatch one fresh independent Critic from a prepared brief that names
-the shortest unambiguous commit reference. Collect all findings before
-editing, adjudicate once, and batch accepted blocker fixes. The primary orchestrator checks
-each resolution without dispatching a second Critic. When no accepted blocker remains
-unresolved, it reviews the candidate, applies accepted mechanical links, mappings, and state,
-then runs machine checks.
+candidate locally and apply the registered `gmgn` Skill's Critic necessity gate. When Critic
+is required, dispatch one fresh independent Critic from a prepared brief that names the
+shortest unambiguous commit reference. Collect all findings before editing, adjudicate once,
+and batch accepted blocker fixes. The primary orchestrator checks each resolution without
+dispatching a second Critic. When Critic is skipped, record the one-sentence reason. When no
+accepted blocker remains unresolved, it reviews the candidate, applies accepted mechanical
+links, mappings, and state, then runs affected machine checks.
 
 ## Controlled revision
 
@@ -63,9 +64,9 @@ then runs machine checks.
    delta, affected R/AC IDs, and proposed new commit.
 3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
    Do not re-analyze unaffected Goal slices.
-4. A delta that changes a decision or reasonable understanding receives independent
-   criticism and primary-orchestrator review at a new commit. Old review remains attached to
-   the old commit.
+4. A delta that changes a decision or reasonable understanding applies the Critic necessity
+   gate and receives primary-orchestrator review at a new commit. Run independent criticism
+   only when the gate requires it. Old review remains attached to the old commit.
 Meaning-preserving mechanical changes use same-batch link, ID reference, and status
 refresh plus machine checks without reapproval.
 
@@ -77,10 +78,11 @@ the deletion test; every AC has a clear pass/fail decision; every number has an 
 change boundary, and verification method; every Requirement-owned decision is resolved; and
 no technical solution, task, execution information, or actual verification result has leaked
 into Requirement. For
-creation or a semantic revision, run the fresh-agent writer/Critic loop using the English-only
-dispatch contract; tell the Critic to emphasize upstream consistency, acceptance quality, and
-deletion of any R/AC that does not serve a current Goal outcome. Obtain primary-orchestrator
-review and integrate only when required by workspace topology.
+creation or a semantic revision, run the fresh-agent writer/review-selection loop using the
+English-only dispatch contract; when Critic is required, tell it to emphasize upstream
+consistency, acceptance quality, and deletion of any R/AC that does not serve a current Goal
+outcome. Obtain primary-orchestrator review and integrate only when required by workspace
+topology.
 
 Before every substantive return, perform a task-specific self-check and correct defects. Do
 not output a fixed `Reflection` section. Disclose only material unresolved risks that could

@@ -61,18 +61,21 @@ needed information. Prepare the actual Milestone, Contract, ROADMAP, Task, trace
 Handoff state in an isolated closure commit; it has no effect on the shared baseline before
 owner acceptance.
 
-Commit the complete candidate locally after writer self-check and machine checks. Prepare one
-brief naming its shortest unambiguous commit reference and create a fresh independent combined
-Critic/Reviewer for Requirement–Design–Task–Card/Log–code–evidence
-consistency, closure meaning, and any missing deterministic local checks. Collect the full
-review before editing. The primary
-orchestrator adjudicates once, batches accepted blockers, checks each resolution, and runs
-affected machine checks without dispatching another Critic or Reviewer. A fix that expands
-authority, scope, or closure meaning becomes a separately scoped change. Non-blocking
-suggestions do not reopen closure. After accepted fixes, commit the blocker-resolved final
-closure candidate and run affected machine checks. Present that exact closing commit for owner
-acceptance only when required evidence exists and no accepted review blocker remains
-unresolved.
+Commit the complete candidate locally after writer self-check and machine checks. Apply the
+registered `gmgn` Skill's Critic necessity gate to closure meaning and select Reviewer from
+the changed implementation, test-code, and deterministic-check surfaces. When both roles are
+required, prepare one brief naming the shortest unambiguous commit reference and create a
+fresh independent combined Critic/Reviewer for
+Requirement–Design–Task–Card/Log–code–evidence consistency, closure meaning, and any missing
+deterministic local checks. Otherwise dispatch only the required role; when Critic is skipped,
+record the one-sentence reason and run the affected machine checks. Collect every required
+review before editing. The primary orchestrator adjudicates once, batches accepted blockers,
+checks each resolution, and runs affected machine checks without dispatching another Critic
+or Reviewer. A fix that expands authority, scope, or closure meaning becomes a separately
+scoped change. Non-blocking suggestions do not reopen closure. After accepted fixes, commit
+the blocker-resolved final closure candidate and run affected machine checks. Present that
+exact closing commit for owner acceptance only when required evidence exists and no accepted
+review blocker remains unresolved.
 
 ## Structural checks
 

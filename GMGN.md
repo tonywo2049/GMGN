@@ -154,10 +154,16 @@ Commit the complete candidate locally before independent checks. Select roles by
 
 | Changed surface | Independent check |
 |---|---|
-| WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | fresh Critic |
+| WhitePaper/ROADMAP/Goal/Requirement/Design/Task meaning | Critic necessity gate |
 | implementation or test-code diff, including deterministic local execution | fresh Reviewer |
 | recorded trigger from the assurance policy | fresh Verifier after review clears |
 | equivalent links, formatting, pointers, or status | machine checks only |
+
+Before dispatching a Critic, the primary orchestrator must identify a concrete material harm
+that is not contained by an accepted effective fallback and that independent criticism could
+plausibly use to change acceptance or the next action. Dispatch a fresh Critic only when such
+a risk can be named or the orchestrator cannot decide. Otherwise skip Critic, record one
+sentence explaining why, and run the affected machine checks.
 
 The Critic/Reviewer rows above are evaluated only once, immediately before the change batch's
 review round. An accepted finding fix remains part of that reviewed batch and does not
@@ -173,8 +179,10 @@ representation with an existing unambiguous authority does not receive another r
 must invent or change authority, scope, public behavior, interface obligation, error priority,
 or state order, narrow it or open a separately scoped semantic batch with its own single
 round.
-The final accepted commit records the reviewed commit, complete findings and rulings, exact fix delta,
-and post-fix checks. Non-blocking suggestions do not reopen an otherwise acceptable candidate.
+When review runs, the final accepted commit records the reviewed commit, complete findings and
+rulings, exact fix delta, and post-fix checks. When Critic is skipped, the acceptance evidence
+records the one-sentence reason and affected machine checks. Non-blocking suggestions do not
+reopen an otherwise acceptable candidate.
 
 Critic and Reviewer do not maximize finding count; a valid review may return no findings.
 Before reporting an issue, they consider its concrete material harm if left unresolved,
@@ -254,7 +262,8 @@ and classifies the return:
 - a meaning-preserving clarification only aligns a duplicate representation with an existing
   unambiguous authority and gets the smallest same-batch link edit plus machine checks;
 - a semantic Design/Contract change pauses only its provider, consumers, integration tasks,
-  and descendants, then returns to `write-design` for one newly reviewed bundle commit.
+  and descendants, then returns to `write-design` for one newly accepted Bundle commit after
+  its Critic necessity gate and any required review.
 
 Use the normal Git commit. Formal API versions exist only when a current external or
 coexisting-version compatibility requirement needs them.
@@ -327,12 +336,12 @@ change that document's own result if removed. A possible future need, speculativ
 workflow narration, downstream management, or implementation convenience is not an owner.
 Anything removable without weakening the document's purpose is overdesign.
 
-The independent Critic applies the deletion test to affected stage candidates except Task
-division. For Task, it rejects work with no current AC or approved Design contribution but
-cannot satisfy that check by moving necessary work into another Task; Task split and merge
-follow §3. For other candidates it first attempts deletion, reuse, native behavior, or a direct
-solution. Unresolved overdesign is a material acceptance finding, not a wording, cleanup, or
-low-impact preference.
+When dispatched, the independent Critic applies the deletion test to affected stage candidates
+except Task division. For Task, it rejects work with no current AC or approved Design
+contribution but cannot satisfy that check by moving necessary work into another Task; Task
+split and merge follow §3. For other candidates it first attempts deletion, reuse, native
+behavior, or a direct solution. Unresolved overdesign is a material acceptance finding, not a
+wording, cleanup, or low-impact preference.
 
 Choose the first sufficient option:
 
