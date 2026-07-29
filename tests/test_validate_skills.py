@@ -193,6 +193,44 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertIn("write-task 任务边界契约", result.stdout)
 
+    def test_rejects_task_boundary_reverse_contract_coexistence(self) -> None:
+        cases = (
+            (
+                "skills/write-task/SKILL.md",
+                "# Task.md: milestone task index",
+                "A dependency relationship is the basis for Task decomposition",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "# Task.md: milestone task index",
+                "Minimize parallel execution by grouping results that pass the Task boundary",
+            ),
+            (
+                "skills/write-task/SKILL.md",
+                "# Task.md: milestone task index",
+                "Critic may sample a few affected rows",
+            ),
+            (
+                "agents/critic.md",
+                "For Task meaning, apply the Task boundary",
+                "Dependencies determine the Task boundary",
+            ),
+            (
+                ".codex/agents/critic.toml",
+                "对 Task，按照 `write-task` 定义的 Task 边界逐行检查",
+                "依赖决定 Task 边界",
+            ),
+        )
+        for relative, marker, reverse_contract in cases:
+            with self.subTest(relative=relative, reverse_contract=reverse_contract):
+                result = self.run_isolated_mutation(
+                    relative,
+                    marker,
+                    f"{marker}\n{reverse_contract}",
+                )
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn("含相反契约", result.stdout)
+
     def test_rejects_task_content_boundary_drift(self) -> None:
         cases = (
             (

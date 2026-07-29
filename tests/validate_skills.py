@@ -501,6 +501,13 @@ def validate_core_contract(errors: list[str]) -> None:
         "Allow tentative, placeholder, or speculative task sets",
         "Allow in-scope ACs to remain unmapped",
         "Freeze execution waves in Task",
+        "The split test is optional",
+        "may still contain smaller independent results",
+        "A dependency relationship is the basis for Task decomposition",
+        "every individual task must",
+        "Minimize parallel execution by grouping results that pass the Task boundary",
+        "Critic may sample a few affected rows",
+        "AC coverage and an acyclic dependency DAG substitute",
         "Task.md records execution content or history",
         "execution ID must equal the Task ID",
     ), "write-task 任务边界契约", errors)
@@ -1186,6 +1193,14 @@ def validate_roles(errors: list[str]) -> None:
                     "不得删除必需的校验、错误处理、安全或无障碍保护",
                 ), str(toml), errors)
             if role == "critic":
+                forbid(text, (
+                    "Dependencies determine the Task boundary",
+                    "Critic may sample affected Task rows",
+                ), f"{markdown} Task 边界反向门禁", errors)
+                forbid(instructions, (
+                    "依赖决定 Task 边界",
+                    "Critic 可以抽查部分 Task",
+                ), f"{toml} Task 边界反向门禁", errors)
                 require(text, (
                     "valid review may return no findings",
                     "concrete material harm",
