@@ -313,7 +313,9 @@ def validate_core_contract(errors: list[str]) -> None:
         "Add a\n  Bundle index only when linked child artifacts exist",
         "If two non-communicating Coders could produce incompatible conforming\n  implementations",
         "consumer validation entries, success/errors, and state effects",
-        "each Task row names one independently decidable result",
+        "split Tasks to the smallest independently executable and\n"
+        "independently acceptable granularity, maximize parallel execution, and give every Task one\n"
+        "clear acceptance criterion",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
     ), "GMGN 有效兜底边界", errors)
@@ -369,12 +371,16 @@ def validate_core_contract(errors: list[str]) -> None:
         "Keep the parser-facing task header unchanged. Use stable task IDs and the "
         "task-state tokens\n  defined by the writing contract",
         "Replace current status and execution values; never append\n  execution history",
-        "exactly one approved result that can be independently accepted or failed",
+        "Split Tasks to the smallest independently executable and independently acceptable\n"
+        "  granularity supported by the approved Design, maximize parallel execution across the task\n"
+        "  set, and give every Task one clear acceptance criterion",
         "Apply the split test",
-        "two or more approved results and each has its own\n"
-        "  upstream anchor and pass/fail check",
-        "a dependency is not a reason to merge them",
-        "or merely to occupy capacity",
+        "if two parts\n"
+        "  can each be executed and accepted against a clear pass/fail criterion",
+        "make them separate\n"
+        "  Tasks even when one depends on the other",
+        "State each criterion in `task` as one observable pass/fail result",
+        "work created merely to occupy capacity",
         "Keep only task boundaries supported by the current approved Design",
         "Only when research or\n  selection is itself the current Milestone result",
         "return a missing decision to `gmgn` for routing\n"
@@ -400,10 +406,12 @@ def validate_core_contract(errors: list[str]) -> None:
         "  current AC and approved Design result satisfied",
         "Future reuse, possible hardening, and\n  coordination convenience are not task owners",
         "Critic must try splitting, deleting, and merging each affected task",
-        "Report under-splitting",
+        "Report under-splitting\nwhen a Task can be divided into smaller parts that each pass the split test",
         "merging them loses\n"
         "neither an independent acceptance boundary nor a real dependency boundary",
-        "no task contains another\nresult that passes the split test",
+        "every Task is the smallest independently executable and acceptable\n"
+        "unit supported by the Design",
+        "the task set exposes all parallelism not prevented by those prerequisites",
     ), "write-task 紧凑索引契约", errors)
     forbid(write_task, (
         "Task may redefine upstream meaning",

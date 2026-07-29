@@ -117,14 +117,16 @@ The parser-facing Task header is fixed:
 ```markdown
 | # | task | spec anchor | prerequisite | status | execution |
 |---|---|---|---|---|---|
-| **M1-T1** | <independently decidable result> | R1-AC1 | none | not-started | none |
+| **M1-T1** | <smallest executable result with a clear acceptance criterion> | R1-AC1 | none | not-started | none |
 ```
 
 Chinese documents use the same header. Keep a separate `| AC | task |` mapping. Task owns task
-division, spec anchors, the dependency DAG, macro status, execution pointers, and the few
-Milestone-level pointers needed to schedule and integrate. It does not contain TDD cases,
-commands, write sets, locks, blockers, candidate commit references, evidence, or progress history.
-Replace current values; do not append execution narrative.
+division at the smallest independently executable and acceptable granularity, clear acceptance
+criteria, spec anchors, the dependency DAG, macro status, execution pointers, and the few
+Milestone-level pointers needed to schedule and integrate. The task set exposes all parallelism
+not prevented by real dependencies. It does not contain TDD cases, commands, write sets, locks,
+blockers, candidate commit references, evidence, or progress history. Replace current values;
+do not append execution narrative.
 
 ## 5. Design Bundle links
 

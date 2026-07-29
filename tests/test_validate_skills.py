@@ -143,8 +143,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_task_decomposition_objective(self) -> None:
         self.replace(
             "skills/write-task/SKILL.md",
-            "Keep `Task.md` as a compact Milestone execution index.",
-            "Maximize task count in `Task.md`.",
+            "Split Tasks to the smallest independently executable and independently acceptable",
+            "Split Tasks into convenient implementation batches",
         )
         result = self.run_validator()
         self.assertEqual(result.returncode, 1)
@@ -157,8 +157,13 @@ class ValidateSkillsTests(unittest.TestCase):
                 "The split test is optional",
             ),
             (
-                "a dependency is not a reason to merge them",
-                "a dependency is a reason to merge them",
+                "maximize parallel execution across the task",
+                "minimize parallel execution across the task",
+            ),
+            (
+                "make them separate\n"
+                "  Tasks even when one depends on the other",
+                "merge them whenever one depends on the other",
             ),
             (
                 "no individual task must\n"

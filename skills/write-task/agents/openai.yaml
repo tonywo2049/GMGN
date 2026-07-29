@@ -1,4 +1,4 @@
 interface:
   display_name: "Write Tasks / 拆分任务"
-  short_description: "Index executable results, anchors, dependencies, and status / 索引可执行结果、锚点、依赖与状态"
-  default_prompt: "Use $write-task to split the reviewed design into Task.md cards. / 请用 $write-task 拆分 Task.md 任务卡。"
+  short_description: "Split minimal executable and acceptable Tasks / 拆分最小可执行、可验收 Task"
+  default_prompt: "Use $write-task to split the reviewed Design into the smallest independently executable and acceptable Tasks, maximize parallel execution, and give each Task a clear acceptance criterion. / 请用 $write-task 将已评审的 Design 拆分到最小可执行、可验收颗粒度，最大化并行执行，并为每个 Task 明确验收标准。"

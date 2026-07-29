@@ -125,12 +125,15 @@ It also contains the AC-to-task mapping and Milestone-level execution pointers. 
 contain TDD cases, commands, write sets, locks, blockers, candidate commit references, review rounds,
 verification evidence, or progress history.
 
-Within the approved Design, each Task row names one independently decidable result and links
-its AC, Design, and applicable Contract authority. Split by result and verification boundary,
-not files, interfaces, steps, or people. Keep only boundaries supported by the current Design;
-never create tentative or placeholder tasks for unknown downstream work. Every in-scope AC
-must remain covered, dependencies must be real and acyclic, and a task is removed when its
-absence leaves all current ACs and Design results satisfied.
+Within the approved Design, split Tasks to the smallest independently executable and
+independently acceptable granularity, maximize parallel execution, and give every Task one
+clear acceptance criterion. State that criterion as one observable pass/fail result and link
+its AC, Design, and applicable Contract authority. If two parts can be executed and accepted
+separately, split them and record any real dependency instead of merging them. Do not split by
+files, interfaces, steps, or people without a separate acceptance boundary. Never create
+tentative or placeholder tasks for unknown downstream work. Every in-scope AC must remain
+covered, dependencies must be real and acyclic, and a task is removed when its absence leaves
+all current ACs and Design results satisfied.
 
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
