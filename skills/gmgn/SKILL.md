@@ -106,10 +106,11 @@ propagation rules, downstream gates, next-stage instructions, speculative placeh
 document maps without real children. Cross-stage routing and impact propagation belong here
 in the GMGN router. A possible future need is not an owner.
 
-Requirement, Design, and Task additionally apply the same deletion test to each R/AC, design
-element, dependency, configuration item, and task. Their fresh Critic attempts deletion,
-reuse, native behavior, or a direct solution and treats avoidable complexity as a material
-acceptance finding.
+Requirement and Design additionally apply the same deletion test to each R/AC, design element,
+dependency, and configuration item. Task instead omits work with no current AC or approved
+Design contribution. Its Critic must not remove a Task boundary by moving necessary work into
+another Task; necessary work with its own execution and acceptance boundary stays separate,
+and merging must not reduce feasible parallelism.
 
 `Design.md` is always the root Design-stage authority and Bundle index. Add
 `design/<module-id>.md` only for a useful module authority. A current boundary between

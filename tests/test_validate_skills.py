@@ -172,8 +172,14 @@ class ValidateSkillsTests(unittest.TestCase):
                 "  satisfy that AC alone",
             ),
             (
-                "Critic must try splitting, deleting, and merging each affected task",
-                "Critic must try deleting and merging each affected task",
+                "Critic must test splitting and merging each affected Task",
+                "Critic may merge every affected Task",
+            ),
+            (
+                "must not treat moving necessary work into another Task\n"
+                "as deletion",
+                "may treat moving necessary work into another Task\n"
+                "as deletion",
             ),
         )
         for old, new in cases:
@@ -299,8 +305,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/write-task/SKILL.md",
-                "Apply the deletion test to every task",
-                "Keep every proposed task",
+                "Omit work that contributes to no current AC or approved Design result",
+                "Keep work that contributes to no current AC or approved Design result",
             ),
             (
                 "agents/critic.md",

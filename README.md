@@ -155,10 +155,12 @@ The reviewed `Task.md` row selects the work; its materialized `Card.md` is the s
 and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and
 lane facts, not the parent conversation or a duplicated per-agent handoff.
 
-R-D-T minimality is enforced by GMGN itself. Every retained requirement, design element, and
-task must identify the current Goal or R/AC that would fail if it were removed; the Critic
-applies the same deletion-first check before acceptance. Code minimality uses the external
-[Ponytail](https://github.com/DietrichGebert/ponytail) plugin instead of duplicating its rules.
+R-D-T minimality is enforced by GMGN itself. Requirements and design elements use the
+deletion-first check. Task omits work with no current AC or approved Design contribution, but
+necessary work with its own execution and acceptance boundary remains separate instead of
+being moved into another Task; merging must not reduce feasible parallelism. Code minimality
+uses the external [Ponytail](https://github.com/DietrichGebert/ponytail) plugin instead of
+duplicating its rules.
 Run-task requires `ponytail:ponytail` at `full` for Coder. A Reviewer candidate containing
 implementation or test-code changes requires `ponytail:ponytail-review`. Ponytail review is
 part of the same Reviewer round and does not replace correctness or safety review. If Ponytail

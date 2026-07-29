@@ -132,8 +132,10 @@ its AC, Design, and applicable Contract authority. If two parts can be executed 
 separately, split them and record any real dependency instead of merging them. Do not split by
 files, interfaces, steps, or people without a separate acceptance boundary. Never create
 tentative or placeholder tasks for unknown downstream work. Every in-scope AC must remain
-covered, dependencies must be real and acyclic, and a task is removed when its absence leaves
-all current ACs and Design results satisfied.
+covered, and dependencies must be real and acyclic. Omit work with no current AC or approved
+Design contribution, but do not move necessary work into another Task to justify removing its
+boundary. Necessary work with its own execution and acceptance boundary remains a separate
+Task; merge only when merging loses neither an independent boundary nor feasible parallelism.
 
 After the owner confirms the execution set, `run-task` creates exactly two files per selected
 task before Coder dispatch:
@@ -325,9 +327,12 @@ change that document's own result if removed. A possible future need, speculativ
 workflow narration, downstream management, or implementation convenience is not an owner.
 Anything removable without weakening the document's purpose is overdesign.
 
-The independent Critic applies the same deletion test to every affected stage candidate. It
-first attempts deletion, reuse, native behavior, or a direct solution; unresolved overdesign is
-a material acceptance finding, not a wording, cleanup, or low-impact preference.
+The independent Critic applies the deletion test to affected stage candidates except Task
+division. For Task, it rejects work with no current AC or approved Design contribution but
+cannot satisfy that check by moving necessary work into another Task; Task split and merge
+follow §3. For other candidates it first attempts deletion, reuse, native behavior, or a direct
+solution. Unresolved overdesign is a material acceptance finding, not a wording, cleanup, or
+low-impact preference.
 
 Choose the first sufficient option:
 

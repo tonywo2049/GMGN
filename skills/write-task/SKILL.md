@@ -50,9 +50,11 @@ task`, `nature: normative`, and this parser-facing table header:
 - `prerequisite` contains only real data, interface, or decision dependencies and must form
   an acyclic DAG. Sharing an approved Contract does not by itself create a dependency. Do not
   freeze execution waves.
-- Apply the deletion test to every task. Remove a task when deleting its result leaves every
-  current AC and approved Design result satisfied. Future reuse, possible hardening, and
-  coordination convenience are not task owners.
+- Omit work that contributes to no current AC or approved Design result. This contribution
+  check must not be satisfied by deleting a Task row while moving its necessary work into
+  another Task. Keep necessary work as a separate Task whenever it has its own execution and
+  acceptance boundary. Merge Tasks only when no independent boundary is lost and feasible
+  parallelism is unchanged.
 - Do not copy Requirement, Design, or Contract meaning into Task. Do not put TDD cases,
   commands, file scopes, runtime locks, blockers, commits, candidates, review records,
   evidence, or progress narratives in `Task.md`.
@@ -74,11 +76,12 @@ format. Do not resume or repurpose a returned agent.
 After the writer self-check and machine checks, commit the complete candidate locally and
 dispatch one fresh independent Critic for semantic review from a brief that names the shortest
 unambiguous commit reference. Collect all findings before changing the candidate.
-The Critic must try splitting, deleting, and merging each affected task. Report under-splitting
-when a Task can be divided into smaller parts that each pass the split test, especially when
-doing so exposes parallel work. Report overdesign when a task can be deleted, or when two rows
-are only steps of one result and merging them loses neither an independent acceptance boundary
-nor a real dependency boundary.
+The Critic must test splitting and merging each affected Task and reject work with no current
+AC or approved Design contribution. It must not treat moving necessary work into another Task
+as deletion. Report under-splitting when a Task can be divided into smaller parts that each pass
+the split test, especially when doing so exposes parallel work. Report overdesign when two rows
+are only steps of one result and merging them loses neither a separate
+execution-and-acceptance boundary nor feasible parallelism.
 The primary orchestrator adjudicates them once and applies accepted fixes itself or dispatches
 a fresh Author with a revision brief. It checks each resolution and runs affected machine
 checks without dispatching a second Critic. A fix that expands authority or scope beyond the

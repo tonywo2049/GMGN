@@ -316,6 +316,13 @@ def validate_core_contract(errors: list[str]) -> None:
         "split Tasks to the smallest independently executable and\n"
         "independently acceptable granularity, maximize parallel execution, and give every Task one\n"
         "clear acceptance criterion",
+        "Omit work with no current AC or approved\n"
+        "Design contribution, but do not move necessary work into another Task",
+        "Necessary work with its own execution and acceptance boundary remains a separate\n"
+        "Task; merge only when merging loses neither an independent boundary nor feasible parallelism",
+        "deletion test to affected stage candidates except Task\n"
+        "division",
+        "cannot satisfy that check by moving necessary work into another Task",
         "All Coder lanes use the same current approved Design Bundle commit",
         "Milestone's final frozen contract",
     ), "GMGN 有效兜底边界", errors)
@@ -351,7 +358,10 @@ def validate_core_contract(errors: list[str]) -> None:
         "Every stage writer keeps only content required for that document's own purpose",
         "Stage documents do not contain downstream\npropagation rules, downstream gates, next-stage instructions",
         "Cross-stage routing and impact propagation belong here\nin the GMGN router",
-        "Their fresh Critic attempts deletion,\nreuse, native behavior, or a direct solution",
+        "Task instead omits work with no current AC or approved\nDesign contribution",
+        "must not remove a Task boundary by moving necessary work into\nanother Task",
+        "necessary work with its own execution and acceptance boundary stays separate",
+        "merging must not reduce feasible parallelism",
         "Every run-task Coder brief\nrequires `ponytail:ponytail` at `full`",
         "A run-task Reviewer brief requires\n`ponytail:ponytail-review` when its candidate contains implementation or test-code changes",
         "Missing Ponytail blocks that code task",
@@ -401,14 +411,18 @@ def validate_core_contract(errors: list[str]) -> None:
         "The `execution` column stores only the current execution entry link when one exists",
         "Do not\ncopy execution content or history into `Task.md`",
         "do not require the execution ID to equal\nthe Task ID",
-        "Apply the deletion test to every task",
-        "Remove a task when deleting its result leaves every\n"
-        "  current AC and approved Design result satisfied",
-        "Future reuse, possible hardening, and\n  coordination convenience are not task owners",
-        "Critic must try splitting, deleting, and merging each affected task",
+        "Omit work that contributes to no current AC or approved Design result",
+        "contribution\n  check must not be satisfied by deleting a Task row while moving its necessary work into\n"
+        "  another Task",
+        "Keep necessary work as a separate Task whenever it has its own execution and\n"
+        "  acceptance boundary",
+        "Merge Tasks only when no independent boundary is lost and feasible\n"
+        "  parallelism is unchanged",
+        "Critic must test splitting and merging each affected Task",
+        "must not treat moving necessary work into another Task\nas deletion",
         "Report under-splitting\nwhen a Task can be divided into smaller parts that each pass the split test",
-        "merging them loses\n"
-        "neither an independent acceptance boundary nor a real dependency boundary",
+        "merging them loses neither a separate\n"
+        "execution-and-acceptance boundary nor feasible parallelism",
         "every Task is the smallest independently executable and acceptable\n"
         "unit supported by the Design",
         "the task set exposes all parallelism not prevented by those prerequisites",
@@ -418,6 +432,8 @@ def validate_core_contract(errors: list[str]) -> None:
         "Do not use stable task IDs or task-state tokens",
         "Not every in-scope AC must map to at least one task",
         "but put commands and file scopes",
+        "Apply the deletion test to every task",
+        "Remove a task when deleting its result",
         "Allow tentative, placeholder, or speculative task sets",
         "Allow in-scope ACs to remain unmapped",
         "Freeze execution waves in Task",
@@ -1096,6 +1112,11 @@ def validate_roles(errors: list[str]) -> None:
                     "smallest sufficient correction",
                     "deletion-first minimality check",
                     "Possible future use is not sufficient",
+                    "For Task meaning, reject work with no current\n"
+                    "AC or approved Design contribution",
+                    "do not satisfy that check by moving necessary work\n"
+                    "into another Task",
+                    "feasible parallelism is unchanged",
                     "avoidable complexity as a\nmaterial acceptance finding",
                 ), str(markdown), errors)
                 require(instructions, (
@@ -1103,6 +1124,9 @@ def validate_roles(errors: list[str]) -> None:
                     "已接受的有效兜底", "最小充分修复",
                     "删除优先的最简性检查",
                     "未来可能使用不能作为理由",
+                    "对 Task，删除对当前 AC 或已审批 Design 没有贡献的工作",
+                    "不得通过把必要工作移入其他 Task 来删除 Task 边界",
+                    "合并不得减少可行并行",
                     "属于实质验收 finding",
                 ), str(toml), errors)
             if len(text.splitlines()) > 80:
