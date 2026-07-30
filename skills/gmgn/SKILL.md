@@ -73,6 +73,11 @@ record one sentence explaining why, and run affected machine checks.
 Critic and Reviewer do not maximize finding count. A valid return may contain no findings.
 Report an issue only when leaving it unresolved creates concrete material harm, no accepted
 effective fallback contains that harm, and a smallest sufficient correction can be stated.
+Each semantic candidate batch has at most one Critic round, and each Task execution has
+exactly one Reviewer round. After either role returns, the primary orchestrator adjudicates
+accepted findings, checks the fix delta, and runs affected machine checks without dispatching
+that role again. A fix that introduces new meaning is a separately scoped semantic batch, not
+a re-review of the prior batch.
 
 A Verifier is exceptional. Classify the final candidate from the
 [assurance policy](references/en/assurance-policy.json) as `not-required` or
@@ -111,9 +116,9 @@ Integrator role.
 `Task.md` is the Milestone index: stable task rows, AC mapping, dependencies, macro status, and
 execution pointers. The registered `run-task` Skill solely owns Card/Log materialization,
 verification contracts, the dependency-aware ready set, capacity prioritization, writer
-lanes, runtime tools, Codex agent monitoring, implementation Review and fresh delta Review,
-risk-triggered verification, shared-baseline checks, and Task closure. Do not copy those rules
-here.
+lanes, runtime tools, Codex agent monitoring, the single implementation Review,
+risk-triggered verification, shared-baseline checks, and Task closure. Do not copy those
+rules here.
 
 ## Controlled-change routing
 

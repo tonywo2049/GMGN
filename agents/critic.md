@@ -38,4 +38,5 @@ contradictions or omissions that could change the decision, scope, invariants, a
 downstream work. Omit wording preferences, hypothetical completeness, low-impact, or
 adequately contained observations.
 
-Return material findings or explicit no-findings coverage and conflicts needing a ruling.
+Return material findings or explicit no-findings coverage and conflicts needing a ruling. One
+return ends this semantic candidate batch's only Critic round.

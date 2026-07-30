@@ -103,14 +103,13 @@ the reviewed implementation-matching commit as `closed`.
 
 Every delegated role follows the
 [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md): prepare the brief
-first, create a fresh single-use agent, and bind its return to an immutable candidate. An
-implementation candidate gets at most two Review rounds: one fresh full Review and, only when
-needed, one fresh cumulative fix-delta Review that cannot open unrelated findings. Mechanical
-fixes use affected machine checks; there is no third Review round. A Verifier remains
-risk-triggered under
-[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json). Full and delta review
-surfaces are defined by the
-[code-review contract](skills/gmgn/references/en/code-review.md).
+first, create a fresh single-use agent, and bind its return to an immutable candidate. Each
+semantic candidate batch has at most one Critic round, and each implementation candidate has
+exactly one Reviewer round. The primary orchestrator adjudicates accepted findings, checks
+the fix delta, and runs affected machine checks without another Critic or Reviewer. A Verifier
+remains risk-triggered under
+[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json). The Review surface is
+defined by the [code-review contract](skills/gmgn/references/en/code-review.md).
 
 `Task.md` remains a Milestone index. For confirmed rows, `run-task` creates a stable
 `Card.md` execution and verification contract plus a replaceable `Log.md`, then owns ready-set

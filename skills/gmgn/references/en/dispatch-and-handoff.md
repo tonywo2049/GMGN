@@ -19,8 +19,9 @@ one bounded dispatch without parent or earlier-agent conversation history. One r
 agent. Never resume, reactivate, repurpose, or send later work to a returned agent. A later
 authoring or coding attempt, separately scoped semantic or implementation change, or later
 verification creates another agent from another prepared brief. An initial implementation
-Review and an authorized material-fix delta Review are separate dispatches with separate
-fresh Reviewers. Never resume a returned Reviewer for either purpose.
+candidate has one fresh Reviewer dispatch. Accepted finding fixes do not create another
+Critic or Reviewer dispatch; the primary orchestrator checks them and runs affected machine
+checks.
 
 A platform-interrupted or hard-failed delegated agent is also retired. If the objective
 remains valid, continue with a fresh agent and a new prepared brief. Treat retained workspace
@@ -63,7 +64,7 @@ decisions, including any assurance classification, directly in the brief instead
 another Skill's internal resource path.
 
 When preparing a Reviewer brief, use the shared [code-review contract](code-review.md) to
-resolve its mode, review surface, evidence, and finding gate before dispatch. Put the
+resolve its complete-candidate surface, evidence, and finding gate before dispatch. Put the
 applicable resolved rules in the brief; the delegated role does not need another Skill's
 internal path.
 

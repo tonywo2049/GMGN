@@ -75,11 +75,11 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 
 每个受委派角色都遵循
 [派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)：先准备 brief，再创建全新的一次性
-agent，并把回传绑定到固定候选。每个实现候选最多两轮审查：第一轮由新 Reviewer 完整审查；需要时
-第二轮由另一名新 Reviewer 只复核累计修复差异，不得新增无关问题；不存在第三轮。机械修复只运行
-受影响机器检查。Verifier 仍由
-[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json)按风险触发。full 与 delta
-的审查范围由[代码审查契约](skills/gmgn/references/en/code-review.md)定义。
+agent，并把回传绑定到固定候选。每个语义候选批次最多一轮 Critic，每个实现候选恰好一轮
+Reviewer。主 session 裁定已接受问题、检查修复差异并运行受影响机器检查，不再派第二个 Critic
+或 Reviewer。Verifier 仍由
+[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json)按风险触发。审查范围由
+[代码审查契约](skills/gmgn/references/en/code-review.md)定义。
 
 `Task.md` 仍是 Milestone 索引。对已确认行，`run-task` 创建稳定的 `Card.md` 执行与验证契约和
 可替换的 `Log.md`，并负责 ready set 调度、隔离 writer lane、运行时工具、监测、审查、集成与

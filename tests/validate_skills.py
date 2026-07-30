@@ -59,30 +59,59 @@ RUN_TASK_CONTROLS = (
     "`ponytail:ponytail-review`",
     "`codegraph init <workspace>`",
     "Every Codex `wait_agent` call uses\n"
-    "`agent_wait_timeout_ms = 3600000` (1 hour)",
-    "immediately\nre-arm the same one-hour wait",
+    "the actual tool argument `{\"timeout_ms\": 3600000}` (1 hour)",
+    "`agent_wait_timeout_ms` is not a Codex tool argument",
+    "`wait_agent` is an event-driven lifecycle wait, not progress polling",
+    "immediately\nre-arm `wait_agent({\"timeout_ms\": 3600000})`",
     "A timeout alone is not a `list_agents` trigger",
-    "Use one\n"
-    "`list_agents` snapshot only when a real scheduling/capacity decision cannot be made from\n"
-    "received lifecycle events or those events conflict",
-    "do not query again until a material\n"
-    "lifecycle event or scheduling condition changes",
-    "Do not interrupt, terminate, or kill an agent merely because it is silent, slow, has not\n"
-    "returned content, or crossed one or more wait timeouts",
-    "review_mode: full",
-    "review_mode: delta",
-    "Never dispatch a third Reviewer",
+    "Never call `list_agents`, send a message to the agent, inspect its workspace or logs, or issue\n"
+    "another status query merely to learn progress",
+    "the snapshot must not be used as a progress check",
+    "Do not query again until a\nmaterial lifecycle event or scheduling condition changes",
+    "If that snapshot reports\n"
+    "`running`, finish any unrelated ready scheduling work and return to the same one-hour\n"
+    "`wait_agent` call",
+    "While any dispatched agent is\n"
+    "`running`, do not call `interrupt_agent`, end the orchestration, or return a final result",
+    "time or token budget are not such evidence",
+    "does not create or send\n"
+    "heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,\n"
+    "telemetry, or another agent",
+    "Create exactly one fresh Reviewer",
+    "This is the Task execution's only Reviewer round",
+    "Never create, resume, or dispatch another Reviewer to recheck findings or fixes",
 )
 RUN_TASK_EXCLUSIVE_MARKERS = (
     "wait_agent",
     "list_agents",
     "agent_wait_timeout_ms",
+    "interrupt_agent",
     "largest number of currently blocked tasks ready",
     "break ties by stable `card_id`",
     "ponytail:ponytail",
     "ponytail:ponytail-review",
     "codegraph init",
     "commit-bound brief",
+)
+GMGN_SINGLE_REVIEW_CONTROLS = (
+    "Each semantic candidate batch has at most one Critic round",
+    "each Task execution has\nexactly one Reviewer round",
+    "without dispatching\nthat role again",
+)
+DISPATCH_SINGLE_REVIEW_CONTROLS = (
+    "An initial implementation\ncandidate has one fresh Reviewer dispatch",
+    "Accepted finding fixes do not create another\nCritic or Reviewer dispatch",
+)
+CODE_REVIEW_SINGLE_CONTROLS = (
+    "Each Task execution has exactly one Reviewer\nround",
+    "without another Reviewer round",
+)
+REVIEWER_SINGLE_CONTROLS = (
+    "the complete candidate surface",
+    "only Reviewer round",
+)
+CRITIC_SINGLE_CONTROLS = (
+    "only Critic round",
 )
 LATEST_EVENT_VALUES = (
     "latest_event: [Current](#current)",
@@ -236,6 +265,16 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         for legacy in ("review_policy: single-pass", "gmgn-assurance-v1"):
             if legacy in text:
                 errors.append(f"{relative}: 含旧审查策略 {legacy}")
+        for obsolete_review in (
+            "review_mode: full",
+            "review_mode: delta",
+            "at most two Review rounds",
+            "second Review round",
+            "fresh delta Review",
+            "full and delta review",
+        ):
+            if obsolete_review.casefold() in text.casefold():
+                errors.append(f"{relative}: 含已废止多轮审查规则 {obsolete_review}")
         for obsolete in (
             "A closed foundation remains closed.",
             "Only explicit acceptance authorizes integrating",
@@ -303,6 +342,36 @@ def validate_assurance_policy(errors: list[str]) -> None:
 def validate_run_task_controls(errors: list[str]) -> None:
     run_task = read(RUN_TASK)
     require_fragments(run_task, RUN_TASK_CONTROLS, "run-task 关键执行控制", errors)
+    require_fragments(
+        read("skills/gmgn/SKILL.md"),
+        GMGN_SINGLE_REVIEW_CONTROLS,
+        "gmgn 单轮独立审查边界",
+        errors,
+    )
+    require_fragments(
+        read("skills/gmgn/references/en/dispatch-and-handoff.md"),
+        DISPATCH_SINGLE_REVIEW_CONTROLS,
+        "派发单轮独立审查边界",
+        errors,
+    )
+    require_fragments(
+        read("skills/gmgn/references/en/code-review.md"),
+        CODE_REVIEW_SINGLE_CONTROLS,
+        "code-review 单轮审查边界",
+        errors,
+    )
+    require_fragments(
+        read("agents/reviewer.md"),
+        REVIEWER_SINGLE_CONTROLS,
+        "Reviewer 单轮审查边界",
+        errors,
+    )
+    require_fragments(
+        read("agents/critic.md"),
+        CRITIC_SINGLE_CONTROLS,
+        "Critic 单轮审查边界",
+        errors,
+    )
     for relative in active_policy_files():
         if relative == RUN_TASK:
             continue

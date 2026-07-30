@@ -1,6 +1,6 @@
 ---
 name: run-task
-description: "Use when one or more approved Task.md rows are confirmed: materialize Card/Log execution contracts, refill the dependency-aware ready set, run isolated writer lanes, review each frozen candidate in at most two rounds, add risk-triggered final verification, integrate required checks, and close. 已确认任务集后创建 Card/Log、滚动并行开发；固定候选最多经过两轮审查，再完成风险验证与共享基线必需检查后关账。"
+description: "Use when one or more approved Task.md rows are confirmed: materialize Card/Log execution contracts, refill the dependency-aware ready set, run isolated writer lanes, review each frozen candidate once, add risk-triggered final verification, integrate required checks, and close. 已确认任务集后创建 Card/Log、滚动并行开发；每个固定候选只做一轮独立审查，再完成风险验证与共享基线必需检查后关账。"
 ---
 
 # Run confirmed task cards
@@ -141,59 +141,59 @@ the dispatch contract; a correction commit is not a standalone candidate.
 
 Across the confirmed execution set, wait only after ready dispatch, primary-Coder work,
 integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
-`agent_wait_timeout_ms = 3600000` (1 hour). Routine progress-update cadence never shortens it.
+the actual tool argument `{"timeout_ms": 3600000}` (1 hour); `agent_wait_timeout_ms` is not a
+Codex tool argument. `wait_agent` is an event-driven lifecycle wait, not progress polling.
 A timeout has no workflow meaning. If an agent is known to remain `running`, immediately
-re-arm the same one-hour wait without inserting `list_agents`, another status query, or a user
-update between unchanged timeouts. A timeout alone is not a `list_agents` trigger. Use one
-`list_agents` snapshot only when a real scheduling/capacity decision cannot be made from
-received lifecycle events or those events conflict; do not query again until a material
-lifecycle event or scheduling condition changes. No periodic list interval is configured or
-inferred.
+re-arm `wait_agent({"timeout_ms": 3600000})` without inserting `list_agents`, another status
+query, or a user update between unchanged timeouts. A timeout alone is not a `list_agents`
+trigger.
 
-Do not interrupt, terminate, or kill an agent merely because it is silent, slow, has not
-returned content, or crossed one or more wait timeouts. Stop it only on explicit user
-cancellation or concrete evidence that it hard-failed, its scope is invalid, or continuing is
-unsafe. While observable state is unchanged, do not report a timeout, heartbeat, agent count,
-or `running` status. Report only material progress, a blocker, a decision request, or the
-final result.
+Never call `list_agents`, send a message to the agent, inspect its workspace or logs, or issue
+another status query merely to learn progress. Use one `list_agents` snapshot only when a real
+scheduling/capacity decision cannot be made from received lifecycle events or those events
+conflict; the snapshot must not be used as a progress check. Do not query again until a
+material lifecycle event or scheduling condition changes. If that snapshot reports
+`running`, finish any unrelated ready scheduling work and return to the same one-hour
+`wait_agent` call. No periodic list interval is configured or inferred.
 
-## 5. Review the candidate at most twice
+A running dispatch remains unfinished primary-session work. While any dispatched agent is
+`running`, do not call `interrupt_agent`, end the orchestration, or return a final result.
+Call `interrupt_agent` only after explicit user cancellation or concrete evidence that the
+agent hard-failed, its assigned scope became invalid, or continuing is unsafe. Silence,
+slowness, missing content, wait timeouts, agent count, capacity pressure, and a primary-session
+time or token budget are not such evidence. The primary session does not create or send
+heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,
+telemetry, or another agent. Platform-native lifecycle telemetry, if any, remains out of band.
+Report only material progress, a blocker, a decision request, or the final result.
+
+## 5. Review the candidate once
 
 Apply the code-review contract loaded through the registered `gmgn` Skill. Resolve an
 unclean candidate application or judgment-required integration conflict with a fresh Coder
 before committing the content that will be reviewed. Freeze that complete candidate while
 Review is active.
 
-Create a fresh Reviewer with `review_mode: full` for the complete implementation and test-code
-candidate. Collect all active Review returns before editing. The primary orchestrator
-adjudicates once, rejects scope expansion, and batches accepted blocker fixes through a fresh
-Coder. This first round is the only finding-discovery review.
+Create exactly one fresh Reviewer for the complete implementation and test-code candidate.
+This is the Task execution's only Reviewer round. Collect all active Review returns before
+editing. The primary orchestrator adjudicates once, rejects scope expansion, and batches every
+accepted blocker fix through a fresh Coder. It checks the complete fix delta against the
+accepted findings and existing authority, then reruns affected machine checks.
 
-A fix is mechanical only when it preserves behavior and its exact correction is completely
-determined by existing unambiguous authority. The primary orchestrator checks that delta and
-reruns affected machine checks without another Reviewer. Mechanical fixes do not consume the
-second Review round.
-
-A fix is material when it changes behavior, control flow, data, an interface, a security
-boundary, concurrency, persistence, recovery, or the Review impact boundary. Batch all
-accepted first-round material fixes into one cumulative fixed candidate. If a material fix is
-needed after the full Review, use the one allowed second round: create another fresh Reviewer
-with `review_mode: delta`. Never resume or reuse the full Reviewer or the delta Reviewer.
-Never dispatch a third Reviewer for the same Task execution.
-
-The delta brief and Review boundary follow the code-review contract. If that round returns a
-blocker inside its assigned surface, keep the Task unaccepted and stop this execution; do not
-apply another material fix and open a third Review. Non-blocking suggestions do not reopen an
-acceptable candidate. Record the full reviewed anchor, the optional delta-reviewed anchor,
-findings and rulings, exact fix delta, commands/results, and post-fix checks in final evidence.
+Never create, resume, or dispatch another Reviewer to recheck findings or fixes. If a fix
+changes approved behavior, scope, interface authority, or another upstream meaning, route it
+to the owning stage instead of treating it as a Review fix. If the primary orchestrator cannot
+determine from existing authority that every accepted blocker is resolved, keep the Task
+unaccepted. Non-blocking suggestions do not reopen an acceptable candidate. Record the
+reviewed anchor, findings and rulings, exact fix delta, commands/results, and post-fix checks
+in final evidence.
 
 ## 6. Add a Verifier only for recorded risk
 
 Ordinary deterministic local execution belongs to Review; Coder output remains supporting
 evidence. Classify the blocker-resolved final candidate as `not-required` or
 `required:<trigger>` through the current assurance policy loaded through the registered
-`gmgn` Skill. Record the classification in Log. Do not dispatch a Verifier while a full or
-delta Review blocker remains.
+`gmgn` Skill. Record the classification in Log. Do not dispatch a Verifier while a Review
+blocker remains.
 
 When required, dispatch one fresh Verifier against the fixed final candidate. It runs only the
 minimum non-transferable or explicitly independent plan and returns exact commands,
@@ -203,18 +203,16 @@ and does not broaden the plan after the trigger is decided.
 
 Do not run the same verification before and after clean mechanical integration without a
 recorded risk reason. If verification fails, record the decision and use a fresh Coder. A
-mechanical fix reruns affected checks before a fresh Verifier. A material fix may use the
-second Review round if it remains unused; batch the fix, run one fresh delta Reviewer, then a
-fresh Verifier. If the second Review round was already used, keep the Task unaccepted and stop
-instead of opening a third Review. Route any fix that changes approved authority or scope
+fix reruns affected checks before a fresh Verifier when the recorded trigger still applies.
+The Reviewer is not repeated. Route any fix that changes approved authority or scope
 upstream.
 
 ## 7. Integrate, check the shared baseline, and close
 
 Only the primary orchestrator writes the shared baseline, Task status, Card/Log state, and
 traceability. Before integration, confirm through Git that the content matches the last
-accepted full or delta-reviewed candidate. A different integration commit is acceptable only
-when reviewed source, build inputs, and normative task content are unchanged.
+reviewed candidate plus the exact adjudicated fix delta. No other source, build-input, or
+normative task-content change is allowed.
 
 Prepare one final integration candidate before the closing checks. It contains the accepted
 implementation plus every tracked closure change:

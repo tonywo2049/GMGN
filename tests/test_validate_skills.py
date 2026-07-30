@@ -81,8 +81,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            "agent_wait_timeout_ms = 3600000",
-            "agent_wait_timeout_ms = 60000",
+            '{"timeout_ms": 3600000}',
+            '{"timeout_ms": 60000}',
         )
         self.assert_rejected("run-task 关键执行控制")
 
@@ -91,23 +91,38 @@ class ValidateSkillsTests(unittest.TestCase):
         original = path.read_text(encoding="utf-8")
         cases = (
             (
-                "immediately\nre-arm the same one-hour wait",
+                'immediately\nre-arm `wait_agent({"timeout_ms": 3600000})`',
                 "wait again eventually",
             ),
             (
-                "Use one\n`list_agents` snapshot only when a real scheduling/capacity "
-                "decision cannot be made from\nreceived lifecycle events or those events conflict",
-                "Use list_agents whenever useful",
+                "Never call `list_agents`, send a message to the agent, inspect its workspace "
+                "or logs, or issue\nanother status query merely to learn progress",
+                "Poll list_agents whenever useful",
             ),
             (
-                "do not query again until a material\n"
-                "lifecycle event or scheduling condition changes",
+                "Do not query again until a\n"
+                "material lifecycle event or scheduling condition changes",
                 "query again periodically",
             ),
             (
-                "Do not interrupt, terminate, or kill an agent merely because it is silent, "
-                "slow, has not\nreturned content, or crossed one or more wait timeouts",
+                "While any dispatched agent is\n`running`, do not call `interrupt_agent`, "
+                "end the orchestration, or return a final result",
                 "Stop a slow agent after repeated timeouts",
+            ),
+            (
+                "If that snapshot reports\n`running`, finish any unrelated ready scheduling "
+                "work and return to the same one-hour\n"
+                "`wait_agent` call",
+                "If that snapshot reports running, interrupt it to reclaim capacity",
+            ),
+            (
+                "time or token budget are not such evidence",
+                "time or token budget permits interruption",
+            ),
+            (
+                "does not create or send\nheartbeat, unchanged `running`, timeout, agent-count, "
+                "or progress data to the user, Log,\ntelemetry, or another agent",
+                "sends heartbeat progress data while waiting",
             ),
         )
         for old, new in cases:
@@ -125,13 +140,55 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         self.assert_rejected("run-task 关键执行控制")
 
-    def test_rejects_missing_two_round_limit(self) -> None:
+    def test_rejects_missing_single_review_limit(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            "Never dispatch a third Reviewer",
-            "Continue reviewing until no findings remain",
+            "Never create, resume, or dispatch another Reviewer to recheck findings or fixes",
+            "Dispatch another Reviewer to recheck fixes",
         )
         self.assert_rejected("run-task 关键执行控制")
+
+    def test_rejects_single_review_contract_drift(self) -> None:
+        cases = (
+            (
+                "skills/gmgn/SKILL.md",
+                "Each semantic candidate batch has at most one Critic round",
+                "Each semantic candidate may have two Critic rounds",
+                "gmgn 单轮独立审查边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Accepted finding fixes do not create another\nCritic or Reviewer dispatch",
+                "Accepted fixes create another Reviewer dispatch",
+                "派发单轮独立审查边界",
+            ),
+            (
+                "skills/gmgn/references/en/code-review.md",
+                "Each Task execution has exactly one Reviewer\nround",
+                "Each Task execution has two Reviewer rounds",
+                "code-review 单轮审查边界",
+            ),
+            (
+                "agents/reviewer.md",
+                "only Reviewer round",
+                "first Reviewer round",
+                "Reviewer 单轮审查边界",
+            ),
+            (
+                "agents/critic.md",
+                "only Critic round",
+                "first Critic round",
+                "Critic 单轮审查边界",
+            ),
+        )
+        for relative, old, new, expected in cases:
+            with self.subTest(relative=relative, rule=old):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected(expected)
+                path.write_text(original, encoding="utf-8")
 
     def test_rejects_run_task_rule_copied_elsewhere(self) -> None:
         path = self.root / "skills/write-goal/SKILL.md"

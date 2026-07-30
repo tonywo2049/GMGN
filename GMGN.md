@@ -157,10 +157,12 @@ in `run-task` and the writing rules.
 ## 4. Review and verification
 
 Commit the complete candidate locally before independent checks. Document meaning passes the
-Critic necessity gate defined by the [GMGN router](skills/gmgn/SKILL.md). For implementation,
-`run-task` owns the at-most-two-round dispatch schedule and the
-[code-review contract](skills/gmgn/references/en/code-review.md) owns each Review surface.
-There is no third Review round.
+Critic necessity gate defined by the [GMGN router](skills/gmgn/SKILL.md). Each semantic
+candidate batch has at most one Critic round. Each implementation candidate has exactly one
+Reviewer round owned by `run-task`; the
+[code-review contract](skills/gmgn/references/en/code-review.md) owns its Review surface.
+Accepted fixes are adjudicated and checked by the primary orchestrator without another Critic
+or Reviewer.
 
 A fresh Verifier remains risk-triggered rather than automatic. Failed, skipped, timed-out, or
 unavailable required checks are not passes. The
@@ -170,8 +172,8 @@ and stage Skills define when Review and verification are dispatched.
 ## 5. Task execution and integration
 
 `run-task` owns Card/Log materialization, the dependency-aware ready set, conflict-aware
-parallel dispatch, runtime tool policy, bounded writer lanes, Codex agent monitoring, full and
-delta Review dispatch, verification, integration, and Task closure. The primary orchestrator
+parallel dispatch, runtime tool policy, bounded writer lanes, Codex agent monitoring, the
+single Review dispatch, verification, integration, and Task closure. The primary orchestrator
 retains runtime state, the integration queue, and the shared baseline.
 
 All Coder lanes use the same approved Design Bundle commit and must not invent or edit shared
