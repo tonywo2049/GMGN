@@ -30,18 +30,24 @@ needed meaning to the active tree through its owning authority before use.
 | Requirement reviewed; Design-stage candidate absent or changing | `write-design` |
 | Design-stage candidate reviewed; Task absent or changing | `write-task` |
 | Confirmed Task rows can run or a target-Milestone lane remains active | `run-task` |
-| Every target-Milestone task is closed on one baseline but closure is not accepted | `close-milestone` |
+| Every target-Milestone task is closed on one baseline but closure review or integration is incomplete | `close-milestone` |
 | An immutable candidate is accepted and distribution is requested | `release` |
 
-From `roadmap` onward, record the approved Decision commit and applicable D-IDs; normal stage
-context never reads `DecisionLog.md`. From `write-goal` onward, also record
-`target_milestone_id` and the available Goal, Requirement, Design, applicable Contract, and
-Task anchors. A cross-Milestone link gives context, not execution authority. Keep separately
-authorized Milestones as separate execution sets and closure decisions.
+When observable evidence shows unfinished work in a closed Milestone, mechanically move it
+back to `initiated`, replace its current `accepted_result` with `none`, and route the missing
+work through the owning stage below. Reopen only affected Tasks or add missing Tasks. Check
+downstream impact without automatically rolling back downstream Milestones.
 
-When any later stage exposes a missing or changed project-level ruling that can alter more
-than one Milestone, route it through `write-decision`. Pause only its impact cone and resume
-the stage that raised it after owner approval and affected propagation.
+From `roadmap` onward, record the approved Decision commit and applicable D-IDs; normal stage
+context never reads `DecisionLog.md`. A D-ID may apply at any scope. Once present, downstream
+artifacts consume it by link instead of redefining its ruling. From `write-goal` onward, also
+record `target_milestone_id` and the available Goal, Requirement, Design, applicable Contract,
+and Task anchors. A link to another Milestone gives context, not execution authority. Keep
+separately authorized Milestones as separate execution sets and closure decisions.
+
+When any later stage changes a current D-ID or selects a new ruling for Decision, route it
+through `write-decision` regardless of subject or Milestone scope. Pause only its impact cone
+and resume the stage that raised it after owner approval and affected propagation.
 
 ## Roles and independent checks
 
@@ -116,16 +122,20 @@ Route a semantic change to the single authority that owns it:
 | Authority changed | Route |
 |---|---|
 | WhitePaper problem, goal, scope, invariant, or interpretation | `brainstorm` revision |
-| Current cross-Milestone product, business, protocol, architecture, compatibility, or shared-project ruling not owned below | `write-decision` revision |
+| Any current D-ID, or any new ruling selected for Decision regardless of subject or Milestone scope | `write-decision` revision |
 | ROADMAP Milestone allocation, outcome, value, deliverable, success signal, horizon, priority, dependency, or Backlog placement | `roadmap` maintenance |
 | Goal active boundary, necessary Milestone-local exclusion, ROADMAP deliverable/success-signal coverage, or qualitative Close outcome | `write-goal` revision |
 | Requirement behavior, quantified parameter, constraint, or decidable AC | `write-requirement` revision |
 | Design structure, implementation decision, interface contract, data, or failure path | `write-design` revision |
 | Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |
 
+The current D-ID takes precedence over the category rows below it. When no D-ID exists and no
+new Decision entry is selected, route the meaning to its normal stage authority.
+
 Start from the approved commit, record the semantic delta and impact cone, and update only
 affected authority, tasks, code, tests, evidence, and state. Meaning-preserving mechanical
-changes use machine checks without reapproval. A closed foundation remains closed.
+changes use machine checks without reapproval. Reopening a Milestone does not by itself
+reopen its normative documents or unaffected work.
 
 For a narrow bug or mechanical one-step change, identify the smallest authority and
 acceptance condition, implement it, independently review the diff, add risk-triggered

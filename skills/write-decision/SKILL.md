@@ -1,9 +1,9 @@
 ---
 name: write-decision
-description: "Use after WhitePaper approval and before ROADMAP, or whenever later work discovers or changes a project-level product, business, protocol, or architecture ruling that constrains multiple Milestones. Create or revise root Decision.md as current authority and DecisionLog.md as descriptive accepted-change history. 白皮书批准后、ROADMAP 之前，或后续工作发现/改变约束多个 Milestone 的项目级产品、业务、协议或架构决议时，创建或受控修订 Decision.md 与 DecisionLog.md。"
+description: "Use after WhitePaper approval and before ROADMAP, or whenever any current or proposed ruling should be recorded for downstream consumption, regardless of subject or Milestone scope. Create or revise root Decision.md as current authority and DecisionLog.md as descriptive accepted-change history. 白皮书批准后、ROADMAP 之前，或任意范围的现行或候选决议需要供下游消费时，创建或受控修订 Decision.md 与 DecisionLog.md。"
 ---
 
-# Project decision authority
+# Decision authority
 
 <HARD-GATE>Creation requires an approved WhitePaper commit. Revision requires the current
 approved Decision authority. The human owner decides both whether a candidate belongs here
@@ -22,32 +22,39 @@ Maintain these project-root artifacts:
 They form one controlled change batch. Normal downstream stages read `Decision.md`, not
 `DecisionLog.md`. Read the Log only to preserve ID history or investigate a change.
 
-## Decide jurisdiction before content
+## Place a ruling in Decision
 
-First apply the GMGN authority table. Do not absorb WhitePaper meaning, ROADMAP allocation,
-single-Milestone Goal or Requirement meaning, local Design choices, or Task state merely
-because those decisions have consequences.
+Decision may own any current ruling needed by planning or active work, including a ruling
+limited to one Milestone, requirement, module, interface, implementation, or Task. Scope is
+not a jurisdiction filter.
 
-For a candidate not already owned elsewhere, answer:
+Keep a candidate only when it is an explicit choice among material alternatives and one or
+more downstream artifacts must obey or link it. Do not turn derived content, document state,
+execution status, evidence, commands, or history into a ruling.
 
-1. Could applicable Milestones choose differently without contradiction?
-2. Would the ruling still matter if the current Milestone disappeared?
-3. Does it constrain a shared project object, protocol, identity, security, compatibility,
-   or other authority used by multiple Milestones?
+Once recorded:
 
-The primary orchestrator recommends the jurisdiction and option, explains the real
-alternatives and cross-Milestone consequences, then asks the owner one material question at a
-time. Do not create an Ask document. The owner makes the final ruling.
+- `Decision.md` owns the current ruling;
+- downstream artifacts link the applicable D-ID and keep only their own derived content; and
+- any later change to that D-ID returns to `write-decision`.
+
+A stage may retain a decision in its normal authority when it is not recorded in
+`Decision.md`. Never keep the same ruling normative in both places.
+
+The primary orchestrator recommends the option, scope, and downstream consequence, then asks
+the owner one material question at a time when the ruling itself is unresolved. Do not create
+an Ask document or reject a Decision candidate merely because its scope is narrow. The owner
+makes the final ruling.
 
 ## Decision.md content
 
-Keep the complete current set of accepted project-level rulings needed by current planning or
-active work. Do not speculate about decisions no current work needs. Define each ruling as one
-DocStar-compatible list entity:
+Keep the complete current set of accepted rulings explicitly recorded in Decision and needed
+by current planning or active work. Do not speculate about decisions no current work needs.
+Define each ruling as one DocStar-compatible list entity:
 
 ```markdown
 - **D-001** <short name>
-  - Applies to: <Milestones or shared project objects>
+  - Applies to: <downstream Milestones, artifacts, modules, interfaces, Tasks, or shared objects>
   - Decision: <unambiguous current ruling>
 ```
 
@@ -76,11 +83,11 @@ not another bold D-ID definition.
 
 1. Read the approved WhitePaper, current `Decision.md`, and only the Log history needed to
    preserve IDs or understand the proposed delta.
-2. Resolve material jurisdiction and ruling questions with the owner.
+2. Resolve material ruling and downstream-scope questions with the owner.
 3. Write the complete current Decision candidate. In revision mode, change only affected
    entries.
 4. Process the semantic candidate through the registered `gmgn` Skill's shared document-
-   candidate and dispatch rules. A selected Critic checks jurisdiction, current meaning,
+   candidate and dispatch rules. A selected Critic checks decision clarity, current meaning,
    deletion, and impact.
 5. Present the committed candidate and remaining material risks—or that none are known—for
    owner approval.
@@ -93,8 +100,7 @@ affected downstream authority and resumes the stage that raised the change.
 
 ## Exit
 
-Before returning, confirm that every retained D-ID passes the jurisdiction and deletion
-tests; no current material cross-Milestone ruling needed by ROADMAP or active work remains
-unresolved; `Decision.md` contains current meaning only; `DecisionLog.md` contains history
-only; IDs are unique and never reused; and normal downstream context does not depend on the
-Log.
+Before returning, confirm that every retained D-ID is an explicit ruling needed by current
+work and passes the deletion test; no ruling is normative in both Decision and a downstream
+artifact; `Decision.md` contains current meaning only; `DecisionLog.md` contains history only;
+IDs are unique and never reused; and normal downstream context does not depend on the Log.

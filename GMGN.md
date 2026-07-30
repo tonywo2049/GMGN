@@ -24,8 +24,9 @@ current task does not need.
 
 ## 1. Roles
 
-- **Owner** decides scope, approvals, acceptance, release authority, and any semantic removal
-  or reassignment of a completion criterion.
+- **Owner** decides scope, stage approvals, release authority, and any semantic removal or
+  reassignment of a completion criterion, and reviews Milestone closure. Closure review is not
+  an irrevocable acceptance decision.
 - **Primary orchestrator** retains the complete session context, routes stages, prepares
   briefs, adjudicates findings, integrates accepted work, and updates shared state. It may
   directly write WhitePaper, Decision, ROADMAP, Goal, Requirement, Design, and Task when that
@@ -57,12 +58,11 @@ WhitePaper → Decision → ROADMAP → Goal → Requirement → Design Bundle �
 ```
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
-- `Decision.md` owns the complete current set of accepted project-level product, business,
-  protocol, and architecture rulings that constrain multiple Milestones and are not already
-  owned by another stage. The primary orchestrator identifies candidates and recommends the
-  jurisdiction and options; the human owner decides both. Stable D-IDs identify current
-  rulings. `DecisionLog.md` is descriptive accepted-change history and never downstream
-  authority.
+- `Decision.md` may own any accepted ruling explicitly recorded for downstream consumption,
+  regardless of subject or Milestone scope. The primary orchestrator identifies candidates
+  and recommends their options, scope, and downstream consequences; the human owner makes the
+  ruling. Stable D-IDs identify current rulings. `DecisionLog.md` is descriptive
+  accepted-change history and never downstream authority.
 - ROADMAP owns outcome-based Milestone allocation, `now | next | later` horizons, relative
   priority, real cross-Milestone dependencies, necessary deliverables, result-level success
   signals, and a curated Backlog. Dependencies create only a partial order; Milestone IDs and
@@ -86,10 +86,11 @@ WhitePaper → Decision → ROADMAP → Goal → Requirement → Design Bundle �
   `design/Contract.md`; split contracts and structural authorities under `design/contracts/`
   and `design/schemas/` only when current correctness or independent review needs them.
   The complete linked Bundle is accepted at one Git commit.
-- Design must determine every implementation-significant choice that could change another
-  unit's data, authority, validation, error, state, recovery, security, compatibility, or
-  resource behavior. If two non-communicating Coders could produce incompatible conforming
-  implementations, Design is not ready. Task cannot supply the missing decision.
+- Design must determine or link every implementation-significant choice that could change
+  another unit's data, authority, validation, error, state, recovery, security,
+  compatibility, or resource behavior. If two non-communicating Coders could produce
+  incompatible conforming implementations, Design is not ready. Task cannot supply the
+  missing decision.
 - Every applicable cross-unit boundary closes its authoritative producer, derivation,
   consumer validation entries, success/errors, and state effects. Exact compatibility-
   significant structure has one machine-readable or compilable authority; Markdown links it
@@ -102,9 +103,11 @@ or next-stage instructions. The GMGN router owns cross-stage routing and impact 
 
 An approved `Decision.md` is required before ROADMAP even when no additional ruling beyond
 WhitePaper is currently needed. Later stages read applicable current D-IDs, not
-`DecisionLog.md`. If later work exposes a missing or changed cross-Milestone ruling, pause
-only the affected work, route the candidate through `write-decision`, and resume after the
-approved delta is propagated.
+`DecisionLog.md`. Any stage may place a ruling in Decision. Once recorded, Decision owns its
+current meaning and downstream artifacts link it while retaining only their derived content.
+If later work changes a D-ID or selects a new ruling for Decision, pause only the affected
+work, route the candidate through `write-decision`, and resume after the approved delta is
+propagated.
 
 One fact has one authority. Other documents link to it instead of copying it. Every review,
 approval, acceptance, Milestone closure, and release binds to a Git commit or release tag.
@@ -140,8 +143,8 @@ references, review rounds, verification evidence, or progress history.
 semantics, AC mapping, and granularity check; Task count itself is not a measure of simplicity
 or overdesign.
 
-After the owner confirms the execution set, `run-task` creates exactly two files per selected
-task before Coder dispatch:
+After the owner confirms the execution set, `run-task` creates exactly two files for each new
+Task, or reuses them for a reopened Task, before Coder dispatch:
 
 - `execution/<card_id>/Card.md` — normative execution and verification contract with its completion
   criterion.
@@ -195,9 +198,9 @@ the path in ROADMAP.
 
 Closure also reconciles every retained Contract ID with provider and consumer code plus
 conformance/integration evidence. A semantic mismatch returns to `write-design`; closure never
-edits authority to excuse code. Owner acceptance marks the reconciled Contract commit
-`closed`, which is the Milestone's final frozen contract. Later Milestones create controlled
-new commits rather than rewriting that history.
+edits authority to excuse code. Closure review marks the reconciled Contract commit `closed`.
+Owner review is one review input; it does not make the result irrevocable or separately
+authorize integration.
 
 Milestone closure requires:
 
@@ -206,7 +209,13 @@ Milestone closure requires:
 2. every in-scope AC completed or semantically removed/reassigned at a new authority commit;
 3. replayable evidence for each retained criterion;
 4. Task, Card/Log, traceability, and ROADMAP refreshed in the same batch;
-5. owner acceptance bound to the closing commit.
+5. owner review recorded against the closing commit.
+
+If unfinished work is found later, move the Milestone from `closed` back to `initiated`, clear
+its current `accepted_result`, and reopen only affected Tasks or add the missing Tasks. Keep
+the old result in Git history. Check downstream Milestones for actual impact instead of
+rolling them back automatically. After the missing work and invalidated checks are complete,
+close the Milestone again.
 
 Create a separate handoff only when a receiving operator needs information that has no better
 existing authority. Release reuses review and verification evidence when source, semantics,

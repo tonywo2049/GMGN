@@ -5,7 +5,7 @@ description: "Use after owner approval of WhitePaper and the project Decision au
 
 # ROADMAP: project-level allocation authority
 
-<HARD-GATE>Approved, commit-bound WhitePaper and Decision authorities must exist. If either is missing, or ROADMAP work exposes a WhitePaper premise or cross-Milestone ruling that must change, stop and return the issue to `gmgn` for routing. ROADMAP stays at project-allocation level. It does not contain detailed Close conditions, R-AC IDs, behavior or performance thresholds, technical design, task breakdown, executable tests, evidence, or an end-to-end path.</HARD-GATE>
+<HARD-GATE>Approved, commit-bound WhitePaper and Decision authorities must exist. If either is missing, or ROADMAP work changes a current D-ID or selects a new ruling for Decision, stop and return the issue to `gmgn` for routing. ROADMAP stays at project-allocation level. It does not contain detailed Close conditions, R-AC IDs, behavior or performance thresholds, technical design, task breakdown, executable tests, evidence, or an end-to-end path.</HARD-GATE>
 
 ## Language and writing rules
 
@@ -29,10 +29,11 @@ Requirement, Design, Task, test, and execution decisions.
 
 Challenge a feature list presented as an outcome, an artificial serial dependency, a distant
 forecast presented as a precise commitment, and a candidate outside the approved WhitePaper
-or Decision. Record ROADMAP-owned allocation rulings in the candidate; do not create a
-separate Ask or ROADMAP-specific decision log. `DecisionLog.md` is maintained only by
-the project Decision stage. Do not write or approve a Roadmap while a material decision within this ask
-scope remains unresolved.
+or Decision. Record an allocation ruling in ROADMAP unless it is selected for Decision; in
+that case route it through `write-decision` first and link its D-ID. Do not create a separate
+Ask or ROADMAP-specific decision log. `DecisionLog.md` is maintained only by the Decision
+stage. Do not write or approve a Roadmap while a material decision within this ask scope
+remains unresolved.
 
 ## Milestone content
 
@@ -90,6 +91,13 @@ mechanically changes that Milestone to `state: closed` and replaces `accepted_re
 with that single link. It does not copy commit, release, network, environment, or evidence
 details. Equivalent state, link, and formatting maintenance preserves existing approval and
 uses machine checks.
+
+When unfinished work is found after Close, mechanically move only that Milestone from
+`closed` back to `initiated` and replace its current `accepted_result` with `none`. Git
+history retains the prior result. Reopen affected Tasks or add missing Tasks through their
+owning stage. Check downstream Milestones for actual impact; do not change their state solely
+because this Milestone reopened. Reopening needs semantic Roadmap revision only when the
+Milestone allocation or meaning changes.
 
 ## Approval and revision
 

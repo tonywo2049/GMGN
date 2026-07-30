@@ -62,22 +62,24 @@ GMGN does not ship translated normative mirrors or document-layout templates. Ea
 defines required content and self-checks; the Author chooses the structure and may write
 project artifacts in the active locale.
 
-`Decision.md` is the current project-level authority for accepted product, business, protocol,
-and architecture rulings that constrain multiple Milestones. `DecisionLog.md` records only
-accepted changes and is not normal downstream context.
+`Decision.md` may hold any accepted ruling selected for downstream consumption, regardless
+of subject or Milestone scope. Downstream artifacts link applicable D-IDs instead of
+redefining those rulings. `DecisionLog.md` records only accepted changes and is not normal
+downstream context.
 
 Every ROADMAP Milestone maps to WhitePaper and applicable D-IDs, states one outcome and its value, names necessary
 deliverables and one result-level success signal, and separates `now | next | later`,
 relative priority, and real dependencies. The orchestrator proposes the map and asks the
 human owner one material allocation question at a time. ROADMAP does not own an E2E path.
 
-Each stage document adds one kind of information: Decision records current cross-Milestone
-rulings; ROADMAP allocates partially ordered
-Milestones and their outcomes; Goal refines the active Milestone into Requirement input and
-qualitative Close criteria; Requirement defines observable behavior and decidable ACs;
-Design resolves the technical decisions needed to implement them; Task indexes independently
-completable results, dependencies, status, and execution links. Stage documents do not contain
-downstream gates, propagation rules, next-stage instructions, or speculative placeholders.
+Each stage document adds one kind of information: Decision records rulings explicitly
+centralized for downstream use; ROADMAP allocates partially ordered Milestones and their
+outcomes; Goal refines the active Milestone into Requirement input and qualitative Close
+criteria; Requirement defines observable behavior and decidable ACs; Design resolves or
+links the technical decisions needed to implement them; Task indexes independently
+completable results, dependencies, status, and execution links. Stage documents do not
+contain downstream gates, propagation rules, next-stage instructions, or speculative
+placeholders.
 
 The Design stage always produces root `Design.md`. Add `design/<module-id>.md` only for a
 useful module authority. A boundary between independently developed units requires
@@ -87,7 +89,7 @@ It is ready only when independent Coders no longer need to invent a public or cr
 decision and would produce compatible results from the same authority.
 The Design-stage Contract is an approved working baseline. Coding evidence may revise it
 through `write-design`; Milestone closure reconciles it with provider/consumer code and marks
-the accepted implementation-matching commit as `closed`.
+the reviewed implementation-matching commit as `closed`.
 
 ## Supported surfaces
 
@@ -116,6 +118,11 @@ scheduling, isolated writer lanes, runtime tools, monitoring, review, integratio
 closure. A Task closes only after the reviewed content is integrated and every
 project-declared required check passes against that exact shared-baseline candidate. The
 complete rules live in [`run-task`](skills/run-task/SKILL.md).
+
+A closed Milestone returns to `initiated` when unfinished work is found. Its current
+`accepted_result` is cleared, only affected work is reopened, and downstream Milestones are
+changed only when impact analysis shows they are affected. Owner closure review is a review
+checkpoint, not an irrevocable decision.
 
 R-D-T minimality is enforced by GMGN itself. Code minimality uses the external
 [Ponytail](https://github.com/DietrichGebert/ponytail) plugin; its installation is required for
@@ -240,14 +247,14 @@ claude plugin marketplace remove GMGN --scope user
 | Request | Skill | Main output |
 |---|---|---|
 | “I have an idea; research whether it is viable.” | `brainstorm` | WhitePaper |
-| “Record the project decisions that every milestone must follow.” | `write-decision` | Current Decision authority and descriptive DecisionLog |
+| “Record this decision for downstream work.” | `write-decision` | Current Decision authority and descriptive DecisionLog |
 | “Split the approved WhitePaper and Decision into milestones.” | `roadmap` | ROADMAP with outcome Milestones, success signals, horizons, priority, and real dependencies |
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md with Requirement input and qualitative Close criteria |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Observable requirements and decidable ACs |
 | “Produce the technical design.” | `write-design` | Required technical decisions in root Design.md plus conditional authorities |
 | “Break the design into tasks.” | `write-task` | Task.md execution index |
 | “Implement these ready cards / fix this bug.” | `run-task` | Integrated code, tests, review, and any required verification evidence |
-| “The milestone is complete; validate and close it.” | `close-milestone` | Applicable regression/E2E evidence, final Contract freeze, closure record |
+| “The milestone is complete; validate and close it.” | `close-milestone` | Applicable regression/E2E evidence, reviewed Contract state, closure record |
 | “Publish the accepted version / retry its release.” | `release` | Reused acceptance evidence, deterministic artifact, tag and release |
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 

@@ -18,9 +18,9 @@ status, and per-card execution documents. It may serve as one unassigned Coder l
 capacity remains, but it cannot take over another writer's lane, review its own candidate, or
 replace a required Verifier.
 
-## 1. Materialize Card and Log
+## 1. Materialize or reopen Card and Log
 
-Before the first Coder dispatch, create exactly two files for every selected task:
+Before the first Coder dispatch, create exactly two files for every newly materialized task:
 
 1. `execution/<card_id>/Card.md` is the stable normative execution contract. It contains the
    exact Task, Requirement, Design, and applicable Contract anchors; outcome; completion
@@ -33,8 +33,12 @@ Before the first Coder dispatch, create exactly two files for every selected tas
    successful intermediate checks are not Log entries. Its structural fields and DocStar
    compatibility pointer follow the shared
    writing rules loaded through the registered `gmgn` Skill.
-3. In the same checked candidate, replace the Task row's `execution: none` with the Card link
-   and set its macro status to `prepared`.
+3. In the same checked candidate, replace the new Task row's `execution: none` with the Card
+   link and set its macro status to `prepared`.
+
+For a reopened Task, reuse its existing Card and Log, keep the execution link, set the macro
+status to `prepared`, and update the Log current snapshot with the unfinished work. Keep the
+Card unchanged unless an owning-stage revision changed its anchors or completion contract.
 
 The verification contract selects an executable oracle that fits the change:
 
@@ -241,14 +245,13 @@ when every nearby issue has been resolved.
 
 ## Upstream change and exit
 
-An internal implementation issue stays in the Card. Before local stage routing, any missing
-or changed ruling that crosses Milestones or constrains a shared project object returns to
-`gmgn` for `write-decision` routing. A Task boundary or completion problem returns to
-`write-task`; only a Milestone-local architecture, interface, data, validation, error, state,
-recovery, security, compatibility, or resource decision returns to `write-design`; changed
-observable behavior or AC returns to `write-requirement`. Follow the GMGN router's
-controlled-change rule and pause only affected providers, consumers, integration tasks, and
-descendants. Unrelated lanes continue.
+An internal implementation issue stays in the Card. Before local stage routing, any changed
+D-ID or new ruling selected for Decision returns to `gmgn` for `write-decision` routing,
+regardless of its scope. A Task boundary or completion problem returns to `write-task`; a
+design decision not recorded in Decision returns to `write-design`; changed observable
+behavior or AC not recorded in Decision returns to `write-requirement`. Follow the GMGN
+router's controlled-change rule and pause only affected providers, consumers, integration
+tasks, and descendants. Unrelated lanes continue.
 
 A revised authority produces a newly accepted commit. Refresh only affected Task/Card
 anchors, tests, and briefs, then resume with fresh Coders. Do not mark a working Contract

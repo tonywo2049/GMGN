@@ -189,10 +189,14 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertFalse(any("/references/zh-CN/" in name for name in names))
             self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
-            self.assertIn("create exactly two files for every selected task", run_task_skill)
+            self.assertIn(
+                "create exactly two files for every newly materialized task",
+                run_task_skill,
+            )
             self.assertIn("The verification contract selects an executable oracle", run_task_skill)
             self.assertIn("## 6. Add a Verifier only for recorded risk", run_task_skill)
             self.assertIn("Normal downstream stages read `Decision.md`, not", decision_skill)
+            self.assertIn("regardless of subject or Milestone scope", decision_skill)
             self.assertIn("Never renumber or reuse a D-ID", decision_skill)
 
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()

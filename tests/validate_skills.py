@@ -41,6 +41,7 @@ OLD_TASK_HEADER = "| # | task | spec anchor | prerequisite | failing test | stat
 ASSURANCE_POLICY = Path("skills/gmgn/references/en/assurance-policy.json")
 WRITING_RULES = Path("skills/gmgn/references/en/writing-rules.md")
 RUN_TASK = Path("skills/run-task/SKILL.md")
+WRITE_DECISION = Path("skills/write-decision/SKILL.md")
 CANONICAL_REFERENCES = {
     ASSURANCE_POLICY,
     WRITING_RULES,
@@ -48,7 +49,7 @@ CANONICAL_REFERENCES = {
     Path("skills/gmgn/references/en/code-review.md"),
 }
 RUN_TASK_CONTROLS = (
-    "create exactly two files for every selected task",
+    "create exactly two files for every newly materialized task",
     "The verification contract selects an executable oracle",
     "scan the entire confirmed execution set",
     "dispatch every ready, non-conflicting task",
@@ -86,6 +87,21 @@ RUN_TASK_EXCLUSIVE_MARKERS = (
 LATEST_EVENT_VALUES = (
     "latest_event: [Current](#current)",
     "latest_event: [Final Evidence](#final-evidence)",
+)
+MILESTONE_REOPEN_CONTROLS = (
+    "state: closed → initiated when unfinished work is found",
+    "replace its current `accepted_result` with `none`",
+    "do not roll them back merely because a prerequisite was reopened",
+)
+DECISION_SCOPE_CONTROLS = (
+    "regardless of subject or Milestone scope",
+    "Decision may own any current ruling needed by planning or active work",
+    "downstream artifacts link the applicable D-ID and keep only their own derived content",
+    "Never keep the same ruling normative in both places",
+)
+DECISION_LINK_CONTROLS = (
+    "`Decision.md` lists `DecisionLog.md` and its current direct consumer artifacts as downstream",
+    "Downstream artifacts link an applicable D-ID without copying its ruling",
 )
 
 
@@ -184,11 +200,23 @@ def validate_shared_surfaces(errors: list[str]) -> None:
 
     policy_files = active_policy_files()
     writing_rules = read(WRITING_RULES)
+    write_decision = read(WRITE_DECISION)
     write_task = read("skills/write-task/SKILL.md")
     require_fragments(
         writing_rules,
-        (TASK_HEADER, *LATEST_EVENT_VALUES),
+        (
+            TASK_HEADER,
+            *LATEST_EVENT_VALUES,
+            *MILESTONE_REOPEN_CONTROLS,
+            *DECISION_LINK_CONTROLS,
+        ),
         "writing-rules 机器字段",
+        errors,
+    )
+    require_fragments(
+        write_decision,
+        DECISION_SCOPE_CONTROLS,
+        "write-decision 决议范围",
         errors,
     )
     require_fragments(write_task, (TASK_HEADER,), "write-task 表头", errors)
@@ -208,6 +236,15 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         for legacy in ("review_policy: single-pass", "gmgn-assurance-v1"):
             if legacy in text:
                 errors.append(f"{relative}: 含旧审查策略 {legacy}")
+        for obsolete in (
+            "A closed foundation remains closed.",
+            "Only explicit acceptance authorizes integrating",
+            "rulings that constrain multiple Milestones and are not already",
+            "Do not absorb WhitePaper meaning, ROADMAP allocation",
+            "no current material cross-Milestone ruling",
+        ):
+            if obsolete in text:
+                errors.append(f"{relative}: 含已废止规则 {obsolete}")
 
 
 def validate_assurance_policy(errors: list[str]) -> None:

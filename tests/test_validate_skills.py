@@ -167,6 +167,40 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         self.assert_rejected("复制了 writing-rules 的 latest_event")
 
+    def test_rejects_missing_milestone_reopen_rule(self) -> None:
+        self.replace(
+            "skills/gmgn/references/en/writing-rules.md",
+            "state: closed → initiated when unfinished work is found",
+            "state: closed",
+        )
+        self.assert_rejected("writing-rules 机器字段")
+
+    def test_rejects_obsolete_irreversible_closure_rule(self) -> None:
+        path = self.root / "skills/roadmap/SKILL.md"
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\nA closed foundation remains closed.\n",
+            encoding="utf-8",
+        )
+        self.assert_rejected("含已废止规则")
+
+    def test_rejects_missing_decision_scope_rule(self) -> None:
+        self.replace(
+            "skills/write-decision/SKILL.md",
+            "regardless of subject or Milestone scope",
+            "only for project-wide scope",
+        )
+        self.assert_rejected("write-decision 决议范围")
+
+    def test_rejects_obsolete_cross_milestone_decision_limit(self) -> None:
+        path = self.root / "skills/write-decision/SKILL.md"
+        path.write_text(
+            path.read_text(encoding="utf-8")
+            + "\nDo not absorb WhitePaper meaning, ROADMAP allocation.\n",
+            encoding="utf-8",
+        )
+        self.assert_rejected("含已废止规则")
+
     def test_rejects_invalid_role_toml(self) -> None:
         path = self.root / ".codex/agents/reviewer.toml"
         path.write_text('name = "broken"\n', encoding="utf-8")

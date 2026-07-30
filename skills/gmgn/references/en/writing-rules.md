@@ -63,6 +63,7 @@ ROADMAP planning horizon and Milestone work state are:
 ```text
 horizon: now | next | later
 state: not-started → initiated → closed
+state: closed → initiated when unfinished work is found
 ```
 
 Horizon expresses planning commitment, not execution state. Only a `now` Milestone whose
@@ -72,10 +73,17 @@ Milestone with `accepted_result: none` may move to `closed`. Milestone IDs and d
 do not imply horizon, priority, dependency, or state. `accepted_result` remains `none` until
 `close-milestone` supplies the single canonical result link at Close.
 
+When unfinished work is found in a closed Milestone, move it back to `initiated` and replace
+its current `accepted_result` with `none`. Git history retains the previous result. Reopen
+only affected Tasks or add the missing Tasks; do not reset unaffected work. Check downstream
+Milestones for actual impact, but do not roll them back merely because a prerequisite was
+reopened.
+
 Task work state is:
 
 ```text
 not-started → prepared → active | blocked → closed
+closed → prepared when unfinished work belongs to that Task
 ```
 
 `prepared` means Card and Log exist. `blocked` is only the Task-level macro signal; Log owns
@@ -84,10 +92,12 @@ on the shared baseline and every project-declared required check passed against 
 integrated candidate. Any `required:<trigger>` Verifier evidence must be bound to the
 blocker-resolved final candidate.
 
+A reopened Task keeps its Card and Log, records the current missing work, and reruns only the
+checks invalidated by that work.
+
 For `design/Contract.md`, `approved` means the current shared working baseline that all
 affected Coder lanes must follow. `closed` means Milestone closure has reconciled the contract
-with provider and consumer implementations plus evidence and the owner has accepted that
-final frozen commit.
+with provider and consumer implementations plus evidence at the closing commit.
 
 <HARD-GATE>In a Git-backed GMGN project, every review, approval, acceptance, Milestone
 closure, and release anchor is a Git commit or release tag. Commit the candidate locally
@@ -108,9 +118,11 @@ pointers. A root owns the complete mapping; a child links only its applicable en
 
 The project authority chain starts `WhitePaper.md` → `Decision.md` → `ROADMAP.md`.
 `DecisionLog.md` links the Decision authority but does not sit on the normal normative chain.
-`Decision.md` lists `DecisionLog.md` and, when present, `ROADMAP.md` as downstream;
+`Decision.md` lists `DecisionLog.md` and its current direct consumer artifacts as downstream;
 `DecisionLog.md` lists `Decision.md` as upstream and `none` as downstream.
-Downstream artifacts link an applicable D-ID without copying its ruling.
+Decision may own a ruling at any subject or Milestone scope. Downstream artifacts link an
+applicable D-ID without copying its ruling and retain only their own derived content. A
+decision not recorded in Decision remains with its normal stage authority.
 
 When meaning changes, use the owning stage Skill and update only the affected link graph at one
 new commit. Formatting, equivalent links, mirrored status, and generated metadata are
@@ -127,7 +139,7 @@ mechanical only while they preserve the owner's meaning.
 - Card: `execution/<card_id>/Card.md`
 - Runtime record: `execution/<card_id>/Log.md`
 - Milestones: `M1`, `M2`, ...
-- Project decisions: `D-001`, `D-002`, ...
+- Decisions: `D-001`, `D-002`, ...
 - Requirements: `R1`, `R2`, ...
 - ACs: `R1-AC1`, `R1-AC2`, ...
 - Cross-task contracts: `C1`, `C2`, ...

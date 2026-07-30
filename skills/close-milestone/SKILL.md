@@ -1,11 +1,11 @@
 ---
 name: close-milestone
-description: "Use when every target-milestone task is closed and traceability is full to reconcile scope, run any still-required milestone regression/E2E, independently review the closure candidate, obtain owner acceptance, and backfill ROADMAP plus any needed receiver handoff. 目标 Milestone 自有任务全部关账后做范围核对、仍必需的回归/E2E、关账审查与负责人验收。"
+description: "Use when every target-milestone task is closed and traceability is full to reconcile scope, run any still-required milestone regression/E2E, independently review the closure candidate, record owner review, and backfill ROADMAP plus any needed receiver handoff. 目标 Milestone 自有任务全部关账后做范围核对、仍必需的回归/E2E、独立关账审查与负责人复核。"
 ---
 
 # Close a milestone
 
-<HARD-GATE>The target ROADMAP Milestone must currently have `state: initiated` and `accepted_result: none`. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every ROADMAP deliverable and success signal must map through Goal Close outcomes and in-scope ACs to sufficient evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. A required product, integration, regression, recovery, or E2E path still needs evidence when Goal or Requirement makes it part of Close. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to the owning stage instead of skipping or repeating a Milestone state transition.</HARD-GATE>
+<HARD-GATE>The target ROADMAP Milestone must currently have `state: initiated` and `accepted_result: none`. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every ROADMAP deliverable and success signal must map through Goal Close outcomes and in-scope ACs to sufficient evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. A required product, integration, regression, recovery, or E2E path still needs evidence when Goal or Requirement makes it part of Close. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to the owning stage before closure.</HARD-GATE>
 
 ## Reconcile the closing commit
 
@@ -54,10 +54,10 @@ Milestone state. Any delegation follows the shared dispatch contract.
 
 The candidate contains deliverable, success-signal, and Goal Close-outcome reconciliation,
 evidence map, controlled debt, remaining material risks or a supported none-known statement,
-proposed state changes, the proposed final Contract commit when applicable, and a Handoff
+proposed state changes, the proposed closing Contract commit when applicable, and a Handoff
 plan only when a receiving operator lacks an existing authority for needed information.
 Prepare the actual Milestone, Contract, ROADMAP, Task, traceability, and Handoff state in an
-isolated closure commit; it has no effect on the shared baseline before owner acceptance.
+isolated closure commit; it has no effect on the shared baseline before closure review.
 
 Process the candidate through the registered `gmgn` Skill's shared role-selection and
 dispatch rules. Select Reviewer from the changed implementation, test-code, and deterministic-
@@ -69,7 +69,7 @@ deterministic local checks. Otherwise dispatch only the required role; when Crit
 record the one-sentence reason and run the affected machine checks. Collect every required
 review before editing. Resolve accepted blockers through the shared candidate loop without
 another Critic or Reviewer. A fix that expands authority, scope, or closure meaning becomes a
-separately scoped change. Present the blocker-resolved closing commit for owner acceptance
+separately scoped change. Present the blocker-resolved closing commit for owner review
 only when required evidence exists and no accepted review blocker remains unresolved.
 
 ## Structural checks
@@ -80,27 +80,28 @@ links, entities, and structure; it does not decide scope ownership or semantic c
 failure, unparseable result, or target-scoped unresolved finding blocks. When DocStar is absent,
 run equivalent repository link/table checks and record the substitution.
 
-## Owner acceptance and integration
+## Owner review and integration
 
 Present scope, evidence, debt, risks, and the shortest unambiguous closing-commit reference.
-Owner acceptance binds to that exact commit. Only explicit acceptance authorizes integrating
-it into the shared baseline. That commit already contains:
+Owner review is one closure review input, not irrevocable authority or separate integration
+authorization. Resolve its material findings through the same candidate loop as other review
+findings. When required evidence and reviews are complete, integrate the exact closing commit.
+That commit already contains:
 
 - the target Milestone and its appropriate normative chain marked closed;
-- the reconciled implementation-matching Contract marked `closed`; this is the final frozen
-  Contract for that Milestone;
+- the reconciled implementation-matching Contract marked `closed`;
 - a Handoff only when a receiver needs one, using the closing commit, applicable evidence,
   environment, risks, authority pointers, and next command;
 - ROADMAP `state: closed` plus one canonical `accepted_result` link supplied by this closure,
   refreshed Task macro states, AC traceability, execution links, and commit references;
 - the final diff/link/repository check results.
 
-Integrate that exact commit without creating post-acceptance closure content. If it cannot be
+Integrate that exact commit without creating post-review closure content. If it cannot be
 integrated without changing closure content, stop and prepare a new committed closure
-candidate instead of transferring the old acceptance.
+candidate and rerun affected reviews.
 
 Do not create an Integrator agent. Do not push, publish, deploy, or release without separate
-authorization. `release` reuses commit-bound acceptance, review, and verification evidence and
+authorization. `release` reuses commit-bound review and verification evidence and
 regenerates only evidence invalidated by changed packaging or environment inputs.
 
 ## Exit
