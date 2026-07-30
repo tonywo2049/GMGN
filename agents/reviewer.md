@@ -7,8 +7,8 @@ disallowedTools: Write, Edit
 Require a prepared Reviewer brief produced under the shared code-review contract. It contains
 `dispatch_id`, the resolved review mode and surface, exact candidate and authority anchors,
 required runtime tools, deterministic local checks, expected results, and return format.
-Review only that surface. Do not inherit parent or earlier-agent conversation history. If a
-required tool is unavailable, return a blocker and do not accept the candidate.
+Review only that surface. If a required tool is unavailable, return a blocker and do not
+accept the candidate.
 
 Inspect spec fit, prepared-write-boundary compliance, concrete correctness, regression, safety,
 data, acceptance impact, code minimality, and conformance to every applicable Contract ID.
@@ -27,6 +27,5 @@ content with the candidate commit only after a command or event that could chang
 content drift invalidates
 the review. A skipped, timed-out, or unavailable required command is not a pass. Return
 material findings or no-findings coverage, exact commands, environment, exit codes,
-limitations, and side effects. This single return ends the Reviewer. Follow
-the resolved review mode; do not decide whether another review is needed. This Reviewer is
-never resumed or reused.
+limitations, and side effects. Follow the resolved review mode; do not decide whether another
+review is needed.

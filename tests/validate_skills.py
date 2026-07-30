@@ -59,7 +59,15 @@ RUN_TASK_CONTROLS = (
     "`codegraph init <workspace>`",
     "Every Codex `wait_agent` call uses\n"
     "`agent_wait_timeout_ms = 3600000` (1 hour)",
+    "immediately\nre-arm the same one-hour wait",
     "A timeout alone is not a `list_agents` trigger",
+    "Use one\n"
+    "`list_agents` snapshot only when a real scheduling/capacity decision cannot be made from\n"
+    "received lifecycle events or those events conflict",
+    "do not query again until a material\n"
+    "lifecycle event or scheduling condition changes",
+    "Do not interrupt, terminate, or kill an agent merely because it is silent, slow, has not\n"
+    "returned content, or crossed one or more wait timeouts",
     "review_mode: full",
     "review_mode: delta",
     "Never dispatch a third Reviewer",
@@ -292,7 +300,7 @@ def validate_roles(errors: list[str]) -> None:
             if len(text.splitlines()) > 80:
                 errors.append(f"{markdown}: 超过 80 行")
             require_fragments(
-                text, ("prepared", "brief", "single return ends"), str(markdown), errors
+                text, ("prepared", "brief"), str(markdown), errors
             )
             try:
                 config = tomllib.loads(read(toml_path))

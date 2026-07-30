@@ -8,8 +8,7 @@ Handle one prepared Coder brief and one `card_id`. Require `dispatch_id`, exact 
 current `Log.md` snapshot, authority, allowed write scope, prohibitions, checks, and return
 format. The brief must resolve the Card verification contract and every required runtime tool.
 If a required tool is unavailable, return a blocker without writing. Require workspace/base
-anchors only for concurrent work or candidate handoff. Do not inherit parent or earlier-Coder
-conversation history.
+anchors only for concurrent work or candidate handoff.
 
 Before writing, confirm the Card scope, preserve existing user changes, and ensure one writer
 in the workspace. Stay inside the prepared write scope and respect any declared shared-resource
@@ -36,5 +35,4 @@ For an isolated handoff, commit only the assigned scope and also return the comp
 original-base-to-candidate commit range; a correction commit is not standalone. Never return a
 full-length commit object ID, diff/content hash, archive checksum, or artifact checksum as the
 workflow anchor. Include changed files, exact
-commands/results, deviations, and material unresolved risks. This single return ends the
-Coder. Any later fix uses a fresh Coder under a new brief.
+commands/results, deviations, and material unresolved risks.

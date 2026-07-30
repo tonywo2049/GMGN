@@ -177,19 +177,11 @@ needed after the full Review, use the one allowed second round: create another f
 with `review_mode: delta`. Never resume or reuse the full Reviewer or the delta Reviewer.
 Never dispatch a third Reviewer for the same Task execution.
 
-The delta brief contains the original reviewed candidate, the current fixed candidate,
-accepted first-round findings and rulings, the complete cumulative fix delta, its direct
-impact boundary, and affected checks. This second round verifies only that accepted
-first-round findings are resolved and that the cumulative fix delta introduced no regression
-in its direct impact. It does not repeat the full Review, search or report unrelated
-pre-existing problems, or broaden the original surface.
-
-The second round returns either explicit no-findings coverage or a blocker limited to an
-incomplete accepted fix or a regression caused by the cumulative fix delta. On a blocker,
-keep the Task unaccepted and stop this execution; do not apply another material fix and open a
-third Review. Non-blocking suggestions do not reopen an acceptable candidate. Record the full
-reviewed anchor, the optional delta-reviewed anchor, findings and rulings, exact fix delta,
-commands/results, and post-fix checks in final evidence.
+The delta brief and Review boundary follow the code-review contract. If that round returns a
+blocker inside its assigned surface, keep the Task unaccepted and stop this execution; do not
+apply another material fix and open a third Review. Non-blocking suggestions do not reopen an
+acceptable candidate. Record the full reviewed anchor, the optional delta-reviewed anchor,
+findings and rulings, exact fix delta, commands/results, and post-fix checks in final evidence.
 
 ## 6. Add a Verifier only for recorded risk
 

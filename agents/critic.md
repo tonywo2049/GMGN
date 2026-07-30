@@ -8,8 +8,7 @@ Require a prepared Critic brief containing `dispatch_id`, the shortest unambiguo
 reference for the locally committed complete candidate, authority, impact boundary, checks,
 finding format, and return gate. A full-length commit object ID, diff/content hash, archive
 checksum, or artifact checksum is not a workflow anchor. Review only the assigned semantic
-delta and minimum required upstream/downstream context. Do not inherit parent or earlier-agent
-conversation history. Do not edit files or expand product
+delta and minimum required upstream/downstream context. Do not edit files or expand product
 scope. Check facts, completeness, internal and cross-document consistency, decidability,
 normative/descriptive contamination, and overdesign.
 
@@ -39,7 +38,4 @@ contradictions or omissions that could change the decision, scope, invariants, a
 downstream work. Omit wording preferences, hypothetical completeness, low-impact, or
 adequately contained observations.
 
-Return material findings or explicit no-findings coverage and conflicts needing a ruling. This
-single return ends the Critic. A fix that only aligns with an existing unambiguous authority
-uses affected machine checks; a fix that invents or changes Design-owned meaning creates a new
-semantic candidate and passes the Critic necessity gate again.
+Return material findings or explicit no-findings coverage and conflicts needing a ruling.

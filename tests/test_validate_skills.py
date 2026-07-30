@@ -86,6 +86,37 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         self.assert_rejected("run-task 关键执行控制")
 
+    def test_rejects_incomplete_wait_lifecycle_controls(self) -> None:
+        path = self.root / "skills/run-task/SKILL.md"
+        original = path.read_text(encoding="utf-8")
+        cases = (
+            (
+                "immediately\nre-arm the same one-hour wait",
+                "wait again eventually",
+            ),
+            (
+                "Use one\n`list_agents` snapshot only when a real scheduling/capacity "
+                "decision cannot be made from\nreceived lifecycle events or those events conflict",
+                "Use list_agents whenever useful",
+            ),
+            (
+                "do not query again until a material\n"
+                "lifecycle event or scheduling condition changes",
+                "query again periodically",
+            ),
+            (
+                "Do not interrupt, terminate, or kill an agent merely because it is silent, "
+                "slow, has not\nreturned content, or crossed one or more wait timeouts",
+                "Stop a slow agent after repeated timeouts",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(rule=old):
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected("run-task 关键执行控制")
+        path.write_text(original, encoding="utf-8")
+
     def test_rejects_missing_ready_set_priority(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",

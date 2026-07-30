@@ -154,17 +154,15 @@ in `run-task` and the writing rules.
 ## 4. Review and verification
 
 Commit the complete candidate locally before independent checks. Document meaning passes the
-Critic necessity gate defined by the [GMGN router](skills/gmgn/SKILL.md). An implementation
-candidate receives at most two Review rounds: one full Review from a fresh Reviewer, then at
-most one cumulative fix-delta Review from another fresh Reviewer. The second round verifies
-the first-round fixes and their regressions; it does not open unrelated findings. Mechanical
-finding fixes receive affected machine checks. There is no third Review round.
+Critic necessity gate defined by the [GMGN router](skills/gmgn/SKILL.md). For implementation,
+`run-task` owns the at-most-two-round dispatch schedule and the
+[code-review contract](skills/gmgn/references/en/code-review.md) owns each Review surface.
+There is no third Review round.
 
 A fresh Verifier remains risk-triggered rather than automatic. Failed, skipped, timed-out, or
 unavailable required checks are not passes. The
 [assurance policy](skills/gmgn/references/en/assurance-policy.json) defines role triggers,
-the [code-review contract](skills/gmgn/references/en/code-review.md) defines how full and delta
-reviews work, and stage Skills define when they are dispatched.
+and stage Skills define when Review and verification are dispatched.
 
 ## 5. Task execution and integration
 

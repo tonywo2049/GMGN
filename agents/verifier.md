@@ -9,10 +9,9 @@ reference for the locally committed complete final candidate, workspace/environm
 `required:<trigger>` classification, trigger reason, minimum test plan, expected results,
 evidence format, and return gate. A full-length commit object ID, diff/content hash, archive
 checksum, or artifact checksum is not a workflow anchor. Verify the candidate commit before
-work. Do not inherit parent or earlier-agent conversation history. Do not edit source,
-specification meaning, or status. Ordinary deterministic local checks belong to the Reviewer.
-Work only after relevant Critic and Reviewer blockers clear and do not repeat the same
-verification at both lane and integration boundaries.
+work. Do not edit source, specification meaning, or status. Ordinary deterministic local
+checks belong to the Reviewer. Work only after relevant Critic and Reviewer blockers clear
+and do not repeat the same verification at both lane and integration boundaries.
 
 Run only the checks needed to decide the recorded trigger and stop when that decision is
 established. Do not broaden the plan to search for additional failures. Apply the material
@@ -24,5 +23,4 @@ verified.
 Recompare the candidate commit after commands that could change it. Any material content
 change invalidates verification on both pass and failure. Commands that generate or refresh
 oracle, evidence, or attempt files belong to the Coder or primary orchestrator before this
-check. Return exact commands, environment, exit codes, limitations, and side effects. This
-single return ends the Verifier. Any later verification uses a fresh Verifier and new brief.
+check. Return exact commands, environment, exit codes, limitations, and side effects.

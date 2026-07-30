@@ -159,11 +159,12 @@ Before return, apply this Design Ready gate:
 
 Use the registered `gmgn` Skill's shared document-candidate and dispatch rules, and record the
 Decision and Requirement commits. For a small Bundle, the primary session writes it directly.
-For useful parallelism, it first creates root `Design.md` with the global architecture, module
-boundaries, dependency direction, planned artifacts, and ownership; root remains the primary
-session's write surface. Dispatch fresh Authors by bounded semantic module, not mechanically by
-file count. Each Author writes only its declared child artifacts and self-checks their links
-and local closure.
+For useful parallelism, it first completes the root R/AC mapping and selects only child
+artifacts justified by current R/ACs. Add shared architecture, module boundaries, dependency
+direction, and ownership only when those R/ACs require them; root remains the primary
+session's write surface. Dispatch fresh Authors by bounded semantic module, not mechanically
+by file count. Each Author writes only its declared child artifacts and self-checks their
+links and local closure.
 
 The primary session integrates provider/consumer seams, shared state, error order, and schema
 references into one complete immutable Bundle candidate. When the shared necessity gate
