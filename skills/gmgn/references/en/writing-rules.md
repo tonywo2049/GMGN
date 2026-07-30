@@ -1,6 +1,6 @@
 ---
 locale: en
-purpose: Define the stable machine fields, states, paths, IDs, links, and parser surfaces shared by English and Chinese GMGN artifacts.
+purpose: Define the stable writing rules, machine fields, states, paths, IDs, links, and parser surfaces shared by English and Chinese GMGN artifacts.
 upstream: [GMGN methodology](../../../../GMGN.md)
 downstream: [GMGN router](../../SKILL.md)
 status: approved
@@ -8,7 +8,7 @@ type: design
 nature: normative
 ---
 
-# GMGN writing contract
+# GMGN writing rules
 
 ## 1. Language and frontmatter
 
@@ -43,6 +43,9 @@ Replace `none` with a real relative link in the same checked batch that creates 
 Normative content owns meaning; descriptive content records observations and never creates
 scope or approval.
 
+`Decision.md` uses `type: decision`, `nature: normative`; `DecisionLog.md` uses the same type
+with `nature: descriptive`. The Log is change history, not normal downstream authority.
+
 Documents under a project-declared archive root are historical storage only. Writers do not
 read, cite, or use them as authority, context, or evidence. Restore needed meaning to the
 active tree through its owning authority before use.
@@ -55,6 +58,20 @@ Normative document state is:
 draft → pending-approval → approved → closed
 ```
 
+ROADMAP planning horizon and Milestone work state are:
+
+```text
+horizon: now | next | later
+state: not-started → initiated → closed
+```
+
+Horizon expresses planning commitment, not execution state. Only a `now` Milestone whose
+declared prerequisites are all `closed` with an `accepted_result` may move from `not-started`
+to `initiated`, and only through explicit human-owner authorization. Only an `initiated`
+Milestone with `accepted_result: none` may move to `closed`. Milestone IDs and document order
+do not imply horizon, priority, dependency, or state. `accepted_result` remains `none` until
+`close-milestone` supplies the single canonical result link at Close.
+
 Task work state is:
 
 ```text
@@ -63,9 +80,9 @@ not-started → prepared → active | blocked → closed
 
 `prepared` means Card and Log exist. `blocked` is only the Task-level macro signal; Log owns
 the reason. `closed` means the accepted implementation and required evidence are integrated
-on the shared baseline. The Reviewer normally supplies deterministic local execution evidence.
-Any `required:<trigger>` Verifier evidence must be bound to the blocker-resolved final
-candidate.
+on the shared baseline and every project-declared required check passed against that exact
+integrated candidate. Any `required:<trigger>` Verifier evidence must be bound to the
+blocker-resolved final candidate.
 
 For `design/Contract.md`, `approved` means the current shared working baseline that all
 affected Coder lanes must follow. `closed` means Milestone closure has reconciled the contract
@@ -89,13 +106,19 @@ fields, schema, mapping, decision, or status history. Use real relative links fo
 `downstream`, Bundle indexes, R/AC anchors, Contract IDs, execution pointers, and evidence
 pointers. A root owns the complete mapping; a child links only its applicable entries.
 
+The project authority chain starts `WhitePaper.md` → `Decision.md` → `ROADMAP.md`.
+`DecisionLog.md` links the Decision authority but does not sit on the normal normative chain.
+`Decision.md` lists `DecisionLog.md` and, when present, `ROADMAP.md` as downstream;
+`DecisionLog.md` lists `Decision.md` as upstream and `none` as downstream.
+Downstream artifacts link an applicable D-ID without copying its ruling.
+
 When meaning changes, use the owning stage Skill and update only the affected link graph at one
 new commit. Formatting, equivalent links, mirrored status, and generated metadata are
 mechanical only while they preserve the owner's meaning.
 
 ## 4. Stable names and Task surface
 
-- Project: `WhitePaper.md`, `ROADMAP.md`
+- Project: `WhitePaper.md`, `Decision.md`, `DecisionLog.md`, `ROADMAP.md`
 - Milestone: `Goal.md`, `Requirement.md`, `Design.md`, optional `design/`, `Task.md`
 - Design module: `design/<module-id>.md`
 - Cross-unit catalog: `design/Contract.md`
@@ -104,13 +127,15 @@ mechanical only while they preserve the owner's meaning.
 - Card: `execution/<card_id>/Card.md`
 - Runtime record: `execution/<card_id>/Log.md`
 - Milestones: `M1`, `M2`, ...
+- Project decisions: `D-001`, `D-002`, ...
 - Requirements: `R1`, `R2`, ...
 - ACs: `R1-AC1`, `R1-AC2`, ...
 - Cross-task contracts: `C1`, `C2`, ...
 - Tasks: `M1-T1`, `M1-T2`, ...; a single-Milestone corpus may use `T1`
 
-Never renumber an ID after downstream references exist. Keep a tombstone or decision pointer
-when removing one.
+Never renumber or reuse an ID after downstream references exist. A retired D-ID leaves
+`Decision.md` and remains reserved by `DecisionLog.md`; other removed IDs keep a tombstone or
+decision pointer in their owning authority.
 
 The parser-facing Task header is fixed:
 
@@ -122,13 +147,14 @@ The parser-facing Task header is fixed:
 
 Chinese documents use the same header. Keep a separate `| AC | task |` mapping. Task owns task
 rows, spec anchors, the dependency DAG, macro status, execution pointers, and the few
-Milestone-level pointers needed to schedule and integrate. It does not contain TDD cases,
+Milestone-level pointers needed to schedule and integrate. It does not contain verification cases,
 commands, write sets, locks, blockers, candidate commit references, evidence, or progress
 history. Replace current values; do not append execution narrative.
 
 ## 5. Design Bundle links
 
-`Design.md` always owns the global architecture, Bundle index, and complete R/AC mapping.
+`Design.md` always owns the complete R/AC mapping. It owns architecture and module boundaries
+only when current R/ACs need them, and indexes child links only when child artifacts exist.
 Every child under `design/` links back to it. When current work crosses an independently
 developed boundary, `design/Contract.md` is required and links each stable Contract ID to its
 provider, consumers, applicable module documents, and single structural authority. A small
@@ -137,7 +163,9 @@ Exact schemas and compilable interfaces live under `design/schemas/` or an expli
 code location and are not copied into Markdown.
 
 The linked files form one Design Bundle accepted at the same Git commit. The `spec anchor`
-cell may link applicable AC, module, Contract ID, and schema without copying their meaning.
+cell may link an applicable D-ID, AC, module, Contract ID, and schema without copying their meaning.
+Link the exact Decision section only when that ruling directly constrains implementation; do
+not inject the whole Decision document into every Task.
 The stage Skills own Design completeness, interface semantics, task division, controlled
 revision, and final Contract closure.
 
@@ -153,7 +181,5 @@ stage Skills own their content and lifecycle.
 ## 7. Content, not a template
 
 GMGN does not prescribe section names, order, or prose shape beyond the parser-facing fields
-above. The stage Skill defines what an artifact must answer and self-check. The primary
-orchestrator writes specification documents directly when its context makes that clearest;
-delegate a fresh Author only when bounded isolation, specialization, or parallelism has real
-value. Keep the independent Critic separate from the writer.
+above. The stage Skill defines what an artifact must answer. Delegation and independent review
+follow the shared dispatch contract.

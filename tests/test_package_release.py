@@ -172,6 +172,7 @@ class PackageReleaseTests(unittest.TestCase):
                 names = release.namelist()
                 create_systems = {info.create_system for info in release.infolist()}
                 run_task_skill = release.read("skills/run-task/SKILL.md").decode("utf-8")
+                decision_skill = release.read("skills/write-decision/SKILL.md").decode("utf-8")
             self.assertTrue(names)
             self.assertTrue(
                 all(name in ALLOWED_FILES or name.startswith(ALLOWED_PREFIXES) for name in names), names
@@ -181,15 +182,18 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("agents/author.md", names)
             self.assertIn("agents/critic.md", names)
             self.assertIn("agents/verifier.md", names)
+            self.assertIn("skills/write-decision/agents/openai.yaml", names)
             self.assertTrue(REQUIRED_REFERENCE_FILES <= set(names))
             self.assertIn("README.zh-CN.md", names)
             self.assertNotIn("GMGN.zh-CN.md", names)
             self.assertFalse(any("/references/zh-CN/" in name for name in names))
             self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
-            self.assertIn("`execution/<card_id>/Card.md` first", run_task_skill)
-            self.assertIn("## 6. Add a separate Verifier only for risk triggers", run_task_skill)
-            self.assertIn("A fresh Verifier is exceptional, not default", run_task_skill)
+            self.assertIn("create exactly two files for every selected task", run_task_skill)
+            self.assertIn("The verification contract selects an executable oracle", run_task_skill)
+            self.assertIn("## 6. Add a Verifier only for recorded risk", run_task_skill)
+            self.assertIn("Normal downstream stages read `Decision.md`, not", decision_skill)
+            self.assertIn("Never renumber or reuse a D-ID", decision_skill)
 
             digest = hashlib.sha256(archive.read_bytes()).hexdigest()
             checksum = (output_dir / f"gmgn-{version}.zip.sha256").read_text(encoding="utf-8")
@@ -300,7 +304,7 @@ class PackageReleaseTests(unittest.TestCase):
             copied_root = self.copied_repository(temporary)
             translated = copied_root / "skills" / "gmgn" / "references" / "fr"
             translated.mkdir(parents=True)
-            (translated / "writing-contract.md").write_text("duplicate\n", encoding="utf-8")
+            (translated / "writing-rules.md").write_text("duplicate\n", encoding="utf-8")
             output_dir = Path(temporary) / "dist"
 
             result = self.run_copied_packager(copied_root, output_dir)

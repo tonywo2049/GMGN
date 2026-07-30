@@ -1,4 +1,4 @@
 interface:
   display_name: "Roadmap / 项目路线图"
-  short_description: "Sequence Milestones, outputs, dependencies, and Backlog / 编排里程碑、产出、依赖与 Backlog"
-  default_prompt: "Use $roadmap to turn the approved WhitePaper into a project roadmap. / 请用 $roadmap 编排项目路线图。"
+  short_description: "Resolve outcome Milestones, horizons, priority, and dependencies / 逐问裁决结果型里程碑、时域、优先级与依赖"
+  default_prompt: "Use $roadmap to turn the approved WhitePaper and Decision into a project roadmap. / 请用 $roadmap 按已批准白皮书和项目决议编排路线图。"

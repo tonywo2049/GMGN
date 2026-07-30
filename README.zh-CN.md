@@ -12,19 +12,21 @@ nature: descriptive
 
 English: [README.md](README.md)
 
-GMGN 是同时适配 **Codex（CLI / Desktop）** 与 **Claude Code** 的 agent 研发工作流。它把一个想法沿着十件可组合 skill 推进到里程碑关账，再从已接受锚发布而不重复关账审查；硬门禁阻止跳步，独立评审减少同源盲区，可重放命令把“完成”绑定到真实证据。
+GMGN 是同时适配 **Codex（CLI / Desktop）** 与 **Claude Code** 的 agent 研发工作流。它把一个想法沿着十一件可组合 skill 推进到里程碑关账，再从已接受锚发布而不重复关账审查；硬门禁阻止跳步，独立评审减少同源盲区，可重放命令把“完成”绑定到真实证据。
 
 ```text
 想法
- └─ brainstorm → 白皮书 → roadmap
-                         └─ write-goal
-                            → write-requirement
-                            → write-design
-                            → write-task
-                            → run-task
-                            → close-milestone
-                            → release（已授权分发时）
-                            → roadmap（下一里程碑）
+ └─ brainstorm → WhitePaper
+    → write-decision → Decision
+    → roadmap → ROADMAP
+       └─ write-goal
+          → write-requirement
+          → write-design
+          → write-task
+          → run-task
+          → close-milestone
+          → release（已授权分发时）
+          → roadmap（下一里程碑）
 ```
 
 `gmgn` 是总线：当你不知道当前该走哪一步时，它根据仓库状态路由到正确工序。
@@ -36,17 +38,22 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 机器 token。公共规范只维护英文单一权威，只有 README 保留中英文两份；项目规格链通常只选一个
 活动语言，确需双语时分 locale 目录分别检查，避免相同 ID 重复定义。
 
-统一机器契约见 [English writing contract](skills/gmgn/references/en/writing-contract.md)。GMGN 不维护
+统一写作规则见 [English writing rules](skills/gmgn/references/en/writing-rules.md)。GMGN 不维护
 规范的翻译镜像，也不提供文档章节模板；每个阶段 Skill 规定必备内容和自检项，Author 可按项目
 活动语言组织正文。
 
-ROADMAP 中每个 Milestone 都要写明具体产出物和简短的定性验收摘要。只有当实际产品或运营路径
-本身就是产出物时，才写核心 E2E；否则省略。
+`Decision.md` 保存当前有效、约束多个 Milestone 的项目级产品、业务、协议和架构决议；
+`DecisionLog.md` 只记录已批准变更，不进入正常下游上下文。
 
-每个阶段文档只增加一种信息：ROADMAP 编排 Milestone 及其产出；Goal 把当前 Milestone 细化为
-Requirement 依据和定性 Close 标准；Requirement 定义可观察要求和可判定 AC；Design 确定实现
-所需的技术决定；Task 只索引可独立完成的结果、依赖、状态和执行入口。阶段文档不写下游门禁、
-传导规则、下一阶段指令或推测性占位。
+ROADMAP 中每个 Milestone 都要映射 WhitePaper 和适用 D-ID，写明一个结果及其价值、必要产出物和一个结果级
+成功信号，并分开表达 `now | next | later`、相对优先级和真实依赖。编排 Agent 先给建议，再一次
+只向人工询问一个会改变路线的决定。ROADMAP 不拥有 E2E 路径。
+
+每个阶段文档只增加一种信息：Decision 记录现行跨 Milestone 决议；ROADMAP 分配部分有序的
+Milestone 及其结果；Goal 把当前 Milestone
+细化为 Requirement 依据和定性 Close 标准；Requirement 定义可观察要求和可判定 AC；Design
+确定实现所需的技术决定；Task 只索引可独立完成的结果、依赖、状态和执行入口。阶段文档不写
+下游门禁、传导规则、下一阶段指令或推测性占位。
 
 Design 阶段始终产出根 `Design.md`。只有模块权威确有价值时才增加
 `design/<module-id>.md`；存在独立开发边界时才要求 `design/Contract.md`，拆分契约与
@@ -60,63 +67,28 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并把一�
 
 | 能力 | Codex | Claude Code |
 |---|---|---|
-| 十件共享 skill | 支持 | 支持 |
+| 十一件共享 skill | 支持 | 支持 |
 | 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
 | 代码审查与确定性本地检查 | `/review`；CLI 用 `codex review --commit/--base`，并运行项目命令 | 独立 reviewer 并运行项目命令；`/code-review` 仅用于已授权评论的 GitHub PR |
 | 风险触发的最终验证 | 安装、启动、E2E、外部环境或无法完全机检的制品 | 项目命令；可用 `/verify` |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-Reviewer 在同一轮内完成代码判断与既定的确定性本地检查。每个受委派角色在创建前取得完整 brief，
-只回传一次后结束；后续写作、编码或验证使用全新 agent，不继承父会话或旧 agent 历史。派发 Critic
-前，主编排者必须指出一个尚未被 Owner 接受、也未被有效兜底，且独立质疑可能据此改变验收或下一步
-的具体实质风险；找不到时，用一句话说明原因，跳过 Critic 并运行受影响机器检查，无法判断时才派发。
-每个语义变更批次或任务执行最多只有一轮 Critic/Reviewer；仅与既有明确权威对齐的 finding 修复由
-主编排者核对并重跑受影响机器检查，不做第二轮独立检查；必须发明或改变公共语义的修复另立语义批次。
-单独的 Verifier 是例外：按
-[`gmgn-assurance-v1` 策略](skills/gmgn/references/en/assurance-policy.json)分类为
-`not-required` 或 `required:<trigger>`，只有后者才派发。
-Critic 和 Reviewer 不追求 finding 数量；没有 finding 是有效结果。只报告没有被已接受有效兜底
-控制、会造成具体实质影响的问题，并只要求最小充分修复。Verifier 只运行判定 recorded trigger
-所需的检查，判定成立即停止。
+每个受委派角色都遵循
+[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)：先准备 brief，再创建全新的一次性
+agent，并把回传绑定到固定候选。每个实现候选最多两轮审查：第一轮由新 Reviewer 完整审查；需要时
+第二轮由另一名新 Reviewer 只复核累计修复差异，不得新增无关问题；不存在第三轮。机械修复只运行
+受影响机器检查。Verifier 仍由
+[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json)按风险触发。full 与 delta
+的审查范围由[代码审查契约](skills/gmgn/references/en/code-review.md)定义。
 
-`run-task` 按依赖 ready set 持续补满可用槽位。主 session 等待或承担 Coder 前，必须扫描已确认
-执行集中的全部任务，不能只看当前卡片或 lane。`Task.md` 只保留任务划分、AC 映射、依赖、宏观状态
-和 execution 指针；每个选中任务用 `execution/<card_id>/Card.md` 保存稳定执行/TDD 契约，用
-`Log.md` 保存当前状态、关键决策和最终证据；不记录普通派发、等待、未变化状态和已被最终证据覆盖
-的成功中间检查。并发 writer 使用隔离工作区，单 writer 可直接使用当前工作区；只有真实交接或
-实质状态变化才检查 workspace、HEAD 和候选身份。评审前必须把完整候选提交到本地 Git，brief
-与记录只写最短无歧义 commit；隔离交接还传递完整 commit 范围。完整对象 ID、diff/内容哈希和
-校验和都不能作为流程锚点；集成前通过 Git 确认集成内容与已审 commit 一致。
+`Task.md` 仍是 Milestone 索引。对已确认行，`run-task` 创建稳定的 `Card.md` 执行与验证契约和
+可替换的 `Log.md`，并负责 ready set 调度、隔离 writer lane、运行时工具、监测、审查、集成与
+关闭。只有已审内容集成后，项目声明的全部必需检查都在准确的共享基线候选上通过，Task 才能关闭。
+完整规则只在 [`run-task`](skills/run-task/SKILL.md) 中维护。
 
-所有 Coder lane 使用同一个 Design Bundle 锚点。Coder 不直接修改或协商共享接口权威；实现证据
-与 Contract 冲突时，只回传证据、最小修改建议和受影响 Task。内部实现问题留在 Card；语义不变
-的澄清只做机器检查；语义变化只暂停影响范围，并通过一次 `write-design` 修订形成新 commit。
-
-发现问题不会扩大 active Card。新问题只有在不修会阻止 Card 结果或既定必需检查、没有已接受的
-有效兜底、且最小充分修复仍在现有权威内时才属于当前任务；否则忽略低价值问题、将确有价值的事项
-单独交给主 Session，或返回上游。Card 契约满足后立即关闭任务。
-
-Reviewer 在唯一审查轮内运行既定的确定性本地检查；已采纳
-finding 修复后，主编排者核对精确修复差异并重跑受影响的机器检查，不再进行独立复核。只有记录了
-上述风险触发理由，才对最终候选派一个全新 Verifier；干净机械集成也不重复同一测试。
-Agent 等待采用事件驱动。Codex 统一使用
-`agent_wait_timeout_ms = 3600000`（1 小时）调用 `wait_agent`，常规进度汇报节奏不得缩短它。已知
-仍在 `running` 的 agent 超时后，主编排者立即重新等待 1 小时；两个无变化超时之间不得插入
-`list_agents`、其他状态查询或用户更新。超时本身不能触发 `list_agents`，只有生命周期事件无法支持
-真实调度决策或事件互相矛盾时才能查询一次。不得仅因 agent 未返回内容、静默、耗时或连续超时而
-interrupt、terminate 或 kill；只有用户明确取消，或有具体证据表明 agent 已硬失败、作用域失效或
-继续执行不安全时才能停止。状态无变化时，主 session 不报告等待超时、心跳、agent 数量或运行状态；
-只在产生实质进展、阻塞、决策请求或最终结果时更新。
-
-已评审的 `Task.md` 行选择工作，物化后的 `Card.md` 是静态执行/TDD 权威。run-task 角色只接收精确
-权威指针、Log 当前快照与 lane 事实，不继承父会话，也不复制逐 agent handoff。
-
-R-D-T 的方案最简性由 GMGN 自己检查：Requirement 和 Design 使用删除优先检查；`write-task`
-负责 Task 边界与颗粒度规则，Task 数量本身不是简单性或过度设计的判断指标。代码最简性调用外部
-[Ponytail](https://github.com/DietrichGebert/ponytail) 插件，不复制它的规则。run-task 要求
-Coder 使用 `ponytail:ponytail` 的 `full` 模式；含实现或测试代码差异的 Reviewer 候选要求
-`ponytail:ponytail-review`。Ponytail 与正确性、安全性审查在同一轮完成。未安装 Ponytail
-时，该代码任务明确报告依赖阻塞。
+R-D-T 的方案最简性由 GMGN 自己检查；代码最简性使用外部
+[Ponytail](https://github.com/DietrichGebert/ponytail) 插件，run-task 代码工作必须安装它。
+Ponytail、CodeGraph、DocStar 的具体运行规则只在 `run-task` 中维护。
 
 ## 安装
 
@@ -243,7 +215,8 @@ claude plugin marketplace remove GMGN --scope user
 | 你的说法 | 接管的 skill | 主要产物 |
 |---|---|---|
 | “我有个想法，先调研一下可不可行” | `brainstorm` | WhitePaper |
-| “把白皮书拆成版本和里程碑” | `roadmap` | ROADMAP（产出物、简短验收摘要及按需核心 E2E） |
+| “记录所有里程碑都必须遵守的项目决议” | `write-decision` | 当前 Decision 权威和描述性 DecisionLog |
+| “按照白皮书和项目决议拆版本与里程碑” | `roadmap` | ROADMAP（结果型里程碑、成功信号、时域、优先级和真实依赖） |
 | “启动 M1，明确范围” | `write-goal` | Goal.md（Requirement 依据和定性 Close 标准） |
 | “写 PRD 和验收标准” | `write-requirement` | 可观察需求与可判定 AC |
 | “出技术设计和系统方案” | `write-design` | 根 Design.md 中的必要技术决定及按需权威 |
@@ -253,7 +226,7 @@ claude plugin marketplace remove GMGN --scope user
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |
 | “下一步做什么？” | `gmgn` | 状态判断与工序路由 |
 
-缺陷修复和琐碎单步改动可以走受控旁路，不强迫补齐整条规格链；白皮书、ROADMAP、立项与关账等停点仍需对应授权。
+缺陷修复和琐碎单步改动可以走受控旁路，不强迫补齐整条规格链；WhitePaper、Decision、ROADMAP、立项与关账等停点仍需对应授权。
 
 ## 可选 telemetry
 
@@ -302,11 +275,11 @@ hook 结果优先，session JSONL 只补未覆盖调用，同一次等待不重�
 ## 仓库结构
 
 ```text
-skills/                     十件跨平台共享 skill
+skills/                     十一件跨平台共享 skill
   */agents/openai.yaml      Codex 展示与默认提示元数据
   gmgn/references/en/       英文单一权威的契约与核对单
 agents/                     Claude Code 插件 subagent 角色
-.docstar/conventions/       与 DocStar gmgn-v1 一致的约定集
+.docstar/conventions/       GMGN 项目本地 DocStar 约定集
 .codex-plugin/plugin.json   Codex 插件清单
 .claude-plugin/             Claude Code 插件与市场清单
 .codex/agents/              本仓可选的 Codex 项目级角色配置
@@ -334,7 +307,13 @@ SHA-256。该校验和只证明制品完整性，不能作为流程锚点。`--s
 
 ## 可选增强
 
-[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包。GMGN 不依赖 DocStar 才能安装；项目未安装时，用文件检查和项目现成命令完成同等门禁。DocStar 0.2.3 及以上版本提供 commit-bound brief，run-task 把它作为起始证据包，但 agent 在证据不足时仍可沿指针或直接定向读取原文。CodeGraph 索引已获授权且 CLI 可用时，GMGN 为每个隔离工作区初始化独立索引，源码定位和代码关系优先使用 CodeGraph，并把其返回源码视为已读取；索引缺失、过期、不支持、查询后文件已变或结果不足时仍可定向读取文件。结论仍落到源码、diff、测试与真实运行。每次 DocStar 调用仍实时全量重建，不使用缓存。Telemetry hooks 与报告器只在 DocStar 外部统计调用次数、耗时、命令类型和后续 grep/read；`grep_avoided` 是描述性统计，不表示 DocStar 导致某次 grep 被避免。
+[DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包；
+本仓 `.docstar/conventions/conventions.json` 是当前 GMGN 的适配约定，包含 D-ID 索引。
+Decision 项目应把它放入文档语料根；只有已安装 `gmgn-v1` preset 含等价 Decision 规则时才直接
+使用 preset。CodeGraph 可辅助源码定位。GMGN 不依赖它们才能安装。Task 执行阶段如何使用它们，由
+[`run-task`](skills/run-task/SKILL.md)定义。每次 DocStar 调用仍实时全量重建，不使用缓存。
+Telemetry hooks 与报告器只在 DocStar 外部统计调用次数、耗时、命令类型和后续 grep/read；
+`grep_avoided` 是描述性统计，不表示 DocStar 导致某次 grep 被避免。
 
 ## License
 

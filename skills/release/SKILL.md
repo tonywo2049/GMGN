@@ -29,8 +29,8 @@ release that commit. Do not rewrite historical closure records.
 
 Compare only inputs that can invalidate existing evidence. When reviewed content, required
 test plan, target environment, and relevant package inputs are unchanged, reuse the accepted
-review, regression, E2E, DocStar, closure, and verification evidence. Never rerun Critic or
-Reviewer for the same accepted change batch under `review_policy: single-pass`.
+review, regression, E2E, DocStar, closure, and verification evidence. Do not repeat independent
+review when the reviewed content and every validity input are unchanged.
 
 When the release commit differs from the accepted commit only through version manifests,
 checksums, generated release metadata, or meaning-preserving links, prove that small allowed
@@ -95,7 +95,3 @@ Return the shortest unambiguous release commit reference, published tag/release 
 reference, artifact checksum,
 any requested installation evidence, and unresolved material risk. Release success returns to
 `roadmap`; an operational retry stays in `release` with the same accepted evidence.
-
-Before every substantive return, perform a task-specific self-check and correct in-scope
-defects. Do not output a fixed `Reflection` section. Report only unresolved material risk that
-could change the release decision or downstream work.

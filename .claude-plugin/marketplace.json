@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "gmgn",
-      "description": "GMGN — ten bilingual skills from idea to accepted release / 从想法到已接受版本发布的十件中英双语 skill。",
+      "description": "GMGN — eleven bilingual skills from idea to accepted release / 从想法到已接受版本发布的十一件中英双语 skill。",
       "version": "0.4.6",
       "source": "./",
       "author": {

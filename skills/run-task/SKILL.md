@@ -1,319 +1,268 @@
 ---
 name: run-task
-description: "Use when one or more approved Task.md rows are confirmed: materialize per-card execution contracts, run every ready implementation task through bounded writer lanes, review code and deterministic local execution once, add separate final-candidate verification only for explicit risk triggers, integrate, and close. 已确认任务集后创建单卡 Card/Log、滚动并行开发、由 Reviewer 一轮完成代码审查与确定性本地检查，仅在风险触发时单独验证最终候选并关账。"
+description: "Use when one or more approved Task.md rows are confirmed: materialize Card/Log execution contracts, refill the dependency-aware ready set, run isolated writer lanes, review each frozen candidate in at most two rounds, add risk-triggered final verification, integrate required checks, and close. 已确认任务集后创建 Card/Log、滚动并行开发；固定候选最多经过两轮审查，再完成风险验证与共享基线必需检查后关账。"
 ---
 
 # Run confirmed task cards
 
-<HARD-GATE>Every dispatched task must exist in a `Task.md` that passed the Critic necessity gate and any required Critic review and was accepted by the primary orchestrator, belong to the confirmed `target_milestone_id` execution set, and have valid Requirement plus Design-stage authority, including the applicable `design/Contract.md`, split contract, and structural-authority anchors when they exist. A task is ready only when its Task prerequisites are closed on the shared baseline and any declared shared-resource constraint is available. If implementation changes upstream meaning, stop only its impact cone and revise that authority.</HARD-GATE>
+<HARD-GATE>Every dispatched task must exist in an accepted `Task.md`, belong to the
+confirmed `target_milestone_id` execution set, and have valid Requirement, Design, applicable
+Contract, and structural-authority anchors. If preparing or implementing the Card still
+requires a product, architecture, interface, data, error, state, recovery, security, or
+compatibility decision, do not let the Coder decide it: pause only the impact cone and return
+to the owning stage. Never expose an unreviewed or unchecked implementation combination as the
+shared baseline.</HARD-GATE>
 
-The primary orchestrator owns scheduling, adjudication, shared state, integration, Task status,
-and per-card execution documents. It may be the Coder for one task only when no useful
-implementation work can run in parallel with orchestration; it cannot replace the independent
-Reviewer or any risk-triggered Verifier.
+The primary orchestrator owns scheduling, adjudication, shared state, integration, Task
+status, and per-card execution documents. It may serve as one unassigned Coder lane when
+capacity remains, but it cannot take over another writer's lane, review its own candidate, or
+replace a required Verifier.
 
-## 1. Materialize execution documents
+## 1. Materialize Card and Log
 
-Before the first Coder dispatch, the primary orchestrator creates exactly two files for each
-confirmed task selected for this run:
+Before the first Coder dispatch, create exactly two files for every selected task:
 
-1. `execution/<card_id>/Card.md` first. It is normative and contains the stable task execution
-   contract: exact Task/Requirement/Design and applicable interface-Contract anchors, outcome,
-   completion criterion, TDD contract, and `execution_log: [Log.md](Log.md)`. Add scope
-   exclusions or an allowed path/write set only when they materially bound a delegated writer.
-   Add conflict domains or runtime locks only for a real shared-resource collision. Do not copy
-   the Task dependency DAG into Card.
-2. `execution/<card_id>/Log.md` second. It is descriptive and contains a replaceable current
-   snapshot—status, current candidate when one exists, next action, and only an active blocker
-   or material workspace fact—followed by material decisions only. On closure it contains one
-   final evidence summary. Routine dispatch, waiting, unchanged status, and successful
-   intermediate checks are not Log entries. Keep one DocStar compatibility pointer:
-   `latest_event: [Current](#current)` while active, changed to
-   `[Final Evidence](#final-evidence)` when closed. It does not require generated event IDs.
-3. After both files resolve, replace the Task row's `execution: none` with a real link to
-   `Card.md` and set its macro status to `prepared`. Do this in the same checked candidate so
-   no published Task pointer dangles.
+1. `execution/<card_id>/Card.md` is the stable normative execution contract. It contains the
+   exact Task, Requirement, Design, and applicable Contract anchors; outcome; completion
+   criterion; verification contract; and `execution_log: [Log.md](Log.md)`. Add an allowed
+   write set, conflict domain, or runtime lock only when it materially bounds a writer or a
+   real shared-resource collision. Do not copy the Task dependency graph.
+2. `execution/<card_id>/Log.md` is descriptive. It contains the current status, candidate,
+   next action, any active blocker or material workspace fact, material decisions, and one
+   final evidence summary when closed. Routine dispatch, waiting, unchanged state, and
+   successful intermediate checks are not Log entries. Its structural fields and DocStar
+   compatibility pointer follow the shared
+   writing rules loaded through the registered `gmgn` Skill.
+3. In the same checked candidate, replace the Task row's `execution: none` with the Card link
+   and set its macro status to `prepared`.
 
-The TDD contract states the RED test or test location, the wrong behavior it discriminates,
-expected GREEN behavior, replay command or executable path, and final verification/evidence
-destination. When a cross-task Contract ID applies, include the smallest provider or consumer
-conformance check that proves the Card's side of the boundary. This is an implementation
-refinement of approved authority, not permission to add scope. An unresolved semantic gap
-returns to `write-task`, `write-design`, or the appropriate upstream skill.
+The verification contract selects an executable oracle that fits the change:
+
+- behavior, defect, algorithm, and interface work defines a discriminating RED condition, the
+  wrong behavior it detects, and the expected GREEN behavior;
+- configuration, migration, build, documentation, and scaffolding work uses an appropriate
+  schema check, dry-run, lint, smoke test, or equivalent executable failure/success proof;
+- every contract includes the replay command or executable path and final evidence
+  destination;
+- when a cross-task Contract ID applies, include the smallest provider or consumer
+  conformance check that proves the Card's side of the boundary.
+
+Do not fabricate a RED test that cannot distinguish a wrong implementation. The verification
+contract refines approved authority; it cannot add behavior or resolve a semantic gap. Return
+an unresolved gap to `write-task`, `write-design`, or the owning upstream stage.
 
 Do not create `Verification.md`, `State.md`, a per-role Handoff, or one project-wide execution
-log. On retries, start from the current snapshot and only the material decisions relevant to
-the unresolved issue.
-
-Run diff, link, and repository-required document checks before advancing the shared baseline
-with this preparation candidate.
+log. Run diff, link, and repository-required document checks before advancing the preparation
+candidate.
 
 ## 2. Build and refill the ready set
 
-Read the Task rows for the confirmed execution set and the selected tasks' Card current
-contracts. A ready task has every prerequisite integrated and no collision with a declared
-shared-resource constraint. Recompute after every material agent return, block, integration,
-or resource-capacity change. Before waiting or acting as a Coder, the primary orchestrator
-scans every task in the confirmed execution set, not only the current card or active lane, and
-dispatches every ready, non-conflicting task that fits currently available capacity.
-Concurrency is the minimum of platform capacity, ready tasks, available writer workspaces, and
-any real exclusive-resource capacity; never hard-code a count. When capacity cannot fit every
-ready task, prefer the task whose closure would make the largest number of currently blocked
-tasks ready; break ties by stable `card_id`. A blocked lane does not stop unrelated lanes.
+A task is ready only when:
 
-The current approved interface contract is a shared working authority, not an implementation
-prerequisite or a final frozen artifact. Provider and consumer tasks that share only that
-Contract anchor may run in parallel with contract doubles; a real integration task may depend
-on their integrated implementations.
+- every Task prerequisite is integrated on the shared baseline;
+- its approved Contract is sufficient for independent implementation;
+- its expected write set, schema, migration, manifest, registry, structural authority, and
+  exclusive resources do not conflict with an active lane;
+- it can be verified independently; and
+- its later merge order cannot change approved semantics.
 
-If a task still contains separable responsibilities or cannot be independently tested, pause
-it and its descendants and return it to `write-task`; a Coder cannot split authority ad hoc.
+Recompute the ready set after every material agent return, blocker, integration, or capacity
+change. Before waiting or acting as a Coder, scan the entire confirmed execution set and
+dispatch every ready, non-conflicting task that fits actual platform, workspace, and exclusive
+resource capacity. Never hard-code an agent count.
 
-## 3. Prepare every agent dispatch
+When capacity cannot fit every ready task, prefer the task whose closure would make the
+largest number of currently blocked tasks ready; break ties by stable `card_id`. A blocked
+lane does not stop unrelated lanes.
 
-Every delegated Author, Coder, Critic, Reviewer, Verifier, or Researcher is single-use. Before
-creating it, prepare a complete brief containing:
+Provider and consumer tasks that share only an approved interface Contract may run in
+parallel with contract doubles. A real integration task may depend on their integrated
+implementations. If a task cannot be independently tested or still contains separable
+outcomes, pause it and its descendants and return it to `write-task`; a Coder cannot split it
+ad hoc.
 
-- `dispatch_id`, role, one bounded objective, and return format;
-- authority and scope, plus baseline/candidate commit references only when they already exist
-  and are needed for handoff, review, or integration;
-- exact workspace, allowed write scope, permissions, and prohibitions;
-- only the required Card/current Log context, exact applicable interface-Contract anchor, and
-  relevant accepted findings or failures;
-- checks to run and evidence required for return.
+## 3. Prepare the dispatch and runtime tools
 
-The brief may name registered skills or available tools required for the task. The agent may
-load them through normal discovery and follow their own local resources. Put resolved workflow
-decisions, including any assurance classification, directly in the brief instead of passing
-another Skill's internal resource path.
+Use the dispatch contract loaded through the registered `gmgn` Skill. A run-task brief adds only
+the current Card and Log snapshot, exact Design Bundle and Contract anchors, assigned
+workspace and write boundary, real conflict domain or lock, verification contract, required
+runtime tools, checks, and return evidence. Put resolved workflow decisions directly in the
+brief.
 
-Every Coder brief must require the registered `ponytail:ponytail` Skill at `full`. A Reviewer
-brief must require `ponytail:ponytail-review` when its candidate contains implementation or
-test-code changes. Resolve availability before the role writes or accepts that code. A missing
-required Skill is a dependency blocker for that code task, not permission to copy its rules,
-silently continue, or accept the code candidate.
+Apply these run-task tool requirements from this section only:
 
-Create a new agent without parent or earlier-agent conversation history. One return ends that
-agent. A later writing attempt, separately scoped semantic or implementation change, or later
-verification gets a new agent and a new brief. Critic and Reviewer are not redispatched to
-recheck fixes from their completed round. Fresh identity does not mean every role is dispatched
-after every change.
+- **Ponytail:** every Coder brief requires the registered `ponytail:ponytail` Skill at `full`.
+  A Reviewer brief for implementation or test-code changes requires
+  `ponytail:ponytail-review`. Resolve availability before the role writes or accepts code.
+  Missing Ponytail blocks that code candidate; do not copy its rules or silently continue.
+- **CodeGraph:** before a delegated source-discovery role starts in an isolated workspace, if
+  indexing is authorized, the CLI is available, and that workspace has no `.codegraph/`, run
+  `codegraph init <workspace>` once and confirm a query can use it. Never share an index
+  between workspaces. A read-only role does not initialize an index. When an index is usable,
+  query it first for source location and relationships and target the exact workspace. If
+  initialization fails or the index is absent, stale, unsupported, changed after the query,
+  or insufficient, record the reason and use targeted file reads; this does not block the
+  task.
+- **DocStar:** use a commit-bound brief only when candidate handoff needs it. Treat it as an
+  index, not authority, and follow exact pointers or read source when its evidence is
+  insufficient.
 
-Before creating a delegated role that will discover source in an isolated workspace, the
-primary orchestrator prepares that exact workspace. When CodeGraph indexing is
-authorized, the CLI is available, and the workspace has no `.codegraph/`, it must
-run `codegraph init <workspace>`
-once before source discovery and confirm that a query can use the index.
-A read-only role, including Reviewer, never initializes the index. Do not share an index between
-workspaces. If initialization fails, record the reason and targeted-read fallback in the brief;
-the failure does not block the task.
+## 4. Execute, freeze, and monitor writer lanes
 
-Use a commit-bound DocStar brief only when candidate handoff needs it; treat it as an index,
-not authority. When the workspace has a usable CodeGraph index, use it first for source
-location and code relationships, target the exact assigned workspace in every query, and treat
-returned source as already read. Read checked-out files directly when the index is absent,
-stale, unsupported, changed after the query, or insufficient for the decision.
+Before the first write, confirm the Card scope, preserve existing user changes, and enforce
+one writer per workspace. Concurrent writers use isolated workspaces; a sole writer may use
+the current workspace. Require baseline/HEAD checks and transferable candidate facts only
+when concurrency or handoff makes them material.
 
-## 4. Protect one writer boundary per task
+A Coder writes only the assigned scope and Card write set. It never edits shared
+Design/Contract authority, `Task.md`, Card/Log runtime state, the integration queue, shared
+baseline, or remote state. It follows the Card verification contract, loads required tools,
+implements the smallest sufficient change without weakening required tests, validation,
+error handling, security, accessibility, or the real production path, and runs the prepared
+checks.
 
-Compliance checks are triggered by a real boundary or material state change, not merely by
-starting a task. Before the first write, confirm Card scope, preservation of existing user
-changes, and one writer per workspace. Use an isolated workspace for each concurrent writing
-lane; a sole writer may use the current workspace. Require baseline/HEAD checks and record
-candidate transfer facts only for concurrent work or handoff. Do not repeat an unchanged check
-or create evidence for the check itself.
+Discovery does not expand an active Card. Keep a new issue only when leaving it unresolved
+prevents the Card outcome or a prepared required check, no accepted effective fallback
+contains the impact, and the smallest sufficient correction stays inside existing authority
+without adding another independently testable outcome. Otherwise omit a low-value issue,
+return a materially valuable separate candidate, or route changed authority upstream.
 
-A Coder writes only the prepared brief's allowed scope and any Card `write_set`, never shared
-Design/Contract authority, `Task.md`, Card/Log runtime state, the integration queue, or remote
-state. It first establishes a discriminating RED test, loads `ponytail:ponytail` through normal
-discovery at `full`, implements the smallest sufficient change without removing required
-safeguards, and runs the Card checks. It does not make a check pass by removing a required
-test, weakening an assertion, swallowing an error, or bypassing the real production path.
-Discovery does not expand an active Card. A newly found issue belongs to it only when leaving
-the issue unresolved prevents the Card outcome or a prepared required check, no accepted
-effective fallback contains the impact, and the smallest sufficient correction stays inside
-existing authority without adding another independently testable outcome. Otherwise omit a
-low-value issue, return a materially valuable separate candidate to the primary orchestrator,
-or route an authority change upstream; do not keep the Card open.
+If implementation evidence contradicts an applicable Contract ID, the Coder does not
+negotiate or edit that authority. It returns the observed evidence, smallest proposed semantic
+delta, and affected tasks. The existing Log decision is sufficient; do not create a separate
+change-request document.
 
-If implementation evidence contradicts an applicable interface contract, the Coder does not
-negotiate or edit that authority. It returns one contract blocker containing only the observed
-evidence, the smallest proposed semantic delta, and affected tasks. This existing Log decision
-is sufficient; do not create a separate change-request document. Several Coders may provide
-evidence, but the primary orchestrator remains the one contract authority.
-
-Before review, a sole writer commits the complete candidate locally and returns its shortest
-unambiguous commit reference. An isolated Coder handoff also returns changed files,
-commands/results, deviations, material unresolved risks, and the complete
-original-base-to-candidate commit range. A correction commit is not a standalone candidate.
-A later correction uses a fresh Coder. Full-length commit object IDs, diff/content hashes, and
-checksums are not workflow anchors.
+Before Review, commit the complete candidate locally. Handoff and candidate identity follow
+the dispatch contract; a correction commit is not a standalone candidate.
 
 Across the confirmed execution set, wait only after ready dispatch, primary-Coder work,
-integration, state refresh, and local checks are exhausted.
-Every Codex `wait_agent` call uses `agent_wait_timeout_ms = 3600000` (1 hour). Routine
-progress-update cadence never shortens it. A timeout has no workflow meaning. If an agent is
-known to remain `running`, immediately re-arm the same one-hour wait without inserting
-`list_agents`, another status query, or a user update between unchanged timeouts. A timeout
-alone is not a `list_agents` trigger. Use one
+integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
+`agent_wait_timeout_ms = 3600000` (1 hour). Routine progress-update cadence never shortens it.
+A timeout has no workflow meaning. If an agent is known to remain `running`, immediately
+re-arm the same one-hour wait without inserting `list_agents`, another status query, or a user
+update between unchanged timeouts. A timeout alone is not a `list_agents` trigger. Use one
 `list_agents` snapshot only when a real scheduling/capacity decision cannot be made from
 received lifecycle events or those events conflict; do not query again until a material
 lifecycle event or scheduling condition changes. No periodic list interval is configured or
 inferred.
 
-The primary orchestrator must not interrupt, terminate, or kill an agent merely because it has
-not returned content, is silent or slow, or crossed one or more wait timeouts. Stop it only on
-explicit user cancellation or concrete evidence that it has hard-failed, its scope is invalid,
-or continuing is unsafe. While observable state is unchanged, do not report a wait timeout,
-silence, absence of content, agent count, or `running` status. Report only material progress, a
-blocker, a decision request, or the final result.
+Do not interrupt, terminate, or kill an agent merely because it is silent, slow, has not
+returned content, or crossed one or more wait timeouts. Stop it only on explicit user
+cancellation or concrete evidence that it hard-failed, its scope is invalid, or continuing is
+unsafe. While observable state is unchanged, do not report a timeout, heartbeat, agent count,
+or `running` status. Report only material progress, a blocker, a decision request, or the
+final result.
 
-## 5. Review the final useful candidate once
+## 5. Review the candidate at most twice
 
-Before independent review, the writer completes its self-check and required machine checks.
-The primary orchestrator applies the complete isolated handoff before review; never apply only
-its last correction commit. A sole-writer candidate needs no temporary copy. Resolve an
-unclean application or judgment-required conflict with a fresh Coder before committing the
-review content. Once review begins, do not edit that content while review roles are active.
+Apply the code-review contract loaded through the registered `gmgn` Skill. Resolve an
+unclean candidate application or judgment-required integration conflict with a fresh Coder
+before committing the content that will be reviewed. Freeze that complete candidate while
+Review is active.
 
-Before integration, confirm through Git that the content being integrated matches the reviewed
-commit. A different integration commit is acceptable only when the reviewed source, build
-inputs, and normative task content are unchanged. Recheck identity only after an event or
-command that could have changed it.
+Create a fresh Reviewer with `review_mode: full` for the complete implementation and test-code
+candidate. Collect all active Review returns before editing. The primary orchestrator
+adjudicates once, rejects scope expansion, and batches accepted blocker fixes through a fresh
+Coder. This first round is the only finding-discovery review.
 
-Select roles by impact:
+A fix is mechanical only when it preserves behavior and its exact correction is completely
+determined by existing unambiguous authority. The primary orchestrator checks that delta and
+reruns affected machine checks without another Reviewer. Mechanical fixes do not consume the
+second Review round.
 
-| changed surface | required independent role |
-|---|---|
-| specification or document meaning | Critic necessity gate |
-| implementation diff or test code, including deterministic local execution | fresh Reviewer |
-| recorded `required:<trigger>` classification | fresh Verifier, but only after review blockers clear |
-| formatting, links, pointers, or equivalent mechanical state | machine checks only |
+A fix is material when it changes behavior, control flow, data, an interface, a security
+boundary, concurrency, persistence, recovery, or the Review impact boundary. Batch all
+accepted first-round material fixes into one cumulative fixed candidate. If a material fix is
+needed after the full Review, use the one allowed second round: create another fresh Reviewer
+with `review_mode: delta`. Never resume or reuse the full Reviewer or the delta Reviewer.
+Never dispatch a third Reviewer for the same Task execution.
 
-Before dispatching a Critic, apply the registered `gmgn` Skill's Critic necessity gate. When
-Critic is skipped, record the one-sentence reason and run the affected machine checks.
+The delta brief contains the original reviewed candidate, the current fixed candidate,
+accepted first-round findings and rulings, the complete cumulative fix delta, its direct
+impact boundary, and affected checks. This second round verifies only that accepted
+first-round findings are resolved and that the cumulative fix delta introduced no regression
+in its direct impact. It does not repeat the full Review, search or report unrelated
+pre-existing problems, or broaden the original surface.
 
-The Critic/Reviewer rows above are evaluated only once, immediately before the task
-execution's review round. An accepted finding fix remains part of that reviewed execution and
-does not re-enter role selection.
+The second round returns either explicit no-findings coverage or a blocker limited to an
+incomplete accepted fix or a regression caused by the cumulative fix delta. On a blocker,
+keep the Task unaccepted and stop this execution; do not apply another material fix and open a
+third Review. Non-blocking suggestions do not reopen an acceptable candidate. Record the full
+reviewed anchor, the optional delta-reviewed anchor, findings and rulings, exact fix delta,
+commands/results, and post-fix checks in final evidence.
 
-When required, Critic and Reviewer may run together when both surfaces changed. Collect every
-active review return before editing. The primary orchestrator adjudicates once, rejects scope
-expansion, and batches accepted blocker fixes into one revision. Each task execution uses
-`review_policy: single-pass` and has at most this one Critic/Reviewer round. The primary
-orchestrator checks each resolution and runs affected machine checks. This bounded resolution
-check does not search for new findings; do not resume or create a Critic/Reviewer for the
-fixes when they only align implementation with an existing unambiguous authority. A fix that
-must invent or change authority, scope, public behavior, interface obligation, error priority,
-or state order becomes a separately scoped semantic change. Put the reviewed anchor, complete
-findings and rulings, exact fix delta, and post-fix checks in the final evidence summary.
-Non-blocking suggestions do not reopen the candidate.
-Do not keep a task open to perfect a non-blocking issue when its Card outcome works and an
-effective fallback keeps the remaining impact within accepted bounds.
+## 6. Add a Verifier only for recorded risk
 
-Critic and Reviewer do not maximize finding count; a valid review may return no findings.
-Before reporting an issue, determine its concrete material harm if left unresolved, whether an
-accepted effective fallback already contains that harm, and the smallest sufficient
-correction. Omit preference-only, speculative, low-impact, cleanup, refactoring,
-broader-coverage, or adequately contained observations that do not change acceptance or the
-next action. This filter does not discard Ponytail findings: code minimality is an explicit
-acceptance condition, and code that
-`ponytail:ponytail-review` can delete while preserving current requirements and safeguards
-violates it.
+Ordinary deterministic local execution belongs to Review; Coder output remains supporting
+evidence. Classify the blocker-resolved final candidate as `not-required` or
+`required:<trigger>` through the current assurance policy loaded through the registered
+`gmgn` Skill. Record the classification in Log. Do not dispatch a Verifier while a full or
+delta Review blocker remains.
 
-For a candidate containing implementation or test-code changes, the Reviewer loads
-`ponytail:ponytail-review` through normal discovery and applies it inside this same review round
-alongside correctness, regression, safety, data, and acceptance review.
-The Reviewer also runs the prepared deterministic local targeted, negative, integration, and
-project checks that fit its environment and checks conformance to every applicable Contract
-ID. Add exploratory checks only for a concrete risk. It returns
-exact commands, environment, exit codes,
-limitations, and side effects together with its findings. A skipped or unavailable required
-Reviewer command is not a pass. If no accepted blocker changes the candidate, this execution
-evidence belongs to the final candidate. After accepted fixes, the primary orchestrator checks
-the exact fix delta and reruns every affected machine check without another independent round.
+When required, dispatch one fresh Verifier against the fixed final candidate. It runs only the
+minimum non-transferable or explicitly independent plan and returns exact commands,
+environment, exit codes, limitations, and side effects. A failed, skipped, timed-out, or
+unavailable required command is not a pass. The Verifier leaves every tracked file unchanged
+and does not broaden the plan after the trigger is decided.
 
-## 6. Add a separate Verifier only for risk triggers
+Do not run the same verification before and after clean mechanical integration without a
+recorded risk reason. If verification fails, record the decision and use a fresh Coder. A
+mechanical fix reruns affected checks before a fresh Verifier. A material fix may use the
+second Review round if it remains unused; batch the fix, run one fresh delta Reviewer, then a
+fresh Verifier. If the second Review round was already used, keep the Task unaccepted and stop
+instead of opening a third Review. Route any fix that changes approved authority or scope
+upstream.
 
-Ordinary deterministic local execution belongs to the Reviewer; Coder test output remains
-supporting implementation evidence. A fresh Verifier is exceptional, not default. Classify the
-final candidate as `not-required` or `required:<trigger>` using the current assurance policy
-loaded through the registered `gmgn` Skill. Record the classification in Log; add the reason
-and minimum verification plan only when verification is required, and include them in any
-Verifier brief.
-
-Do not dispatch a Verifier while relevant Critic or Reviewer blockers remain. When a trigger
-exists, dispatch one fresh Verifier against the fixed final candidate. It runs only the
-non-transferable or explicitly independent plan and returns exact
-commands, environment, exit codes, limitations, and side effects. A failed, skipped,
-timed-out, or unavailable required command is not a pass. It does not broaden the verification
-plan after the recorded
-risk is decided and applies the same materiality/fallback filter to incidental observations.
-An accepted fallback satisfies verification only when it is itself the required and
-successfully verified path. The Verifier must leave every tracked file unchanged on both pass
-and failure. A command that generates or refreshes oracle, evidence, or attempt files is run
-beforehand by the Coder or primary orchestrator, not by the Verifier.
-
-Do not separately verify the lane candidate and then repeat the same verification after clean
-mechanical integration. An additional pre-integration Verifier is allowed only when the
-integration decision itself needs independent runtime evidence, an external mutable resource
-or environment makes evidence non-transferable, the baseline/test inputs changed materially,
-or project policy explicitly requires dual verification. Record the reason.
-
-If risk-triggered verification fails, record it as a material decision in Log, create a fresh
-Coder for the fix, check the resolution and affected machine checks without another Reviewer,
-then dispatch a fresh Verifier because the required final-candidate evidence was invalidated.
-If the fix expands authority, scope, or behavior beyond the reviewed task, route it as a
-separately scoped change.
-
-## 7. Integrate and close
+## 7. Integrate, check the shared baseline, and close
 
 Only the primary orchestrator writes the shared baseline, Task status, Card/Log state, and
-traceability. Integration conflicts are resolved before the task's one review round. A
-post-review fix uses a fresh Coder when needed, then runs affected machine
-checks and any risk-triggered verification without another Reviewer.
+traceability. Before integration, confirm through Git that the content matches the last
+accepted full or delta-reviewed candidate. A different integration commit is acceptable only
+when reviewed source, build inputs, and normative task content are unchanged.
 
-After the final candidate clears required review and any required verification:
+Prepare one final integration candidate before the closing checks. It contains the accepted
+implementation plus every tracked closure change:
 
 - write one final evidence summary in `Log.md` and set its current snapshot to closed;
 - keep `Card.md` unchanged as the stable contract;
-- set only the Task row's macro `status` to `closed` and keep its `execution` link;
-- refresh affected AC traceability and shared-baseline/integration-queue pointers;
-- run diff, links, repository checks, and then atomically advance the shared baseline.
+- set only the Task row's macro `status` to `closed` and keep its execution link; and
+- refresh affected AC traceability and shared-baseline/integration-queue pointers.
 
+Commit and freeze that complete candidate without advancing the shared baseline.
 Before advancing it, confirm that every applicable Contract ID, provider, consumer, caller,
-migration, structural authority, and interacting task is inside the checked impact boundary
-and that the integrated content still matches the reviewed candidate.
+migration, structural authority, and interacting task is inside the checked impact boundary.
+Run every project-declared required check against that exact frozen integration candidate
+before closing. When CI exists, its evidence must bind to that candidate commit. A skipped,
+unavailable, unauthorized, or unexecuted required check is not a pass. If a required check
+needs a push and push authority is absent, keep the Task unclosed and record the blocker; never
+push without explicit authorization.
 
-Material blockers and decisions plus final commit references, commands, review, and required evidence
-stay in Log and are never copied back into Task. Release the lane only after the integrated
-anchor and closure evidence are durable. A task is complete when its Card contract is satisfied,
-not when every nearby issue discovered during the work has been resolved. Do not push unless
-explicitly authorized.
+After Review, required checks, and any required verification clear, atomically advance the
+shared baseline to that exact checked commit. Do not modify tracked content after the final
+checks. Candidate-bound evidence produced after the commit remains in its native system keyed
+to that commit; do not amend Log only to copy it. If a project requires tracked evidence,
+produce it before freezing the candidate and then run the final checks against the frozen
+candidate.
+
+A task is complete when its Card contract is satisfied on the checked shared baseline, not
+when every nearby issue has been resolved.
 
 ## Upstream change and exit
 
-When evidence challenges an interface contract, the primary orchestrator classifies it before
-changing shared authority:
+An internal implementation issue stays in the Card. Before local stage routing, any missing
+or changed ruling that crosses Milestones or constrains a shared project object returns to
+`gmgn` for `write-decision` routing. A Task boundary or completion problem returns to
+`write-task`; only a Milestone-local architecture, interface, data, validation, error, state,
+recovery, security, compatibility, or resource decision returns to `write-design`; changed
+observable behavior or AC returns to `write-requirement`. Follow the GMGN router's
+controlled-change rule and pause only affected providers, consumers, integration tasks, and
+descendants. Unrelated lanes continue.
 
-- an internal implementation issue stays in the Card and does not change Contract;
-- a meaning-preserving clarification only aligns a duplicate representation with an existing
-  unambiguous Contract authority, using the smallest same-batch pointer refresh and machine
-  checks;
-- a semantic Design/Contract change pauses only affected providers, consumers, integration
-  tasks, and descendants, records the blocker in Log, and returns to `write-design`.
-
-The Design revision produces one newly accepted Bundle commit after its Critic necessity gate
-and any required review. Refresh only affected Task/Card anchors and tests, then resume with
-fresh Coders; unrelated lanes continue. Use the normal Git commit rather than a parallel
-`v1`/`v2` workflow unless a current
-external or coexisting-version requirement needs formal API versions. Any other evidence that
-contradicts approved authority follows the same impact-cone rule and routes to its owner.
-Do not mark the working Contract `closed` during run-task; `close-milestone` performs the final
-implementation-to-contract reconciliation and freeze.
+A revised authority produces a newly accepted commit. Refresh only affected Task/Card
+anchors, tests, and briefs, then resume with fresh Coders. Do not mark a working Contract
+`closed` during run-task; `close-milestone` performs final reconciliation and freeze. Do not
+invent parallel API versions unless a current coexistence requirement needs them.
 
 Remain in `run-task` while a confirmed task can become ready or a lane/integration entry is
 active. When every target-Milestone task is closed on one shared baseline and AC traceability
-is full, use **REQUIRED next skill: `close-milestone`**. Before every substantive return,
-perform a task-specific self-check and correct defects. Do not output a fixed `Reflection`
-section; disclose only unresolved material risk.
+is full, use **REQUIRED next skill: `close-milestone`**.

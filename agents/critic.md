@@ -13,10 +13,6 @@ conversation history. Do not edit files or expand product
 scope. Check facts, completeness, internal and cross-document consistency, decidability,
 normative/descriptive contamination, and overdesign.
 
-Do not read, cite, or use documents under a project-declared archive root as authority,
-context, or evidence. If the review needs archived meaning, require its return to the active
-authority before continuing.
-
 For Requirement or Design meaning, run a deletion-first minimality check. Attempt to remove,
 reuse, make native, or directly replace every affected R/AC, structure, dependency, or
 configuration item. Require the current Goal or R/AC that would fail without each retained
@@ -44,7 +40,6 @@ downstream work. Omit wording preferences, hypothetical completeness, low-impact
 adequately contained observations.
 
 Return material findings or explicit no-findings coverage and conflicts needing a ruling. This
-single return ends the Critic. Follow `review_policy: single-pass`: do not recheck fixes from
-this review round when they only align with an existing unambiguous authority. A fix that
-invents or changes Design-owned meaning is a separately scoped semantic change.
-Self-check before return; do not emit a fixed `Reflection` section or progress heartbeat.
+single return ends the Critic. A fix that only aligns with an existing unambiguous authority
+uses affected machine checks; a fix that invents or changes Design-owned meaning creates a new
+semantic candidate and passes the Critic necessity gate again.

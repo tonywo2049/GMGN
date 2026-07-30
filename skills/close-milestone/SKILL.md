@@ -5,7 +5,7 @@ description: "Use when every target-milestone task is closed and traceability is
 
 # Close a milestone
 
-<HARD-GATE>Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every ROADMAP deliverable, Goal Close outcome, in-scope AC, and optional ROADMAP core E2E must map to evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. A Milestone without a ROADMAP core E2E does not need E2E evidence. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to `run-task` or revise the owning authority.</HARD-GATE>
+<HARD-GATE>The target ROADMAP Milestone must currently have `state: initiated` and `accepted_result: none`. Every task owned by `target_milestone_id` must be `closed` on one `shared_baseline_anchor`, whose value is the shortest unambiguous commit reference; its integration queue and active lanes must be empty; every ROADMAP deliverable and success signal must map through Goal Close outcomes and in-scope ACs to sufficient evidence; and every executed task must link `execution/<card_id>/Card.md` plus a closed `Log.md` current snapshot and final evidence. A required product, integration, regression, recovery, or E2E path still needs evidence when Goal or Requirement makes it part of Close. Downstream work does not block unless it proves an in-scope criterion remains undecided or unproved. Otherwise return to the owning stage instead of skipping or repeating a Milestone state transition.</HARD-GATE>
 
 ## Reconcile the closing commit
 
@@ -14,9 +14,9 @@ and checks:
 
 - all target tasks and their execution pointers;
 - Card completion contracts against Log current evidence;
-- ROADMAP deliverable → Goal Close outcome and slice → AC → task → test → evidence coverage,
-  plus the same trace for each optional ROADMAP core E2E;
-- every ROADMAP deliverable against its accepted result and required canonical pointer;
+- ROADMAP deliverable and success signal → Goal Close outcome → AC → sufficient
+  evidence coverage; Task, test, and E2E are included only when applicable to that evidence;
+- every ROADMAP deliverable against its accepted result;
 - every retained Contract ID against its provider implementation, every in-scope consumer,
   conformance/integration evidence, structural authority, and observable failure behavior;
 - no target lane, lock, accepted candidate, or queue entry remains outside the shared baseline;
@@ -35,9 +35,9 @@ required evidence stay in each card's Log.
 
 Do not dispatch a Verifier merely because closure started. Reuse Reviewer execution, post-fix
 machine checks, and any risk-triggered verification when they are bound to the exact closing
-commit and already cover every ROADMAP deliverable, Goal Close outcome, applicable core E2E,
-the Milestone's required regression or integration paths, relevant negative/recovery
-outcomes, environment, and limitations.
+commit and already cover every ROADMAP deliverable, Goal Close outcome, the Milestone's
+required E2E, regression, or integration paths, relevant negative/recovery outcomes,
+environment, and limitations.
 
 Put missing or stale deterministic local checks in the closure Reviewer's prepared plan.
 Classify remaining final-candidate evidence as `not-required` or `required:<trigger>` using the
@@ -50,32 +50,27 @@ single return ends that Verifier.
 ## Closure candidate and review
 
 The primary session normally writes the closure candidate because it owns the complete
-Milestone state. Delegate only when a bounded Author handoff has real value; prepare its full
-brief before creating that fresh single-use Author.
+Milestone state. Any delegation follows the shared dispatch contract.
 
-The candidate contains deliverable and Goal Close-outcome reconciliation, any applicable core
-E2E reconciliation, evidence map, controlled debt, remaining material risks or a supported
-none-known statement, proposed state changes, the proposed final Contract commit when
-applicable, and a Handoff plan only when a receiving operator lacks an existing authority for
-needed information. Prepare the actual Milestone, Contract, ROADMAP, Task, traceability, and
-Handoff state in an isolated closure commit; it has no effect on the shared baseline before
-owner acceptance.
+The candidate contains deliverable, success-signal, and Goal Close-outcome reconciliation,
+evidence map, controlled debt, remaining material risks or a supported none-known statement,
+proposed state changes, the proposed final Contract commit when applicable, and a Handoff
+plan only when a receiving operator lacks an existing authority for needed information.
+Prepare the actual Milestone, Contract, ROADMAP, Task, traceability, and Handoff state in an
+isolated closure commit; it has no effect on the shared baseline before owner acceptance.
 
-Commit the complete candidate locally after writer self-check and machine checks. Apply the
-registered `gmgn` Skill's Critic necessity gate to closure meaning and select Reviewer from
-the changed implementation, test-code, and deterministic-check surfaces. When both roles are
+Process the candidate through the registered `gmgn` Skill's shared role-selection and
+dispatch rules. Select Reviewer from the changed implementation, test-code, and deterministic-
+check surfaces. When both Critic and Reviewer are
 required, prepare one brief naming the shortest unambiguous commit reference and create a
 fresh independent combined Critic/Reviewer for
 Requirement–Design–Task–Card/Log–code–evidence consistency, closure meaning, and any missing
 deterministic local checks. Otherwise dispatch only the required role; when Critic is skipped,
 record the one-sentence reason and run the affected machine checks. Collect every required
-review before editing. The primary orchestrator adjudicates once, batches accepted blockers,
-checks each resolution, and runs affected machine checks without dispatching another Critic
-or Reviewer. A fix that expands authority, scope, or closure meaning becomes a separately
-scoped change. Non-blocking suggestions do not reopen closure. After accepted fixes, commit
-the blocker-resolved final closure candidate and run affected machine checks. Present that
-exact closing commit for owner acceptance only when required evidence exists and no accepted
-review blocker remains unresolved.
+review before editing. Resolve accepted blockers through the shared candidate loop without
+another Critic or Reviewer. A fix that expands authority, scope, or closure meaning becomes a
+separately scoped change. Present the blocker-resolved closing commit for owner acceptance
+only when required evidence exists and no accepted review blocker remains unresolved.
 
 ## Structural checks
 
@@ -96,8 +91,8 @@ it into the shared baseline. That commit already contains:
   Contract for that Milestone;
 - a Handoff only when a receiver needs one, using the closing commit, applicable evidence,
   environment, risks, authority pointers, and next command;
-- refreshed ROADMAP deliverable pointers and, when present, core-E2E links to accepted
-  evidence, Task macro states, AC traceability, execution links, and commit references;
+- ROADMAP `state: closed` plus one canonical `accepted_result` link supplied by this closure,
+  refreshed Task macro states, AC traceability, execution links, and commit references;
 - the final diff/link/repository check results.
 
 Integrate that exact commit without creating post-acceptance closure content. If it cannot be
@@ -111,6 +106,4 @@ regenerates only evidence invalidated by changed packaging or environment inputs
 ## Exit
 
 If distribution is authorized, use **REQUIRED next skill: `release`**. Otherwise return to
-`roadmap` maintenance or the next Milestone. Before every substantive return, perform a
-task-specific self-check and correct defects. Do not output a fixed `Reflection` section;
-disclose only unresolved material risk.
+`roadmap` maintenance or the next Milestone.

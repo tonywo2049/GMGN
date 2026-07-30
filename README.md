@@ -11,7 +11,7 @@ nature: descriptive
 **GM, GN.** Good morning, good night.
 
 GMGN is an agentic software-delivery workflow for **Codex (CLI/Desktop)** and
-**Claude Code**. Ten composable skills move work from an idea to a closed milestone and then
+**Claude Code**. Eleven composable skills move work from an idea to a closed milestone and then
 publish an accepted commit without repeating closure review.
 Hard gates prevent skipped stages, independent review reduces shared blind spots, and
 replayable commands bind completion claims to evidence.
@@ -20,15 +20,17 @@ replayable commands bind completion claims to evidence.
 
 ```text
 idea
- └─ brainstorm → WhitePaper → roadmap
-                         └─ write-goal
-                            → write-requirement
-                            → write-design
-                            → write-task
-                            → run-task
-                            → close-milestone
-                            → release (when distribution is authorized)
-                            → roadmap (next milestone)
+ └─ brainstorm → WhitePaper
+    → write-decision → Decision
+    → roadmap → ROADMAP
+       └─ write-goal
+          → write-requirement
+          → write-design
+          → write-task
+          → run-task
+          → close-milestone
+          → release (when distribution is authorized)
+          → roadmap (next milestone)
 ```
 
 `gmgn` is the router: use it when you do not know which stage matches the repository's
@@ -54,22 +56,28 @@ GMGN has one workflow, not separate English and Chinese plugins.
 - A project artifact chain normally uses one active locale. If a project requires two
   translated chains, validate each locale tree separately to avoid duplicate IDs.
 
-The shared machine contract is
-[`skills/gmgn/references/en/writing-contract.md`](skills/gmgn/references/en/writing-contract.md).
+The shared writing rules are
+[`skills/gmgn/references/en/writing-rules.md`](skills/gmgn/references/en/writing-rules.md).
 GMGN does not ship translated normative mirrors or document-layout templates. Each stage skill
 defines required content and self-checks; the Author chooses the structure and may write
 project artifacts in the active locale.
 
-Every ROADMAP Milestone names concrete deliverables and a concise qualitative acceptance
-summary. Include a core E2E only when the realized product or operational path is itself a
-deliverable; otherwise omit it.
+`Decision.md` is the current project-level authority for accepted product, business, protocol,
+and architecture rulings that constrain multiple Milestones. `DecisionLog.md` records only
+accepted changes and is not normal downstream context.
 
-Each stage document adds one kind of information: ROADMAP sequences Milestones and their
-outputs; Goal refines the active Milestone into Requirement input and qualitative Close
-criteria; Requirement defines observable behavior and decidable ACs; Design resolves the
-technical decisions needed to implement them; Task indexes independently completable results,
-dependencies, status, and execution links. Stage documents do not contain downstream gates,
-propagation rules, next-stage instructions, or speculative placeholders.
+Every ROADMAP Milestone maps to WhitePaper and applicable D-IDs, states one outcome and its value, names necessary
+deliverables and one result-level success signal, and separates `now | next | later`,
+relative priority, and real dependencies. The orchestrator proposes the map and asks the
+human owner one material allocation question at a time. ROADMAP does not own an E2E path.
+
+Each stage document adds one kind of information: Decision records current cross-Milestone
+rulings; ROADMAP allocates partially ordered
+Milestones and their outcomes; Goal refines the active Milestone into Requirement input and
+qualitative Close criteria; Requirement defines observable behavior and decidable ACs;
+Design resolves the technical decisions needed to implement them; Task indexes independently
+completable results, dependencies, status, and execution links. Stage documents do not contain
+downstream gates, propagation rules, next-stage instructions, or speculative placeholders.
 
 The Design stage always produces root `Design.md`. Add `design/<module-id>.md` only for a
 useful module authority. A boundary between independently developed units requires
@@ -85,89 +93,34 @@ the accepted implementation-matching commit as `closed`.
 
 | Capability | Codex | Claude Code |
 |---|---|---|
-| Ten shared skills | Supported | Supported |
+| Eleven shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
 | Code review and deterministic local checks | `/review`; CLI: `codex review --commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
 | Risk-triggered final verification | Installation, startup, E2E, external environments, or artifacts not fully machine-checkable | Project commands; `/verify` where available |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
-The Reviewer combines code judgment with the prepared deterministic local execution. In
-Codex, a custom review prompt and scope flags are mutually exclusive; after review, check
-`git status --short` for generated side effects.
-Every delegated role receives a complete brief before creation, returns once, and is retired.
-Later authoring, coding, or verification uses a fresh agent without parent or earlier-agent
-history. Before dispatching a Critic, the primary orchestrator must name a concrete material
-risk that the owner has not accepted, no accepted effective fallback contains, and independent
-criticism could use to change acceptance or the next action. If no such risk exists, it records
-one sentence explaining why, skips Critic, and runs affected machine checks; uncertainty
-requires Critic. Each semantic change batch or task execution gets at most one Critic/Reviewer
-round;
-accepted fixes are checked by the primary orchestrator and are not sent back for a second
-independent round when they only align with an existing unambiguous authority. A fix that
-must invent or change public meaning starts a separately scoped semantic batch. A separate
-Verifier is exceptional: classify it from the
-[`gmgn-assurance-v1` policy](skills/gmgn/references/en/assurance-policy.json) as
-`not-required` or `required:<trigger>`, and run it only when required.
-Critic and Reviewer do not maximize finding count; no findings is a valid result. They report
-only concrete material harm not already contained by an accepted effective fallback, and ask
-for the smallest sufficient correction. Verifier runs only the checks needed to decide its
-recorded trigger and stops when decided.
+Every delegated role follows the
+[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md): prepare the brief
+first, create a fresh single-use agent, and bind its return to an immutable candidate. An
+implementation candidate gets at most two Review rounds: one fresh full Review and, only when
+needed, one fresh cumulative fix-delta Review that cannot open unrelated findings. Mechanical
+fixes use affected machine checks; there is no third Review round. A Verifier remains
+risk-triggered under
+[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json). Full and delta review
+surfaces are defined by the
+[code-review contract](skills/gmgn/references/en/code-review.md).
 
-`run-task` continuously fills available capacity from a dependency-aware ready set. Before the
-primary session waits or acts as a Coder, it scans every task in the confirmed execution set
-rather than only the current card or lane. `Task.md` keeps task division, AC mapping,
-dependencies, macro status, and execution pointers. Each
-selected task gets `execution/<card_id>/Card.md` for its stable execution/TDD contract and
-`Log.md` for current state, material decisions, and final evidence. Routine dispatch, waiting,
-unchanged state, and successful intermediate checks are omitted. Concurrent writers use
-isolated workspaces; a sole writer may use the current workspace. Workspace, HEAD, and
-candidate checks run only at a real handoff or material state change. Before review, the
-complete candidate is committed locally. Human-facing briefs and records use its shortest
-unambiguous commit reference; an isolated handoff also transfers the complete commit range.
-Full-length commit object IDs, diff/content hashes, and checksums cannot be workflow anchors.
-Before integration, GMGN confirms through Git that the integrated content matches the reviewed
-commit.
+`Task.md` remains a Milestone index. For confirmed rows, `run-task` creates a stable
+`Card.md` execution and verification contract plus a replaceable `Log.md`, then owns ready-set
+scheduling, isolated writer lanes, runtime tools, monitoring, review, integration, and
+closure. A Task closes only after the reviewed content is integrated and every
+project-declared required check passes against that exact shared-baseline candidate. The
+complete rules live in [`run-task`](skills/run-task/SKILL.md).
 
-All Coder lanes use the same Design Bundle anchor. A Coder does not edit or negotiate shared
-interface authority; conflicting implementation evidence returns as a blocker with the
-evidence, smallest proposed delta, and affected tasks. Internal implementation issues stay in
-the Card, meaning-preserving clarifications receive machine checks, and semantic
-Design/Contract changes pause only the impact cone for one `write-design` revision.
-
-Discovery does not expand an active Card. A newly found issue stays in the task only when it
-blocks the Card outcome or a prepared required check, has no accepted effective fallback, and
-its smallest sufficient correction stays inside existing authority. Otherwise it is omitted,
-presented separately when materially valuable, or routed upstream. The task closes as soon as
-its Card contract is satisfied.
-
-The Reviewer runs the prepared deterministic local checks in the same round. After accepted
-findings are fixed, the primary orchestrator checks the exact fix delta and reruns affected
-machine checks without another independent pass. Only a recorded risk trigger adds a fresh
-Verifier on the final candidate. Clean mechanical integration does not cause identical tests
-to run twice.
-Agent waiting is event-driven. Codex uses the single canonical setting
-`agent_wait_timeout_ms = 3600000` (1 hour) for every `wait_agent` call; normal progress-update
-cadence does not shorten it. If a known-running agent crosses that timeout, the orchestrator
-immediately re-arms the same one-hour wait without a list/status call or user update. Timeout
-alone never triggers `list_agents`, interruption, termination, or kill. One `list_agents`
-snapshot is reserved for a real scheduling decision that lifecycle events cannot resolve, or
-for conflicting lifecycle events. Silence, no returned content, elapsed time, and repeated
-timeouts never justify stopping an agent. While state is unchanged, the primary session does
-not report wait timeouts, heartbeats, agent counts, or running status; it updates only for
-material progress, a blocker, a decision request, or the final result.
-
-The reviewed `Task.md` row selects the work; its materialized `Card.md` is the static execution
-and TDD authority. Run-task roles receive exact authority pointers, current Log snapshot, and
-lane facts, not the parent conversation or a duplicated per-agent handoff.
-
-R-D-T minimality is enforced by GMGN itself. Requirements and design elements use the
-deletion-first check; `write-task` owns Task boundary and granularity rules, and Task count
-alone is not a simplicity or overdesign metric. Code minimality uses the external
-[Ponytail](https://github.com/DietrichGebert/ponytail) plugin instead of duplicating its rules.
-Run-task requires `ponytail:ponytail` at `full` for Coder. A Reviewer candidate containing
-implementation or test-code changes requires `ponytail:ponytail-review`. Ponytail review is
-part of the same Reviewer round and does not replace correctness or safety review. If Ponytail
-is not installed, that code task stops with a dependency blocker.
+R-D-T minimality is enforced by GMGN itself. Code minimality uses the external
+[Ponytail](https://github.com/DietrichGebert/ponytail) plugin; its installation is required for
+run-task code work. Exact Ponytail, CodeGraph, and DocStar runtime rules are kept only in
+`run-task`.
 
 ## Install
 
@@ -287,7 +240,8 @@ claude plugin marketplace remove GMGN --scope user
 | Request | Skill | Main output |
 |---|---|---|
 | “I have an idea; research whether it is viable.” | `brainstorm` | WhitePaper |
-| “Split the approved WhitePaper into milestones.” | `roadmap` | ROADMAP with deliverables, concise acceptance summaries, and optional core E2E paths |
+| “Record the project decisions that every milestone must follow.” | `write-decision` | Current Decision authority and descriptive DecisionLog |
+| “Split the approved WhitePaper and Decision into milestones.” | `roadmap` | ROADMAP with outcome Milestones, success signals, horizons, priority, and real dependencies |
 | “Start M1 and define its boundary.” | `write-goal` | Goal.md with Requirement input and qualitative Close criteria |
 | “Write requirements and acceptance criteria.” | `write-requirement` | Observable requirements and decidable ACs |
 | “Produce the technical design.” | `write-design` | Required technical decisions in root Design.md plus conditional authorities |
@@ -298,7 +252,7 @@ claude plugin marketplace remove GMGN --scope user
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 
 Small bug fixes and narrow one-step changes may use the controlled bypass; they do not
-need a fabricated full specification chain. WhitePaper, ROADMAP, milestone initiation,
+need a fabricated full specification chain. WhitePaper, Decision, ROADMAP, milestone initiation,
 scope expansion, and closure still require their defined authorization.
 
 ## Optional telemetry
@@ -358,7 +312,7 @@ installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/repo
 ## Repository layout
 
 ```text
-skills/                         ten cross-platform skills
+skills/                         eleven cross-platform skills
   */agents/openai.yaml          Codex display metadata and default prompts
   gmgn/references/en/           English shared writing, dispatch, review, and assurance contracts
 agents/                         Claude Code plugin subagent roles
@@ -392,30 +346,25 @@ existing release declarations. Without `--allow-dirty`, the command rejects a di
 
 ## DocStar compatibility
 
-[DocStar](https://github.com/tonywo2049/DocStar) is optional. It can check links, graph
-semantics, task closure, and bilingual parity using the same machine contract.
+[DocStar](https://github.com/tonywo2049/DocStar) is optional. The bundled
+`.docstar/conventions/conventions.json` is the adapter for this GMGN version and includes
+D-ID indexing. Copy it into a Decision-aware project corpus, then run:
 
 ```bash
-python3 docstar.py check --preset gmgn-v1 --corpus /path/to/gmgn-project
-python3 docstar.py dump --preset gmgn-v1 --json --corpus /path/to/gmgn-project
-python3 docstar.py brief CARD-ID --baseline COMMIT --preset gmgn-v1 --json --corpus /path/to/gmgn-project
+python3 docstar.py check --corpus /path/to/gmgn-project
+python3 docstar.py dump --json --corpus /path/to/gmgn-project
+python3 docstar.py brief CARD-ID --baseline COMMIT --json --corpus /path/to/gmgn-project
 ```
 
-When the corpus contains `.docstar/conventions/conventions.json`, the explicit preset is
-not required. GMGN remains installable and usable without DocStar. DocStar itself and its
-JSON output are unchanged: every invocation performs a fresh full rebuild with no cache.
+Use `--preset gmgn-v1` only when the installed preset declares equivalent Decision rules.
+GMGN remains installable and usable without DocStar. DocStar itself and its JSON output are
+unchanged: every invocation performs a fresh full rebuild with no cache.
 Telemetry hooks and reporters observe from outside DocStar, recording call count, elapsed
 time, command type, and subsequent grep/read activity. `grep_avoided` is descriptive and
 does not claim that DocStar caused a grep to be avoided.
 
-For run-task dispatch, DocStar 0.2.3 or later provides a commit-bound brief as the starting
-evidence bundle.
-It does not forbid an agent from following pointers or reading exact source ranges when more
-evidence is needed. When CodeGraph indexing is authorized and the CLI is available, GMGN
-initializes one index per isolated workspace and uses it first for source discovery and code
-relationships. Returned source is not read again; targeted reads remain available when the
-index is absent, stale, unsupported, changed, or insufficient. Claims still rest on source,
-diffs, tests, and real execution.
+CodeGraph is an optional source-navigation aid. Task-execution use of DocStar and CodeGraph is
+defined by [`run-task`](skills/run-task/SKILL.md).
 
 ## License
 

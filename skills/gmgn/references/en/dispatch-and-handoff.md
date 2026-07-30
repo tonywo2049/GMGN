@@ -18,8 +18,9 @@ Every delegated `author | coder | critic | reviewer | verifier | researcher` is 
 one bounded dispatch without parent or earlier-agent conversation history. One return ends the
 agent. Never resume, reactivate, repurpose, or send later work to a returned agent. A later
 authoring or coding attempt, separately scoped semantic or implementation change, or later
-verification creates another agent from another prepared brief. Critic and Reviewer are not
-redispatched to recheck fixes from their completed round.
+verification creates another agent from another prepared brief. An initial implementation
+Review and an authorized material-fix delta Review are separate dispatches with separate
+fresh Reviewers. Never resume a returned Reviewer for either purpose.
 
 A platform-interrupted or hard-failed delegated agent is also retired. If the objective
 remains valid, continue with a fresh agent and a new prepared brief. Treat retained workspace
@@ -35,20 +36,8 @@ For overlapping shared-baseline or target-Milestone scope, only one primary orch
 mutate shared state and integrate candidates at a time. Other sessions remain read-only or
 use an explicitly isolated, non-overlapping scope until ownership is handed over.
 
-Fresh identity is not a reason to dispatch every role. Select a role only when its evidence
-surface changed:
-
-- semantic document change → Critic necessity gate;
-- implementation or test-code diff, including deterministic local execution → Reviewer;
-- recorded `required:<trigger>` classification → Verifier after review clears;
-- equivalent mechanical links, formatting, pointers, and status → machine checks.
-
-Before dispatching a Critic, the primary orchestrator must identify a concrete material harm
-that the owner has not accepted, that no accepted effective fallback contains, and that
-independent criticism could plausibly use to change acceptance or the next action. Dispatch a
-fresh Critic only when such a risk can be named or the primary orchestrator cannot decide.
-Otherwise skip Critic, record one sentence explaining why, and run the affected machine
-checks.
+Fresh identity is not a reason to dispatch every role. The GMGN router selects roles from the
+changed evidence surface; this contract governs only the selected dispatch.
 
 ## Prepare the brief before creating the agent
 
@@ -63,19 +52,20 @@ Every brief contains:
 5. prior accepted findings or failures only when they affect this dispatch;
 6. checks, expected evidence, limitations to report, and the return gate.
 
+The archive-root exclusion applies to every delegated role, including Coder and Researcher.
+Generated context and indexes must honor it. No delegated role reads, cites, or uses archived
+documents as authority, context, or evidence. If active work depends on archived meaning,
+return it to the owning active authority before continuing.
+
 The brief may name registered skills or available tools required for the task. The agent may
 load them through normal discovery and follow their own local resources. Put resolved workflow
 decisions, including any assurance classification, directly in the brief instead of passing
 another Skill's internal resource path.
 
-When preparing a Reviewer brief, use the shared [code-review contract](code-review.md) for the
-review surface, evidence, and finding gate. Put the applicable resolved rules in the brief;
-the delegated role does not need another Skill's internal path.
-
-Every Author, Critic, Reviewer, and Verifier brief names project-declared archive roots as
-excluded paths. Generated context and indexes must honor that exclusion. These roles do not
-read, cite, or use archived documents as authority, context, or evidence. If active work
-depends on archived meaning, return it to the owning active authority before continuing.
+When preparing a Reviewer brief, use the shared [code-review contract](code-review.md) to
+resolve its mode, review surface, evidence, and finding gate before dispatch. Put the
+applicable resolved rules in the brief; the delegated role does not need another Skill's
+internal path.
 
 Do not create an agent and then expand its scope through follow-up messages. A clarification may
 only explain an existing brief fact; a new objective or changed candidate needs a new brief and
@@ -102,22 +92,12 @@ command that could have changed it. Reject wrong-workspace, stale-authority, out
 incomplete transferable content before review or integration. Do not repeat unchanged checks
 or create evidence merely to prove that a compliance check ran.
 
-## Commit and run the single review round
+## Commit and hand off review candidates
 
-The writer completes its self-check and machine checks before the candidate is committed for
-independent review. Each semantic change batch or task execution uses
-`review_policy: single-pass`: at most one Critic/Reviewer round; both roles may run in that
-round when both evidence surfaces changed. Once review starts, collect every active return
-before editing. The primary orchestrator
-adjudicates once, batches accepted blocker fixes, checks each resolution against its finding,
-and runs the affected machine checks. A fix that only aligns a duplicate representation with
-an existing unambiguous authority is not sent to another Critic or Reviewer. If it must invent
-or change authority, scope, public behavior, interface obligation, error priority, or state
-order, narrow it or open a separately scoped semantic batch with its own single round.
-Non-blocking suggestions do not reopen a candidate. When review runs, the final accepted
-commit records the reviewed commit, complete findings and rulings, exact fix delta, and
-post-fix checks. When Critic is skipped, the acceptance evidence records the one-sentence
-reason and affected machine checks.
+The writer completes its machine checks before the candidate is committed for independent
+review. Freeze the candidate while Review is active. The owning stage and code-review contract
+resolve the review mode and surface; this contract requires only one fresh dispatch and one
+immutable evidence boundary for each selected role.
 
 Critic and Reviewer are not expected to maximize finding count, and a valid review may return
 no findings. Report only concrete material harm with no accepted effective fallback and a

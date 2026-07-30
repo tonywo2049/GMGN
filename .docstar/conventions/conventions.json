@@ -3,7 +3,7 @@
   "archive_globs": ["[Aa]rchive"],
   "namespaces": {
     "prefix_namespaces": {},
-    "kind_namespace": {"需求AC": "Requirement"},
+    "kind_namespace": {"需求AC": "Requirement", "决议": "Decision"},
     "req_doc": "Requirement.md",
     "param_registry": "Requirement.md",
     "task_doc_stem": "Task",
@@ -11,6 +11,7 @@
   },
   "def_forms": {
     "需求AC": "^-\\s*\\*\\*(R\\d+-AC\\d+)\\*\\*",
+    "决议": "^-\\s*\\*\\*(D-\\d{3})\\*\\*",
     "参数": "^\\|\\s*`([A-Za-z_][A-Za-z0-9_]*)`[^|]*\\|",
     "任务": "^\\|\\s*\\*\\*((?:M\\d+-)?T\\d+(?:\\.\\d+)?)\\*\\*"
   },
@@ -29,11 +30,12 @@
       "^\\d+$",
       "^\\d{4}-\\d{2}-\\d{2}$",
       "^v?\\d+(?:\\.\\d+)+[a-z]?$",
-      "^(?:R\\d+(?:-AC\\d+)?|(?:M\\d+-)?T\\d+(?:\\.\\d+)?|M\\d+)$"
+      "^(?:D-\\d{3}|R\\d+(?:-AC\\d+)?|(?:M\\d+-)?T\\d+(?:\\.\\d+)?|M\\d+)$"
     ]
   },
   "doc_id_kinds": [
     ["需求AC", "(?<![A-Za-z0-9_])R\\d+-AC\\d+(?![A-Za-z0-9_])", "GMGN acceptance criterion Rn-ACn"],
+    ["决议", "(?<![A-Za-z0-9_])D-\\d{3}(?![A-Za-z0-9_-])", "GMGN decision ID D-NNN"],
     ["任务", "(?<![A-Za-z0-9_])(?:M\\d+-)?T\\d+(?:\\.\\d+)?(?![A-Za-z0-9_.])", "GMGN task ID"],
     ["里程碑", "(?<![A-Za-z0-9_])M\\d+(?![A-Za-z0-9_-])", "GMGN milestone ID"]
   ],
@@ -79,6 +81,6 @@
       "severity": "report"
     }
   ],
-  "uncovered_kind_exclusions": ["参数", "测试", "专名", "文档", "节条目", "里程碑", "任务卡", "执行日志", "最新事件"],
+  "uncovered_kind_exclusions": ["参数", "决议", "测试", "专名", "文档", "节条目", "里程碑", "任务卡", "执行日志", "最新事件"],
   "aliases": {}
 }

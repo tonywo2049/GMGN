@@ -5,12 +5,12 @@ description: "Use after Requirement review to create or change the Design-stage 
 
 # Design stage: requirements → implementation decisions
 
-<HARD-GATE>`Requirement.md` must exist, have passed the Critic necessity gate and any required Critic review, and have primary-orchestrator review. If it is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
+<HARD-GATE>`Requirement.md` and the current approved Decision must exist. Requirement must have passed the Critic necessity gate and any required Critic review plus primary-orchestrator review. If either authority is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
 
 ## Language, bundle, and authority
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
-writing contract. Use the Requirement locale for artifact prose. Every Design-stage artifact
+writing rules. Use the Requirement locale for artifact prose. Every Design-stage artifact
 is normative.
 
 `Design.md` always exists as the root Design authority and complete R/AC mapping entry. Add
@@ -53,11 +53,54 @@ error, atomicity, recovery, security, compatibility, or resource behavior. Local
 expressions that cannot change another unit's result need no Design content. If the approved
 Bundle permits incompatible implementations of a shared boundary, it is incomplete.
 
+## External solution research
+
+For initial Design creation, derive one bounded research scope from reviewed R/ACs, applicable
+D-IDs, external constraints, and the known integration environment before drafting any
+Design-stage artifact. State the technical problem, hard constraints and exclusions,
+comparison dimensions, evidence needed to treat a solution as mature or validated, and the
+Design decision the research will support. Do not preselect architecture, modules,
+interfaces, data structures, or a technical stack beyond choices already fixed by approved
+authority or observed integration facts. Repository inspection may supply constraints and
+later feasibility evidence, but it does not count as external research.
+
+For a controlled revision, repeat only the affected external research when the delta changes
+the researched problem, a selection constraint, the selected solution, or a time-sensitive
+fact on which that selection depends. A meaning-preserving clarification does not repeat
+research.
+
+If the Owner has not already named external solutions to include or exclude, ask one plain,
+self-contained question that summarizes the research scope and says that current internet
+sources will be searched when none are specified. Include any Owner-named candidate in the
+research without assuming that it will be selected. When the Owner names none, proceed with
+internet research without further questions.
+
+Research one to three relevant external solutions before drafting Design. Keep one when it is
+the only credible candidate, compare two when a real tradeoff exists, and add a third only
+when it is a distinct credible path; do not pad the set. Use primary evidence such as an
+official standard, specification, documentation, reference implementation, maintainer source
+and release record, production case, audit, or paper. Search snippets, rankings, stars, and
+popularity alone do not prove maturity or fit. Record the checked version or date for facts
+that can change.
+
+Compare only what can change the decision: current R/AC and constraint coverage,
+compatibility, security boundaries, maintenance, licensing, and adoption cost. The primary
+session selects the Design-owned solution. Route a tradeoff that changes upstream meaning to
+`gmgn`. If no credible external solution fits, record the search boundary and the material
+reason, then design the smallest new solution instead of inventing candidates.
+
+Carry into the owning Design artifact the selected solution or no-fit result, checked version
+or date, primary evidence, and key fit or gap. Retain a rejected candidate only when omitting
+it would make the current choice unclear or remove a live rollback path. Do not create
+`Research.md` or store the working scope, search terms, full research report, or candidate
+chronology in the Design Bundle.
+
 The following are applicability checks, not required headings or a document template:
 
-- Derive every decision from reviewed R/ACs or an explicitly sourced external constraint.
-  Inspect the repository and real call paths for feasibility without redefining upstream
-  meaning.
+- Derive every decision from reviewed R/ACs, applicable D-IDs, or an explicitly sourced
+  external constraint. Implement the local consequence of a project ruling without
+  redefining it. Inspect the repository and real call paths for feasibility without
+  redefining upstream meaning.
 - Determine the smallest sufficient technical stack, dependency and build choices, source
   locations, components, responsibilities, owned data, dependency direction, and trust
   boundaries.
@@ -66,11 +109,12 @@ The following are applicability checks, not required headings or a document temp
   failure recovery, rollback, security, performance, resource, and observability behavior
   whenever the current R/AC or real call path makes them implementation-significant.
 - Map each R/AC once in root `Design.md` to the owning design structure, necessary data,
-  applicable failure behavior, interface authority, and verification point. Child artifacts
+  applicable failure behavior, interface authority, and verification point. Link an
+  applicable D-ID where it directly constrains that implementation result. Child artifacts
   link their applicable R/ACs without copying the complete map.
-- Give each retained design element one owner and the current R/AC or sourced invariant that
-  would fail if it were removed. Future reuse, possible scale, flexibility, or implementation
-  convenience is not an owner.
+- Give each retained design element one owner and the current R/AC, D-ID, or sourced invariant
+  that would fail if it were removed. Future reuse, possible scale, flexibility, or
+  implementation convenience is not an owner.
 
 Every applicable cross-unit boundary must close the whole path from authoritative producer,
 through specified derivation or conversion, to consumer validation and state effect. Define
@@ -95,24 +139,26 @@ implement production I/O, storage, or providers.
 
 Keep the Bundle `draft` while any implementation-significant decision remains unresolved.
 
-Record alternatives only when they explain a current decision or live rollback path. Do not
-include commands, full results, candidate chronology, work status, execution history, or
-closure records. Do not add formal API versions unless a current external or
+Do not include commands, full results, candidate chronology, work status, execution history,
+or closure records. Do not add formal API versions unless a current external or
 coexisting-version compatibility requirement needs them.
 
 Before return, apply this Design Ready gate:
 
-1. No implementation-significant question, hidden default, or unapproved parameter remains.
-2. Every applicable boundary has one structure authority and a closed producer-to-state path.
-3. Every R/AC and retained design element has one resolvable owner, implementation result, and
+1. The bounded external research is complete, and Design records the selected solution or
+   no-fit result with primary evidence.
+2. No implementation-significant question, hidden default, or unapproved parameter remains.
+3. Every applicable boundary has one structure authority and a closed producer-to-state path.
+4. Every R/AC and retained design element has one resolvable owner, implementation result, and
    verification point without duplicated authority.
-4. Applicable schema compiles or lints, and required vectors or conformance checks reproduce.
-5. Removing, reusing, making native, or directly replacing any retained structure would lose a
+5. Applicable schema compiles or lints, and required vectors or conformance checks reproduce.
+6. Removing, reusing, making native, or directly replacing any retained structure would lose a
    current accepted outcome or safeguard.
 
 ## Writer and review-selection loop
 
-Record the Requirement commit. For a small Bundle, the primary session writes it directly.
+Use the registered `gmgn` Skill's shared document-candidate and dispatch rules, and record the
+Decision and Requirement commits. For a small Bundle, the primary session writes it directly.
 For useful parallelism, it first creates root `Design.md` with the global architecture, module
 boundaries, dependency direction, planned artifacts, and ownership; root remains the primary
 session's write surface. Dispatch fresh Authors by bounded semantic module, not mechanically by
@@ -120,13 +166,11 @@ file count. Each Author writes only its declared child artifacts and self-checks
 and local closure.
 
 The primary session integrates provider/consumer seams, shared state, error order, and schema
-references, then commits one complete immutable Bundle candidate and identifies it by the
-shortest unambiguous commit reference. Apply the registered `gmgn` Skill's Critic necessity
-gate after that integration. When Critic is required, a small Bundle uses one fresh Critic; a
+references into one complete immutable Bundle candidate. When the shared necessity gate
+selects Critic, a small Bundle uses one fresh Critic; a
 large Bundle may use parallel fresh Critics on bounded module scopes plus one Bundle-seam
 scope in the same round. Every Critic reads the same candidate commit, all returns are
 collected before editing, and physical file count never determines the number of Critics.
-When Critic is skipped, record the one-sentence reason and run the affected machine checks.
 
 When dispatched, Critics find any implementation-significant decision still unspecified.
 Reject any public or cross-unit decision, authority, validation entry, state effect, failure,
@@ -134,16 +178,14 @@ recovery, or parameter left ambiguous. Check provider and consumer feasibility, 
 legality, structural authority consistency, global-versus-local rule conflicts, R/AC
 traceability, and whether each separate artifact can be deleted.
 
-When Critic runs, adjudicate once and batch accepted blocker fixes. A fix is mechanical only
-when it makes a duplicate representation conform to an already unambiguous reviewed authority
-without changing meaning. The primary orchestrator checks those resolutions and affected
-machine checks without another Critic. If the fix must invent or change Design-owned meaning, it is a new semantic
-batch under Controlled revision, not a recheck of the old batch. Accept only the complete
-Bundle at one commit as the shared Design baseline.
+Resolve accepted findings through the shared document-candidate loop. If a fix must invent or
+change Design-owned meaning, it is a new semantic batch under Controlled revision, not a
+recheck of the old batch. Accept only the complete Bundle at one commit as the shared Design
+baseline.
 
 ## Controlled revision
 
-1. Return meaning outside Design authority to `gmgn` for routing before editing.
+1. Return meaning outside Design authority, including a changed D-ID, to `gmgn` for routing before editing.
 2. A meaning-preserving clarification only aligns a duplicate representation with an existing
    unambiguous authority. It uses the smallest same-batch edit, affected pointer refresh, and
    machine checks without semantic reapproval.
@@ -165,13 +207,8 @@ refresh plus machine checks without reapproval.
 ## Exit
 
 Require the recorded writer to reconcile the Bundle links: no orphan child, unmapped R/AC,
-unresolved structure authority, or cross-unit boundary with competing definitions. For
+unapplied implementation-relevant D-ID, unresolved structure authority, or cross-unit
+boundary with competing definitions. For
 creation or a semantic revision, run the writer/review-selection loop above using the
 English-only dispatch contract. Obtain primary-orchestrator review and integrate only when
 required by workspace topology. Design acceptance marks the complete Bundle `approved`, not `closed`.
-
-Before every substantive return, perform a task-specific self-check and correct defects. Do
-not output a fixed `Reflection` section. Disclose only material unresolved risks that could
-change the conclusion, decision, acceptance, or downstream work; otherwise omit the
-disclosure. Approval, acceptance, and closure always state remaining material risks or that
-none are known.

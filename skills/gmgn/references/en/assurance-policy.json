@@ -1,13 +1,6 @@
 {
-  "schema_version": "gmgn.assurance-policy.v1",
-  "policy_id": "gmgn-assurance-v1",
-  "review": {
-    "policy": "single-pass",
-    "rounds_per_change": 1,
-    "post_fix_independent_recheck": false,
-    "post_fix_owner": "primary-orchestrator",
-    "post_fix_evidence": "affected-machine-checks"
-  },
+  "schema_version": "gmgn.assurance-policy.v2",
+  "policy_id": "gmgn-assurance-v2",
   "reviewer": {
     "required_for": [
       "implementation-diff",

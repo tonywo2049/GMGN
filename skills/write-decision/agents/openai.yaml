@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Decision / 编写项目决议"
+  short_description: "Maintain cross-Milestone rulings / 维护跨里程碑项目决议"
+  default_prompt: "Use $write-decision to create or revise the project Decision authority. / 请用 $write-decision 创建或修订项目决议权威。"

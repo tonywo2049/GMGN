@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "GMGN",
     "shortDescription": "Bilingual agent workflow from idea to accepted release / 从想法到已接受版本发布的双语 agent 工作流",
-    "longDescription": "Ten composable skills manage discovery, G-R-D-T documents, task execution, independent review, milestone closure, and evidence-reusing release in English or Chinese. / 十件技能用中英文管理需求澄清、规格链、逐卡实现、独立评审、关账和证据复用发布。",
+    "longDescription": "Eleven composable skills manage discovery, project decisions, G-R-D-T documents, task execution, independent review, milestone closure, and evidence-reusing release in English or Chinese. / 十一件技能用中英文管理需求澄清、项目决议、规格链、逐卡实现、独立评审、关账和证据复用发布。",
     "developerName": "Tony",
     "category": "Productivity",
     "capabilities": [

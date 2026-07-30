@@ -1,114 +1,117 @@
 ---
 name: roadmap
-description: "Use after owner approval of the WhitePaper to create or maintain the project roadmap, milestones, explicit deliverables, dependency order, concise acceptance summaries, optional core E2E paths, closure backfill, or Backlog allocation. 白皮书已批后规划里程碑、明确产出、依赖、简要验收摘要及按需核心 E2E。"
+description: "Use after owner approval of WhitePaper and the project Decision authority to create or maintain the project roadmap: outcome Milestones, deliverables, success signals, now/next/later horizons, relative priority, real dependencies, accepted-result links, and a curated Backlog. 白皮书和项目决议权威均已批准后，通过逐项人工裁决编排结果型里程碑、产出、成功信号、规划时域、相对优先级、真实依赖和受控 Backlog。"
 ---
 
-# ROADMAP: single sequencing authority
+# ROADMAP: project-level allocation authority
 
-<HARD-GATE>An approved, commit-bound WhitePaper must exist. If it is missing or ROADMAP work exposes a WhitePaper premise that must change, stop and return the issue to `gmgn` for routing. ROADMAP stays at project-sequencing level and must not contain detailed Milestone closure conditions, R-AC IDs, quantitative requirement metrics, technical design, task breakdown, or executable test cases.</HARD-GATE>
+<HARD-GATE>Approved, commit-bound WhitePaper and Decision authorities must exist. If either is missing, or ROADMAP work exposes a WhitePaper premise or cross-Milestone ruling that must change, stop and return the issue to `gmgn` for routing. ROADMAP stays at project-allocation level. It does not contain detailed Close conditions, R-AC IDs, behavior or performance thresholds, technical design, task breakdown, executable tests, evidence, or an end-to-end path.</HARD-GATE>
 
-## Language and contract
+## Language and writing rules
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
-writing contract. Use the active locale for artifact prose. Use `ROADMAP.md`, `type: roadmap`,
+writing rules. Use the active locale for artifact prose. Use `ROADMAP.md`, `type: roadmap`,
 `nature: normative`, and `status: draft` until approved.
 
-## Create
+## Working rhythm
 
-- Link only the WhitePaper boundary and invariant anchors needed for sequencing; do not
-  restate their text.
-- Define ordered Milestones with one qualitative objective, explicit **Milestone
-  deliverables**, one concise qualitative acceptance summary, dependencies, and work state
-  `not-started`.
-- Derive each deliverable from the approved WhitePaper and that Milestone's expected outcome;
-  later artifacts or evidence cannot silently redefine it.
-- Name what will exist at the end, not how well it must perform. Choose only the concrete
-  objects appropriate to the Milestone: a specification, repository state, release, running
-  network or environment, tool, report, ledger, or a realized product/operational E2E when that
-  path itself is the final result. The acceptance summary states what counts as the stage
-  result without expanding every close condition. Keep evidence out of planning rows; closure
-  backfill links the accepted result.
-- Write a core E2E only when the realized product or operational path is itself a Milestone
-  deliverable. Otherwise omit E2E content; never invent one for a specification, research,
-  report, infrastructure component, or other artifact merely to satisfy the workflow.
-- When applicable, write the core E2E under a stable Markdown anchor as the shortest complete
-  path from its start through key actions to an observable result. The Milestone row links to
-  that anchor. Do not expand permission branches, failure/recovery paths, exact parameters, or
-  test details in ROADMAP.
-- When a deliverable such as a complete
-  specification already contains its functions, E2E, failure, and recovery definitions, list
-  that artifact once instead of repeating its contained paths as deliverables.
-- Use a candidate name during planning, and point an internal-code deliverable to its
-  repository when known. Refine the name at Milestone start or closure when the owned outcome
-  is unchanged; otherwise use controlled revision. In a shared table cell, number deliverables
-  consecutively and put one item on each line.
-- Do not prescribe a test framework, command, test file, fixture, selector, exact numeric
-  threshold, technical solution, task, execution instruction, or evidence record in ROADMAP.
-- Sequence strong dependencies from earlier Milestones to later consumers. A later
-  implementation, confirmation, document, or evidence item must not be an earlier Milestone's
-  acceptance condition.
-- Maintain one Backlog for possible future work that is not yet allocated to a Milestone.
+The primary orchestrator first reads the approved Decision and its WhitePaper authority plus
+current project facts, then forms a recommended Milestone map and a list of unresolved
+allocation decisions. It remains in dialogue with the human owner and asks one question at a
+time before writing the candidate.
 
-## Maintain
+Ask only when the answer can change a Milestone boundary, `now | next | later` placement,
+relative priority, a real dependency, an explicit deferral, a decision-relevant external
+commitment, or the meaning of a success signal. Each question gives one recommended option,
+the other real options, and the Roadmap consequence of each. Do not ask for facts already
+decided by WhitePaper, Decision, or repository evidence, mechanical representation choices, or
+Requirement, Design, Task, test, and execution decisions.
 
-- Closure backfill updates the Milestone state and replaces candidate deliverable identities
-  with canonical pointers:
-  internal code uses `repository@<accepted-commit>`; an external distribution uses its release
-  tag and release page; a network or environment uses its applicable stable identity and
-  access pointers, such as an ID, identity or genesis hash, manifest, and endpoints; and a
-  document, report, or tool links directly to the accepted artifact. Omit pointers that do not
-  apply. When a core E2E anchor exists, link it to accepted evidence.
-- New ideas remain in the Backlog until allocated to a Milestone.
+Challenge a feature list presented as an outcome, an artificial serial dependency, a distant
+forecast presented as a precise commitment, and a candidate outside the approved WhitePaper
+or Decision. Record ROADMAP-owned allocation rulings in the candidate; do not create a
+separate Ask or ROADMAP-specific decision log. `DecisionLog.md` is maintained only by
+the project Decision stage. Do not write or approve a Roadmap while a material decision within this ask
+scope remains unresolved.
 
-## Writer and review-selection loop
+## Milestone content
 
-1. Record the WhitePaper commit and mode. The primary session may write directly, or it may
-   prepare a complete brief and create one fresh Author when the bounded handoff creates real
-   value.
-2. The writer self-checks before return. A delegated Author ends after that return; missing
-   inputs or later revision use the primary session or a fresh Author with a new brief.
-3. Commit the complete candidate locally and apply the registered `gmgn` Skill's Critic
-   necessity gate. When Critic is required, dispatch one fresh independent Critic from a
-   prepared brief that names the shortest unambiguous commit reference. Collect all findings
-   before editing, adjudicate once, and batch accepted blocker fixes. Check each resolution
-   and run affected machine checks; do not dispatch a second Critic to recheck this round's
-   fixes. When Critic is skipped, record the one-sentence reason and run the affected machine
-   checks.
-4. With no blocker, owner approval binds the candidate commit. The primary orchestrator applies
-   accepted mechanical reciprocal links, state, and evidence pointers, then runs machine checks.
+Each Milestone must make these facts unambiguous without requiring a fixed table or section
+layout:
 
-Closure backfill and other meaning-preserving maintenance skip semantic criticism. The primary
-session applies the mechanical batch directly, including across an integration boundary. Run
-machine checks and preserve the existing approval through an
-equivalence record. Any semantic ambiguity returns to the full writer/review-selection loop.
+- stable Milestone ID; the ID is identity, not execution order;
+- the applicable WhitePaper or D-ID anchor;
+- one expected outcome and why it merits allocation;
+- only the deliverables necessary for that outcome and present by Milestone Close;
+- one concise result-level success signal;
+- `horizon: now | next | later`;
+- relative priority within the same horizon;
+- real prerequisite Milestone IDs, or `none`;
+- `state: not-started` at creation; and
+- `accepted_result: none` until Close.
 
-## Controlled revision
+Derive deliverables from the approved WhitePaper, applicable D-IDs, Milestone outcome, and
+recorded ROADMAP-owned rulings. Do not ask the owner merely to choose a document shape,
+artifact name, or other mechanical representation.
 
-- Start from the approved old commit. Record the trigger, semantic delta, affected milestone
-  rows, required reviewer or approver, and proposed new commit.
-- If the changed meaning is outside ROADMAP authority, stop and return the delta to `gmgn` for
-  routing.
-- Revise only ROADMAP-owned sequencing, Milestone allocation, deliverables, dependencies,
-  concise qualitative acceptance summaries, optional core E2E paths, or Backlog placement.
-  Do not reopen unaffected Milestones.
-- A change that alters a decision or reasonable understanding applies the Critic necessity
-  gate and receives owner approval at a new commit. Run independent criticism only when the
-  gate requires it. Old approval remains attached to the old commit.
-- Meaning-preserving mechanical changes use same-batch link and status refresh plus
-  machine checks without reapproval.
+A success signal states the smallest observable product, user, operational, or organizational
+result that would show the allocation is working. It may be quantitative when the number is a
+strategic outcome target. It is not a detailed Close criterion or test oracle: Goal refines
+the initiated Milestone into Close outcomes, Requirement defines decidable ACs, and
+Milestone closure evaluates their evidence.
+
+ROADMAP does not own an E2E path. When an end-to-end user or operational result matters, state
+that result and its success signal here; Goal and Requirement own the Close outcome and
+observable behavior, and the verification stages select sufficient evidence.
+
+## Horizons, priority, and dependencies
+
+`now` is the current planning commitment. `next` and `later` are adjustable forecasts, not
+execution authorization or promises of exact dates, versions, or implementation identities.
+Only a `now`, `not-started` Milestone whose declared prerequisites are all `closed` with an
+`accepted_result` is eligible for explicit owner initiation through the Milestone initiation
+stage. Moving a Milestone into or out of `now` is a semantic Roadmap decision.
+
+Priority expresses relative value within one horizon. Equal priority is allowed. Priority,
+display order, and Milestone IDs never create a dependency. Dependencies record only real
+prerequisites and form a partial order; Milestones with no dependency relationship may
+proceed in parallel when separately authorized.
+
+## Backlog and maintenance
+
+Keep one Backlog only for concrete candidates that fit the approved WhitePaper and Decision but are not
+allocated to a Milestone. A Backlog item creates no downstream authority. At every semantic
+Roadmap revision and Milestone Close, allocate, merge, or delete stale candidates. An idea
+that changes WhitePaper or Decision meaning returns to `gmgn` for routing instead of entering
+Backlog.
+
+At Milestone Close, the closure stage supplies one canonical accepted-result entry. ROADMAP
+mechanically changes that Milestone to `state: closed` and replaces `accepted_result: none`
+with that single link. It does not copy commit, release, network, environment, or evidence
+details. Equivalent state, link, and formatting maintenance preserves existing approval and
+uses machine checks.
+
+## Approval and revision
+
+Creation and semantic revision use the registered `gmgn` Skill's shared document-candidate
+and dispatch rules. After the owner rulings above are complete, write one full candidate
+rather than confirming fields one by one. Present that candidate and remaining material
+risks—or that none are known—for one final owner approval bound to its commit.
+
+In revision mode, ask only about decisions changed by the delta. ROADMAP owns Milestone
+allocation, outcome, value, deliverables, success signals, horizons, relative priority,
+dependencies, and Backlog placement. Preserve unaffected Milestones and prior approval. A
+change to WhitePaper or Decision authority returns to `gmgn`.
 
 ## Exit
 
-For creation or a semantic revision, run the fresh-agent writer/review-selection loop using the
-English-only dispatch contract, present remaining material risks or that none are known,
-obtain owner approval bound to the candidate commit, and integrate only when required by workspace
-topology. Before approval, confirm every Milestone has concrete deliverables and a concise
-qualitative acceptance summary; a core E2E appears only
-when that path is itself a deliverable, and no E2E is fabricated for other Milestones. A
-mechanical maintenance batch needs machine checks but no new approval.
+Before approval, confirm:
 
-Before every substantive return, perform a task-specific self-check and correct defects. Do
-not output a fixed `Reflection` section. Disclose only material unresolved risks that could
-change the conclusion, decision, acceptance, or downstream work; otherwise omit the
-disclosure. Approval, acceptance, and closure always state remaining material risks or that
-none are known.
+- every Milestone maps to WhitePaper and applicable D-IDs and has one outcome, necessary
+  deliverables, one success signal, horizon, relative priority, prerequisites, state, and
+  accepted-result field;
+- every `now` allocation and other material human decision has an explicit owner ruling;
+- dependencies are real and acyclic, while unrelated Milestones remain unordered;
+- Backlog contains only current, in-scope, unallocated candidates; and
+- ROADMAP contains no per-Milestone owner, E2E path, detailed Close condition, Requirement,
+  Design, Task, test, execution, or evidence content.
