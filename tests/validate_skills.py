@@ -45,6 +45,7 @@ WRITE_DECISION = Path("skills/write-decision/SKILL.md")
 DISPATCH_CONTRACT = Path("skills/gmgn/references/en/dispatch-and-handoff.md")
 ROADMAP = Path("skills/roadmap/SKILL.md")
 WRITE_GOAL = Path("skills/write-goal/SKILL.md")
+RELEASE = Path("skills/release/SKILL.md")
 CANONICAL_REFERENCES = {
     ASSURANCE_POLICY,
     WRITING_RULES,
@@ -62,23 +63,24 @@ RUN_TASK_CONTROLS = (
     "`ponytail:ponytail`",
     "`ponytail:ponytail-review`",
     "`codegraph init <workspace>`",
-    "Do not call `wait_agent`; an agent\ncompletion or attention event reactivates the primary session",
-    "schedule one platform-native primary-session wakeup for one hour later",
-    "yield the current\nturn without returning a final task result",
-    "If an agent event reactivates the session first,\ncancel or ignore the pending wakeup",
-    "On the one-hour wakeup, call `list_agents` once",
+    "sends the primary orchestrator an interim decision request",
+    "Resume the\nsame Coder only when the adjudication preserves its objective and write boundary",
+    "Every Codex `wait_agent` call uses\n"
+    "the actual tool argument `{\"timeout_ms\": 3600000}` (1 hour) as a maximum wait",
+    "An agent\ncompletion or attention event returns early",
+    "without calling `list_agents`",
+    "If the full hour expires without an event, call `list_agents` once",
     "Handle any completed\nor attention-needed dispatch immediately",
-    "schedule the next one-hour wakeup, and yield again",
-    "Do not call `list_agents` more than\nonce for the same wakeup",
-    "do not fall back to `wait_agent`",
-    "Between lifecycle events and scheduled wakeups, do not poll `list_agents`",
+    "return to the same maximum one-hour `wait_agent` call",
+    "Do not call\n`list_agents` more than once for the same timeout",
+    "Between lifecycle events and timeout boundaries, do not poll `list_agents`",
     "A message to an active agent must carry authorization, requested information, or\nanother decision permitted by the dispatch contract",
     "Do not infer a shorter polling interval",
-    "While any dispatched agent is `running`, do not call `interrupt_agent` or\n"
-    "return a final task result",
+    "While any dispatched agent is\n"
+    "`running`, do not call `interrupt_agent`, end the orchestration, or return a final task result",
     "time or token budget are not such evidence",
     "does not create or send\n"
-    "heartbeat, unchanged `running`, wakeup, agent-count, or progress data to the user, Log,\n"
+    "heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,\n"
     "telemetry, or another agent",
     "Create exactly one fresh Reviewer",
     "This is the Task execution's only Reviewer round",
@@ -109,16 +111,21 @@ DISPATCH_LIFECYCLE_CONTROLS = (
     "That primary-\norchestrator decision is sufficient for the agent",
     "The terminal completion return retires the agent",
     "Never resume, reactivate, repurpose, or send\nlater work to a retired agent",
+    "applicable authority, scope, checks, and environment validity inputs\nremain unchanged",
+    "Otherwise the fixed review surface is invalidated and requires a new brief\nand agent",
 )
 EXTERNAL_AUTHORIZATION_CONTROLS = (
     "One authorization may cover a named set of external operations against an exact target",
     "Expanding the operation set, target, or side effects requires another authorization",
 )
-RUNTIME_SELECTION_CONTROLS = (
-    "reads the current `spawn_agent` schema",
+RUNTIME_ROLE_ROWS = (
     "| Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
     "| Coder | `gpt-5.6-terra` | `max` |",
-    "| Researcher | `gpt-5.6-luna` | `max` |",
+    "| Researcher | `gpt-5.6-terra` | `max` |",
+)
+RUNTIME_SELECTION_CONTROLS = (
+    "reads the current `spawn_agent` schema",
+    *RUNTIME_ROLE_ROWS,
     "state the selected `model`, `reasoning_effort`, and a\none-sentence reason in user-visible commentary",
     'call it with `fork_turns: "none"` and pass\nthe selected `model` and `reasoning_effort`',
 )
@@ -137,6 +144,22 @@ GOAL_APPROVAL_CONTROLS = (
     "Prepare the Goal and proposed initiation as one candidate",
     "do not require a separate initiation authorization",
     "That approval both authorizes the\nMilestone state change and approves Goal meaning",
+)
+RELEASE_OPERATION_ORDER_CONTROLS = (
+    "push the branch and tag together\natomically when the host supports it",
+    "create or complete the Release from that tag",
+    "upload the\nnamed assets",
+    "read the final remote state back once",
+)
+GMGN_RUN_TASK_ROUTE_CONTROLS = (
+    "An initiated Milestone has accepted Task rows that can run",
+)
+CONTRADICTORY_POLICY_MARKERS = (
+    "Any return retires the agent",
+    "Every external operation needs separate authorization",
+    "scan only the separately confirmed execution set",
+    "Every delegated agent inherits the primary orchestrator configuration",
+    "Researcher** analyzes and recommends solutions",
 )
 CODE_REVIEW_SINGLE_CONTROLS = (
     "Each Task execution has exactly one Reviewer\nround",
@@ -181,6 +204,15 @@ def normalized(text: str) -> str:
     return " ".join(text.split()).casefold()
 
 
+def active_markdown(text: str) -> str:
+    without_comments = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    return re.sub(
+        r"(?ms)^[ \t]*(`{3,}|~{3,})[^\n]*\n.*?^[ \t]*\1[ \t]*$",
+        "",
+        without_comments,
+    )
+
+
 def require_fragments(
     text: str, fragments: tuple[str, ...], label: str, errors: list[str]
 ) -> None:
@@ -188,6 +220,12 @@ def require_fragments(
     missing = [fragment for fragment in fragments if normalized(fragment) not in haystack]
     if missing:
         errors.append(f"{label}: 缺少 {missing}")
+
+
+def require_active_fragments(
+    text: str, fragments: tuple[str, ...], label: str, errors: list[str]
+) -> None:
+    require_fragments(active_markdown(text), fragments, label, errors)
 
 
 def active_policy_files() -> tuple[Path, ...]:
@@ -279,14 +317,14 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         "writing-rules 机器字段",
         errors,
     )
-    require_fragments(
+    require_active_fragments(
         write_decision,
         DECISION_SCOPE_CONTROLS,
         "write-decision 决议范围",
         errors,
     )
     require_fragments(write_task, (TASK_HEADER,), "write-task 表头", errors)
-    require_fragments(
+    require_active_fragments(
         dispatch_contract,
         (
             *DISPATCH_LIFECYCLE_CONTROLS,
@@ -297,16 +335,32 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         "派发授权与生命周期",
         errors,
     )
-    require_fragments(
+    active_dispatch = active_markdown(dispatch_contract)
+    for row in RUNTIME_ROLE_ROWS:
+        if active_dispatch.count(row) != 1:
+            errors.append(f"派发运行时映射必须有且只有一行: {row}")
+    require_active_fragments(
         read(ROADMAP),
         ROADMAP_APPROVAL_CONTROLS,
         "ROADMAP 一次批准",
         errors,
     )
-    require_fragments(
+    require_active_fragments(
         read(WRITE_GOAL),
         GOAL_APPROVAL_CONTROLS,
         "Goal 合并批准",
+        errors,
+    )
+    require_active_fragments(
+        read(RELEASE),
+        RELEASE_OPERATION_ORDER_CONTROLS,
+        "release 外部操作顺序",
+        errors,
+    )
+    require_active_fragments(
+        read("skills/gmgn/SKILL.md"),
+        GMGN_RUN_TASK_ROUTE_CONTROLS,
+        "gmgn run-task 路由",
         errors,
     )
 
@@ -314,6 +368,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         errors.append("旧 writing-contract.md 不应恢复")
     for relative in policy_files:
         text = read(relative)
+        active_text = active_markdown(text)
         if OLD_TASK_HEADER in text:
             errors.append(f"{relative}: 含旧 Task 表头")
         if "writing-contract.md" in text.casefold():
@@ -333,7 +388,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
             "fresh delta Review",
             "full and delta review",
         ):
-            if obsolete_review.casefold() in text.casefold():
+            if obsolete_review.casefold() in active_text.casefold():
                 errors.append(f"{relative}: 含已废止多轮审查规则 {obsolete_review}")
         for obsolete in (
             "A closed foundation remains closed.",
@@ -347,8 +402,11 @@ def validate_shared_surfaces(errors: list[str]) -> None:
             "Local installation is a separate authorized operation",
             "Researcher** distinguishes direct observation, sourced fact, and inference",
         ):
-            if obsolete in text:
+            if obsolete in active_text:
                 errors.append(f"{relative}: 含已废止规则 {obsolete}")
+        for contradiction in CONTRADICTORY_POLICY_MARKERS:
+            if contradiction.casefold() in active_text.casefold():
+                errors.append(f"{relative}: 含冲突规则 {contradiction}")
 
 
 def validate_assurance_policy(errors: list[str]) -> None:
@@ -406,32 +464,32 @@ def validate_assurance_policy(errors: list[str]) -> None:
 
 def validate_run_task_controls(errors: list[str]) -> None:
     run_task = read(RUN_TASK)
-    require_fragments(run_task, RUN_TASK_CONTROLS, "run-task 关键执行控制", errors)
-    require_fragments(
+    require_active_fragments(run_task, RUN_TASK_CONTROLS, "run-task 关键执行控制", errors)
+    require_active_fragments(
         read("skills/gmgn/SKILL.md"),
         GMGN_SINGLE_REVIEW_CONTROLS,
         "gmgn 单轮独立审查边界",
         errors,
     )
-    require_fragments(
+    require_active_fragments(
         read(DISPATCH_CONTRACT),
         DISPATCH_SINGLE_REVIEW_CONTROLS,
         "派发单轮独立审查边界",
         errors,
     )
-    require_fragments(
+    require_active_fragments(
         read("skills/gmgn/references/en/code-review.md"),
         CODE_REVIEW_SINGLE_CONTROLS,
         "code-review 单轮审查边界",
         errors,
     )
-    require_fragments(
+    require_active_fragments(
         read("agents/reviewer.md"),
         REVIEWER_SINGLE_CONTROLS,
         "Reviewer 单轮审查边界",
         errors,
     )
-    require_fragments(
+    require_active_fragments(
         read("agents/critic.md"),
         CRITIC_SINGLE_CONTROLS,
         "Critic 单轮审查边界",

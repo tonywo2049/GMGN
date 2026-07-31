@@ -75,8 +75,10 @@ required path and is successfully verified.
 ## 3. Publish and reconcile idempotently
 
 Before external writes, check once for a conflicting remote tag or release. Resolve the shared
-authorization once, perform its ordered operations, then read the final remote state back once.
-Confirm the release commit, tag, asset identity, and checksum.
+authorization once, then perform these operations in order: push the branch and tag together
+atomically when the host supports it; create or complete the Release from that tag; upload the
+named assets; and read the final remote state back once. Confirm the release commit, tag, asset
+identity, and checksum.
 
 If a partial matching release already exists, create only missing objects. Stop on a
 conflicting tag, checksum, artifact, or target identity. Authentication, upload, or network

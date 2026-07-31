@@ -81,8 +81,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            "Do not call `wait_agent`",
-            "Call `wait_agent`",
+            '{"timeout_ms": 3600000}',
+            '{"timeout_ms": 60000}',
         )
         self.assert_rejected("run-task 关键执行控制")
 
@@ -91,25 +91,25 @@ class ValidateSkillsTests(unittest.TestCase):
         original = path.read_text(encoding="utf-8")
         cases = (
             (
-                "On the one-hour wakeup, call `list_agents` once",
-                "On the one-hour wakeup, continue without checking agents",
+                "If the full hour expires without an event, call `list_agents` once",
+                "If the full hour expires, immediately wait again",
             ),
             (
-                "Between lifecycle events and scheduled wakeups, do not poll `list_agents`",
+                "Between lifecycle events and timeout boundaries, do not poll `list_agents`",
                 "Poll list_agents whenever useful",
             ),
             (
-                "Do not call `list_agents` more than\nonce for the same wakeup",
-                "Call list_agents repeatedly after a wakeup",
+                "Do not call\n`list_agents` more than once for the same timeout",
+                "Call list_agents repeatedly after a timeout",
             ),
             (
-                "While any dispatched agent is `running`, do not call `interrupt_agent` or\n"
-                "return a final task result",
+                "While any dispatched agent is\n`running`, do not call `interrupt_agent`, "
+                "end the orchestration, or return a final task result",
                 "Stop a slow agent after repeated timeouts",
             ),
             (
-                "If the snapshot reports `running`, finish any unrelated ready scheduling\n"
-                "work, schedule the next one-hour wakeup, and yield again",
+                "If the snapshot reports `running`, finish any unrelated\nready scheduling "
+                "work and return to the same maximum one-hour `wait_agent` call",
                 "If that snapshot reports running, interrupt it to reclaim capacity",
             ),
             (
@@ -117,7 +117,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "time or token budget permits interruption",
             ),
             (
-                "does not create or send\nheartbeat, unchanged `running`, wakeup, agent-count, "
+                "does not create or send\nheartbeat, unchanged `running`, timeout, agent-count, "
                 "or progress data to the user, Log,\ntelemetry, or another agent",
                 "sends heartbeat progress data while waiting",
             ),
@@ -153,8 +153,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "| Researcher | `gpt-5.6-luna` | `max` |",
                 "| Researcher | `gpt-5.6-terra` | `max` |",
+                "| Researcher | `gpt-5.6-sol` | `high` |",
                 "派发授权与生命周期",
             ),
             (
@@ -162,6 +162,30 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Researcher** is an information collector only",
                 "Researcher** analyzes and recommends solutions",
                 "派发授权与生命周期",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "applicable authority, scope, checks, and environment validity inputs",
+                "candidate only",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/release/SKILL.md",
+                "push the branch and tag together",
+                "perform external operations in any order",
+                "release 外部操作顺序",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "sends the primary orchestrator an interim decision request",
+                "returns a terminal result",
+                "run-task 关键执行控制",
+            ),
+            (
+                "skills/gmgn/SKILL.md",
+                "An initiated Milestone has accepted Task rows that can run",
+                "Confirmed Task rows can run",
+                "gmgn run-task 路由",
             ),
             (
                 "skills/roadmap/SKILL.md",
@@ -190,6 +214,46 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assertIn(old, original)
                 path.write_text(original.replace(old, new, 1), encoding="utf-8")
                 self.assert_rejected(expected)
+                path.write_text(original, encoding="utf-8")
+
+    def test_rejects_required_rule_hidden_in_inactive_markdown(self) -> None:
+        path = self.root / "skills/gmgn/references/en/dispatch-and-handoff.md"
+        original = path.read_text(encoding="utf-8")
+        required = "| Researcher | `gpt-5.6-terra` | `max` |"
+        invalid = "| Researcher | `gpt-5.6-sol` | `high` |"
+        for hidden in (
+            f"<!-- {required} -->",
+            f"```markdown\n{required}\n```",
+        ):
+            with self.subTest(hidden=hidden.splitlines()[0]):
+                path.write_text(
+                    original.replace(required, invalid, 1) + f"\n{hidden}\n",
+                    encoding="utf-8",
+                )
+                self.assert_rejected("派发授权与生命周期")
+                path.write_text(original, encoding="utf-8")
+
+    def test_rejects_conflicting_rule_alongside_required_rule(self) -> None:
+        cases = (
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Any return retires the agent",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Every external operation needs separate authorization",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Scan only the separately confirmed execution set",
+            ),
+        )
+        for relative, contradiction in cases:
+            with self.subTest(relative=relative, contradiction=contradiction):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + f"\n{contradiction}.\n", encoding="utf-8")
+                self.assert_rejected("含冲突规则")
                 path.write_text(original, encoding="utf-8")
 
     def test_rejects_missing_single_review_limit(self) -> None:

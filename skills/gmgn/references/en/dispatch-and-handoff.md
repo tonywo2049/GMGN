@@ -46,7 +46,7 @@ On Codex, use this fixed mapping:
 |---|---|---|
 | Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |
 | Coder | `gpt-5.6-terra` | `max` |
-| Researcher | `gpt-5.6-luna` | `max` |
+| Researcher | `gpt-5.6-terra` | `max` |
 
 If the required combination is unavailable, report that limitation before dispatch.
 
@@ -67,10 +67,13 @@ including push, tag, release creation, asset upload, deployment, or installation
 valid for those operations and idempotent retries while the target and side-effect boundary are
 unchanged. Expanding the operation set, target, or side effects requires another authorization.
 
-An interim answer may provide authorization, missing information, or a refreshed authority
-anchor needed for the same objective and declared write boundary. It does not create another
-dispatch. A new objective or materially wider write boundary requires a new brief and agent.
-A Critic, Reviewer, or Verifier may resume only while its fixed candidate remains unchanged.
+An interim answer may provide authorization, missing information, or a proven meaning-
+preserving refresh of an authority anchor needed for the same objective and declared write
+boundary. It does not create another dispatch. A new objective or materially wider write
+boundary requires a new brief and agent. A Critic, Reviewer, or Verifier may resume only while
+its fixed candidate, applicable authority, scope, checks, and environment validity inputs
+remain unchanged. Otherwise the fixed review surface is invalidated and requires a new brief
+and agent.
 
 For overlapping shared-baseline or target-Milestone scope, only one primary orchestrator may
 mutate shared state and integrate candidates at a time. Other sessions remain read-only or

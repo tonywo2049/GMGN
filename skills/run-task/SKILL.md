@@ -139,39 +139,38 @@ without adding another independently testable outcome. Otherwise omit a low-valu
 return a materially valuable separate candidate, or route changed authority upstream.
 
 If implementation evidence contradicts an applicable Contract ID, the Coder does not
-negotiate or edit that authority. It returns the observed evidence, smallest proposed semantic
-delta, and affected tasks. The existing Log decision is sufficient; do not create a separate
-change-request document.
+negotiate or edit that authority. It sends the primary orchestrator an interim decision request
+with the observed evidence, smallest proposed semantic delta, and affected tasks. Resume the
+same Coder only when the adjudication preserves its objective and write boundary; otherwise
+the objective is invalidated and a new brief and agent are required. The existing Log decision
+is sufficient; do not create a separate change-request document.
 
 Before Review, commit the complete candidate locally. Handoff and candidate identity follow
 the dispatch contract; a correction commit is not a standalone candidate.
 
-Across the target-Milestone Task set, yield only after ready dispatch, primary-Coder work,
-integration, state refresh, and local checks are exhausted. Do not call `wait_agent`; an agent
-completion or attention event reactivates the primary session. When active agents remain,
-schedule one platform-native primary-session wakeup for one hour later, then yield the current
-turn without returning a final task result. If an agent event reactivates the session first,
-cancel or ignore the pending wakeup and handle the event immediately.
+Across the target-Milestone Task set, wait only after ready dispatch, primary-Coder work,
+integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
+the actual tool argument `{"timeout_ms": 3600000}` (1 hour) as a maximum wait. An agent
+completion or attention event returns early and the primary session handles it immediately
+without calling `list_agents`.
 
-On the one-hour wakeup, call `list_agents` once. Handle any completed or attention-needed
-dispatch immediately. If the snapshot reports `running`, finish any unrelated ready scheduling
-work, schedule the next one-hour wakeup, and yield again. Do not call `list_agents` more than
-once for the same wakeup. If the platform has no thread-wakeup surface, report that the
-watchdog is unavailable and rely on lifecycle events; do not fall back to `wait_agent`.
+If the full hour expires without an event, call `list_agents` once. Handle any completed or
+attention-needed dispatch immediately. If the snapshot reports `running`, finish any unrelated
+ready scheduling work and return to the same maximum one-hour `wait_agent` call. Do not call
+`list_agents` more than once for the same timeout.
 
-Between lifecycle events and scheduled wakeups, do not poll `list_agents`, send a message to
+Between lifecycle events and timeout boundaries, do not poll `list_agents`, send a message to
 the agent, inspect its workspace or logs, or issue another status query merely to learn
 progress. A message to an active agent must carry authorization, requested information, or
 another decision permitted by the dispatch contract. Do not infer a shorter polling interval.
 
-A running dispatch remains unfinished primary-session work. Yielding the current turn is not
-task completion. While any dispatched agent is `running`, do not call `interrupt_agent` or
-return a final task result.
+A running dispatch remains unfinished primary-session work. While any dispatched agent is
+`running`, do not call `interrupt_agent`, end the orchestration, or return a final task result.
 Call `interrupt_agent` only after explicit user cancellation or concrete evidence that the
 agent hard-failed, its assigned scope became invalid, or continuing is unsafe. Silence,
-slowness, missing content, scheduled wakeups, agent count, capacity pressure, and a primary-
+slowness, missing content, wait timeouts, agent count, capacity pressure, and a primary-
 session time or token budget are not such evidence. The primary session does not create or send
-heartbeat, unchanged `running`, wakeup, agent-count, or progress data to the user, Log,
+heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,
 telemetry, or another agent. Platform-native lifecycle telemetry, if any, remains out of band.
 Report only material progress, a blocker, a decision request, or the final result.
 

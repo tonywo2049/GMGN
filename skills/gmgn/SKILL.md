@@ -29,7 +29,7 @@ needed meaning to the active tree through its owning authority before use.
 | Approved Goal exists; Requirement absent or changing | `write-requirement` |
 | Requirement reviewed; Design-stage candidate absent or changing | `write-design` |
 | Design-stage candidate reviewed; Task absent or changing | `write-task` |
-| Confirmed Task rows can run or a target-Milestone lane remains active | `run-task` |
+| An initiated Milestone has accepted Task rows that can run, or a target-Milestone lane remains active | `run-task` |
 | Every target-Milestone task is closed on one baseline but closure review or integration is incomplete | `close-milestone` |
 | An immutable candidate is accepted and distribution is requested | `release` |
 
