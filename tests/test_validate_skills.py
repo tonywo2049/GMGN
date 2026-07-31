@@ -78,6 +78,81 @@ class ValidateSkillsTests(unittest.TestCase):
         path.write_text(json.dumps(policy), encoding="utf-8")
         self.assert_rejected("Verifier triggers 必须等于")
 
+    def test_rejects_verifier_trigger_authority_regression(self) -> None:
+        cases = (
+            (
+                "skills/release/SKILL.md",
+                "Dispatch one fresh Verifier only for a recorded trigger such as:",
+            ),
+            (
+                "GMGN.md",
+                "installation, startup,\nnon-machine-checkable artifacts, or another recorded risk may still require one",
+            ),
+            (
+                "README.md",
+                "| Risk-triggered final verification | Installation, startup, E2E, external environments, or artifacts not fully machine-checkable |",
+            ),
+            (
+                "README.zh-CN.md",
+                "| 风险触发的最终验证 | 安装、启动、E2E、外部环境或无法完全机检的制品 |",
+            ),
+            ("skills/release/SKILL.md", "artifact-not-fully-machine-checkable"),
+        )
+        for relative, regression in cases:
+            with self.subTest(relative=relative, regression=regression):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + f"\n{regression}\n", encoding="utf-8")
+                self.assert_rejected("Verifier")
+                path.write_text(original, encoding="utf-8")
+
+    def test_rejects_decision_consumption_regression(self) -> None:
+        cases = (
+            (
+                "a direct specification for downstream artifacts or an implementation checklist for one\nMilestone",
+                "a direct specification for downstream artifacts",
+            ),
+            (
+                "A D-ID creates no Milestone allocation or execution obligation by itself",
+                "A D-ID creates a Milestone allocation and execution obligation",
+            ),
+            ("Milestone must implement the whole Decision", "Milestone implements the Decision"),
+        )
+        for old, new in cases:
+            with self.subTest(rule=old):
+                path = self.root / "skills/gmgn/references/en/writing-rules.md"
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected("Decision 下游消费边界")
+                path.write_text(original, encoding="utf-8")
+
+    def test_rejects_write_design_research_regression(self) -> None:
+        cases = (
+            (
+                "observable candidate and source inclusion and exclusion conditions",
+                "general candidate preferences",
+            ),
+            ("It does\nnot search external sources itself.", "It searches external sources itself."),
+            (
+                "Researcher to discover up to three credible candidates",
+                "Researcher to collect owner-named candidates",
+            ),
+            (
+                "The primary session aggregates the returned evidence, compares only what can change the\n"
+                "decision, and selects the Design-owned solution",
+                "The Researcher compares candidates and selects the Design-owned solution",
+            ),
+        )
+        for old, new in cases:
+            with self.subTest(rule=old):
+                path = self.root / "skills/write-design/SKILL.md"
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected("write-design 外部调研边界")
+                path.write_text(original, encoding="utf-8")
+
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",

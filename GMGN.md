@@ -222,10 +222,11 @@ close the Milestone again.
 Create a separate handoff only when a receiving operator needs information that has no better
 existing authority. Release reuses review and verification evidence when source, semantics,
 test plan, environment, and package inputs are unchanged. An unchanged deterministic packaging
-recipe uses machine checks rather than an automatic Verifier; installation, startup,
-non-machine-checkable artifacts, or another recorded risk may still require one. Tagging,
-upload retries, and local installation are not reasons to repeat Milestone closure. The shared
-external-operation authorization in the dispatch contract applies across execution and release.
+recipe uses machine checks rather than an automatic Verifier; the
+[assurance policy](skills/gmgn/references/en/assurance-policy.json) alone determines whether
+final-candidate verification is required. Tagging, upload retries, and local installation are
+not reasons to repeat Milestone closure. The shared external-operation authorization in the
+dispatch contract applies across execution and release.
 
 For a narrow bug or one-step mechanical change, identify the smallest authority and acceptance
 condition, implement it, independently review the diff and deterministic local behavior, add

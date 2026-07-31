@@ -70,7 +70,7 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 | 十一件共享 skill | 支持 | 支持 |
 | 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
 | 代码审查与确定性本地检查 | `/review`；CLI 用 `codex review --commit/--base`，并运行项目命令 | 独立 reviewer 并运行项目命令；`/code-review` 仅用于已授权评论的 GitHub PR |
-| 风险触发的最终验证 | 安装、启动、E2E、外部环境或无法完全机检的制品 | 项目命令；可用 `/verify` |
+| 风险触发的最终验证 | [由政策定义](skills/gmgn/references/en/assurance-policy.json) | [由政策定义](skills/gmgn/references/en/assurance-policy.json) |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 每个受委派角色都遵循

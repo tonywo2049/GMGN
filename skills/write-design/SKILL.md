@@ -55,11 +55,12 @@ Bundle permits incompatible implementations of a shared boundary, it is incomple
 
 ## External solution research
 
-For initial Design creation, derive one bounded research scope from reviewed R/ACs, applicable
-D-IDs, external constraints, and the known integration environment before drafting any
-Design-stage artifact. State the technical problem, hard constraints and exclusions,
-comparison dimensions, evidence needed to treat a solution as mature or validated, and the
-Design decision the research will support. Do not preselect architecture, modules,
+For initial Design creation, the primary session derives one bounded research scope from reviewed
+R/ACs, applicable D-IDs, external constraints, and the known integration environment before
+drafting any Design-stage artifact. State the technical problem, hard constraints and exclusions,
+observable candidate and source inclusion and exclusion conditions, comparison dimensions,
+evidence needed to treat a solution as mature or validated, and the Design decision the research
+will support. Do not preselect architecture, modules,
 interfaces, data structures, or a technical stack beyond choices already fixed by approved
 authority or observed integration facts. Repository inspection may supply constraints and
 later feasibility evidence, but it does not count as external research.
@@ -73,23 +74,27 @@ If the Owner has not already named external solutions to include or exclude, ask
 self-contained question that summarizes the research scope and says that current internet
 sources will be searched when none are specified. Include any Owner-named candidate in the
 research without assuming that it will be selected. When the Owner names none, proceed with
-internet research without further questions.
+authorized Researcher discovery without further questions.
 
 After the scope and any Owner-named candidates are fixed, the primary session dispatches one
 fresh Researcher under the shared dispatch contract to collect the external evidence. It does
-not search external sources itself. The research covers one to three relevant external
-solutions before Design drafting: keep one when it is the only credible candidate, collect
-two when a real tradeoff exists, and add a third only when it is a distinct credible path; do
-not pad the set. Use primary evidence such as an official standard, specification,
-documentation, reference implementation, maintainer source and release record, production
-case, audit, or paper. Search snippets, rankings, stars, and popularity alone do not prove
-maturity or fit. Record the checked version or date for facts that can change.
+not search external sources itself. When the Owner names none, the brief authorizes the
+Researcher to discover up to three credible candidates and collect source-by-source evidence by
+applying the stated observable inclusion and exclusion conditions. The Researcher may decide
+whether a candidate or source enters the collection set only by those conditions. The research
+covers one to three relevant external solutions before Design drafting: keep one when it is the
+only credible candidate, collect two when a real tradeoff exists, and add a third only when it
+is a distinct credible path; do not pad the set. Use primary evidence such as an official
+standard, specification, documentation, reference implementation, maintainer source and release
+record, production case, audit, or paper. Search snippets, rankings, stars, and popularity alone
+do not prove maturity or fit. Record the checked version or date for facts that can change.
 
-The primary session compares only what can change the decision: current R/AC and constraint
-coverage, compatibility, security boundaries, maintenance, licensing, and adoption cost. The
-primary session selects the Design-owned solution. Route a tradeoff that changes upstream
-meaning to `gmgn`. If no credible external solution fits, record the search boundary and the
-material reason, then design the smallest new solution instead of inventing candidates.
+The primary session aggregates the returned evidence, compares only what can change the
+decision, and selects the Design-owned solution: current R/AC and constraint coverage,
+compatibility, security boundaries, maintenance, licensing, and adoption cost. Route a tradeoff
+that changes upstream meaning to `gmgn`. If no credible external solution fits, record the
+search boundary and the material reason, then design the smallest new solution instead of
+inventing candidates.
 
 Carry into the owning Design artifact the selected solution or no-fit result, checked version
 or date, primary evidence, and key fit or gap. Retain a rejected candidate only when omitting

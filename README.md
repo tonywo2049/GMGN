@@ -98,7 +98,7 @@ the reviewed implementation-matching commit as `closed`.
 | Eleven shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
 | Code review and deterministic local checks | `/review`; CLI: `codex review --commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
-| Risk-triggered final verification | Installation, startup, E2E, external environments, or artifacts not fully machine-checkable | Project commands; `/verify` where available |
+| Risk-triggered final verification | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 Every delegated role follows the

@@ -165,12 +165,16 @@ contained issues that do not change acceptance or the next action.
   tracked files unchanged.
 - **Researcher** is an information collector only. It returns source-by-source observations
   and facts with their source, checked version or date, and missing evidence. It does not
-  synthesize across sources, compare, infer, recommend, or decide. The primary orchestrator
-  owns aggregation, analysis, inference, comparison, and conclusions.
+  synthesize across sources, compare, infer, recommend, or decide a Design solution. The
+  primary orchestrator owns aggregation, analysis, inference, comparison, and conclusions.
 
 A Researcher brief defines one bounded collection question, source and recency requirements,
 the facts to collect, the return fields, and the stop condition. It never asks the Researcher
-for analysis or a conclusion.
+for analysis or a conclusion. When it authorizes candidate discovery, it also states observable
+candidate and source inclusion and exclusion conditions and a maximum of three credible
+candidates. The Researcher may apply only those conditions to decide whether a candidate or
+source enters the collection set. That collection decision is not cross-source comparison,
+recommendation, or Design selection.
 
 Every agent self-checks before its terminal completion return and directly corrects defects
 inside its scope. An interim authorization or information request states only the blocker,

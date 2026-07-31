@@ -30,6 +30,7 @@ SEMVER_2_PATTERN = re.compile(
 PACKAGE_PATHS = (
     ".agents",
     ".claude-plugin",
+    ".codex",
     ".codex-plugin",
     ".docstar",
     "agents",

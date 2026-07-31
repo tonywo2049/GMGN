@@ -58,13 +58,10 @@ regression, E2E, DocStar, closure, or independent review when the accepted produ
 their validity inputs are unchanged.
 
 Classify the committed final candidate as `not-required` or `required:<trigger>` using the current
-assurance policy loaded through the registered `gmgn` Skill. A deterministic archive whose
-members and bytes are fully checked by an unchanged packaging recipe is `not-required`.
-Dispatch one fresh Verifier only for a recorded trigger such as:
-
-- `artifact-not-fully-machine-checkable`;
-- `reviewer-unavailable-real-startup-or-e2e`; or
-- `explicit-independent-execution-requirement`.
+assurance policy loaded through the registered `gmgn` Skill. The `trigger` must exactly match a
+member of that policy's `verifier.triggers` list. A deterministic archive whose members and bytes
+are fully checked by an unchanged packaging recipe is `not-required`. Dispatch one fresh
+Verifier only for `required:<trigger>`.
 
 Put the classification, reason, and minimum verification plan in its brief. The Verifier runs
 only that plan and stops once the trigger is decided. Missing or failed required Verifier

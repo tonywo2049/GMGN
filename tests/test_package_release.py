@@ -12,10 +12,13 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGER = ROOT / "scripts" / "package_release.py"
 ALLOWED_PREFIXES = (
-    ".agents/", ".claude-plugin/", ".codex-plugin/", ".docstar/", "agents/", "skills/",
-    "telemetry/",
+    ".agents/", ".claude-plugin/", ".codex/", ".codex-plugin/", ".docstar/", "agents/",
+    "skills/", "telemetry/",
 )
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "LICENSE"}
+AGENT_ROLES = ("author", "coder", "critic", "researcher", "reviewer", "verifier")
+REQUIRED_CODEX_AGENT_PROFILES = {f".codex/agents/{role}.toml" for role in AGENT_ROLES}
+REQUIRED_CLAUDE_AGENT_PROFILES = {f"agents/{role}.md" for role in AGENT_ROLES}
 VERSION_PATHS = (
     Path(".codex-plugin/plugin.json"),
     Path(".claude-plugin/plugin.json"),
@@ -179,9 +182,8 @@ class PackageReleaseTests(unittest.TestCase):
             )
             self.assertIn(".agents/plugins/marketplace.json", names)
             self.assertIn(".docstar/conventions/conventions.json", names)
-            self.assertIn("agents/author.md", names)
-            self.assertIn("agents/critic.md", names)
-            self.assertIn("agents/verifier.md", names)
+            self.assertTrue(REQUIRED_CODEX_AGENT_PROFILES <= set(names))
+            self.assertTrue(REQUIRED_CLAUDE_AGENT_PROFILES <= set(names))
             self.assertIn("skills/write-decision/agents/openai.yaml", names)
             self.assertTrue(REQUIRED_REFERENCE_FILES <= set(names))
             self.assertIn("README.zh-CN.md", names)

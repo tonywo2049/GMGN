@@ -48,6 +48,7 @@ VERIFIER_TRIGGERS = [
 WRITING_RULES = Path("skills/gmgn/references/en/writing-rules.md")
 RUN_TASK = Path("skills/run-task/SKILL.md")
 WRITE_DECISION = Path("skills/write-decision/SKILL.md")
+WRITE_DESIGN = Path("skills/write-design/SKILL.md")
 DISPATCH_CONTRACT = Path("skills/gmgn/references/en/dispatch-and-handoff.md")
 ROADMAP = Path("skills/roadmap/SKILL.md")
 WRITE_GOAL = Path("skills/write-goal/SKILL.md")
@@ -209,10 +210,38 @@ DECISION_SCOPE_CONTROLS = (
     "downstream artifacts link the applicable D-ID and keep only their own derived content",
     "Never keep the same ruling normative in both places",
 )
+DECISION_CONSUMPTION_CONTROLS = (
+    "a direct specification for downstream artifacts or an implementation checklist for one\nMilestone",
+    "A D-ID creates no Milestone allocation or execution obligation by itself",
+    "no Milestone must implement the whole Decision",
+)
 DECISION_LINK_CONTROLS = (
     "`Decision.md` lists `DecisionLog.md` and its current direct consumer artifacts as downstream",
     "Downstream artifacts link an applicable D-ID without copying its ruling",
 )
+WRITE_DESIGN_RESEARCH_CONTROLS = (
+    "the primary session derives one bounded research scope",
+    "observable candidate and source inclusion and exclusion conditions",
+    "the primary session dispatches one\nfresh Researcher under the shared dispatch contract to collect the external evidence. It does\nnot search external sources itself",
+    "the Researcher to discover up to three credible candidates",
+    "whether a candidate or source enters the collection set only by those conditions",
+    "The primary session aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
+)
+RELEASE_VERIFIER_TRIGGER_CONTROLS = (
+    "The `trigger` must exactly match a member of that policy's `verifier.triggers` list",
+)
+VERIFIER_TRIGGER_FALLBACK_MARKERS = {
+    Path("GMGN.md"): (
+        "installation, startup,\nnon-machine-checkable artifacts, or another recorded risk may still require one",
+    ),
+    Path("README.md"): (
+        "| Risk-triggered final verification | Installation, startup, E2E, external environments, or artifacts not fully machine-checkable |",
+    ),
+    Path("README.zh-CN.md"): (
+        "| 风险触发的最终验证 | 安装、启动、E2E、外部环境或无法完全机检的制品 |",
+    ),
+    RELEASE: ("Dispatch one fresh Verifier only for a recorded trigger such as:",),
+}
 
 
 def read(relative: Path | str) -> str:
@@ -340,6 +369,12 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         errors,
     )
     require_active_fragments(
+        writing_rules,
+        DECISION_CONSUMPTION_CONTROLS,
+        "Decision 下游消费边界",
+        errors,
+    )
+    require_active_fragments(
         write_decision,
         DECISION_SCOPE_CONTROLS,
         "write-decision 决议范围",
@@ -378,6 +413,12 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         read(RELEASE),
         RELEASE_OPERATION_ORDER_CONTROLS,
         "release 外部操作顺序",
+        errors,
+    )
+    require_active_fragments(
+        read(WRITE_DESIGN),
+        WRITE_DESIGN_RESEARCH_CONTROLS,
+        "write-design 外部调研边界",
         errors,
     )
     require_active_fragments(
@@ -473,6 +514,24 @@ def validate_assurance_policy(errors: list[str]) -> None:
         errors.append(f"{ASSURANCE_POLICY}: Verifier classification 无效")
     if verifier.get("triggers") != VERIFIER_TRIGGERS:
         errors.append(f"{ASSURANCE_POLICY}: Verifier triggers 必须等于 {VERIFIER_TRIGGERS}")
+
+
+def validate_verifier_trigger_authority(errors: list[str]) -> None:
+    release = active_markdown(read(RELEASE))
+    require_fragments(
+        release,
+        RELEASE_VERIFIER_TRIGGER_CONTROLS,
+        "release Verifier trigger 权威",
+        errors,
+    )
+    copied = [trigger for trigger in VERIFIER_TRIGGERS if trigger in release]
+    if copied:
+        errors.append(f"{RELEASE}: 不得复制 Verifier trigger {copied}")
+    for relative, markers in VERIFIER_TRIGGER_FALLBACK_MARKERS.items():
+        active_text = active_markdown(read(relative))
+        for marker in markers:
+            if marker in active_text:
+                errors.append(f"{relative}: 含旧 Verifier 宽泛触发描述")
 
 
 def validate_run_task_controls(errors: list[str]) -> None:
@@ -660,6 +719,7 @@ def main() -> int:
     validate_skill_layout(errors)
     validate_shared_surfaces(errors)
     validate_assurance_policy(errors)
+    validate_verifier_trigger_authority(errors)
     validate_run_task_controls(errors)
     validate_roles(errors)
     validate_docstar_adapter(errors)
