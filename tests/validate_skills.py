@@ -28,17 +28,23 @@ SKILLS = {
     "close-milestone",
     "release",
 }
-ROLES = {"author", "coder", "critic", "reviewer", "verifier"}
+ROLES = {"author", "coder", "critic", "reviewer", "researcher", "verifier"}
 ROLE_SANDBOX = {
     "author": "workspace-write",
     "coder": "workspace-write",
     "critic": "read-only",
     "reviewer": "workspace-write",
+    "researcher": "read-only",
     "verifier": "workspace-write",
 }
 TASK_HEADER = "| # | task | spec anchor | prerequisite | status | execution |"
 OLD_TASK_HEADER = "| # | task | spec anchor | prerequisite | failing test | status |"
 ASSURANCE_POLICY = Path("skills/gmgn/references/en/assurance-policy.json")
+VERIFIER_TRIGGERS = [
+    "artifact-not-fully-machine-checkable",
+    "reviewer-unavailable-real-startup-or-e2e",
+    "explicit-independent-execution-requirement",
+]
 WRITING_RULES = Path("skills/gmgn/references/en/writing-rules.md")
 RUN_TASK = Path("skills/run-task/SKILL.md")
 WRITE_DECISION = Path("skills/write-decision/SKILL.md")
@@ -55,8 +61,14 @@ CANONICAL_REFERENCES = {
 RUN_TASK_CONTROLS = (
     "create exactly two files for every newly materialized task",
     "The verification contract selects an executable oracle",
+    "Treat safe lane saturation as a scheduling invariant",
+    "At run-task entry, after Card\npreparation",
     "scan the entire target-Milestone Task set",
+    "Inspect every Task, not only the lane or descendants involved\nin the event",
     "dispatch every ready, non-conflicting task",
+    "do not leave capacity idle",
+    "recompute and\nrefill immediately",
+    "event-driven and does not authorize lifecycle polling",
     "Authorization and missing-information pauses follow the dispatch contract",
     "largest number of currently blocked tasks ready",
     "break ties by stable `card_id`",
@@ -113,6 +125,16 @@ DISPATCH_LIFECYCLE_CONTROLS = (
     "Never resume, reactivate, repurpose, or send\nlater work to a retired agent",
     "applicable authority, scope, checks, and environment validity inputs\nremain unchanged",
     "Otherwise the fixed review surface is invalidated and requires a new brief\nand agent",
+)
+DISPATCH_ROLE_PROFILE_CONTROLS = (
+    "Before creating any delegated agent, the primary orchestrator reads this current\ncontract",
+    "the selected platform-specific GMGN\nrole profile",
+    "these are the only GMGN agent\nroles",
+    "It does not create a generic, unnamed, or ad hoc role",
+    "A task name or `dispatch_id` may\ndistinguish instances but does not define another role",
+    "The brief must carry\nthe selected profile's applicable instructions",
+    "On Codex, read `.codex/agents/<role>.toml`",
+    "load `agents/<role>.md` for the\nselected GMGN role",
 )
 EXTERNAL_AUTHORIZATION_CONTROLS = (
     "One authorization may cover a named set of external operations against an exact target",
@@ -328,6 +350,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         dispatch_contract,
         (
             *DISPATCH_LIFECYCLE_CONTROLS,
+            *DISPATCH_ROLE_PROFILE_CONTROLS,
             *EXTERNAL_AUTHORIZATION_CONTROLS,
             *RUNTIME_SELECTION_CONTROLS,
             *RESEARCHER_CONTROLS,
@@ -448,18 +471,8 @@ def validate_assurance_policy(errors: list[str]) -> None:
         "required_prefix": "required:",
     }:
         errors.append(f"{ASSURANCE_POLICY}: Verifier classification 无效")
-    triggers = verifier.get("triggers")
-    if (
-        not isinstance(triggers, list)
-        or not triggers
-        or len(triggers) != len(set(triggers))
-        or any(
-            not isinstance(trigger, str)
-            or re.fullmatch(r"[a-z0-9][a-z0-9-]*", trigger) is None
-            for trigger in triggers
-        )
-    ):
-        errors.append(f"{ASSURANCE_POLICY}: Verifier triggers 必须是唯一 kebab-case token")
+    if verifier.get("triggers") != VERIFIER_TRIGGERS:
+        errors.append(f"{ASSURANCE_POLICY}: Verifier triggers 必须等于 {VERIFIER_TRIGGERS}")
 
 
 def validate_run_task_controls(errors: list[str]) -> None:

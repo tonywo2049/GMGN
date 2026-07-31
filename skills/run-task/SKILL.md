@@ -25,6 +25,9 @@ by the dispatch contract.
 
 ## 1. Materialize or reopen Card and Log
 
+Creating the Task Card and Log from an accepted Task row requires no separate human
+confirmation.
+
 Before the first Coder dispatch, create exactly two files for every newly materialized task:
 
 1. `execution/<card_id>/Card.md` is the stable normative execution contract. It contains the
@@ -75,10 +78,16 @@ A task is ready only when:
 - it can be verified independently; and
 - its later merge order cannot change approved semantics.
 
-Recompute the ready set after every material agent return, blocker, integration, or capacity
-change. Before waiting or acting as a Coder, scan the entire target-Milestone Task set and
-dispatch every ready, non-conflicting task that fits actual platform, workspace, and exclusive
-resource capacity. Never hard-code an agent count.
+Treat safe lane saturation as a scheduling invariant. At run-task entry, after Card
+preparation, and immediately after every material agent return, blocker, Review or integration
+completion, authority or state refresh, or capacity change, scan the entire target-Milestone
+Task set and recompute readiness. Inspect every Task, not only the lane or descendants involved
+in the event. While actual platform, workspace, and exclusive-resource capacity is available,
+dispatch every ready, non-conflicting task that fits it before deferrable primary-session
+analysis, checks, or waiting; do not leave capacity idle. If required Review or integration
+must complete before more Tasks can become ready, complete that boundary, then recompute and
+refill immediately. This detection is event-driven and does not authorize lifecycle polling.
+Never hard-code an agent count.
 
 When capacity cannot fit every ready task, prefer the task whose closure would make the
 largest number of currently blocked tasks ready; break ties by stable `card_id`. A blocked

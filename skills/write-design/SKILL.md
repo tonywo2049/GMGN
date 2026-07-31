@@ -75,13 +75,15 @@ sources will be searched when none are specified. Include any Owner-named candid
 research without assuming that it will be selected. When the Owner names none, proceed with
 internet research without further questions.
 
-The primary session evaluates one to three relevant external solutions before drafting
-Design. Keep one when it is the only credible candidate, compare two when a real tradeoff
-exists, and add a third only when it is a distinct credible path; do not pad the set. Use
-primary evidence such as an official standard, specification, documentation, reference
-implementation, maintainer source and release record, production case, audit, or paper.
-Search snippets, rankings, stars, and popularity alone do not prove maturity or fit. Record
-the checked version or date for facts that can change.
+After the scope and any Owner-named candidates are fixed, the primary session dispatches one
+fresh Researcher under the shared dispatch contract to collect the external evidence. It does
+not search external sources itself. The research covers one to three relevant external
+solutions before Design drafting: keep one when it is the only credible candidate, collect
+two when a real tradeoff exists, and add a third only when it is a distinct credible path; do
+not pad the set. Use primary evidence such as an official standard, specification,
+documentation, reference implementation, maintainer source and release record, production
+case, audit, or paper. Search snippets, rankings, stars, and popularity alone do not prove
+maturity or fit. Record the checked version or date for facts that can change.
 
 The primary session compares only what can change the decision: current R/AC and constraint
 coverage, compatibility, security boundaries, maintenance, licensing, and adoption cost. The

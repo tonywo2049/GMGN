@@ -14,11 +14,19 @@ This contract defines required facts, not a fill-in prompt or a separate Handoff
 
 ## One bounded dispatch
 
-Every delegated `author | coder | critic | reviewer | verifier | researcher` is created for
-one bounded dispatch without parent or earlier-agent conversation history. It remains assigned
-until that objective completes. An authorization or missing-information request is an interim
-pause, not a terminal return: the agent requests the primary orchestrator, waits, and resumes
-the same dispatch when answered.
+<HARD-GATE>Before creating any delegated agent, the primary orchestrator reads this current
+contract, the owning stage's role-selection rules, and the selected platform-specific GMGN
+role profile. It maps the dispatch to exactly one of
+`author | coder | critic | reviewer | verifier | researcher`; these are the only GMGN agent
+roles. It does not create a generic, unnamed, or ad hoc role. A task name or `dispatch_id` may
+distinguish instances but does not define another role. If none fits, keep the work in the
+primary session or route it to the correct stage instead of delegating it. The brief must carry
+the selected profile's applicable instructions.</HARD-GATE>
+
+Every delegated agent is created for one bounded dispatch without parent or earlier-agent
+conversation history. It remains assigned until that objective completes. An authorization
+or missing-information request is an interim pause, not a terminal return: the agent requests
+the primary orchestrator, waits, and resumes the same dispatch when answered.
 
 The terminal completion return retires the agent. Never resume, reactivate, repurpose, or send
 later work to a retired agent. Explicit cancellation, an invalidated objective, or a hard
@@ -172,12 +180,13 @@ could change the decision, acceptance, or downstream work.
 
 ## Platform notes
 
-- On Codex, create each role with no parent-context fork. Relay interim decisions to the active
-  agent through the platform message or follow-up surface.
+- On Codex, read `.codex/agents/<role>.toml`, create the role with no parent-context fork, and
+  relay interim decisions to the active agent through the platform message or follow-up
+  surface.
 - On Claude Code, use a new custom or general-purpose agent for every dispatch. Do not use
-  resume or SendMessage to assign later work to a retired role; either may continue an active
-  dispatch after an interim request. Agent Teams do not provide worktree isolation
-  automatically.
+  resume or SendMessage to assign later work to a retired role; load `agents/<role>.md` for the
+  selected GMGN role. Either surface may continue an active dispatch after an interim request.
+  Agent Teams do not provide worktree isolation automatically.
 
 Surface limitations never justify silently reusing an agent, widening write permissions, or
 dropping required independent review.

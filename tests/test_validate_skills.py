@@ -74,9 +74,9 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_invalid_verifier_trigger(self) -> None:
         path = self.root / "skills/gmgn/references/en/assurance-policy.json"
         policy = json.loads(path.read_text(encoding="utf-8"))
-        policy["verifier"]["triggers"].append("Not Valid")
+        policy["verifier"]["triggers"].append("high-risk-behavior")
         path.write_text(json.dumps(policy), encoding="utf-8")
-        self.assert_rejected("唯一 kebab-case token")
+        self.assert_rejected("Verifier triggers 必须等于")
 
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
@@ -137,6 +137,14 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         self.assert_rejected("run-task 关键执行控制")
 
+    def test_rejects_missing_continuous_parallel_refill(self) -> None:
+        self.replace(
+            "skills/run-task/SKILL.md",
+            "Treat safe lane saturation as a scheduling invariant",
+            "Parallel refill is optional",
+        )
+        self.assert_rejected("run-task 关键执行控制")
+
     def test_rejects_authorization_flow_regression(self) -> None:
         cases = (
             (
@@ -161,6 +169,12 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "Researcher** is an information collector only",
                 "Researcher** analyzes and recommends solutions",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "these are the only GMGN agent\nroles",
+                "additional roles may be invented when useful",
                 "派发授权与生命周期",
             ),
             (
@@ -202,8 +216,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/run-task/SKILL.md",
-                "scan the entire target-Milestone Task set",
-                "scan only the separately confirmed execution set",
+                "scan the entire target-Milestone\nTask set",
+                "scan only the separately confirmed execution\nset",
                 "run-task 关键执行控制",
             ),
         )

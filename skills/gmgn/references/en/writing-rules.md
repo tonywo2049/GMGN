@@ -121,9 +121,17 @@ The project authority chain starts `WhitePaper.md` → `Decision.md` → `ROADMA
 `DecisionLog.md` links the Decision authority but does not sit on the normal normative chain.
 `Decision.md` lists `DecisionLog.md` and its current direct consumer artifacts as downstream;
 `DecisionLog.md` lists `Decision.md` as upstream and `none` as downstream.
-Decision may own a ruling at any subject or Milestone scope. Downstream artifacts link an
-applicable D-ID without copying its ruling and retain only their own derived content. A
-decision not recorded in Decision remains with its normal stage authority.
+`Decision.md` is the project-wide comprehensive source of current accepted rulings. It is not
+a direct specification for downstream artifacts or an implementation checklist for one
+Milestone. Each downstream stage selects only the D-IDs applicable to its own authority and
+derives only the content it owns: ROADMAP decomposes applicable rulings into Milestone
+allocations; Goal starts from its target ROADMAP Milestone and uses applicable D-IDs only to
+complete Goal-owned boundary and Close outcomes; Requirement translates only applicable
+observable rulings; and Design consumes only rulings that constrain Design-owned
+implementation decisions. Downstream artifacts link an applicable D-ID without copying its
+ruling. A D-ID creates no Milestone allocation or execution obligation by itself, and no
+Milestone must implement the whole Decision. A decision not recorded in Decision remains with
+its normal stage authority.
 
 When meaning changes, use the owning stage Skill and update only the affected link graph at one
 new commit. Formatting, equivalent links, mirrored status, and generated metadata are

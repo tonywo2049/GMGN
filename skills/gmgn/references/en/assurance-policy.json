@@ -17,11 +17,8 @@
       "required_prefix": "required:"
     },
     "triggers": [
-      "external-mutable-environment",
       "artifact-not-fully-machine-checkable",
-      "installation-or-startup",
       "reviewer-unavailable-real-startup-or-e2e",
-      "high-risk-behavior",
       "explicit-independent-execution-requirement"
     ]
   }

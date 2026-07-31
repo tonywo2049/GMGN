@@ -63,9 +63,8 @@ members and bytes are fully checked by an unchanged packaging recipe is `not-req
 Dispatch one fresh Verifier only for a recorded trigger such as:
 
 - `artifact-not-fully-machine-checkable`;
-- `installation-or-startup`;
-- an external mutable environment, high-risk behavior, unavailable required Reviewer
-  execution, or an explicit independent-execution requirement.
+- `reviewer-unavailable-real-startup-or-e2e`; or
+- `explicit-independent-execution-requirement`.
 
 Put the classification, reason, and minimum verification plan in its brief. The Verifier runs
 only that plan and stops once the trigger is decided. Missing or failed required Verifier
