@@ -1,11 +1,11 @@
 ---
 name: write-goal
-description: "Use when an approved ROADMAP exists and the owner initiates a `now`, `not-started` Milestone, while its Goal remains pending approval, or for a controlled revision of an approved Goal. Define only the active boundary and qualitative Close outcomes in Goal.md as Requirement input. ROADMAP 已批且负责人启动 `now` Milestone、Goal 尚待确认，或需受控修订已批准 Goal 时使用。"
+description: "Use when an approved ROADMAP has an eligible `now`, `not-started` Milestone that needs one combined initiation and Goal approval, or for a controlled revision of an approved Goal. Define only the active boundary and qualitative Close outcomes in Goal.md as Requirement input. ROADMAP 已批且存在可启动的 `now` Milestone 时，形成 Goal 候选并用一次批准同时完成启动与 Goal 批准；也用于受控修订已批准 Goal。"
 ---
 
 # Initiate a milestone and write Goal.md
 
-<HARD-GATE>Creation mode requires the current approved Decision and ROADMAP commits, a Milestone with `horizon: now` and `state: not-started`, every declared prerequisite Milestone at `state: closed` with an `accepted_result`, and explicit owner initiation. A `pending-approval` Goal for that now-`initiated` Milestone remains in the same pre-approval write-goal flow and may be revised without another initiation. Revision mode requires the current approved Goal plus its approved Decision and ROADMAP commits, but does not require re-initiation. If a prerequisite is missing or the changed meaning belongs to WhitePaper, Decision, or ROADMAP, stop and return the issue to `gmgn` for routing. Work on an uninitiated Milestone without that pending candidate is out of scope.</HARD-GATE>
+<HARD-GATE>Creation mode requires the current approved Decision and ROADMAP commits, a Milestone with `horizon: now` and `state: not-started`, and every declared prerequisite Milestone at `state: closed` with an `accepted_result`. Prepare the Goal and proposed initiation as one candidate; do not require a separate initiation authorization. Revision mode requires the current approved Goal plus its approved Decision and ROADMAP commits. If a prerequisite is missing or the changed meaning belongs to WhitePaper, Decision, or ROADMAP, stop and return the issue to `gmgn` for routing.</HARD-GATE>
 
 ## Language and writing rules
 
@@ -60,26 +60,26 @@ candidate without intermediate questions.
 
 The recorded writer performs one semantic batch:
 
-1. On first creation, change the ROADMAP row from `not-started` to `initiated` and record the
-   owner authorization. When revising its `pending-approval` Goal, keep that initiation.
+1. On first creation, propose the ROADMAP row change from `not-started` to `initiated`.
 2. Create or revise the milestone directory's single entry document, `Goal.md`, with
    `status: pending-approval`, following `Goal content`. The writer chooses the section
    structure.
 3. Ensure reciprocal ROADMAP ↔ Goal links and return one committed candidate.
 
-This batch changes only the ROADMAP initiation state/link and Goal.
+This candidate changes only the ROADMAP initiation state/link and Goal and has no shared-
+baseline effect before approval.
 
 ## Writer and review-selection loop
 
-Record the Decision and ROADMAP commits plus owner initiation, then process one complete Goal
-candidate through the registered `gmgn` Skill's shared document-candidate and dispatch rules.
-The primary orchestrator also checks the proposed ROADMAP state and reciprocal links.
+Record the Decision and ROADMAP commits, then process one complete Goal candidate through the
+registered `gmgn` Skill's shared document-candidate and dispatch rules. The primary
+orchestrator also checks the proposed ROADMAP state and reciprocal links.
 
-Owner initiation authorizes the Milestone state change; it does not approve Goal meaning.
 With no unresolved blocker, present the exact committed Goal candidate and remaining material
-risks—or that none are known—for one owner confirmation. Only after that confirmation may
-Goal move to `status: approved` and become Requirement authority. Apply the mechanical status
-and reciprocal-link record without another semantic review.
+risks—or that none are known—for one owner approval. That approval both authorizes the
+Milestone state change and approves Goal meaning. Then move Goal to `status: approved`, apply
+the mechanical reciprocal-link record, and integrate the candidate without another semantic
+review.
 
 ## Controlled revision
 

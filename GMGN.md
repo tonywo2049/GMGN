@@ -28,7 +28,8 @@ current task does not need.
   reassignment of a completion criterion, and reviews Milestone closure. Closure review is not
   an irrevocable acceptance decision.
 - **Primary orchestrator** retains the complete session context, routes stages, prepares
-  briefs, adjudicates findings, integrates accepted work, and updates shared state. It may
+  briefs, selects delegated runtimes, grants delegated authorization, obtains owner approval
+  when needed, adjudicates findings, integrates accepted work, and updates shared state. It may
   directly write WhitePaper, Decision, ROADMAP, Goal, Requirement, Design, and Task when that
   is the clearest use of context. It may act as one Coder only when no implementation lane can run
   in parallel with useful orchestration work. During long-running work, it must not send a
@@ -42,10 +43,9 @@ current task does not need.
 - **Verifier** independently executes checks against one fixed final candidate only when the
   [assurance policy](skills/gmgn/references/en/assurance-policy.json) records a trigger.
 
-Every delegated agent is single-use under the
-[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). The primary
-orchestrator is not a delegated agent and remains the integration owner; there is no
-Integrator-agent role.
+Every delegated agent follows the
+[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). The primary orchestrator
+is not a delegated agent and remains the integration owner; there is no Integrator-agent role.
 
 ## 2. Authority and document chain
 
@@ -66,17 +66,16 @@ WhitePaper → Decision → ROADMAP → Goal → Requirement → Design Bundle �
 - ROADMAP owns outcome-based Milestone allocation, `now | next | later` horizons, relative
   priority, real cross-Milestone dependencies, necessary deliverables, result-level success
   signals, and a curated Backlog. Dependencies create only a partial order; Milestone IDs and
-  display order do not. The primary orchestrator proposes the map, then asks the human owner
-  one material allocation question at a time before writing the candidate. ROADMAP does not
-  own an E2E path or detailed Close criteria.
-- Goal refines one initiated Milestone for exactly two purposes: provide the basis for
+  display order do not. The primary orchestrator proposes one complete map for owner approval
+  and asks beforehand only when an irreversible blocking choice cannot be safely recommended
+  or deferred. ROADMAP does not own an E2E path or detailed Close criteria.
+- Goal refines one eligible `now` Milestone for exactly two purposes: provide the basis for
   Requirement and define qualitative Milestone Close criteria. It owns only the active
   boundary needed to prevent scope ambiguity, necessary Milestone-local exclusions that do
   not remove upstream obligations, ROADMAP deliverable/success-signal coverage, and the
   smallest sufficient set of qualitative Close outcomes. Result grouping is optional and
-  creates no separate authority. The primary orchestrator normally drafts directly; owner
-  initiation is not Goal approval, so the exact candidate receives one final owner
-  confirmation before Requirement may use it.
+  creates no separate authority. The primary orchestrator normally drafts directly; one owner
+  approval of the exact candidate both initiates the Milestone and approves Goal.
 - Requirement translates Goal into required observable behavior, quantified parameters,
   constraints, and decidable acceptance criteria (ACs).
 - `Design.md` is the root Design authority and complete R/AC mapping entry. Add architecture,
@@ -143,8 +142,9 @@ references, review rounds, verification evidence, or progress history.
 semantics, AC mapping, and granularity check; Task count itself is not a measure of simplicity
 or overdesign.
 
-After the owner confirms the execution set, `run-task` creates exactly two files for each new
-Task, or reuses them for a reopened Task, before Coder dispatch:
+For an initiated Milestone, every accepted Task row enters execution when ready without a
+separate owner confirmation. `run-task` creates exactly two files for each new Task, or reuses
+them for a reopened Task, before Coder dispatch:
 
 - `execution/<card_id>/Card.md` — normative execution and verification contract with its completion
   criterion.
@@ -224,7 +224,8 @@ existing authority. Release reuses review and verification evidence when source,
 test plan, environment, and package inputs are unchanged. An unchanged deterministic packaging
 recipe uses machine checks rather than an automatic Verifier; installation, startup,
 non-machine-checkable artifacts, or another recorded risk may still require one. Tagging,
-upload retries, and local installation are not reasons to repeat Milestone closure.
+upload retries, and local installation are not reasons to repeat Milestone closure. The shared
+external-operation authorization in the dispatch contract applies across execution and release.
 
 For a narrow bug or one-step mechanical change, identify the smallest authority and acceptance
 condition, implement it, independently review the diff and deterministic local behavior, add

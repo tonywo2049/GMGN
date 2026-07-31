@@ -5,7 +5,7 @@ description: "Use after Goal.md is approved to analyze, clarify, create, or chan
 
 # Requirement.md: single milestone requirement authority
 
-<HARD-GATE>An approved, commit-bound `Goal.md` and the current approved Decision must exist for an initiated milestone. Owner initiation alone is not Goal approval. If either authority is missing or requirement work exposes a changed WhitePaper, Decision, ROADMAP, or Goal premise, stop and return the issue to `gmgn` for routing. Do not prescribe implementation structures in requirements or redefine upstream meaning here.</HARD-GATE>
+<HARD-GATE>An approved, commit-bound `Goal.md` and the current approved Decision must exist for an initiated milestone. If either authority is missing or requirement work exposes a changed WhitePaper, Decision, ROADMAP, or Goal premise, stop and return the issue to `gmgn` for routing. Do not prescribe implementation structures in requirements or redefine upstream meaning here.</HARD-GATE>
 
 ## Language and writing rules
 

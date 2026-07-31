@@ -69,8 +69,8 @@ downstream context.
 
 Every ROADMAP Milestone maps to WhitePaper and applicable D-IDs, states one outcome and its value, names necessary
 deliverables and one result-level success signal, and separates `now | next | later`,
-relative priority, and real dependencies. The orchestrator proposes the map and asks the
-human owner one material allocation question at a time. ROADMAP does not own an E2E path.
+relative priority, and real dependencies. The orchestrator presents one complete recommended
+map for owner approval. ROADMAP does not own an E2E path.
 
 Each stage document adds one kind of information: Decision records rulings explicitly
 centralized for downstream use; ROADMAP allocates partially ordered Milestones and their
@@ -102,19 +102,19 @@ the reviewed implementation-matching commit as `closed`.
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 Every delegated role follows the
-[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md): prepare the brief
-first, create a fresh single-use agent, and bind its return to an immutable candidate. Each
-semantic candidate batch has at most one Critic round, and each implementation candidate has
+[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). Each semantic candidate
+batch has at most one Critic round, and each implementation candidate has
 exactly one Reviewer round. The primary orchestrator adjudicates accepted findings, checks
 the fix delta, and runs affected machine checks without another Critic or Reviewer. A Verifier
 remains risk-triggered under
 [`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json). The Review surface is
 defined by the [code-review contract](skills/gmgn/references/en/code-review.md).
 
-`Task.md` remains a Milestone index. For confirmed rows, `run-task` creates a stable
-`Card.md` execution and verification contract plus a replaceable `Log.md`, then owns ready-set
-scheduling, isolated writer lanes, runtime tools, monitoring, review, integration, and
-closure. A Task closes only after the reviewed content is integrated and every
+`Task.md` remains a Milestone index. In an initiated Milestone, `run-task` creates a stable
+`Card.md` execution and verification contract plus a replaceable `Log.md` for every accepted
+row and executes it when ready without another execution-set confirmation. It then owns
+ready-set scheduling, isolated writer lanes, runtime tools, monitoring, review, integration,
+and closure. A Task closes only after the reviewed content is integrated and every
 project-declared required check passes against that exact shared-baseline candidate. The
 complete rules live in [`run-task`](skills/run-task/SKILL.md).
 
@@ -258,8 +258,8 @@ claude plugin marketplace remove GMGN --scope user
 | “What should happen next?” | `gmgn` | State diagnosis and routing |
 
 Small bug fixes and narrow one-step changes may use the controlled bypass; they do not
-need a fabricated full specification chain. WhitePaper, Decision, ROADMAP, milestone initiation,
-scope expansion, and closure still require their defined authorization.
+need a fabricated full specification chain. WhitePaper, Decision, ROADMAP, combined
+Milestone/Goal approval, scope expansion, and closure still require their defined controls.
 
 ## Optional telemetry
 

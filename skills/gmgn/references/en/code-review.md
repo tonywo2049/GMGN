@@ -58,5 +58,6 @@ invalidates the Review.
 
 Return material findings or explicit no-findings coverage together with exact commands,
 environment, exit codes, limitations, and side effects. The return identifies the reviewed
-candidate. One return ends the Reviewer. The primary orchestrator adjudicates findings,
-checks accepted fixes, and runs affected machine checks without another Reviewer round.
+candidate. Interim questions follow the dispatch contract. The primary orchestrator
+adjudicates findings, checks accepted fixes, and runs affected machine checks without another
+Reviewer round.

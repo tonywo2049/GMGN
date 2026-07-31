@@ -68,10 +68,11 @@ state: closed → initiated when unfinished work is found
 
 Horizon expresses planning commitment, not execution state. Only a `now` Milestone whose
 declared prerequisites are all `closed` with an `accepted_result` may move from `not-started`
-to `initiated`, and only through explicit human-owner authorization. Only an `initiated`
-Milestone with `accepted_result: none` may move to `closed`. Milestone IDs and document order
-do not imply horizon, priority, dependency, or state. `accepted_result` remains `none` until
-`close-milestone` supplies the single canonical result link at Close.
+to `initiated`. The owner approval of its exact Goal candidate authorizes that transition and
+Goal meaning together. Only an `initiated` Milestone with `accepted_result: none` may move to
+`closed`. Milestone IDs and document order do not imply horizon, priority, dependency, or
+state. `accepted_result` remains `none` until `close-milestone` supplies the single canonical
+result link at Close.
 
 When unfinished work is found in a closed Milestone, move it back to `initiated` and replace
 its current `accepted_result` with `none`. Git history retains the previous result. Reopen

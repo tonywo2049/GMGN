@@ -1,6 +1,6 @@
 ---
 name: roadmap
-description: "Use after owner approval of WhitePaper and the project Decision authority to create or maintain the project roadmap: outcome Milestones, deliverables, success signals, now/next/later horizons, relative priority, real dependencies, accepted-result links, and a curated Backlog. 白皮书和项目决议权威均已批准后，通过逐项人工裁决编排结果型里程碑、产出、成功信号、规划时域、相对优先级、真实依赖和受控 Backlog。"
+description: "Use after owner approval of WhitePaper and the project Decision authority to create or maintain the project roadmap: outcome Milestones, deliverables, success signals, now/next/later horizons, relative priority, real dependencies, accepted-result links, and a curated Backlog. 白皮书和项目决议权威均已批准后，形成完整推荐候选并一次批准结果型里程碑、产出、成功信号、规划时域、相对优先级、真实依赖和受控 Backlog。"
 ---
 
 # ROADMAP: project-level allocation authority
@@ -17,14 +17,13 @@ writing rules. Use the active locale for artifact prose. Use `ROADMAP.md`, `type
 
 The primary orchestrator first reads the approved Decision and its WhitePaper authority plus
 current project facts, then forms a recommended Milestone map and a list of unresolved
-allocation decisions. It remains in dialogue with the human owner and asks one question at a
-time before writing the candidate.
+allocation decisions. It writes one complete recommended candidate without asking the owner to
+approve fields or allocations separately.
 
-Ask only when the answer can change a Milestone boundary, `now | next | later` placement,
-relative priority, a real dependency, an explicit deferral, a decision-relevant external
-commitment, or the meaning of a success signal. Each question gives one recommended option,
-the other real options, and the Roadmap consequence of each. Do not ask for facts already
-decided by WhitePaper, Decision, or repository evidence, mechanical representation choices, or
+Ask before the candidate only when an unresolved choice is irreversible or creates a material
+external commitment and cannot be safely recommended or deferred. Combine related blockers
+into the smallest useful question. Do not ask for facts already decided by
+WhitePaper, Decision, or repository evidence, mechanical representation choices, or
 Requirement, Design, Task, test, and execution decisions.
 
 Challenge a feature list presented as an outcome, an artificial serial dependency, a distant
@@ -32,8 +31,7 @@ forecast presented as a precise commitment, and a candidate outside the approved
 or Decision. Record an allocation ruling in ROADMAP unless it is selected for Decision; in
 that case route it through `write-decision` first and link its D-ID. Do not create a separate
 Ask or ROADMAP-specific decision log. `DecisionLog.md` is maintained only by the Decision
-stage. Do not write or approve a Roadmap while a material decision within this ask scope
-remains unresolved.
+stage. Do not approve a Roadmap while such a blocking decision remains unresolved.
 
 ## Milestone content
 
@@ -70,13 +68,13 @@ observable behavior, and the verification stages select sufficient evidence.
 `now` is the current planning commitment. `next` and `later` are adjustable forecasts, not
 execution authorization or promises of exact dates, versions, or implementation identities.
 Only a `now`, `not-started` Milestone whose declared prerequisites are all `closed` with an
-`accepted_result` is eligible for explicit owner initiation through the Milestone initiation
-stage. Moving a Milestone into or out of `now` is a semantic Roadmap decision.
+`accepted_result` is eligible for combined initiation and Goal approval through `write-goal`.
+Moving a Milestone into or out of `now` is a semantic Roadmap decision.
 
 Priority expresses relative value within one horizon. Equal priority is allowed. Priority,
 display order, and Milestone IDs never create a dependency. Dependencies record only real
 prerequisites and form a partial order; Milestones with no dependency relationship may
-proceed in parallel when separately authorized.
+proceed in parallel when separately initiated.
 
 ## Backlog and maintenance
 
@@ -102,9 +100,9 @@ Milestone allocation or meaning changes.
 ## Approval and revision
 
 Creation and semantic revision use the registered `gmgn` Skill's shared document-candidate
-and dispatch rules. After the owner rulings above are complete, write one full candidate
-rather than confirming fields one by one. Present that candidate and remaining material
-risks—or that none are known—for one final owner approval bound to its commit.
+and dispatch rules. Present one full recommended candidate and remaining material risks—or that
+none are known—for one owner approval bound to its commit. That approval ratifies the ROADMAP-
+owned allocations and rulings expressed in the candidate.
 
 In revision mode, ask only about decisions changed by the delta. ROADMAP owns Milestone
 allocation, outcome, value, deliverables, success signals, horizons, relative priority,
@@ -118,7 +116,7 @@ Before approval, confirm:
 - every Milestone maps to WhitePaper and applicable D-IDs and has one outcome, necessary
   deliverables, one success signal, horizon, relative priority, prerequisites, state, and
   accepted-result field;
-- every `now` allocation and other material human decision has an explicit owner ruling;
+- every `now` allocation and other material ROADMAP decision is explicit in the candidate;
 - dependencies are real and acyclic, while unrelated Milestones remain unordered;
 - Backlog contains only current, in-scope, unallocated candidates; and
 - ROADMAP contains no per-Milestone owner, E2E path, detailed Close condition, Requirement,

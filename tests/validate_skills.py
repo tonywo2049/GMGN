@@ -42,6 +42,9 @@ ASSURANCE_POLICY = Path("skills/gmgn/references/en/assurance-policy.json")
 WRITING_RULES = Path("skills/gmgn/references/en/writing-rules.md")
 RUN_TASK = Path("skills/run-task/SKILL.md")
 WRITE_DECISION = Path("skills/write-decision/SKILL.md")
+DISPATCH_CONTRACT = Path("skills/gmgn/references/en/dispatch-and-handoff.md")
+ROADMAP = Path("skills/roadmap/SKILL.md")
+WRITE_GOAL = Path("skills/write-goal/SKILL.md")
 CANONICAL_REFERENCES = {
     ASSURANCE_POLICY,
     WRITING_RULES,
@@ -51,40 +54,39 @@ CANONICAL_REFERENCES = {
 RUN_TASK_CONTROLS = (
     "create exactly two files for every newly materialized task",
     "The verification contract selects an executable oracle",
-    "scan the entire confirmed execution set",
+    "scan the entire target-Milestone Task set",
     "dispatch every ready, non-conflicting task",
+    "Authorization and missing-information pauses follow the dispatch contract",
     "largest number of currently blocked tasks ready",
     "break ties by stable `card_id`",
     "`ponytail:ponytail`",
     "`ponytail:ponytail-review`",
     "`codegraph init <workspace>`",
-    "Every Codex `wait_agent` call uses\n"
-    "the actual tool argument `{\"timeout_ms\": 3600000}` (1 hour)",
-    "`agent_wait_timeout_ms` is not a Codex tool argument",
-    "`wait_agent` is an event-driven lifecycle wait, not progress polling",
-    "immediately\nre-arm `wait_agent({\"timeout_ms\": 3600000})`",
-    "A timeout alone is not a `list_agents` trigger",
-    "Never call `list_agents`, send a message to the agent, inspect its workspace or logs, or issue\n"
-    "another status query merely to learn progress",
-    "the snapshot must not be used as a progress check",
-    "Do not query again until a\nmaterial lifecycle event or scheduling condition changes",
-    "If that snapshot reports\n"
-    "`running`, finish any unrelated ready scheduling work and return to the same one-hour\n"
-    "`wait_agent` call",
-    "While any dispatched agent is\n"
-    "`running`, do not call `interrupt_agent`, end the orchestration, or return a final result",
+    "Do not call `wait_agent`; an agent\ncompletion or attention event reactivates the primary session",
+    "schedule one platform-native primary-session wakeup for one hour later",
+    "yield the current\nturn without returning a final task result",
+    "If an agent event reactivates the session first,\ncancel or ignore the pending wakeup",
+    "On the one-hour wakeup, call `list_agents` once",
+    "Handle any completed\nor attention-needed dispatch immediately",
+    "schedule the next one-hour wakeup, and yield again",
+    "Do not call `list_agents` more than\nonce for the same wakeup",
+    "do not fall back to `wait_agent`",
+    "Between lifecycle events and scheduled wakeups, do not poll `list_agents`",
+    "A message to an active agent must carry authorization, requested information, or\nanother decision permitted by the dispatch contract",
+    "Do not infer a shorter polling interval",
+    "While any dispatched agent is `running`, do not call `interrupt_agent` or\n"
+    "return a final task result",
     "time or token budget are not such evidence",
     "does not create or send\n"
-    "heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,\n"
+    "heartbeat, unchanged `running`, wakeup, agent-count, or progress data to the user, Log,\n"
     "telemetry, or another agent",
     "Create exactly one fresh Reviewer",
     "This is the Task execution's only Reviewer round",
-    "Never create, resume, or dispatch another Reviewer to recheck findings or fixes",
+    "Never create or dispatch another Reviewer to recheck findings or fixes",
 )
 RUN_TASK_EXCLUSIVE_MARKERS = (
     "wait_agent",
     "list_agents",
-    "agent_wait_timeout_ms",
     "interrupt_agent",
     "largest number of currently blocked tasks ready",
     "break ties by stable `card_id`",
@@ -101,6 +103,40 @@ GMGN_SINGLE_REVIEW_CONTROLS = (
 DISPATCH_SINGLE_REVIEW_CONTROLS = (
     "An initial implementation\ncandidate has one fresh Reviewer dispatch",
     "Accepted finding fixes do not create another\nCritic or Reviewer dispatch",
+)
+DISPATCH_LIFECYCLE_CONTROLS = (
+    "An authorization or missing-information request is an interim\npause, not a terminal return",
+    "That primary-\norchestrator decision is sufficient for the agent",
+    "The terminal completion return retires the agent",
+    "Never resume, reactivate, repurpose, or send\nlater work to a retired agent",
+)
+EXTERNAL_AUTHORIZATION_CONTROLS = (
+    "One authorization may cover a named set of external operations against an exact target",
+    "Expanding the operation set, target, or side effects requires another authorization",
+)
+RUNTIME_SELECTION_CONTROLS = (
+    "reads the current `spawn_agent` schema",
+    "| Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
+    "| Coder | `gpt-5.6-terra` | `max` |",
+    "| Researcher | `gpt-5.6-luna` | `max` |",
+    "state the selected `model`, `reasoning_effort`, and a\none-sentence reason in user-visible commentary",
+    'call it with `fork_turns: "none"` and pass\nthe selected `model` and `reasoning_effort`',
+)
+RESEARCHER_CONTROLS = (
+    "Researcher** is an information collector only",
+    "It does not\n  synthesize across sources, compare, infer, recommend, or decide",
+    "The primary orchestrator\n  owns aggregation, analysis, inference, comparison, and conclusions",
+    "A Researcher brief defines one bounded collection question",
+    "It never asks the Researcher\nfor analysis or a conclusion",
+)
+ROADMAP_APPROVAL_CONTROLS = (
+    "writes one complete recommended candidate without asking the owner to\napprove fields or allocations separately",
+    "That approval ratifies the ROADMAP-\nowned allocations and rulings expressed in the candidate",
+)
+GOAL_APPROVAL_CONTROLS = (
+    "Prepare the Goal and proposed initiation as one candidate",
+    "do not require a separate initiation authorization",
+    "That approval both authorizes the\nMilestone state change and approves Goal meaning",
 )
 CODE_REVIEW_SINGLE_CONTROLS = (
     "Each Task execution has exactly one Reviewer\nround",
@@ -231,6 +267,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
     writing_rules = read(WRITING_RULES)
     write_decision = read(WRITE_DECISION)
     write_task = read("skills/write-task/SKILL.md")
+    dispatch_contract = read(DISPATCH_CONTRACT)
     require_fragments(
         writing_rules,
         (
@@ -249,6 +286,29 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         errors,
     )
     require_fragments(write_task, (TASK_HEADER,), "write-task 表头", errors)
+    require_fragments(
+        dispatch_contract,
+        (
+            *DISPATCH_LIFECYCLE_CONTROLS,
+            *EXTERNAL_AUTHORIZATION_CONTROLS,
+            *RUNTIME_SELECTION_CONTROLS,
+            *RESEARCHER_CONTROLS,
+        ),
+        "派发授权与生命周期",
+        errors,
+    )
+    require_fragments(
+        read(ROADMAP),
+        ROADMAP_APPROVAL_CONTROLS,
+        "ROADMAP 一次批准",
+        errors,
+    )
+    require_fragments(
+        read(WRITE_GOAL),
+        GOAL_APPROVAL_CONTROLS,
+        "Goal 合并批准",
+        errors,
+    )
 
     if (ROOT / "skills/gmgn/references/en/writing-contract.md").exists():
         errors.append("旧 writing-contract.md 不应恢复")
@@ -281,6 +341,11 @@ def validate_shared_surfaces(errors: list[str]) -> None:
             "rulings that constrain multiple Milestones and are not already",
             "Do not absorb WhitePaper meaning, ROADMAP allocation",
             "no current material cross-Milestone ruling",
+            "One return ends the agent",
+            "owner confirms the execution set",
+            "one material allocation question at a time",
+            "Local installation is a separate authorized operation",
+            "Researcher** distinguishes direct observation, sourced fact, and inference",
         ):
             if obsolete in text:
                 errors.append(f"{relative}: 含已废止规则 {obsolete}")
@@ -349,7 +414,7 @@ def validate_run_task_controls(errors: list[str]) -> None:
         errors,
     )
     require_fragments(
-        read("skills/gmgn/references/en/dispatch-and-handoff.md"),
+        read(DISPATCH_CONTRACT),
         DISPATCH_SINGLE_REVIEW_CONTROLS,
         "派发单轮独立审查边界",
         errors,

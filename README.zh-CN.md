@@ -46,8 +46,8 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 D-ID，不重复定义决议；`DecisionLog.md` 只记录已批准变更，不进入正常下游上下文。
 
 ROADMAP 中每个 Milestone 都要映射 WhitePaper 和适用 D-ID，写明一个结果及其价值、必要产出物和一个结果级
-成功信号，并分开表达 `now | next | later`、相对优先级和真实依赖。编排 Agent 先给建议，再一次
-只向人工询问一个会改变路线的决定。ROADMAP 不拥有 E2E 路径。
+成功信号，并分开表达 `now | next | later`、相对优先级和真实依赖。编排 Agent 提交一份完整推荐
+候选，由负责人一次批准。ROADMAP 不拥有 E2E 路径。
 
 每个阶段文档只增加一种信息：Decision 记录明确集中供下游使用的决议；ROADMAP 分配部分有序的
 Milestone 及其结果；Goal 把当前 Milestone 细化为 Requirement 依据和定性 Close 标准；
@@ -74,16 +74,16 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 每个受委派角色都遵循
-[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)：先准备 brief，再创建全新的一次性
-agent，并把回传绑定到固定候选。每个语义候选批次最多一轮 Critic，每个实现候选恰好一轮
-Reviewer。主 session 裁定已接受问题、检查修复差异并运行受影响机器检查，不再派第二个 Critic
-或 Reviewer。Verifier 仍由
+[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。每个语义候选批次最多一轮 Critic，
+每个实现候选恰好一轮 Reviewer。主 session 裁定已接受问题、检查修复差异并运行受影响机器检查，
+不再派第二个 Critic 或 Reviewer。Verifier 仍由
 [`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json)按风险触发。审查范围由
 [代码审查契约](skills/gmgn/references/en/code-review.md)定义。
 
-`Task.md` 仍是 Milestone 索引。对已确认行，`run-task` 创建稳定的 `Card.md` 执行与验证契约和
-可替换的 `Log.md`，并负责 ready set 调度、隔离 writer lane、运行时工具、监测、审查、集成与
-关闭。只有已审内容集成后，项目声明的全部必需检查都在准确的共享基线候选上通过，Task 才能关闭。
+`Task.md` 仍是 Milestone 索引。Milestone 启动后，`run-task` 为每个已接受 Task 创建稳定的
+`Card.md` 执行与验证契约和可替换的 `Log.md`，无需另行确认执行集，Task ready 后直接调度。它还
+负责隔离 writer lane、运行时工具、监测、审查、集成与关闭。只有已审内容集成后，项目声明的全部
+必需检查都在准确的共享基线候选上通过，Task 才能关闭。
 完整规则只在 [`run-task`](skills/run-task/SKILL.md) 中维护。
 
 Milestone 关闭后发现未完成工作时，直接回到 `initiated`，清空当前 `accepted_result`，只重开受
@@ -230,7 +230,8 @@ claude plugin marketplace remove GMGN --scope user
 | “发布已接受版本 / 重试这次发布” | `release` | 复用验收证据、确定性发布物、tag 与 Release |
 | “下一步做什么？” | `gmgn` | 状态判断与工序路由 |
 
-缺陷修复和琐碎单步改动可以走受控旁路，不强迫补齐整条规格链；WhitePaper、Decision、ROADMAP、立项与关账等停点仍需对应授权。
+缺陷修复和琐碎单步改动可以走受控旁路，不强迫补齐整条规格链；WhitePaper、Decision、ROADMAP、
+Milestone/Goal 合并批准、范围扩张与关账仍遵循各自门禁。
 
 ## 可选 telemetry
 

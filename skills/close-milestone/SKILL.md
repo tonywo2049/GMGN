@@ -45,7 +45,7 @@ current assurance policy loaded through the registered `gmgn` Skill. Create one 
 only for `required:<trigger>` and put the classification, reason, and minimum verification
 plan in its brief. It returns exact commands, environment, revision, exit codes, results,
 limitations, and side effects. A skipped or unavailable required command is not a pass. The
-single return ends that Verifier.
+Verifier's interim questions follow the dispatch contract.
 
 ## Closure candidate and review
 
@@ -100,11 +100,11 @@ Integrate that exact commit without creating post-review closure content. If it 
 integrated without changing closure content, stop and prepare a new committed closure
 candidate and rerun affected reviews.
 
-Do not create an Integrator agent. Do not push, publish, deploy, or release without separate
-authorization. `release` reuses commit-bound review and verification evidence and
+Do not create an Integrator agent. External operations require the shared authorization from
+the dispatch contract. `release` reuses commit-bound review and verification evidence and
 regenerates only evidence invalidated by changed packaging or environment inputs.
 
 ## Exit
 
-If distribution is authorized, use **REQUIRED next skill: `release`**. Otherwise return to
-`roadmap` maintenance or the next Milestone.
+If the shared authorization includes distribution, use **REQUIRED next skill: `release`**.
+Otherwise return to `roadmap` maintenance or the next Milestone.

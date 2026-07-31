@@ -75,19 +75,19 @@ sources will be searched when none are specified. Include any Owner-named candid
 research without assuming that it will be selected. When the Owner names none, proceed with
 internet research without further questions.
 
-Research one to three relevant external solutions before drafting Design. Keep one when it is
-the only credible candidate, compare two when a real tradeoff exists, and add a third only
-when it is a distinct credible path; do not pad the set. Use primary evidence such as an
-official standard, specification, documentation, reference implementation, maintainer source
-and release record, production case, audit, or paper. Search snippets, rankings, stars, and
-popularity alone do not prove maturity or fit. Record the checked version or date for facts
-that can change.
+The primary session evaluates one to three relevant external solutions before drafting
+Design. Keep one when it is the only credible candidate, compare two when a real tradeoff
+exists, and add a third only when it is a distinct credible path; do not pad the set. Use
+primary evidence such as an official standard, specification, documentation, reference
+implementation, maintainer source and release record, production case, audit, or paper.
+Search snippets, rankings, stars, and popularity alone do not prove maturity or fit. Record
+the checked version or date for facts that can change.
 
-Compare only what can change the decision: current R/AC and constraint coverage,
-compatibility, security boundaries, maintenance, licensing, and adoption cost. The primary
-session selects the Design-owned solution. Route a tradeoff that changes upstream meaning to
-`gmgn`. If no credible external solution fits, record the search boundary and the material
-reason, then design the smallest new solution instead of inventing candidates.
+The primary session compares only what can change the decision: current R/AC and constraint
+coverage, compatibility, security boundaries, maintenance, licensing, and adoption cost. The
+primary session selects the Design-owned solution. Route a tradeoff that changes upstream
+meaning to `gmgn`. If no credible external solution fits, record the search boundary and the
+material reason, then design the smallest new solution instead of inventing candidates.
 
 Carry into the owning Design artifact the selected solution or no-fit result, checked version
 or date, primary evidence, and key fit or gap. Retain a rejected candidate only when omitting

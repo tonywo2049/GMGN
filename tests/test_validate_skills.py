@@ -81,8 +81,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            '{"timeout_ms": 3600000}',
-            '{"timeout_ms": 60000}',
+            "Do not call `wait_agent`",
+            "Call `wait_agent`",
         )
         self.assert_rejected("run-task 关键执行控制")
 
@@ -91,28 +91,25 @@ class ValidateSkillsTests(unittest.TestCase):
         original = path.read_text(encoding="utf-8")
         cases = (
             (
-                'immediately\nre-arm `wait_agent({"timeout_ms": 3600000})`',
-                "wait again eventually",
+                "On the one-hour wakeup, call `list_agents` once",
+                "On the one-hour wakeup, continue without checking agents",
             ),
             (
-                "Never call `list_agents`, send a message to the agent, inspect its workspace "
-                "or logs, or issue\nanother status query merely to learn progress",
+                "Between lifecycle events and scheduled wakeups, do not poll `list_agents`",
                 "Poll list_agents whenever useful",
             ),
             (
-                "Do not query again until a\n"
-                "material lifecycle event or scheduling condition changes",
-                "query again periodically",
+                "Do not call `list_agents` more than\nonce for the same wakeup",
+                "Call list_agents repeatedly after a wakeup",
             ),
             (
-                "While any dispatched agent is\n`running`, do not call `interrupt_agent`, "
-                "end the orchestration, or return a final result",
+                "While any dispatched agent is `running`, do not call `interrupt_agent` or\n"
+                "return a final task result",
                 "Stop a slow agent after repeated timeouts",
             ),
             (
-                "If that snapshot reports\n`running`, finish any unrelated ready scheduling "
-                "work and return to the same one-hour\n"
-                "`wait_agent` call",
+                "If the snapshot reports `running`, finish any unrelated ready scheduling\n"
+                "work, schedule the next one-hour wakeup, and yield again",
                 "If that snapshot reports running, interrupt it to reclaim capacity",
             ),
             (
@@ -120,7 +117,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "time or token budget permits interruption",
             ),
             (
-                "does not create or send\nheartbeat, unchanged `running`, timeout, agent-count, "
+                "does not create or send\nheartbeat, unchanged `running`, wakeup, agent-count, "
                 "or progress data to the user, Log,\ntelemetry, or another agent",
                 "sends heartbeat progress data while waiting",
             ),
@@ -140,10 +137,65 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         self.assert_rejected("run-task 关键执行控制")
 
+    def test_rejects_authorization_flow_regression(self) -> None:
+        cases = (
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "The terminal completion return retires the agent",
+                "Any return retires the agent",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "One authorization may cover a named set of external operations against an exact target",
+                "Every external operation needs separate authorization",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "| Researcher | `gpt-5.6-luna` | `max` |",
+                "| Researcher | `gpt-5.6-terra` | `max` |",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Researcher** is an information collector only",
+                "Researcher** analyzes and recommends solutions",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/roadmap/SKILL.md",
+                "writes one complete recommended candidate without asking the owner to\n"
+                "approve fields or allocations separately",
+                "asks the owner to approve every allocation",
+                "ROADMAP 一次批准",
+            ),
+            (
+                "skills/write-goal/SKILL.md",
+                "Prepare the Goal and proposed initiation as one candidate",
+                "Require initiation before preparing Goal",
+                "Goal 合并批准",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "scan the entire target-Milestone Task set",
+                "scan only the separately confirmed execution set",
+                "run-task 关键执行控制",
+            ),
+        )
+        for relative, old, new, expected in cases:
+            with self.subTest(relative=relative, rule=old):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected(expected)
+                path.write_text(original, encoding="utf-8")
+
     def test_rejects_missing_single_review_limit(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            "Never create, resume, or dispatch another Reviewer to recheck findings or fixes",
+            "Never create or dispatch another Reviewer to recheck findings or fixes",
             "Dispatch another Reviewer to recheck fixes",
         )
         self.assert_rejected("run-task 关键执行控制")
@@ -158,7 +210,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "Accepted finding fixes do not create another\nCritic or Reviewer dispatch",
+                "Accepted finding fixes do\nnot create another Critic or Reviewer dispatch",
                 "Accepted fixes create another Reviewer dispatch",
                 "派发单轮独立审查边界",
             ),

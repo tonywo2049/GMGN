@@ -1,12 +1,12 @@
 ---
 name: run-task
-description: "Use when one or more approved Task.md rows are confirmed: materialize Card/Log execution contracts, refill the dependency-aware ready set, run isolated writer lanes, review each frozen candidate once, add risk-triggered final verification, integrate required checks, and close. 已确认任务集后创建 Card/Log、滚动并行开发；每个固定候选只做一轮独立审查，再完成风险验证与共享基线必需检查后关账。"
+description: "Use when an initiated Milestone has accepted Task.md rows: materialize Card/Log execution contracts, run every ready row without separate execution-set confirmation, review each frozen candidate once, add risk-triggered final verification, integrate required checks, and close. Milestone 已启动且 Task.md 已接受后，无需另行确认执行集，直接调度所有 ready Task；每个固定候选只做一轮独立审查，再完成风险验证与共享基线必需检查后关账。"
 ---
 
-# Run confirmed task cards
+# Run target-milestone task cards
 
 <HARD-GATE>Every dispatched task must exist in an accepted `Task.md`, belong to the
-confirmed `target_milestone_id` execution set, and have valid Requirement, Design, applicable
+initiated `target_milestone_id`, and have valid Requirement, Design, applicable
 Contract, and structural-authority anchors. If preparing or implementing the Card still
 requires a product, architecture, interface, data, error, state, recovery, security, or
 compatibility decision, do not let the Coder decide it: pause only the impact cone and return
@@ -17,6 +17,11 @@ The primary orchestrator owns scheduling, adjudication, shared state, integratio
 status, and per-card execution documents. It may serve as one unassigned Coder lane when
 capacity remains, but it cannot take over another writer's lane, review its own candidate, or
 replace a required Verifier.
+
+Every accepted Task row for the initiated Milestone enters execution when ready. Do not ask
+the owner to confirm an execution set. Ask only when excluding or deferring a ready Task would
+change the accepted plan, or when an external operation lacks the shared authorization defined
+by the dispatch contract.
 
 ## 1. Materialize or reopen Card and Log
 
@@ -71,7 +76,7 @@ A task is ready only when:
 - its later merge order cannot change approved semantics.
 
 Recompute the ready set after every material agent return, blocker, integration, or capacity
-change. Before waiting or acting as a Coder, scan the entire confirmed execution set and
+change. Before waiting or acting as a Coder, scan the entire target-Milestone Task set and
 dispatch every ready, non-conflicting task that fits actual platform, workspace, and exclusive
 resource capacity. Never hard-code an agent count.
 
@@ -92,6 +97,8 @@ the current Card and Log snapshot, exact Design Bundle and Contract anchors, ass
 workspace and write boundary, real conflict domain or lock, verification contract, required
 runtime tools, checks, and return evidence. Put resolved workflow decisions directly in the
 brief.
+
+Authorization and missing-information pauses follow the dispatch contract.
 
 Apply these run-task tool requirements from this section only:
 
@@ -139,30 +146,32 @@ change-request document.
 Before Review, commit the complete candidate locally. Handoff and candidate identity follow
 the dispatch contract; a correction commit is not a standalone candidate.
 
-Across the confirmed execution set, wait only after ready dispatch, primary-Coder work,
-integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
-the actual tool argument `{"timeout_ms": 3600000}` (1 hour); `agent_wait_timeout_ms` is not a
-Codex tool argument. `wait_agent` is an event-driven lifecycle wait, not progress polling.
-A timeout has no workflow meaning. If an agent is known to remain `running`, immediately
-re-arm `wait_agent({"timeout_ms": 3600000})` without inserting `list_agents`, another status
-query, or a user update between unchanged timeouts. A timeout alone is not a `list_agents`
-trigger.
+Across the target-Milestone Task set, yield only after ready dispatch, primary-Coder work,
+integration, state refresh, and local checks are exhausted. Do not call `wait_agent`; an agent
+completion or attention event reactivates the primary session. When active agents remain,
+schedule one platform-native primary-session wakeup for one hour later, then yield the current
+turn without returning a final task result. If an agent event reactivates the session first,
+cancel or ignore the pending wakeup and handle the event immediately.
 
-Never call `list_agents`, send a message to the agent, inspect its workspace or logs, or issue
-another status query merely to learn progress. Use one `list_agents` snapshot only when a real
-scheduling/capacity decision cannot be made from received lifecycle events or those events
-conflict; the snapshot must not be used as a progress check. Do not query again until a
-material lifecycle event or scheduling condition changes. If that snapshot reports
-`running`, finish any unrelated ready scheduling work and return to the same one-hour
-`wait_agent` call. No periodic list interval is configured or inferred.
+On the one-hour wakeup, call `list_agents` once. Handle any completed or attention-needed
+dispatch immediately. If the snapshot reports `running`, finish any unrelated ready scheduling
+work, schedule the next one-hour wakeup, and yield again. Do not call `list_agents` more than
+once for the same wakeup. If the platform has no thread-wakeup surface, report that the
+watchdog is unavailable and rely on lifecycle events; do not fall back to `wait_agent`.
 
-A running dispatch remains unfinished primary-session work. While any dispatched agent is
-`running`, do not call `interrupt_agent`, end the orchestration, or return a final result.
+Between lifecycle events and scheduled wakeups, do not poll `list_agents`, send a message to
+the agent, inspect its workspace or logs, or issue another status query merely to learn
+progress. A message to an active agent must carry authorization, requested information, or
+another decision permitted by the dispatch contract. Do not infer a shorter polling interval.
+
+A running dispatch remains unfinished primary-session work. Yielding the current turn is not
+task completion. While any dispatched agent is `running`, do not call `interrupt_agent` or
+return a final task result.
 Call `interrupt_agent` only after explicit user cancellation or concrete evidence that the
 agent hard-failed, its assigned scope became invalid, or continuing is unsafe. Silence,
-slowness, missing content, wait timeouts, agent count, capacity pressure, and a primary-session
-time or token budget are not such evidence. The primary session does not create or send
-heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,
+slowness, missing content, scheduled wakeups, agent count, capacity pressure, and a primary-
+session time or token budget are not such evidence. The primary session does not create or send
+heartbeat, unchanged `running`, wakeup, agent-count, or progress data to the user, Log,
 telemetry, or another agent. Platform-native lifecycle telemetry, if any, remains out of band.
 Report only material progress, a blocker, a decision request, or the final result.
 
@@ -179,13 +188,14 @@ editing. The primary orchestrator adjudicates once, rejects scope expansion, and
 accepted blocker fix through a fresh Coder. It checks the complete fix delta against the
 accepted findings and existing authority, then reruns affected machine checks.
 
-Never create, resume, or dispatch another Reviewer to recheck findings or fixes. If a fix
-changes approved behavior, scope, interface authority, or another upstream meaning, route it
-to the owning stage instead of treating it as a Review fix. If the primary orchestrator cannot
-determine from existing authority that every accepted blocker is resolved, keep the Task
-unaccepted. Non-blocking suggestions do not reopen an acceptable candidate. Record the
-reviewed anchor, findings and rulings, exact fix delta, commands/results, and post-fix checks
-in final evidence.
+Never create or dispatch another Reviewer to recheck findings or fixes. Resuming the same
+active Reviewer after an interim request does not create another round and requires the fixed
+candidate to remain unchanged. If a fix changes approved behavior, scope, interface authority,
+or another upstream meaning, route it to the owning stage instead of treating it as a Review
+fix. If the primary orchestrator cannot determine from existing authority that every accepted
+blocker is resolved, keep the Task unaccepted. Non-blocking suggestions do not reopen an
+acceptable candidate. Record the reviewed anchor, findings and rulings, exact fix delta,
+commands/results, and post-fix checks in final evidence.
 
 ## 6. Add a Verifier only for recorded risk
 
@@ -228,8 +238,8 @@ migration, structural authority, and interacting task is inside the checked impa
 Run every project-declared required check against that exact frozen integration candidate
 before closing. When CI exists, its evidence must bind to that candidate commit. A skipped,
 unavailable, unauthorized, or unexecuted required check is not a pass. If a required check
-needs a push and push authority is absent, keep the Task unclosed and record the blocker; never
-push without explicit authorization.
+needs a push not covered by the shared external-operation authorization, keep the Task
+unclosed and request it through the primary orchestrator.
 
 After Review, required checks, and any required verification clear, atomically advance the
 shared baseline to that exact checked commit. Do not modify tracked content after the final
@@ -252,10 +262,11 @@ router's controlled-change rule and pause only affected providers, consumers, in
 tasks, and descendants. Unrelated lanes continue.
 
 A revised authority produces a newly accepted commit. Refresh only affected Task/Card
-anchors, tests, and briefs, then resume with fresh Coders. Do not mark a working Contract
-`closed` during run-task; `close-milestone` performs final reconciliation and freeze. Do not
-invent parallel API versions unless a current coexistence requirement needs them.
+anchors, tests, and briefs, then resume eligible active Coders under the dispatch contract. Do
+not mark a working Contract `closed` during run-task; `close-milestone` performs final
+reconciliation and freeze. Do not invent parallel API versions unless a current coexistence
+requirement needs them.
 
-Remain in `run-task` while a confirmed task can become ready or a lane/integration entry is
+Remain in `run-task` while a target-Milestone task can become ready or a lane/integration entry is
 active. When every target-Milestone task is closed on one shared baseline and AC traceability
 is full, use **REQUIRED next skill: `close-milestone`**.

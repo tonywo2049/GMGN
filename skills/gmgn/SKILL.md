@@ -25,7 +25,7 @@ needed meaning to the active tree through its owning authority before use.
 | New idea; no approved WhitePaper | `brainstorm` |
 | Approved WhitePaper; Decision absent or changing | `write-decision` |
 | Approved Decision; ROADMAP absent or changing | `roadmap` |
-| Owner explicitly starts a `now`, `not-started` Milestone whose prerequisites are all `closed` with accepted results, or its Goal remains `pending-approval` after that initiation | `write-goal` |
+| A `now`, `not-started` Milestone has all prerequisites `closed` with accepted results and needs its combined initiation/Goal approval, or an approved Goal needs revision | `write-goal` |
 | Approved Goal exists; Requirement absent or changing | `write-requirement` |
 | Requirement reviewed; Design-stage candidate absent or changing | `write-design` |
 | Design-stage candidate reviewed; Task absent or changing | `write-task` |
@@ -43,7 +43,7 @@ context never reads `DecisionLog.md`. A D-ID may apply at any scope. Once presen
 artifacts consume it by link instead of redefining its ruling. From `write-goal` onward, also
 record `target_milestone_id` and the available Goal, Requirement, Design, applicable Contract,
 and Task anchors. A link to another Milestone gives context, not execution authority. Keep
-separately authorized Milestones as separate execution sets and closure decisions.
+separately initiated Milestones as separate execution sets and closure decisions.
 
 When any later stage changes a current D-ID or selects a new ruling for Decision, route it
 through `write-decision` regardless of subject or Milestone scope. Pause only its impact cone

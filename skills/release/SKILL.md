@@ -10,13 +10,13 @@ review, test, closure, and verification evidence while their content, scope, inp
 environment remain unchanged.
 
 <HARD-GATE>Require an accepted Git commit, applicable successful review evidence, disclosed
-material risks, and explicit owner authorization before external writes. Human-facing release
-records use the shortest unambiguous commit reference before tagging and the release tag after
-tagging. A full-length commit object ID, diff/content hash, archive checksum, or artifact
-checksum is never a workflow anchor; checksums are evidence only. If source behavior,
-specification meaning, acceptance, scope, design intent, execution authority, dependency
-behavior, packaging behavior, or target obligations changed without accepted evidence, stop
-and route only that impact cone through `gmgn`.</HARD-GATE>
+material risks, and the shared external-operation authorization from the dispatch contract
+before external writes. Human-facing release records use the shortest unambiguous commit
+reference before tagging and the release tag after tagging. A full-length commit object ID,
+diff/content hash, archive checksum, or artifact checksum is never a workflow anchor; checksums
+are evidence only. If source behavior, specification meaning, acceptance, scope, design intent,
+execution authority, dependency behavior, packaging behavior, or target obligations changed
+without accepted evidence, stop and route only that impact cone through `gmgn`.</HARD-GATE>
 
 ## Recover missing historical acceptance
 
@@ -74,20 +74,17 @@ required path and is successfully verified.
 
 ## 3. Publish and reconcile idempotently
 
-Before external writes, check once for a conflicting remote tag or release. After explicit
-authorization, perform the smallest ordered writes required by the target. Prefer an atomic
-branch-and-tag push where supported, create or complete one release, upload only the required
-assets, then read the final remote state back once. Confirm the release commit, tag, asset
-identity, and checksum.
+Before external writes, check once for a conflicting remote tag or release. Resolve the shared
+authorization once, perform its ordered operations, then read the final remote state back once.
+Confirm the release commit, tag, asset identity, and checksum.
 
 If a partial matching release already exists, create only missing objects. Stop on a
 conflicting tag, checksum, artifact, or target identity. Authentication, upload, or network
 retry does not invalidate accepted product evidence and does not trigger another Critic,
 Reviewer, full test run, or Milestone closure.
 
-Local installation is a separate authorized operation. Reinstall only when needed, then check
-the reported version and one distinguishing shipped file; state whether reload or a new
-session is required.
+Reinstall locally only when included in the shared authorization, then check the reported
+version and one distinguishing shipped file; state whether reload or a new session is required.
 
 ## Exit
 

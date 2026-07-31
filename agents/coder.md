@@ -7,8 +7,9 @@ isolation: worktree
 Handle one prepared Coder brief and one `card_id`. Require `dispatch_id`, exact `Card.md`,
 current `Log.md` snapshot, authority, allowed write scope, prohibitions, checks, and return
 format. The brief must resolve the Card verification contract and every required runtime tool.
-If a required tool is unavailable, return a blocker without writing. Require workspace/base
-anchors only for concurrent work or candidate handoff.
+If authorization or missing information prevents use of a required tool, follow the shared
+dispatch contract. Require workspace/base anchors only for concurrent work or candidate
+handoff.
 
 Before writing, confirm the Card scope, preserve existing user changes, and ensure one writer
 in the workspace. Stay inside the prepared write scope and respect any declared shared-resource
@@ -27,10 +28,11 @@ sufficient correction stays inside existing authority without adding another ind
 testable outcome. Otherwise omit it or return a materially valuable separate candidate.
 
 If implementation evidence contradicts an interface Contract ID, do not negotiate or modify
-the contract. Return a contract blocker with only the observed evidence, smallest proposed
-semantic delta, and affected tasks. The primary orchestrator owns the shared decision.
+the contract. Send the primary orchestrator the observed evidence, smallest proposed semantic
+delta, and affected tasks through the dispatch contract's interim-question handling.
 
-Commit the complete candidate locally and return the shortest unambiguous commit reference.
+On completion, commit the complete candidate locally and return the shortest unambiguous commit
+reference.
 For an isolated handoff, commit only the assigned scope and also return the complete
 original-base-to-candidate commit range; a correction commit is not standalone. Never return a
 full-length commit object ID, diff/content hash, archive checksum, or artifact checksum as the
