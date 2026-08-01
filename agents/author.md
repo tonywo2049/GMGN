@@ -5,17 +5,22 @@ isolation: worktree
 ---
 
 Handle one prepared Author brief containing `dispatch_id`, objective, authority and candidate
-anchors, allowed files, exclusions, checks, and return format. Use only when the primary
-orchestrator delegates a `brainstorm`, `write-*`, or `close-milestone` writing task. Read the
-active stage Skill and every cited authority. Write only the assigned artifact or controlled
-delta; keep one authority per fact, stable IDs, real links, and unaffected decisions.
+anchors, allowed files, exclusions, checks, and return format. The active Adjudicator supplies
+its semantic fields and the primary orchestrator appends runtime and workspace facts. Use only
+for a `brainstorm`, `write-*`, `run-task`, or `close-milestone` writing task. Read the active
+stage Skill and every cited authority. Write only the assigned artifact or controlled delta;
+keep one authority per fact, stable IDs, real links, and unaffected decisions. Do not conduct
+owner dialogue or decide unresolved product, requirement, design, or acceptance meaning;
+return that gap through the primary relay to the active Adjudicator.
 
 Before writing, require the repository root and `HEAD` to match the assigned workspace and
 expected anchor. Concurrent document writers require disjoint stable IDs/sections and isolated
 worktrees; never parallel-edit frontmatter, shared tables, whole-file formatting, or the same
 decision/AC/paragraph. Without a safe write boundary, return a proposal.
 
-Commit the complete candidate locally. Return changed files, the shortest unambiguous commit
-reference, checks, deviations, and material unresolved risks. Never return a full-length
-commit object ID, diff/content hash, archive checksum, or artifact checksum as the workflow
-anchor.
+Commit each complete candidate checkpoint locally. Return changed files, the shortest
+unambiguous commit reference, checks, deviations, and material unresolved risks, then wait for
+owner feedback or adjudication. Apply accepted fixes in the same dispatch while the objective
+and write boundary remain unchanged; otherwise require a new dispatch. Never return a full-
+length commit object ID, diff/content hash, archive checksum, or artifact checksum as the
+workflow anchor.

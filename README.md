@@ -69,8 +69,9 @@ downstream context.
 
 Every ROADMAP Milestone maps to WhitePaper and applicable D-IDs, states one outcome and its value, names necessary
 deliverables and one result-level success signal, and separates `now | next | later`,
-relative priority, and real dependencies. The orchestrator presents one complete recommended
-map for owner approval. ROADMAP does not own an E2E path.
+relative priority, and real dependencies. The Adjudicator resolves its meaning, an Author
+writes one complete recommended map for owner approval, and the primary session only relays
+and schedules. ROADMAP does not own an E2E path.
 
 Each stage document adds one kind of information: Decision records rulings explicitly
 centralized for downstream use; ROADMAP allocates partially ordered Milestones and their
@@ -104,8 +105,11 @@ the reviewed implementation-matching commit as `closed`.
 Every delegated role follows the
 [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). Each semantic candidate
 batch has at most one Critic round, and each implementation candidate has
-exactly one Reviewer round. The primary orchestrator adjudicates accepted findings, checks
-the fix delta, and runs affected machine checks without another Critic or Reviewer. A Verifier
+exactly one Reviewer round. One bounded Adjudicator conducts owner dialogue and adjudicates
+semantic findings; the primary orchestrator relays exact messages, schedules deterministic
+transitions, checks candidate identity, and runs affected machine checks without another
+Critic or Reviewer. An Adjudicator and Author resume the same unfinished dispatch after owner
+input while their objective and write boundary remain unchanged. A Verifier
 remains risk-triggered under
 [`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json). The Review surface is
 defined by the [code-review contract](skills/gmgn/references/en/code-review.md).
@@ -114,9 +118,11 @@ defined by the [code-review contract](skills/gmgn/references/en/code-review.md).
 `Card.md` execution and verification contract plus a replaceable `Log.md` for every accepted
 row and executes it when ready without another execution-set confirmation. It then owns
 ready-set scheduling, isolated writer lanes, runtime tools, monitoring, review, integration,
-and closure. A Task closes only after the reviewed content is integrated and every
-project-declared required check passes against that exact shared-baseline candidate. The
-complete rules live in [`run-task`](skills/run-task/SKILL.md).
+and closure. Coder RED/GREEN runs in one dispatch without a primary-session approval pause;
+the single final Reviewer replays the recorded checkpoint. A Task closes only after the
+reviewed content is integrated and every project-declared required check passes against that
+exact shared-baseline candidate. The complete rules live in
+[`run-task`](skills/run-task/SKILL.md).
 
 A closed Milestone returns to `initiated` when unfinished work is found. Its current
 `accepted_result` is cleared, only affected work is reopened, and downstream Milestones are
@@ -369,8 +375,10 @@ Telemetry hooks and reporters observe from outside DocStar, recording call count
 time, command type, and subsequent grep/read activity. `grep_avoided` is descriptive and
 does not claim that DocStar caused a grep to be avoided.
 
-CodeGraph is an optional source-navigation aid. Task-execution use of DocStar and CodeGraph is
-defined by [`run-task`](skills/run-task/SKILL.md).
+CodeGraph is an optional source-navigation aid. During task execution, the primary orchestrator
+automatically initializes an available CodeGraph index in each source workspace and falls back
+to targeted reads if initialization fails. Exact DocStar and CodeGraph rules are defined by
+[`run-task`](skills/run-task/SKILL.md).
 
 ## License
 

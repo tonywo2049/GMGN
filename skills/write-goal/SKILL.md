@@ -15,12 +15,14 @@ writing rules. Use the ROADMAP locale unless the owner changes it explicitly. Ke
 
 ## Working rhythm
 
-Read the approved WhitePaper, current Decision, and target ROADMAP Milestone, then form the
-complete Goal candidate directly. Do not run a routine discovery or question checklist. Ask
-the owner only when two or more interpretations remain consistent with upstream authority and
-the answer would change the active Milestone boundary or whether it can Close. Combine related
-blocking ambiguity into the smallest useful question, recommend one option, and state the real
-alternative and its effect on Requirement scope or Close.
+The assigned Adjudicator reads the approved WhitePaper, current Decision, and target ROADMAP
+Milestone, then forms the complete Goal meaning directly. Do not run a routine discovery or
+question checklist. It asks the owner through the primary orchestrator's exact relay only when
+two or more interpretations remain consistent with upstream authority and the answer would
+change the active Milestone boundary or whether it can Close. Combine related blocking
+ambiguity into the smallest useful question, recommend one option, and state the real
+alternative and its effect on Requirement scope or Close. When resolved, dispatch one Author
+to write the candidate.
 
 Do not ask about facts already decided upstream, document shape, mechanical mapping, product
 behavior, parameters, architecture, tests, or tasks. Leave Requirement-owned detail for
@@ -58,7 +60,7 @@ candidate without intermediate questions.
 
 ## One change batch
 
-The recorded writer performs one semantic batch:
+The assigned Author performs one semantic batch:
 
 1. On first creation, propose the ROADMAP row change from `not-started` to `initiated`.
 2. Create or revise the milestone directory's single entry document, `Goal.md`, with
@@ -72,14 +74,15 @@ baseline effect before approval.
 ## Writer and review-selection loop
 
 Record the Decision and ROADMAP commits, then process one complete Goal candidate through the
-registered `gmgn` Skill's shared document-candidate and dispatch rules. The primary
-orchestrator also checks the proposed ROADMAP state and reciprocal links.
+registered `gmgn` Skill's shared document-candidate and dispatch rules. The Adjudicator rules
+on semantic findings; the primary orchestrator checks only the proposed ROADMAP state,
+candidate identity, and reciprocal links.
 
-With no unresolved blocker, present the exact committed Goal candidate and remaining material
-risks—or that none are known—for one owner approval. That approval both authorizes the
-Milestone state change and approves Goal meaning. Then move Goal to `status: approved`, apply
-the mechanical reciprocal-link record, and integrate the candidate without another semantic
-review.
+With no unresolved blocker, the Adjudicator presents the exact committed Goal candidate and
+remaining material risks—or that none are known—for one owner approval through the exact
+relay. That approval both authorizes the Milestone state change and approves Goal meaning.
+Then the Author moves Goal to `status: approved`; the primary orchestrator applies the
+mechanical reciprocal-link record and integrates the candidate without another semantic review.
 
 ## Controlled revision
 
@@ -90,16 +93,15 @@ review.
 3. Revise only the active boundary, necessary Milestone-local exclusions, ROADMAP
    deliverable/success-signal coverage, or qualitative Close outcomes. Preserve unaffected
    content. Leave behavior, constraints, parameters, and AC choices to Requirement.
-4. If the delta changes a decision or reasonable understanding, apply the Critic necessity
-   gate, run any required independent criticism and primary-orchestrator review against the
-   affected content, and bind it to a new commit. Old review remains attached to the old
-   commit.
+4. If the delta changes a decision or reasonable understanding, the Adjudicator applies the
+   Critic necessity gate, runs any required independent criticism, adjudicates the affected
+   content, and binds it to a new commit. Old review remains attached to the old commit.
 Meaning-preserving mechanical changes use same-batch link and status refresh plus
 machine checks without reapproval.
 
 ## Exit
 
-Require the recorded writer to confirm:
+Require the assigned Author to confirm:
 
 - every applicable D-ID remains linked and unmodified;
 - every ROADMAP deliverable and success signal is covered by qualitative Close outcomes, and
@@ -117,5 +119,5 @@ Require the recorded writer to confirm:
   Goal.
 
 For creation or a semantic revision, run the writer/review-selection loop using the
-English-only dispatch contract, obtain primary-orchestrator review, and integrate only when
-required by workspace topology.
+English-only dispatch contract, obtain Adjudicator acceptance, and let the primary orchestrator
+integrate only when required by workspace topology.

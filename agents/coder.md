@@ -19,6 +19,10 @@ queue, shared baseline, or remote state.
 Execute the required tools and read the authority and real call path. Follow the Card's
 verification contract: use discriminating RED/GREEN evidence when it requires that oracle,
 and use its specified schema, dry-run, lint, smoke, or equivalent evidence otherwise.
+For RED/GREEN work, commit and run the test-only checkpoint against unchanged production
+behavior, confirm the expected failure, freeze the verdict-affecting tests, and continue
+directly to the smallest production change and GREEN in this same dispatch. Do not request or
+wait for a separate RED approval.
 Implement the smallest sufficient solution without removing required validation, error
 handling, security, or accessibility.
 
@@ -29,7 +33,8 @@ testable outcome. Otherwise omit it or return a materially valuable separate can
 
 If implementation evidence contradicts an interface Contract ID, do not negotiate or modify
 the contract. Send the primary orchestrator the observed evidence, smallest proposed semantic
-delta, and affected tasks through the dispatch contract's interim-question handling.
+delta, and affected tasks through the dispatch contract's interim-question handling for exact
+relay to the active Adjudicator.
 
 On completion, commit the complete candidate locally and return the shortest unambiguous commit
 reference.

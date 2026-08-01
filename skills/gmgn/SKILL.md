@@ -51,9 +51,13 @@ and resume the stage that raised it after owner approval and affected propagatio
 
 ## Roles and independent checks
 
-The primary orchestrator keeps context, selects the stage, prepares briefs, adjudicates
-findings, integrates accepted candidates, and updates shared state. It is not a delegated
-agent. Delegated roles follow the dispatch contract.
+The primary orchestrator keeps context and acts only as the exact relay, mechanical scheduler,
+workspace manager, deterministic checker, integration owner, and shared-state updater. It does
+not plan solutions, conduct semantic owner dialogue, write document candidates, decide Critic
+necessity, or adjudicate findings. One bounded Adjudicator owns those semantic actions for each
+case and may remain assigned through owner waits and child dispatches. Independent cases may
+use parallel Adjudicators; overlapping declared authority or impact cones remain serialized.
+Delegated roles follow the dispatch contract.
 
 Select independent roles by the surface that changed:
 
@@ -64,25 +68,27 @@ Select independent roles by the surface that changed:
 | Recorded `required:<trigger>` classification | Verifier after Review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
-Before dispatching a Critic, identify a concrete material harm that the owner has not
-accepted, that no accepted effective fallback contains, and that independent criticism could
-plausibly use to change acceptance or the next action. Dispatch one fresh Critic only when
-such a risk can be named or the primary orchestrator cannot decide. Otherwise skip Critic,
-record one sentence explaining why, and run affected machine checks.
+Before dispatching a Critic, the active Adjudicator identifies a concrete material harm that
+the owner has not accepted, that no accepted effective fallback contains, and that independent
+criticism could plausibly use to change acceptance or the next action. Dispatch one fresh
+Critic only when such a risk can be named or the Adjudicator cannot decide. Otherwise skip
+Critic, record one sentence explaining why, and run affected machine checks.
 
 Critic and Reviewer do not maximize finding count. A valid return may contain no findings.
 Report an issue only when leaving it unresolved creates concrete material harm, no accepted
 effective fallback contains that harm, and a smallest sufficient correction can be stated.
 Each semantic candidate batch has at most one Critic round, and each Task execution has
-exactly one Reviewer round. After either role returns, the primary orchestrator adjudicates
-accepted findings, checks the fix delta, and runs affected machine checks without dispatching
+exactly one Reviewer round. The primary orchestrator forwards judgment-bearing returns
+unchanged to the active Adjudicator, which rules on findings and fix meaning. The primary
+orchestrator checks candidate identity and runs affected machine checks without dispatching
 that role again. A fix that introduces new meaning is a separately scoped semantic batch, not
 a re-review of the prior batch.
 
-A Verifier is exceptional. Classify the final candidate from the
-[assurance policy](references/en/assurance-policy.json) as `not-required` or
-`required:<trigger>`. Do not dispatch it while relevant Review blockers remain. The owning
-stage defines candidate timing and fix handling.
+A Verifier is exceptional. Apply the final-candidate classification from the
+[assurance policy](references/en/assurance-policy.json) mechanically when recorded facts make
+it explicit; route only judgment-dependent trigger applicability to the active Adjudicator.
+Use `not-required` or `required:<trigger>` and do not dispatch while relevant Review blockers
+remain. The owning stage defines candidate timing and fix handling.
 
 ## Minimality gates
 
@@ -102,11 +108,14 @@ not restate those stage rules.
 
 ## Document candidates
 
-The primary session or a fresh Author creates one document candidate, self-checks it, and
-anchors it. Every semantic document change applies the Critic necessity gate. The owning stage
-adjudicates accepted findings, updates the candidate, and runs affected machine checks.
-Equivalent mechanical propagation does not create another semantic review. A change that
-invents new meaning is a new semantic batch owned by its stage.
+The active Adjudicator conducts the owner dialogue and prepares one bounded semantic Author
+brief only when the candidate is ready to write. One Author creates, self-checks, commits, and
+revises that document candidate while its objective and write boundary remain unchanged. The
+primary orchestrator adds only runtime and workspace facts and never drafts the candidate.
+Every semantic document change applies the Critic necessity gate. The Adjudicator rules on
+accepted findings and sends in-scope fixes to the same Author; the primary orchestrator runs
+affected machine checks. Equivalent mechanical propagation does not create another semantic
+review. A change that invents new meaning is a new semantic batch owned by its stage.
 
 The primary orchestrator performs links, machine checks, and integration. Do not create an
 Integrator role.

@@ -22,5 +22,5 @@ verified.
 
 Recompare the candidate commit after commands that could change it. Any material content
 change invalidates verification on both pass and failure. Commands that generate or refresh
-oracle, evidence, or attempt files belong to the Coder or primary orchestrator before this
-check. Return exact commands, environment, exit codes, limitations, and side effects.
+oracle, evidence, or attempt files belong to the Coder or a prepared Author candidate before
+this check. Return exact commands, environment, exit codes, limitations, and side effects.

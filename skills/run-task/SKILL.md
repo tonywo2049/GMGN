@@ -11,14 +11,18 @@ Contract, and structural-authority anchors. If preparing or implementing the Car
 requires a product, architecture, interface, data, error, state, recovery, security, or
 compatibility decision, do not let the Coder decide it: pause only the impact cone and return
 to the owning stage. Never expose an unreviewed or unchecked implementation combination as the
-shared baseline. For RED-gated work, never authorize production implementation before the
-primary orchestrator accepts the test-only RED checkpoint.</HARD-GATE>
+shared baseline. For RED-gated work, the Coder must record a valid test-only RED checkpoint
+against unchanged production behavior before writing production implementation; no separate
+primary-orchestrator or Adjudicator approval is required.</HARD-GATE>
 
-The primary orchestrator owns scheduling, adjudication, shared state, integration, Task
-status, and per-card execution documents. It may serve as one unassigned Coder lane when
-capacity remains, except for RED-gated work. The primary orchestrator authorizes that gate, so
-use a delegated Coder for RED-gated work. It cannot take over another writer's lane, review
-its own candidate, or replace a required Verifier.
+The primary orchestrator owns deterministic ready-set scheduling, runtime state, workspace
+management, integration, and the shared baseline. The active Adjudicator owns execution
+semantics, authority gaps, judgment-dependent assurance classification, and finding
+adjudication. One assigned Author writes the Card/Log and task-state candidates for a Card,
+and every implementation lane
+uses a delegated Coder. The primary orchestrator does not write those candidates, act as a
+Coder, take over another writer's lane, review its own candidate, or replace a required
+Verifier.
 
 Every accepted Task row for the initiated Milestone enters execution when ready. Do not ask
 the owner to confirm an execution set. Ask only when excluding or deferring a ready Task would
@@ -28,7 +32,10 @@ by the dispatch contract.
 ## 1. Materialize or reopen Card and Log
 
 Creating the Task Card and Log from an accepted Task row requires no separate human
-confirmation.
+confirmation. The Adjudicator derives the exact completion and verification meaning from
+accepted authority and prepares one bounded Author brief. The primary orchestrator appends
+runtime and workspace facts and dispatches the Author, which remains assigned through the
+Card's preparation and closing document candidates while that objective stays unchanged.
 
 Before the first Coder dispatch, create exactly two files for every newly materialized task:
 
@@ -46,8 +53,9 @@ Before the first Coder dispatch, create exactly two files for every newly materi
 3. In the same checked candidate, replace the new Task row's `execution: none` with the Card
    link and set its macro status to `prepared`.
 
-For a reopened Task, reuse its existing Card and Log, keep the execution link, set the macro
-status to `prepared`, and update the Log current snapshot with the unfinished work. Keep the
+For a reopened Task, the assigned Author reuses its existing Card and Log, keeps the execution
+link, sets the macro status to `prepared`, and updates the Log current snapshot with the
+unfinished work. Keep the
 Card unchanged unless an owning-stage revision changed its anchors or completion contract.
 
 The verification contract selects an executable oracle that fits the change:
@@ -100,8 +108,8 @@ preparation, and immediately after every material agent return, blocker, Review 
 completion, authority or state refresh, or capacity change, scan the entire target-Milestone
 Task set and recompute readiness. Inspect every Task, not only the lane or descendants involved
 in the event. While actual platform, workspace, and exclusive-resource capacity is available,
-dispatch every ready, non-conflicting task that fits it before deferrable primary-session
-analysis, checks, or waiting; do not leave capacity idle. If required Review or integration
+dispatch every ready, non-conflicting task that fits it before deferrable local checks or
+waiting; do not leave capacity idle. If required Review or integration
 must complete before more Tasks can become ready, complete that boundary, then recompute and
 refill immediately. This detection is event-driven and does not authorize lifecycle polling.
 Never hard-code an agent count.
@@ -118,19 +126,16 @@ ad hoc.
 
 ## 3. Prepare the dispatch and runtime tools
 
-Use the dispatch contract loaded through the registered `gmgn` Skill. A run-task brief adds only
-the current Card and Log snapshot, exact Design Bundle and Contract anchors, assigned
-workspace and write boundary, real conflict domain or lock, verification contract, required
-runtime tools, checks, and return evidence. Put resolved workflow decisions directly in the
-brief.
+Use the dispatch contract loaded through the registered `gmgn` Skill. The Adjudicator supplies
+the current Card and Log meaning, exact Design Bundle and Contract anchors, objective, write
+boundary, verification contract, checks, and return gate. The primary orchestrator adds only
+the assigned workspace, baseline, real conflict domain or lock, runtime tools, and dispatch
+identity. Put resolved workflow decisions directly in that single transient brief.
 
-For RED-gated work, declare the complete eventual write boundary in the initial Coder brief
-but initially authorize only test code and test-only support changes. Production implementation
-remains unauthorized until the primary orchestrator accepts the RED checkpoint. Require the
-Coder to return an interim authorization request with the shortest unambiguous checkpoint
-reference, replay command, exit code, and target failure, then wait. Authorizing the already-
-declared production phase does not widen the objective or write boundary and resumes the same
-dispatch.
+For RED-gated work, the initial Coder brief authorizes the complete test and production write
+boundary. Require the Coder to create and record the test-only RED checkpoint before production
+work, then continue directly to GREEN in the same dispatch. The Coder does not request or wait
+for a separate RED approval from the primary orchestrator or Adjudicator.
 
 Authorization and missing-information pauses follow the dispatch contract.
 
@@ -140,14 +145,15 @@ Apply these run-task tool requirements from this section only:
   A Reviewer brief for implementation or test-code changes requires
   `ponytail:ponytail-review`. Resolve availability before the role writes or accepts code.
   Missing Ponytail blocks that code candidate; do not copy its rules or silently continue.
-- **CodeGraph:** before a delegated source-discovery role starts in an isolated workspace, if
-  indexing is authorized, the CLI is available, and that workspace has no `.codegraph/`, run
-  `codegraph init <workspace>` once and confirm a query can use it. Never share an index
-  between workspaces. A read-only role does not initialize an index. When an index is usable,
-  query it first for source location and relationships and target the exact workspace. If
-  initialization fails or the index is absent, stale, unsupported, changed after the query,
-  or insufficient, record the reason and use targeted file reads; this does not block the
-  task.
+- **CodeGraph:** before the first delegated source-discovery role starts in a source
+  workspace, the primary orchestrator checks that exact workspace. If the CLI is available and
+  `.codegraph/` is absent, automatically run `codegraph init <workspace>` once and confirm a
+  query can use it; do not ask the owner. Never share an index between workspaces, and refresh
+  the local index after a reused workspace moves to a new baseline. A delegated read-only role
+  does not initialize or refresh an index itself. When an index is usable, query it first for
+  source location and relationships and target the exact workspace. If initialization fails
+  or the index is absent, stale, unsupported, changed after the query, or insufficient, record
+  the reason and use targeted file reads; this does not block the task.
 - **DocStar:** use a commit-bound brief only when candidate handoff needs it. Treat it as an
   index, not authority, and follow exact pointers or read source when its evidence is
   insufficient.
@@ -163,22 +169,18 @@ For RED-gated work, the Coder first changes only tests and test-only support, co
 test-only checkpoint locally, runs the prepared target command against unchanged production
 behavior, and confirms that it reaches the approved boundary and fails for the expected reason.
 The RED run must expose the prepared failing coverage for every changed behavior; use targeted
-cases when an earlier failure would mask a later one. The Coder then sends the prepared interim
-authorization request and waits without writing production behavior.
+cases when an earlier failure would mask a later one. If the test or failure is invalid, the
+Coder corrects only test scope and repeats RED before production work. If it exposes an
+authority gap, send an interim semantic decision request through the primary orchestrator to
+the active Adjudicator and wait. Otherwise record the checkpoint reference, replay command,
+exit code, and target failure and continue without a separate review or authorization step.
 
-The primary orchestrator checks the checkpoint diff for production behavior changes, maps the
-cases back to the Card authority, and runs the target command read-only. If the expected RED is
-valid, record the accepted checkpoint and next action as a material Log decision, authorize
-the predeclared production phase, and resume the same Coder. If the test or failure is invalid,
-withhold production authorization and resume only test-scope correction; if the defect is an
-authority gap, end the dispatch and route it upstream.
-
-After RED acceptance, freeze the target tests and every helper that can affect their verdict.
+After recording RED, freeze the target tests and every helper that can affect their verdict.
 The Coder implements the smallest sufficient production change and obtains GREEN with the same
 target command before running required regression checks. Any result-affecting target-test
 change invalidates its RED evidence. Stop production work, recreate the test-only checkpoint
-against the original production baseline, and pass the RED gate again; never delete, skip,
-weaken, bypass, or move production logic into a test to obtain GREEN.
+against the original production baseline, record valid RED again, and then continue; never
+delete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.
 
 After the first GREEN, refactor only to correct a concrete structure problem. When refactoring,
 retain a pre-refactor GREEN checkpoint and rerun the same target and required regression checks;
@@ -199,16 +201,17 @@ return a materially valuable separate candidate, or route changed authority upst
 
 If implementation evidence contradicts an applicable Contract ID, the Coder does not
 negotiate or edit that authority. It sends the primary orchestrator an interim decision request
-with the observed evidence, smallest proposed semantic delta, and affected tasks. Resume the
-same Coder only when the adjudication preserves its objective and write boundary; otherwise
+with the observed evidence, smallest proposed semantic delta, and affected tasks. The primary
+orchestrator forwards it unchanged to the active Adjudicator. Resume the same Coder only when
+the adjudication preserves its objective and write boundary; otherwise
 the objective is invalidated and a new brief and agent are required. The existing Log decision
 is sufficient; do not create a separate change-request document.
 
 Before Review, commit the complete candidate locally. Handoff and candidate identity follow
 the dispatch contract; a correction commit is not a standalone candidate.
 
-Across the target-Milestone Task set, wait only after ready dispatch, primary-Coder work,
-integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
+Across the target-Milestone Task set, wait only after ready dispatch, integration, state
+refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
 the actual tool argument `{"timeout_ms": 600000}` (10 minutes) as a maximum wait. An agent
 completion or attention event returns early and the primary session handles it immediately
 without calling `list_agents`.
@@ -240,36 +243,39 @@ unclean candidate application or judgment-required integration conflict with a f
 before committing the content that will be reviewed. Freeze that complete candidate while
 Review is active.
 
-For a RED-gated candidate, bind the brief to the original baseline, accepted RED checkpoint,
+For a RED-gated candidate, bind the brief to the original baseline, recorded RED checkpoint,
 final candidate, authority-derived cases, target command, and any pre-refactor GREEN
 checkpoint. In a disposable copy, the Reviewer independently replays the same target command
-at the accepted RED checkpoint and final candidate, confirming the expected target failure and
+at the recorded RED checkpoint and final candidate, confirming the expected target failure and
 GREEN respectively. It also checks that the tests can reject wrong behavior and that no result-
-affecting test or helper change weakened the accepted oracle. This replay is ordinary
+affecting test or helper change weakened the recorded oracle. This replay is ordinary
 deterministic Review evidence, not another Reviewer round or a Verifier trigger.
 
 Create exactly one fresh Reviewer for the complete implementation and test-code candidate.
 This is the Task execution's only Reviewer round. Collect all active Review returns before
-editing. The primary orchestrator adjudicates once, rejects scope expansion, and batches every
-accepted blocker fix through a fresh Coder. It checks the complete fix delta against the
-accepted findings and existing authority, then reruns affected machine checks.
+editing. A `no findings` return follows the deterministic verification or integration path.
+The primary orchestrator forwards material findings unchanged to the active Adjudicator, which
+adjudicates once, rejects scope expansion, and prepares one batched fix brief. The primary
+orchestrator sends that brief to a fresh Coder. The Adjudicator checks the complete fix delta
+against accepted findings and authority; the primary orchestrator reruns affected machine
+checks.
 
 Never create or dispatch another Reviewer to recheck findings or fixes. Resuming the same
 active Reviewer after an interim request does not create another round and requires the fixed
 candidate to remain unchanged. If a fix changes approved behavior, scope, interface authority,
 or another upstream meaning, route it to the owning stage instead of treating it as a Review
-fix. If the primary orchestrator cannot determine from existing authority that every accepted
-blocker is resolved, keep the Task unaccepted. Non-blocking suggestions do not reopen an
+fix. If the Adjudicator cannot determine from existing authority that every accepted blocker
+is resolved, keep the Task unaccepted. Non-blocking suggestions do not reopen an
 acceptable candidate. Record the reviewed anchor, findings and rulings, exact fix delta,
 commands/results, and post-fix checks in final evidence.
 
 ## 6. Add a Verifier only for recorded risk
 
 Ordinary deterministic local execution belongs to Review; Coder output remains supporting
-evidence. Classify the blocker-resolved final candidate as `not-required` or
-`required:<trigger>` through the current assurance policy loaded through the registered
-`gmgn` Skill. Record the classification in Log. Do not dispatch a Verifier while a Review
-blocker remains.
+evidence. The primary orchestrator applies `not-required` or `required:<trigger>` mechanically
+when the current assurance policy and recorded facts make the classification explicit. Route
+only a judgment-dependent trigger to the active Adjudicator. Record the classification in Log.
+Do not dispatch a Verifier while a Review blocker remains.
 
 When required, dispatch one fresh Verifier against the fixed final candidate. It runs only the
 minimum non-transferable or explicitly independent plan and returns exact commands,
@@ -285,20 +291,22 @@ upstream.
 
 ## 7. Integrate, check the shared baseline, and close
 
-Only the primary orchestrator writes the shared baseline, Task status, Card/Log state, and
-traceability. Before integration, confirm through Git that the content matches the last
+Only the primary orchestrator advances the shared baseline and integrates accepted candidates.
+The assigned Author writes Task status, Card/Log state, traceability, and final evidence as a
+bounded document candidate from exact accepted returns; the primary orchestrator does not
+draft that content. Before integration, confirm through Git that the content matches the last
 reviewed candidate plus the exact adjudicated fix delta. No other source, build-input, or
 normative task-content change is allowed.
 
-Prepare one final integration candidate before the closing checks. It contains the accepted
-implementation plus every tracked closure change:
+The same assigned Author prepares one final integration candidate before the closing checks.
+It contains the accepted implementation plus every tracked closure change:
 
 - write one final evidence summary in `Log.md` and set its current snapshot to closed;
 - keep `Card.md` unchanged as the stable contract;
 - set only the Task row's macro `status` to `closed` and keep its execution link; and
 - refresh affected AC traceability and shared-baseline/integration-queue pointers.
 
-For RED-gated work, that final evidence summary records the accepted RED checkpoint, command,
+For RED-gated work, that final evidence summary records the recorded RED checkpoint, command,
 exit code, and target failure; the final GREEN candidate and same-command result; and either
 the pre-refactor GREEN checkpoint plus post-refactor result or that refactoring was skipped for
 lack of a concrete need. Keep the RED checkpoint addressable through Review; do not create a
@@ -323,6 +331,11 @@ candidate.
 A task is complete when its Card contract is satisfied on the checked shared baseline, not
 when every nearby issue has been resolved.
 
+After closure makes the Card's writer dispatches terminal, the primary orchestrator releases
+their GMGN-managed workspaces under the shared dispatch contract. It may rebind one to an
+already ready compatible task; after the refill pass, reclaim any released workspace with no
+explicit next consumer.
+
 ## Upstream change and exit
 
 An internal implementation issue stays in the Card. Before local stage routing, any changed
@@ -339,6 +352,6 @@ not mark a working Contract `closed` during run-task; `close-milestone` performs
 reconciliation and freeze. Do not invent parallel API versions unless a current coexistence
 requirement needs them.
 
-Remain in `run-task` while a target-Milestone task can become ready or a lane/integration entry is
-active. When every target-Milestone task is closed on one shared baseline and AC traceability
-is full, use **REQUIRED next skill: `close-milestone`**.
+Remain in `run-task` while a target-Milestone task can become ready or a lane/integration
+entry is active. When every target-Milestone task is closed on one shared baseline and AC
+traceability is full, use **REQUIRED next skill: `close-milestone`**.

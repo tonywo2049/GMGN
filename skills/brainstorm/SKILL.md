@@ -15,11 +15,12 @@ writing rules. Use the active project/user locale for artifact prose. The WhiteP
 
 ## Working rhythm
 
-The primary orchestrator stays in the owner dialogue, asks one question at a time, records
-rulings, and challenges premature implementation or solutions disguised as requirements.
-Before writing, it selects and records the actual WhitePaper writer. The primary session
-normally writes because it holds the complete Brainstorm context; any delegated Author or
-Researcher follows the shared dispatch contract.
+One Adjudicator stays assigned to the Brainstorm case, conducts the owner dialogue through the
+primary orchestrator's exact relay, asks one question at a time, records rulings in its case
+context, and challenges premature implementation or solutions disguised as requirements.
+When the meaning is ready to draft, it returns one bounded Author dispatch. The primary
+orchestrator appends runtime and workspace facts; the Author writes the WhitePaper candidate.
+Any Researcher follows the shared dispatch contract and returns facts to the same Adjudicator.
 
 Use as needed:
 
@@ -42,14 +43,14 @@ Do not introduce R-AC IDs or quantitative requirement criteria here.
 
 ## Writer and review-selection loop
 
-1. Resolve material problem, scope, and harm-order questions with the owner, then select the
-   writer.
-2. Create one complete candidate through the registered `gmgn` Skill's shared document-
-   candidate and dispatch rules. A selected Critic focuses on the problem, scope, harm order,
-   invariants, evidence, and deletion of unsupported content.
-3. With no blocker, present the committed candidate and remaining material risks—or that none
-   are known—to the owner. After approval, apply mechanical links and state, then run machine
-   checks.
+1. The Adjudicator resolves material problem, scope, and harm-order questions with the owner,
+   then prepares the Author brief.
+2. The same Author creates and revises one complete candidate through the registered `gmgn`
+   Skill's shared document-candidate and dispatch rules. A selected Critic focuses on the
+   problem, scope, harm order, invariants, evidence, and deletion of unsupported content.
+3. The Adjudicator adjudicates any findings and, with no blocker, asks the owner to approve the
+   committed candidate and remaining material risks—or that none are known. After approval,
+   the primary orchestrator applies mechanical links and state, then runs machine checks.
 
 ## Revision mode
 
@@ -58,8 +59,8 @@ whole project.
 
 1. Start from the approved old commit and state the trigger, proposed semantic delta, and
    impact cone.
-2. Edit only the WhitePaper sections that are authoritative for the changed meaning. Preserve
-   unaffected conclusions and prior decision history.
+2. Have the assigned Author edit only the WhitePaper sections that are authoritative for the
+   changed meaning. Preserve unaffected conclusions and prior decision history.
 3. Scope research and any required independent criticism to the delta plus the minimum
    context needed to falsify it.
 4. Have the owner approve the semantic delta at a new Git commit. The old approval remains
@@ -74,8 +75,8 @@ revision mode or seeking reapproval.
 
 ## Exit
 
-Bind owner approval to the shortest unambiguous commit reference. In creation mode, complete any
-workspace-topology-required integration and
+The Adjudicator binds owner approval to the shortest unambiguous commit reference. In creation
+mode, the primary orchestrator completes any workspace-topology-required integration and
 use **REQUIRED next skill: `write-decision`**. In revision mode, commit, propagate the approved delta
 through its impact cone, and return to the stage that raised the change rather than restarting
 the full chain.

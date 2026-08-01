@@ -16,7 +16,15 @@ ALLOWED_PREFIXES = (
     "skills/", "telemetry/",
 )
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "LICENSE"}
-AGENT_ROLES = ("author", "coder", "critic", "researcher", "reviewer", "verifier")
+AGENT_ROLES = (
+    "adjudicator",
+    "author",
+    "coder",
+    "critic",
+    "researcher",
+    "reviewer",
+    "verifier",
+)
 REQUIRED_CODEX_AGENT_PROFILES = {f".codex/agents/{role}.toml" for role in AGENT_ROLES}
 REQUIRED_CLAUDE_AGENT_PROFILES = {f"agents/{role}.md" for role in AGENT_ROLES}
 VERSION_PATHS = (

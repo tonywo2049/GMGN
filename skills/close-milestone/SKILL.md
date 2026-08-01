@@ -9,8 +9,8 @@ description: "Use when every target-milestone task is closed and traceability is
 
 ## Reconcile the closing commit
 
-The primary orchestrator records the Goal/Requirement/Design/applicable Contract/Task commits
-and checks:
+The primary orchestrator records the exact Goal/Requirement/Design/applicable Contract/Task
+commits and machine state. The assigned Adjudicator checks:
 
 - all target tasks and their execution pointers;
 - Card completion contracts against Log current evidence;
@@ -39,18 +39,20 @@ commit and already cover every ROADMAP deliverable, Goal Close outcome, the Mile
 required E2E, regression, or integration paths, relevant negative/recovery outcomes,
 environment, and limitations.
 
-Put missing or stale deterministic local checks in the closure Reviewer's prepared plan.
-Classify remaining final-candidate evidence as `not-required` or `required:<trigger>` using the
-current assurance policy loaded through the registered `gmgn` Skill. Create one fresh Verifier
-only for `required:<trigger>` and put the classification, reason, and minimum verification
-plan in its brief. It returns exact commands, environment, revision, exit codes, results,
-limitations, and side effects. A skipped or unavailable required command is not a pass. The
-Verifier's interim questions follow the dispatch contract.
+The Adjudicator puts missing or stale deterministic local checks in the closure Reviewer's
+prepared plan. Apply `not-required` or `required:<trigger>` mechanically when the current
+assurance policy and recorded facts make the classification explicit; the Adjudicator resolves
+only judgment-dependent trigger applicability. The primary orchestrator creates one fresh
+Verifier only for `required:<trigger>` from the classification, reason, and minimum verification
+plan. It returns exact commands, environment, revision, exit codes, results, limitations, and
+side effects. A skipped or unavailable required command is not a pass. The Verifier's interim
+questions follow the dispatch contract.
 
 ## Closure candidate and review
 
-The primary session normally writes the closure candidate because it owns the complete
-Milestone state. Any delegation follows the shared dispatch contract.
+The Adjudicator prepares one closure Author brief from the exact Milestone state. The Author
+writes and revises the closure candidate under the shared dispatch contract; the primary
+orchestrator does not draft it.
 
 The candidate contains deliverable, success-signal, and Goal Close-outcome reconciliation,
 evidence map, controlled debt, remaining material risks or a supported none-known statement,
@@ -60,17 +62,14 @@ Prepare the actual Milestone, Contract, ROADMAP, Task, traceability, and Handoff
 isolated closure commit; it has no effect on the shared baseline before closure review.
 
 Process the candidate through the registered `gmgn` Skill's shared role-selection and
-dispatch rules. Select Reviewer from the changed implementation, test-code, and deterministic-
-check surfaces. When both Critic and Reviewer are
-required, prepare one brief naming the shortest unambiguous commit reference and create a
-fresh independent combined Critic/Reviewer for
-Requirement–Design–Task–Card/Log–code–evidence consistency, closure meaning, and any missing
-deterministic local checks. Otherwise dispatch only the required role; when Critic is skipped,
-record the one-sentence reason and run the affected machine checks. Collect every required
-review before editing. Resolve accepted blockers through the shared candidate loop without
-another Critic or Reviewer. A fix that expands authority, scope, or closure meaning becomes a
-separately scoped change. Present the blocker-resolved closing commit for owner review
-only when required evidence exists and no accepted review blocker remains unresolved.
+dispatch rules. The Adjudicator selects Reviewer from the changed implementation, test-code,
+and deterministic-check surfaces. When both Critic and Reviewer are required, dispatch one of
+each against the same shortest unambiguous candidate commit and collect both before editing;
+do not invent a combined role. Otherwise dispatch only the required role. When Critic is
+skipped, record the one-sentence reason and run affected machine checks. The Adjudicator rules
+on accepted blockers and sends in-scope fixes to the same Author without another Critic or
+Reviewer. A fix that expands authority, scope, or closure meaning becomes a separately scoped
+change.
 
 ## Structural checks
 
@@ -82,10 +81,12 @@ run equivalent repository link/table checks and record the substitution.
 
 ## Owner review and integration
 
-Present scope, evidence, debt, risks, and the shortest unambiguous closing-commit reference.
-Owner review is one closure review input, not irrevocable authority or separate integration
-authorization. Resolve its material findings through the same candidate loop as other review
-findings. When required evidence and reviews are complete, integrate the exact closing commit.
+When required evidence exists and no accepted review blocker remains, the Adjudicator presents
+scope, evidence, debt, risks, and the shortest unambiguous closing-commit reference through the
+primary orchestrator's exact relay. Owner review is one closure review input, not irrevocable
+authority or separate integration authorization. Resolve its material findings through the
+same Adjudicator and Author candidate loop as other review findings. When required evidence and
+reviews are complete, the primary orchestrator integrates the exact closing commit.
 That commit already contains:
 
 - the target Milestone and its appropriate normative chain marked closed;

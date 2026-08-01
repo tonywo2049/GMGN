@@ -28,8 +28,9 @@ SKILLS = {
     "close-milestone",
     "release",
 }
-ROLES = {"author", "coder", "critic", "reviewer", "researcher", "verifier"}
+ROLES = {"adjudicator", "author", "coder", "critic", "reviewer", "researcher", "verifier"}
 ROLE_SANDBOX = {
+    "adjudicator": "read-only",
     "author": "workspace-write",
     "coder": "workspace-write",
     "critic": "read-only",
@@ -68,21 +69,21 @@ RUN_TASK_CONTROLS = (
     "  wrong behavior it detects.",
     "every changed behavior must have discriminating pre-implementation\n"
     "  failure coverage",
-    "use a delegated Coder for RED-gated work",
+    "every implementation lane\nuses a delegated Coder",
     "The Coder encodes those approved criteria; it does not define acceptance meaning",
     "structural regression, not behavior TDD evidence",
-    "Production implementation\n"
-    "remains unauthorized until the primary orchestrator accepts the RED checkpoint",
+    "the initial Coder brief authorizes the complete test and production write\nboundary",
+    "no separate\nprimary-orchestrator or Adjudicator approval is required",
     "For RED-gated work, the Coder first changes only tests and test-only support, commits that\n"
     "test-only checkpoint locally, runs the prepared target command against unchanged production\n"
     "behavior, and confirms that it reaches the approved boundary and fails for the expected reason.",
-    "The primary orchestrator checks the checkpoint diff for production behavior changes, maps the\n"
-    "cases back to the Card authority, and runs the target command read-only.",
-    "After RED acceptance, freeze the target tests and every helper that can affect their verdict.",
+    "continue without a separate review or authorization step",
+    "After recording RED, freeze the target tests and every helper that can affect their verdict.",
     "The Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
     "target command before running required regression checks.",
     "Any result-affecting target-test\nchange invalidates its RED evidence",
-    "never delete, skip,\nweaken, bypass, or move production logic into a test to obtain GREEN.",
+    "record valid RED again",
+    "never\ndelete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.",
     "After the first GREEN, refactor only to correct a concrete structure problem.",
     "otherwise skip refactoring without creating another checkpoint.",
     "Reviewer independently replays the same target command",
@@ -100,7 +101,10 @@ RUN_TASK_CONTROLS = (
     "`ponytail:ponytail`",
     "`ponytail:ponytail-review`",
     "`codegraph init <workspace>`",
+    "automatically run `codegraph init <workspace>` once",
+    "do not ask the owner",
     "sends the primary orchestrator an interim decision request",
+    "forwards it unchanged to the active Adjudicator",
     "Resume the\nsame Coder only when the adjudication preserves its objective and write boundary",
     "Every Codex `wait_agent` call uses\n"
     "the actual tool argument `{\"timeout_ms\": 600000}` (10 minutes) as a maximum wait",
@@ -122,6 +126,8 @@ RUN_TASK_CONTROLS = (
     "Create exactly one fresh Reviewer",
     "This is the Task execution's only Reviewer round",
     "Never create or dispatch another Reviewer to recheck findings or fixes",
+    "forwards material findings unchanged to the active Adjudicator",
+    "The assigned Author writes Task status, Card/Log state, traceability, and final evidence",
 )
 RUN_TASK_EXCLUSIVE_MARKERS = (
     "wait_agent",
@@ -145,7 +151,10 @@ DISPATCH_SINGLE_REVIEW_CONTROLS = (
 )
 DISPATCH_LIFECYCLE_CONTROLS = (
     "An authorization or missing-information request is an interim\npause, not a terminal return",
-    "That primary-\norchestrator decision is sufficient for the agent",
+    "An Adjudicator remains assigned through owner questions",
+    "Its `ask_owner` and `dispatch` actions are interim",
+    "owner's answer verbatim to that same Adjudicator",
+    "An Author likewise remains assigned through\ncandidate checkpoints, owner feedback, and accepted fixes",
     "The terminal completion return retires the agent",
     "Never resume, reactivate, repurpose, or send\nlater work to a retired agent",
     "applicable authority, scope, checks, and environment validity inputs\nremain unchanged",
@@ -158,6 +167,7 @@ DISPATCH_ROLE_PROFILE_CONTROLS = (
     "It does not create a generic, unnamed, or ad hoc role",
     "A task name or `dispatch_id` may\ndistinguish instances but does not define another role",
     "The brief must carry\nthe selected profile's applicable instructions",
+    "`adjudicator | author | coder | critic | reviewer | verifier | researcher`",
     "On Codex, read `.codex/agents/<role>.toml`",
     "load `agents/<role>.md` for the\nselected GMGN role",
 )
@@ -166,7 +176,7 @@ EXTERNAL_AUTHORIZATION_CONTROLS = (
     "Expanding the operation set, target, or side effects requires another authorization",
 )
 RUNTIME_ROLE_ROWS = (
-    "| Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
+    "| Adjudicator, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
     "| Coder | `gpt-5.6-terra` | `max` |",
     "| Researcher | `gpt-5.6-terra` | `max` |",
 )
@@ -179,13 +189,48 @@ RUNTIME_SELECTION_CONTROLS = (
 RESEARCHER_CONTROLS = (
     "Researcher** is an information collector only",
     "It does not\n  synthesize across sources, compare, infer, recommend, or decide",
-    "The primary orchestrator\n  owns aggregation, analysis, inference, comparison, and conclusions",
+    "The\n  active Adjudicator owns aggregation, analysis, inference, comparison, and conclusions",
     "A Researcher brief defines one bounded collection question",
     "It never asks the Researcher\nfor analysis or a conclusion",
 )
+DISPATCH_ADJUDICATION_CONTROLS = (
+    "The primary orchestrator is the persistent relay and mechanical scheduler",
+    "It does not conduct semantic owner dialogue, plan a\nsolution, draft a document candidate, decide Critic necessity, adjudicate findings",
+    "For an initial Adjudicator dispatch, the primary orchestrator copies the owner's request",
+    "The Adjudicator prepares the semantic fields",
+    "without\nparaphrasing the semantic payload",
+    "Create one Adjudicator per bounded semantic case only when judgment or owner dialogue is\nneeded",
+    "Cases with disjoint declared authority and impact cones may run in parallel",
+    "Do not keep an Adjudicator pool",
+    "It does not forward every return to an Adjudicator",
+    "Forward Author and Researcher returns, every Critic return, material Reviewer findings",
+    "The Adjudicator returns `ask_owner`, `dispatch`, or `accept`",
+)
+DISPATCH_WORKSPACE_CONTROLS = (
+    "records enough\ndurable Git or platform metadata to prove that GMGN manages it",
+    "Never infer ownership from a path pattern alone",
+    "A workspace remains assigned while\nits dispatch is active, under Review or correction, or waiting for owner or Adjudicator input",
+    "Reuse it\nonly for an already identified next dispatch in the same repository",
+    "If the scheduling pass finds no explicit next\nconsumer, remove the exact GMGN-managed worktree",
+    "Do not create an idle pool, TTL, LRU, or reuse score",
+    "Never auto-remove the main workspace, a pre-existing or user-created worktree",
+    "never delete by wildcard",
+    "Build outputs and a local index do not\nblock removal after the candidate and evidence are preserved",
+)
+ADJUDICATOR_PROFILE_CONTROLS = (
+    "Handle one prepared Adjudicator brief",
+    "Own the case's analysis, owner dialogue, research synthesis",
+    "Do not write project\ndocuments or code",
+    "All owner interaction passes through the primary orchestrator as an exact relay",
+    "return exactly one action",
+    "`ask_owner`",
+    "`dispatch`",
+    "`accept`",
+    "Do not request routine Coder completion",
+)
 ROADMAP_APPROVAL_CONTROLS = (
-    "writes one complete recommended candidate without asking the owner to\napprove fields or allocations separately",
-    "That approval ratifies the ROADMAP-\nowned allocations and rulings expressed in the candidate",
+    "The Author writes one complete\nrecommended candidate without asking the owner to approve fields or allocations separately",
+    "That approval ratifies the ROADMAP-owned allocations and rulings expressed in the candidate",
 )
 GOAL_APPROVAL_CONTROLS = (
     "Prepare the Goal and proposed initiation as one candidate",
@@ -207,6 +252,11 @@ CONTRADICTORY_POLICY_MARKERS = (
     "scan only the separately confirmed execution set",
     "Every delegated agent inherits the primary orchestrator configuration",
     "Researcher** analyzes and recommends solutions",
+    "The primary orchestrator adjudicates findings",
+    "The primary session normally writes",
+    "The primary orchestrator may act as one Coder",
+    "Every return goes to an Adjudicator",
+    "Keep an unassigned worktree for possible future reuse",
 )
 CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS = (
     ("edit first", "research later"),
@@ -248,16 +298,17 @@ DECISION_LINK_CONTROLS = (
     "Downstream artifacts link an applicable D-ID without copying its ruling",
 )
 WRITE_DESIGN_RESEARCH_CONTROLS = (
-    "the primary session derives one bounded research scope",
+    "The assigned Adjudicator derives one bounded research scope",
     "every semantic revision of the Design-stage Bundle require",
     "before drafting or editing any Design-stage artifact",
     "neither\ndelta size nor an already-clear problem waives it",
     "A meaning-preserving correction or mechanical change does not alter Design-owned meaning and is\noutside this trigger",
     "observable candidate and source inclusion and exclusion conditions",
-    "the primary session dispatches one\nfresh Researcher under the shared dispatch contract to collect the external evidence. It does\nnot search external sources itself",
+    "the Adjudicator returns one\nResearcher dispatch and the primary orchestrator adds runtime facts and sends it",
+    "The\nAdjudicator does not search external sources itself",
     "the Researcher to discover up to three credible candidates",
     "whether a candidate or source enters the collection set only by those conditions",
-    "The primary session aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
+    "The same Adjudicator aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
     "The bounded external research for the initial creation or current semantic revision is\n   complete",
     "Before editing that semantic delta, complete its bounded external research under External\n   solution research",
 )
@@ -423,8 +474,16 @@ def validate_shared_surfaces(errors: list[str]) -> None:
             *EXTERNAL_AUTHORIZATION_CONTROLS,
             *RUNTIME_SELECTION_CONTROLS,
             *RESEARCHER_CONTROLS,
+            *DISPATCH_ADJUDICATION_CONTROLS,
+            *DISPATCH_WORKSPACE_CONTROLS,
         ),
         "派发授权与生命周期",
+        errors,
+    )
+    require_active_fragments(
+        read("agents/adjudicator.md"),
+        ADJUDICATOR_PROFILE_CONTROLS,
+        "Adjudicator 角色边界",
         errors,
     )
     active_dispatch = active_markdown(dispatch_contract)

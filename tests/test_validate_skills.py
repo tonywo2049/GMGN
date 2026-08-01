@@ -146,13 +146,16 @@ class ValidateSkillsTests(unittest.TestCase):
                 "observable candidate and source inclusion and exclusion conditions",
                 "general candidate preferences",
             ),
-            ("It does\nnot search external sources itself.", "It searches external sources itself."),
+            (
+                "The\nAdjudicator does not search external sources itself.",
+                "The Adjudicator searches external sources itself.",
+            ),
             (
                 "Researcher to discover up to three credible candidates",
                 "Researcher to collect owner-named candidates",
             ),
             (
-                "The primary session aggregates the returned evidence, compares only what can change the\n"
+                "The same Adjudicator aggregates the returned evidence, compares only what can change the\n"
                 "decision, and selects the Design-owned solution",
                 "The Researcher compares candidates and selects the Design-owned solution",
             ),
@@ -175,8 +178,8 @@ class ValidateSkillsTests(unittest.TestCase):
         # This protects approved Skill text; it is not task-level RED evidence.
         cases = (
             (
-                "use a delegated Coder for RED-gated work",
-                "let the primary orchestrator self-approve RED-gated work",
+                "every implementation lane\nuses a delegated Coder",
+                "the primary orchestrator may implement one lane",
             ),
             (
                 "The Coder encodes those approved criteria; it does not define acceptance meaning",
@@ -187,9 +190,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "behavior TDD evidence",
             ),
             (
-                "Production implementation\n"
-                "remains unauthorized until the primary orchestrator accepts the RED checkpoint",
-                "Production implementation may start before the RED checkpoint",
+                "no separate\nprimary-orchestrator or Adjudicator approval is required",
+                "primary-orchestrator approval is required",
             ),
             (
                 "Any result-affecting target-test\nchange invalidates its RED evidence",
@@ -225,33 +227,25 @@ class ValidateSkillsTests(unittest.TestCase):
                 "run-task 关键执行控制",
             ),
             (
-                "test-only RED and primary acceptance",
+                "test-only RED and direct continuation",
                 "skills/run-task/SKILL.md",
-                "For RED-gated work, the Coder first changes only tests and test-only support, commits that\n"
-                "test-only checkpoint locally, runs the prepared target command against unchanged production\n"
-                "behavior, and confirms that it reaches the approved boundary and fails for the expected reason.\n"
-                "The RED run must expose the prepared failing coverage for every changed behavior; use targeted\n"
-                "cases when an earlier failure would mask a later one. The Coder then sends the prepared interim\n"
-                "authorization request and waits without writing production behavior.\n\n"
-                "The primary orchestrator checks the checkpoint diff for production behavior changes, maps the\n"
-                "cases back to the Card authority, and runs the target command read-only. If the expected RED is\n"
-                "valid, record the accepted checkpoint and next action as a material Log decision, authorize\n"
-                "the predeclared production phase, and resume the same Coder. If the test or failure is invalid,\n"
-                "withhold production authorization and resume only test-scope correction; if the defect is an\n"
-                "authority gap, end the dispatch and route it upstream.",
+                "For RED-gated work, the initial Coder brief authorizes the complete test and production write\n"
+                "boundary. Require the Coder to create and record the test-only RED checkpoint before production\n"
+                "work, then continue directly to GREEN in the same dispatch. The Coder does not request or wait\n"
+                "for a separate RED approval from the primary orchestrator or Adjudicator.",
                 "For RED-gated work, implementation may proceed before later validation.",
                 "run-task 关键执行控制",
             ),
             (
-                "frozen tests and same-command GREEN",
+                "recorded RED and same-command GREEN",
                 "skills/run-task/SKILL.md",
-                "After RED acceptance, freeze the target tests and every helper that can affect their verdict.\n"
+                "After recording RED, freeze the target tests and every helper that can affect their verdict.\n"
                 "The Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
                 "target command before running required regression checks. Any result-affecting target-test\n"
                 "change invalidates its RED evidence. Stop production work, recreate the test-only checkpoint\n"
-                "against the original production baseline, and pass the RED gate again; never delete, skip,\n"
-                "weaken, bypass, or move production logic into a test to obtain GREEN.",
-                "After RED acceptance, implementation may alter tests as needed.",
+                "against the original production baseline, record valid RED again, and then continue; never\n"
+                "delete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.",
+                "After recording RED, implementation may alter tests as needed.",
                 "run-task 关键执行控制",
             ),
             (
@@ -385,7 +379,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "these are the only GMGN agent\nroles",
+                "these are the only\nGMGN agent roles",
                 "additional roles may be invented when useful",
                 "派发授权与生命周期",
             ),
@@ -415,10 +409,29 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/roadmap/SKILL.md",
-                "writes one complete recommended candidate without asking the owner to\n"
-                "approve fields or allocations separately",
+                "The Author writes one complete\n"
+                "recommended candidate without asking the owner to approve fields or allocations separately",
                 "asks the owner to approve every allocation",
                 "ROADMAP 一次批准",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "It does not forward every return to an Adjudicator",
+                "Every return goes to an Adjudicator",
+                "派发授权与生命周期",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "If the scheduling pass finds no explicit next\n"
+                "consumer, remove the exact GMGN-managed worktree",
+                "Keep an unassigned worktree for possible future reuse",
+                "派发授权与生命周期",
+            ),
+            (
+                "agents/adjudicator.md",
+                "All owner interaction passes through the primary orchestrator as an exact relay",
+                "The Adjudicator asks the owner directly",
+                "Adjudicator 角色边界",
             ),
             (
                 "skills/write-goal/SKILL.md",

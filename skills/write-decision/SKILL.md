@@ -41,10 +41,10 @@ Once recorded:
 A stage may retain a decision in its normal authority when it is not recorded in
 `Decision.md`. Never keep the same ruling normative in both places.
 
-The primary orchestrator recommends the option, scope, and downstream consequence, then asks
-the owner one material question at a time when the ruling itself is unresolved. Do not create
-an Ask document or reject a Decision candidate merely because its scope is narrow. The owner
-makes the final ruling.
+The assigned Adjudicator recommends the option, scope, and downstream consequence, then asks
+the owner one material question at a time through the primary orchestrator's exact relay when
+the ruling itself is unresolved. Do not create an Ask document or reject a Decision candidate
+merely because its scope is narrow. The owner makes the final ruling.
 
 ## Decision.md content
 
@@ -81,19 +81,19 @@ not another bold D-ID definition.
 
 ## Authoring and approval
 
-1. Read the approved WhitePaper, current `Decision.md`, and only the Log history needed to
-   preserve IDs or understand the proposed delta.
-2. Resolve material ruling and downstream-scope questions with the owner.
-3. Write the complete current Decision candidate. In revision mode, change only affected
-   entries.
+1. The Adjudicator reads the approved WhitePaper, current `Decision.md`, and only the Log
+   history needed to preserve IDs or understand the proposed delta.
+2. It resolves material ruling and downstream-scope questions with the owner.
+3. It prepares one Author brief; the Author writes the complete current Decision candidate.
+   In revision mode, change only affected entries.
 4. Process the semantic candidate through the registered `gmgn` Skill's shared document-
    candidate and dispatch rules. A selected Critic checks decision clarity, current meaning,
    deletion, and impact.
-5. Present the committed candidate and remaining material risks—or that none are known—for
-   owner approval.
-6. After approval, append the compact Log event using the approved semantic commit, apply
-   mechanical state and reciprocal links, and commit that approval record. Do not reopen
-   semantic review for this mechanical record.
+5. The Adjudicator adjudicates findings and presents the committed candidate and remaining
+   material risks—or that none are known—for owner approval through the exact relay.
+6. After approval, the same Author appends the compact Log event using the approved semantic
+   commit. The primary orchestrator applies mechanical state and reciprocal links and
+   integrates the approval record. Do not reopen semantic review for this mechanical record.
 
 Return the approved decision delta and its impact cone to `gmgn`; the router propagates only
 affected downstream authority and resumes the stage that raised the change.

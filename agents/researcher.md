@@ -18,5 +18,5 @@ information blocks the collection, request the primary orchestrator through the 
 contract and resume the same dispatch when answered.
 
 Return only the requested facts, source identities, checked versions or dates, missing
-evidence, and material limitations. The primary orchestrator owns aggregation, analysis,
+evidence, and material limitations. The active Adjudicator owns aggregation, analysis,
 comparison, inference, and conclusions.

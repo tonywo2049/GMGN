@@ -15,10 +15,11 @@ writing rules. Use the active locale for artifact prose. Use `ROADMAP.md`, `type
 
 ## Working rhythm
 
-The primary orchestrator first reads the approved Decision and its WhitePaper authority plus
+The assigned Adjudicator first reads the approved Decision and its WhitePaper authority plus
 current project facts, then forms a recommended Milestone map and a list of unresolved
-allocation decisions. It writes one complete recommended candidate without asking the owner to
-approve fields or allocations separately.
+allocation decisions. It resolves only material blockers with the owner through the primary
+orchestrator's exact relay, then prepares one Author brief. The Author writes one complete
+recommended candidate without asking the owner to approve fields or allocations separately.
 
 Ask before the candidate only when an unresolved choice is irreversible or creates a material
 external commitment and cannot be safely recommended or deferred. Combine related blockers
@@ -100,14 +101,15 @@ Milestone allocation or meaning changes.
 ## Approval and revision
 
 Creation and semantic revision use the registered `gmgn` Skill's shared document-candidate
-and dispatch rules. Present one full recommended candidate and remaining material risks—or that
-none are known—for one owner approval bound to its commit. That approval ratifies the ROADMAP-
-owned allocations and rulings expressed in the candidate.
+and dispatch rules. The Adjudicator adjudicates findings and presents one full recommended
+candidate and remaining material risks—or that none are known—for one owner approval bound to
+its commit. That approval ratifies the ROADMAP-owned allocations and rulings expressed in the
+candidate.
 
-In revision mode, ask only about decisions changed by the delta. ROADMAP owns Milestone
-allocation, outcome, value, deliverables, success signals, horizons, relative priority,
-dependencies, and Backlog placement. Preserve unaffected Milestones and prior approval. A
-change to WhitePaper or Decision authority returns to `gmgn`.
+In revision mode, the Adjudicator asks only about decisions changed by the delta. ROADMAP owns
+Milestone allocation, outcome, value, deliverables, success signals, horizons, relative
+priority, dependencies, and Backlog placement. Preserve unaffected Milestones and prior
+approval. A change to WhitePaper or Decision authority returns to `gmgn`.
 
 ## Exit
 

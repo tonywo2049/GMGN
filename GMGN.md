@@ -11,7 +11,7 @@ assurance_policy: gmgn-assurance-v2
 
 # GMGN: a lightweight engineering method for agent collaboration
 
-GMGN coordinates one accountable human owner, one primary AI orchestrator, and short-lived
+GMGN coordinates one accountable human owner, one primary AI relay and scheduler, and bounded
 task agents. It addresses two risks:
 
 - **representation drift** — documents, status, tests, and evidence stop matching reality;
@@ -27,25 +27,36 @@ current task does not need.
 - **Owner** decides scope, stage approvals, release authority, and any semantic removal or
   reassignment of a completion criterion, and reviews Milestone closure. Closure review is not
   an irrevocable acceptance decision.
-- **Primary orchestrator** retains the complete session context, routes stages, prepares
-  briefs, selects delegated runtimes, grants delegated authorization, obtains owner approval
-  when needed, adjudicates findings, integrates accepted work, and updates shared state. It may
-  directly write WhitePaper, Decision, ROADMAP, Goal, Requirement, Design, and Task when that
-  is the clearest use of context. It may act as one Coder only when no implementation lane can run
-  in parallel with useful orchestration work. During long-running work, it must not send a
-  progress update while observable state is unchanged; update only for material progress, a
-  blocker, a decision request, or the final result.
-- **Author** writes one delegated document candidate.
+- **Primary orchestrator** retains the complete session context and acts only as the exact
+  owner/agent relay, observable-state router, mechanical scheduler, workspace manager,
+  deterministic checker, integration owner, and shared-state updater. It appends runtime facts
+  to semantic briefs without paraphrasing them. It does not conduct semantic owner dialogue,
+  plan solutions, write document candidates, decide Critic necessity, adjudicate findings, or
+  act as a Coder. During long-running work, it must not send a progress update while observable
+  state is unchanged; update only for material progress, a blocker, a decision request, or the
+  final result.
+- **Adjudicator** owns one bounded semantic case: owner dialogue through the primary relay,
+  research synthesis, solution and authority rulings, Critic necessity, finding adjudication,
+  and the next semantic action. It returns only `ask_owner | dispatch | accept` and does not
+  edit project files. Independent cases may use parallel Adjudicators; overlapping authority
+  or impact cones are serialized.
+- **Author** writes and revises one bounded document candidate from an Adjudicator-prepared
+  semantic brief.
 - **Coder** implements one bounded Card attempt.
 - **Critic** independently challenges document meaning.
 - **Reviewer** independently reviews implementation or test-code diffs and runs the prepared
   deterministic local checks against that candidate commit.
+- **Researcher** collects bounded source-by-source facts without comparing or selecting a
+  solution; the active Adjudicator synthesizes them.
 - **Verifier** independently executes checks against one fixed final candidate only when the
   [assurance policy](skills/gmgn/references/en/assurance-policy.json) records a trigger.
 
 Every delegated agent follows the
 [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). The primary orchestrator
-is not a delegated agent and remains the integration owner; there is no Integrator-agent role.
+is not a delegated agent and remains the mechanical integration owner; there is no
+Integrator-agent role. An Adjudicator or Author waiting for owner input or a bounded child
+return keeps its identity and resumes the same unfinished dispatch without a separate state
+document. It retires only when that objective completes, is invalidated, or is cancelled.
 
 ## 2. Authority and document chain
 
@@ -59,23 +70,24 @@ WhitePaper → Decision → ROADMAP → Goal → Requirement → Design Bundle �
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
 - `Decision.md` may own any accepted ruling explicitly recorded for downstream consumption,
-  regardless of subject or Milestone scope. The primary orchestrator identifies candidates
+  regardless of subject or Milestone scope. The assigned Adjudicator identifies candidates
   and recommends their options, scope, and downstream consequences; the human owner makes the
   ruling. Stable D-IDs identify current rulings. `DecisionLog.md` is descriptive
   accepted-change history and never downstream authority.
 - ROADMAP owns outcome-based Milestone allocation, `now | next | later` horizons, relative
   priority, real cross-Milestone dependencies, necessary deliverables, result-level success
   signals, and a curated Backlog. Dependencies create only a partial order; Milestone IDs and
-  display order do not. The primary orchestrator proposes one complete map for owner approval
-  and asks beforehand only when an irreversible blocking choice cannot be safely recommended
-  or deferred. ROADMAP does not own an E2E path or detailed Close criteria.
+  display order do not. The Adjudicator resolves allocation meaning and an Author writes one
+  complete map for owner approval. The Adjudicator asks beforehand only when an irreversible
+  blocking choice cannot be safely recommended or deferred. ROADMAP does not own an E2E path
+  or detailed Close criteria.
 - Goal refines one eligible `now` Milestone for exactly two purposes: provide the basis for
   Requirement and define qualitative Milestone Close criteria. It owns only the active
   boundary needed to prevent scope ambiguity, necessary Milestone-local exclusions that do
   not remove upstream obligations, ROADMAP deliverable/success-signal coverage, and the
   smallest sufficient set of qualitative Close outcomes. Result grouping is optional and
-  creates no separate authority. The primary orchestrator normally drafts directly; one owner
-  approval of the exact candidate both initiates the Milestone and approves Goal.
+  creates no separate authority. An Author drafts the candidate after Adjudicator clarification;
+  one owner approval of the exact candidate both initiates the Milestone and approves Goal.
 - Requirement translates Goal into required observable behavior, quantified parameters,
   constraints, and decidable acceptance criteria (ACs).
 - `Design.md` is the root Design authority and complete R/AC mapping entry. Add architecture,
@@ -118,9 +130,10 @@ an isolated worktree. Checksums are evidence only. Editing a file never moves ap
 automatically.
 
 Documents under a project-declared archive root are historical storage, not active authority.
-Writers, Critics, Reviewers, and Verifiers do not read, cite, or use them as context or
-evidence. Exclude archive roots from briefs and generated context. If active work needs
-archived meaning, restore it to the active tree through its owning authority before use.
+Adjudicators, Authors, Critics, Reviewers, Researchers, and Verifiers do not read, cite, or use
+them as context or evidence. Exclude archive roots from briefs and generated context. If active
+work needs archived meaning, restore it to the active tree through its owning authority before
+use.
 
 Human prose may be English or Chinese. Machine fields, IDs, status tokens, and Task headers
 remain stable. The complete structural rules are in
@@ -161,8 +174,8 @@ Critic necessity gate defined by the [GMGN router](skills/gmgn/SKILL.md). Each s
 candidate batch has at most one Critic round. Each implementation candidate has exactly one
 Reviewer round owned by `run-task`; the
 [code-review contract](skills/gmgn/references/en/code-review.md) owns its Review surface.
-Accepted fixes are adjudicated and checked by the primary orchestrator without another Critic
-or Reviewer.
+Accepted fixes are adjudicated by the active Adjudicator; the primary orchestrator checks
+candidate identity and affected machine checks without another Critic or Reviewer.
 
 A fresh Verifier remains risk-triggered rather than automatic. Failed, skipped, timed-out, or
 unavailable required checks are not passes. The
@@ -174,7 +187,8 @@ and stage Skills define when Review and verification are dispatched.
 `run-task` owns Card/Log materialization, the dependency-aware ready set, conflict-aware
 parallel dispatch, runtime tool policy, bounded writer lanes, Codex agent monitoring, the
 single Review dispatch, verification, integration, and Task closure. The primary orchestrator
-retains runtime state, the integration queue, and the shared baseline.
+retains runtime state, the integration queue, and the shared baseline. An Adjudicator resolves
+execution semantics and findings; an Author writes Card/Log and other document candidates.
 
 All Coder lanes use the same approved Design Bundle commit and must not invent or edit shared
 interface authority. Evidence that contradicts Design or Contract returns upstream through

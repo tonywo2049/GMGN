@@ -51,16 +51,17 @@ writing rules. Use the Goal locale for artifact prose. Keep filename `Requiremen
 
 ## Clarification and translation
 
-Before creating or semantically revising R/AC, build the most complete candidate allowed by
-the approved authorities. Do not start with a routine question checklist. For each unresolved
-point:
+Before creating or semantically revising R/AC, the assigned Adjudicator builds the most
+complete candidate meaning allowed by the approved authorities. Do not start with a routine
+question checklist. For each unresolved point:
 
 - remove it if it is not needed for a Goal Close outcome or accepted constraint;
 - derive it without asking when an approved authority already decides it;
 - when it is Requirement-owned and the viable choices would not materially change product
   meaning or acceptance, choose the simplest sufficient option needed to make R/AC decidable;
-- ask the Owner only when two or more upstream-consistent choices remain and the choice would
-  materially change observable behavior, a constraint, a parameter, or an AC.
+- ask the Owner through the primary orchestrator's exact relay only when two or more upstream-
+  consistent choices remain and the choice would materially change observable behavior, a
+  constraint, a parameter, or an AC.
 
 Combine choices that have the same background and consequences into one higher-level
 decision. Re-evaluate the remaining questions after each answer instead of sending a fixed
@@ -73,9 +74,9 @@ question. Use self-contained plain language. Explain any unavoidable domain term
 appears. Do not require the Owner to interpret R/AC notation or implementation details.
 Implementation choices belong to Design.
 
-After the Owner answers, translate the answer into the smallest sufficient R/AC change and
-its Goal Close trace. The Owner decides the product meaning; the writer owns the
-formalization. Do not ask the Owner to review or approve individual R/AC.
+After the Owner answers, the Adjudicator translates it into an exact Author brief for the
+smallest sufficient R/AC change and Goal Close trace. The Owner decides the product meaning;
+the Author owns its formalization. Do not ask the Owner to review or approve individual R/AC.
 
 ## Writer and review-selection loop
 
@@ -83,7 +84,8 @@ Record the Decision and Goal commits, then use the registered `gmgn` Skill's sha
 candidate and dispatch rules. When Owner input was required, override the normal necessity
 gate and dispatch one fresh independent Critic to compare the question, answer, and resulting
 R/AC for omitted, added, or changed meaning. Otherwise use the shared Critic necessity gate.
-The primary orchestrator also checks accepted links, mappings, and state.
+The Adjudicator rules on findings. The primary orchestrator checks accepted links, mappings,
+candidate identity, and state.
 
 ## Controlled revision
 
@@ -93,7 +95,7 @@ The primary orchestrator also checks accepted links, mappings, and state.
 3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
    Do not re-analyze unaffected Goal Close outcomes.
 4. A delta that changes a decision or reasonable understanding follows the writer/review-
-   selection loop and receives primary-orchestrator review at a new commit. Old review remains
+   selection loop and receives Adjudicator acceptance at a new commit. Old review remains
    attached to the old commit.
 Meaning-preserving mechanical changes use same-batch link, ID reference, and status
 refresh plus machine checks without reapproval.
@@ -109,5 +111,6 @@ changed meaning; and no technical solution, task, execution information, or actu
 verification result has leaked into Requirement. For creation or a semantic revision, run
 the writer/review-selection loop using the English-only dispatch contract; when Critic is
 required, tell it to emphasize upstream consistency, acceptance quality, and deletion of any
-R/AC that does not serve a current Goal Close outcome. Obtain primary-orchestrator review and
-integrate only when required by workspace topology.
+R/AC that does not serve a current Goal Close outcome. Obtain Adjudicator acceptance, then let
+the primary orchestrator integrate only when required by
+workspace topology.
