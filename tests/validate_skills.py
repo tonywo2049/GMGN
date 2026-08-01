@@ -62,12 +62,29 @@ CANONICAL_REFERENCES = {
 RUN_TASK_CONTROLS = (
     "create exactly two files for every newly materialized task",
     "The verification contract selects an executable oracle",
+    "behavior, defect, algorithm, and interface work records the smallest set of authority-derived\n"
+    "  test cases. Each case identifies its exact approved Requirement, AC, Design, Contract, or\n"
+    "  Task completion-criterion anchor; scenario or input; observable expected result; and the\n"
+    "  wrong behavior it detects.",
+    "every changed behavior must have discriminating pre-implementation\n"
+    "  failure coverage",
     "use a delegated Coder for RED-gated work",
     "The Coder encodes those approved criteria; it does not define acceptance meaning",
     "structural regression, not behavior TDD evidence",
     "Production implementation\n"
     "remains unauthorized until the primary orchestrator accepts the RED checkpoint",
+    "For RED-gated work, the Coder first changes only tests and test-only support, commits that\n"
+    "test-only checkpoint locally, runs the prepared target command against unchanged production\n"
+    "behavior, and confirms that it reaches the approved boundary and fails for the expected reason.",
+    "The primary orchestrator checks the checkpoint diff for production behavior changes, maps the\n"
+    "cases back to the Card authority, and runs the target command read-only.",
+    "After RED acceptance, freeze the target tests and every helper that can affect their verdict.",
+    "The Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
+    "target command before running required regression checks.",
     "Any result-affecting target-test\nchange invalidates its RED evidence",
+    "never delete, skip,\nweaken, bypass, or move production logic into a test to obtain GREEN.",
+    "After the first GREEN, refactor only to correct a concrete structure problem.",
+    "otherwise skip refactoring without creating another checkpoint.",
     "Reviewer independently replays the same target command",
     "Treat safe lane saturation as a scheduling invariant",
     "At run-task entry, after Card\npreparation",
@@ -190,6 +207,10 @@ CONTRADICTORY_POLICY_MARKERS = (
     "scan only the separately confirmed execution set",
     "Every delegated agent inherits the primary orchestrator configuration",
     "Researcher** analyzes and recommends solutions",
+)
+CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS = (
+    ("edit first", "research later"),
+    ("implementation before RED", "approval later"),
 )
 CODE_REVIEW_SINGLE_CONTROLS = (
     "Each Task execution has exactly one Reviewer\nround",
@@ -446,6 +467,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
     for relative in policy_files:
         text = read(relative)
         active_text = active_markdown(text)
+        normalized_active_text = normalized(active_text)
         if OLD_TASK_HEADER in text:
             errors.append(f"{relative}: 含旧 Task 表头")
         if "writing-contract.md" in text.casefold():
@@ -484,6 +506,9 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         for contradiction in CONTRADICTORY_POLICY_MARKERS:
             if contradiction.casefold() in active_text.casefold():
                 errors.append(f"{relative}: 含冲突规则 {contradiction}")
+        for markers in CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS:
+            if all(normalized(marker) in normalized_active_text for marker in markers):
+                errors.append(f"{relative}: 含 Design/TDD 冲突例外 {list(markers)}")
 
 
 def validate_assurance_policy(errors: list[str]) -> None:

@@ -209,6 +209,87 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assert_rejected("run-task 关键执行控制")
         path.write_text(original, encoding="utf-8")
 
+    def test_rejects_run_task_tdd_design_regressions(self) -> None:
+        # These are structural regression controls, not behavior-level RED evidence.
+        cases = (
+            (
+                "authority-derived test cases",
+                "skills/run-task/SKILL.md",
+                "- behavior, defect, algorithm, and interface work records the smallest set of authority-derived\n"
+                "  test cases. Each case identifies its exact approved Requirement, AC, Design, Contract, or\n"
+                "  Task completion-criterion anchor; scenario or input; observable expected result; and the\n"
+                "  wrong behavior it detects. One case may cover multiple anchors, and existing-behavior cases\n"
+                "  may already pass, but every changed behavior must have discriminating pre-implementation\n"
+                "  failure coverage;",
+                "- behavior work records approved tests;",
+                "run-task 关键执行控制",
+            ),
+            (
+                "test-only RED and primary acceptance",
+                "skills/run-task/SKILL.md",
+                "For RED-gated work, the Coder first changes only tests and test-only support, commits that\n"
+                "test-only checkpoint locally, runs the prepared target command against unchanged production\n"
+                "behavior, and confirms that it reaches the approved boundary and fails for the expected reason.\n"
+                "The RED run must expose the prepared failing coverage for every changed behavior; use targeted\n"
+                "cases when an earlier failure would mask a later one. The Coder then sends the prepared interim\n"
+                "authorization request and waits without writing production behavior.\n\n"
+                "The primary orchestrator checks the checkpoint diff for production behavior changes, maps the\n"
+                "cases back to the Card authority, and runs the target command read-only. If the expected RED is\n"
+                "valid, record the accepted checkpoint and next action as a material Log decision, authorize\n"
+                "the predeclared production phase, and resume the same Coder. If the test or failure is invalid,\n"
+                "withhold production authorization and resume only test-scope correction; if the defect is an\n"
+                "authority gap, end the dispatch and route it upstream.",
+                "For RED-gated work, implementation may proceed before later validation.",
+                "run-task 关键执行控制",
+            ),
+            (
+                "frozen tests and same-command GREEN",
+                "skills/run-task/SKILL.md",
+                "After RED acceptance, freeze the target tests and every helper that can affect their verdict.\n"
+                "The Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
+                "target command before running required regression checks. Any result-affecting target-test\n"
+                "change invalidates its RED evidence. Stop production work, recreate the test-only checkpoint\n"
+                "against the original production baseline, and pass the RED gate again; never delete, skip,\n"
+                "weaken, bypass, or move production logic into a test to obtain GREEN.",
+                "After RED acceptance, implementation may alter tests as needed.",
+                "run-task 关键执行控制",
+            ),
+            (
+                "optional refactor rule",
+                "skills/run-task/SKILL.md",
+                "After the first GREEN, refactor only to correct a concrete structure problem. When refactoring,\n"
+                "retain a pre-refactor GREEN checkpoint and rerun the same target and required regression checks;\n"
+                "otherwise skip refactoring without creating another checkpoint.",
+                "After the first GREEN, refactoring is optional.",
+                "run-task 关键执行控制",
+            ),
+            (
+                "edit first, research later exception",
+                "skills/write-design/SKILL.md",
+                None,
+                "\nUrgent revisions may edit first, research later.\n",
+                "含 Design/TDD 冲突例外",
+            ),
+            (
+                "implementation before RED, approval later exception",
+                "skills/run-task/SKILL.md",
+                None,
+                "\nProduction implementation before RED is allowed; approval later is sufficient.\n",
+                "含 Design/TDD 冲突例外",
+            ),
+        )
+        for name, relative, old, new, expected in cases:
+            with self.subTest(case=name):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                if old is None:
+                    path.write_text(original + new, encoding="utf-8")
+                else:
+                    self.assertIn(old, original)
+                    path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected(expected)
+                path.write_text(original, encoding="utf-8")
+
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
