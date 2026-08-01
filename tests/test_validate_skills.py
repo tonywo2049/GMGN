@@ -130,6 +130,19 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_write_design_research_regression(self) -> None:
         cases = (
             (
+                "every semantic revision of the Design-stage Bundle require",
+                "selected semantic revisions of the Design-stage Bundle require",
+            ),
+            (
+                "neither\ndelta size nor an already-clear problem waives it",
+                "a clear or small delta may skip the research",
+            ),
+            (
+                "A meaning-preserving correction or mechanical change does not alter Design-owned meaning and is\n"
+                "outside this trigger",
+                "Any small Design change is outside this trigger",
+            ),
+            (
                 "observable candidate and source inclusion and exclusion conditions",
                 "general candidate preferences",
             ),
@@ -143,6 +156,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "decision, and selects the Design-owned solution",
                 "The Researcher compares candidates and selects the Design-owned solution",
             ),
+            (
+                "Before editing that semantic delta, complete its bounded external research under External\n"
+                "   solution research",
+                "When needed, consider external research after editing that semantic delta",
+            ),
         )
         for old, new in cases:
             with self.subTest(rule=old):
@@ -152,6 +170,44 @@ class ValidateSkillsTests(unittest.TestCase):
                 path.write_text(original.replace(old, new, 1), encoding="utf-8")
                 self.assert_rejected("write-design 外部调研边界")
                 path.write_text(original, encoding="utf-8")
+
+    def test_rejects_run_task_test_first_policy_drift(self) -> None:
+        # This protects approved Skill text; it is not task-level RED evidence.
+        cases = (
+            (
+                "use a delegated Coder for RED-gated work",
+                "let the primary orchestrator self-approve RED-gated work",
+            ),
+            (
+                "The Coder encodes those approved criteria; it does not define acceptance meaning",
+                "The Coder defines acceptance meaning and encodes its own criteria",
+            ),
+            (
+                "structural regression, not behavior TDD evidence",
+                "behavior TDD evidence",
+            ),
+            (
+                "Production implementation\n"
+                "remains unauthorized until the primary orchestrator accepts the RED checkpoint",
+                "Production implementation may start before the RED checkpoint",
+            ),
+            (
+                "Any result-affecting target-test\nchange invalidates its RED evidence",
+                "A result-affecting target-test change preserves its RED evidence",
+            ),
+            (
+                "Reviewer independently replays the same target command",
+                "Reviewer trusts the Coder's recorded command",
+            ),
+        )
+        path = self.root / "skills/run-task/SKILL.md"
+        original = path.read_text(encoding="utf-8")
+        for old, new in cases:
+            with self.subTest(rule=old):
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                self.assert_rejected("run-task 关键执行控制")
+        path.write_text(original, encoding="utf-8")
 
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(

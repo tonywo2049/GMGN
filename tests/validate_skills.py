@@ -62,6 +62,13 @@ CANONICAL_REFERENCES = {
 RUN_TASK_CONTROLS = (
     "create exactly two files for every newly materialized task",
     "The verification contract selects an executable oracle",
+    "use a delegated Coder for RED-gated work",
+    "The Coder encodes those approved criteria; it does not define acceptance meaning",
+    "structural regression, not behavior TDD evidence",
+    "Production implementation\n"
+    "remains unauthorized until the primary orchestrator accepts the RED checkpoint",
+    "Any result-affecting target-test\nchange invalidates its RED evidence",
+    "Reviewer independently replays the same target command",
     "Treat safe lane saturation as a scheduling invariant",
     "At run-task entry, after Card\npreparation",
     "scan the entire target-Milestone Task set",
@@ -221,11 +228,17 @@ DECISION_LINK_CONTROLS = (
 )
 WRITE_DESIGN_RESEARCH_CONTROLS = (
     "the primary session derives one bounded research scope",
+    "every semantic revision of the Design-stage Bundle require",
+    "before drafting or editing any Design-stage artifact",
+    "neither\ndelta size nor an already-clear problem waives it",
+    "A meaning-preserving correction or mechanical change does not alter Design-owned meaning and is\noutside this trigger",
     "observable candidate and source inclusion and exclusion conditions",
     "the primary session dispatches one\nfresh Researcher under the shared dispatch contract to collect the external evidence. It does\nnot search external sources itself",
     "the Researcher to discover up to three credible candidates",
     "whether a candidate or source enters the collection set only by those conditions",
     "The primary session aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
+    "The bounded external research for the initial creation or current semantic revision is\n   complete",
+    "Before editing that semantic delta, complete its bounded external research under External\n   solution research",
 )
 RELEASE_VERIFIER_TRIGGER_CONTROLS = (
     "The `trigger` must exactly match a member of that policy's `verifier.triggers` list",

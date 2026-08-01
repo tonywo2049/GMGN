@@ -11,12 +11,14 @@ Contract, and structural-authority anchors. If preparing or implementing the Car
 requires a product, architecture, interface, data, error, state, recovery, security, or
 compatibility decision, do not let the Coder decide it: pause only the impact cone and return
 to the owning stage. Never expose an unreviewed or unchecked implementation combination as the
-shared baseline.</HARD-GATE>
+shared baseline. For RED-gated work, never authorize production implementation before the
+primary orchestrator accepts the test-only RED checkpoint.</HARD-GATE>
 
 The primary orchestrator owns scheduling, adjudication, shared state, integration, Task
 status, and per-card execution documents. It may serve as one unassigned Coder lane when
-capacity remains, but it cannot take over another writer's lane, review its own candidate, or
-replace a required Verifier.
+capacity remains, except for RED-gated work. The primary orchestrator authorizes that gate, so
+use a delegated Coder for RED-gated work. It cannot take over another writer's lane, review
+its own candidate, or replace a required Verifier.
 
 Every accepted Task row for the initiated Milestone enters execution when ready. Do not ask
 the owner to confirm an execution set. Ask only when excluding or deferring a ready Task would
@@ -50,8 +52,14 @@ Card unchanged unless an owning-stage revision changed its anchors or completion
 
 The verification contract selects an executable oracle that fits the change:
 
-- behavior, defect, algorithm, and interface work defines a discriminating RED condition, the
-  wrong behavior it detects, and the expected GREEN behavior;
+- behavior, defect, algorithm, and interface work records the smallest set of authority-derived
+  test cases. Each case identifies its exact approved Requirement, AC, Design, Contract, or
+  Task completion-criterion anchor; scenario or input; observable expected result; and the
+  wrong behavior it detects. One case may cover multiple anchors, and existing-behavior cases
+  may already pass, but every changed behavior must have discriminating pre-implementation
+  failure coverage;
+- pure refactoring first establishes the applicable tests as GREEN, preserves their behavior
+  through the refactor, and does not fabricate RED;
 - configuration, migration, build, documentation, and scaffolding work uses an appropriate
   schema check, dry-run, lint, smoke test, or equivalent executable failure/success proof;
 - every contract includes the replay command or executable path and final evidence
@@ -59,9 +67,18 @@ The verification contract selects an executable oracle that fits the change:
 - when a cross-task Contract ID applies, include the smallest provider or consumer
   conformance check that proves the Card's side of the boundary.
 
-Do not fabricate a RED test that cannot distinguish a wrong implementation. The verification
-contract refines approved authority; it cannot add behavior or resolve a semantic gap. Return
-an unresolved gap to `write-task`, `write-design`, or the owning upstream stage.
+The Coder encodes those approved criteria; it does not define acceptance meaning. A behavior
+test is valid only when it reaches the approved behavior or Contract boundary and distinguishes
+a wrong implementation. An unrelated missing file, fixture, dependency, environment, import,
+or syntax failure; an oracle copied from implementation or changed rule text; a tautological
+mock; a post-hoc mutation; or mere path or text presence is not behavior RED evidence. Absence
+or compile/load failure counts only when the missing public artifact is itself an approved
+Contract outcome; mere path presence remains a structural check. A check whose oracle is
+copied from the changed rule is structural regression, not behavior TDD evidence.
+
+The verification contract refines approved authority; it cannot add behavior or resolve a
+semantic gap. Return an unresolved gap to `write-task`, `write-design`, or the owning
+upstream stage.
 
 Do not create `Verification.md`, `State.md`, a per-role Handoff, or one project-wide execution
 log. Run diff, link, and repository-required document checks before advancing the preparation
@@ -107,6 +124,14 @@ workspace and write boundary, real conflict domain or lock, verification contrac
 runtime tools, checks, and return evidence. Put resolved workflow decisions directly in the
 brief.
 
+For RED-gated work, declare the complete eventual write boundary in the initial Coder brief
+but initially authorize only test code and test-only support changes. Production implementation
+remains unauthorized until the primary orchestrator accepts the RED checkpoint. Require the
+Coder to return an interim authorization request with the shortest unambiguous checkpoint
+reference, replay command, exit code, and target failure, then wait. Authorizing the already-
+declared production phase does not widen the objective or write boundary and resumes the same
+dispatch.
+
 Authorization and missing-information pauses follow the dispatch contract.
 
 Apply these run-task tool requirements from this section only:
@@ -133,6 +158,31 @@ Before the first write, confirm the Card scope, preserve existing user changes, 
 one writer per workspace. Concurrent writers use isolated workspaces; a sole writer may use
 the current workspace. Require baseline/HEAD checks and transferable candidate facts only
 when concurrency or handoff makes them material.
+
+For RED-gated work, the Coder first changes only tests and test-only support, commits that
+test-only checkpoint locally, runs the prepared target command against unchanged production
+behavior, and confirms that it reaches the approved boundary and fails for the expected reason.
+The RED run must expose the prepared failing coverage for every changed behavior; use targeted
+cases when an earlier failure would mask a later one. The Coder then sends the prepared interim
+authorization request and waits without writing production behavior.
+
+The primary orchestrator checks the checkpoint diff for production behavior changes, maps the
+cases back to the Card authority, and runs the target command read-only. If the expected RED is
+valid, record the accepted checkpoint and next action as a material Log decision, authorize
+the predeclared production phase, and resume the same Coder. If the test or failure is invalid,
+withhold production authorization and resume only test-scope correction; if the defect is an
+authority gap, end the dispatch and route it upstream.
+
+After RED acceptance, freeze the target tests and every helper that can affect their verdict.
+The Coder implements the smallest sufficient production change and obtains GREEN with the same
+target command before running required regression checks. Any result-affecting target-test
+change invalidates its RED evidence. Stop production work, recreate the test-only checkpoint
+against the original production baseline, and pass the RED gate again; never delete, skip,
+weaken, bypass, or move production logic into a test to obtain GREEN.
+
+After the first GREEN, refactor only to correct a concrete structure problem. When refactoring,
+retain a pre-refactor GREEN checkpoint and rerun the same target and required regression checks;
+otherwise skip refactoring without creating another checkpoint.
 
 A Coder writes only the assigned scope and Card write set. It never edits shared
 Design/Contract authority, `Task.md`, Card/Log runtime state, the integration queue, shared
@@ -190,6 +240,14 @@ unclean candidate application or judgment-required integration conflict with a f
 before committing the content that will be reviewed. Freeze that complete candidate while
 Review is active.
 
+For a RED-gated candidate, bind the brief to the original baseline, accepted RED checkpoint,
+final candidate, authority-derived cases, target command, and any pre-refactor GREEN
+checkpoint. In a disposable copy, the Reviewer independently replays the same target command
+at the accepted RED checkpoint and final candidate, confirming the expected target failure and
+GREEN respectively. It also checks that the tests can reject wrong behavior and that no result-
+affecting test or helper change weakened the accepted oracle. This replay is ordinary
+deterministic Review evidence, not another Reviewer round or a Verifier trigger.
+
 Create exactly one fresh Reviewer for the complete implementation and test-code candidate.
 This is the Task execution's only Reviewer round. Collect all active Review returns before
 editing. The primary orchestrator adjudicates once, rejects scope expansion, and batches every
@@ -239,6 +297,12 @@ implementation plus every tracked closure change:
 - keep `Card.md` unchanged as the stable contract;
 - set only the Task row's macro `status` to `closed` and keep its execution link; and
 - refresh affected AC traceability and shared-baseline/integration-queue pointers.
+
+For RED-gated work, that final evidence summary records the accepted RED checkpoint, command,
+exit code, and target failure; the final GREEN candidate and same-command result; and either
+the pre-refactor GREEN checkpoint plus post-refactor result or that refactoring was skipped for
+lack of a concrete need. Keep the RED checkpoint addressable through Review; do not create a
+separate RED, GREEN, or verification document.
 
 Commit and freeze that complete candidate without advancing the shared baseline.
 Before advancing it, confirm that every applicable Contract ID, provider, consumer, caller,

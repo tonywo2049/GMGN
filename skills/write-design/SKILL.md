@@ -1,6 +1,6 @@
 ---
 name: write-design
-description: "Use after Requirement review to create or change the Design-stage bundle: required implementation decisions in root Design.md, conditional module design, and design/Contract.md only for independently developed boundaries. Requirement 已过审后确定必要实现决定与按需的模块或跨单元接口权威。"
+description: "Use after Requirement review to create or semantically revise the Design-stage bundle. Every creation or semantic revision first completes bounded external-solution research; root Design.md owns required implementation decisions, with module design and design/Contract.md only when needed. Requirement 已过审后创建或语义修订 Design Bundle；每次均先完成有边界的外部方案调研，再确定必要实现决定与按需的模块或跨单元接口权威。"
 ---
 
 # Design stage: requirements → implementation decisions
@@ -55,20 +55,22 @@ Bundle permits incompatible implementations of a shared boundary, it is incomple
 
 ## External solution research
 
-For initial Design creation, the primary session derives one bounded research scope from reviewed
-R/ACs, applicable D-IDs, external constraints, and the known integration environment before
-drafting any Design-stage artifact. State the technical problem, hard constraints and exclusions,
-observable candidate and source inclusion and exclusion conditions, comparison dimensions,
-evidence needed to treat a solution as mature or validated, and the Design decision the research
-will support. Do not preselect architecture, modules,
-interfaces, data structures, or a technical stack beyond choices already fixed by approved
-authority or observed integration facts. Repository inspection may supply constraints and
-later feasibility evidence, but it does not count as external research.
+<HARD-GATE>Initial Design creation and every semantic revision of the Design-stage Bundle require
+the bounded external-solution research below before drafting or editing any Design-stage artifact.
+For a revision, limit the research to the semantic delta and its direct impact surface; neither
+delta size nor an already-clear problem waives it.</HARD-GATE>
 
-For a controlled revision, repeat only the affected external research when the delta changes
-the researched problem, a selection constraint, the selected solution, or a time-sensitive
-fact on which that selection depends. A meaning-preserving clarification does not repeat
-research.
+The primary session derives one bounded research scope from reviewed R/ACs, applicable D-IDs,
+external constraints, and the known integration environment. State the technical problem, hard
+constraints and exclusions, comparison dimensions, and evidence needed to treat a solution as
+mature or validated. State observable candidate and source inclusion and exclusion conditions,
+and the Design decision the research will support. Do not preselect architecture, modules,
+interfaces, data structures, or a technical stack beyond choices already fixed by approved
+authority or observed integration facts. Repository inspection may supply constraints and later
+feasibility evidence, but it does not count as external research.
+
+A meaning-preserving correction or mechanical change does not alter Design-owned meaning and is
+outside this trigger.
 
 If the Owner has not already named external solutions to include or exclude, ask one plain,
 self-contained question that summarizes the research scope and says that current internet
@@ -152,8 +154,8 @@ coexisting-version compatibility requirement needs them.
 
 Before return, apply this Design Ready gate:
 
-1. The bounded external research is complete, and Design records the selected solution or
-   no-fit result with primary evidence.
+1. The bounded external research for the initial creation or current semantic revision is
+   complete, and Design records the selected solution or no-fit result with primary evidence.
 2. No implementation-significant question, hidden default, or unapproved parameter remains.
 3. Every applicable boundary has one structure authority and a closed producer-to-state path.
 4. Every R/AC and retained design element has one resolvable owner, implementation result, and
@@ -197,13 +199,15 @@ baseline.
 2. A meaning-preserving clarification only aligns a duplicate representation with an existing
    unambiguous authority. It uses the smallest same-batch edit, affected pointer refresh, and
    machine checks without semantic reapproval.
-3. For Design- or Contract-owned meaning, start from the old Bundle commit and record the
-   trigger, smallest semantic delta, affected Contract IDs, R-AC mappings, structures,
-   providers, consumers, and proposed new commit.
-4. Adding or changing a public type or Port, authority source, required validation call site,
+3. For Design-stage Bundle meaning, start from the old Bundle commit and record the trigger,
+   smallest semantic delta, affected Contract IDs, R-AC mappings, structures, providers,
+   consumers, and proposed new commit.
+4. Before editing that semantic delta, complete its bounded external research under External
+   solution research.
+5. Adding or changing a public type or Port, authority source, required validation call site,
    error priority, state or durability order, or provider/consumer obligation is a semantic
    delta. Narrow it back to the reviewed authority or open a new batch.
-5. Revise only the affected design, contract, schema, and links; do not redesign unrelated
+6. Revise only the affected design, contract, schema, and links; do not redesign unrelated
    structures. A semantic delta applies the Critic necessity gate and receives any required
    fresh independent Critic round scoped to that delta and its direct impact surface, plus
    primary-orchestrator review at the new Bundle commit. Old review remains attached to the
