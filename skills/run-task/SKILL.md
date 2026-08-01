@@ -159,13 +159,13 @@ the dispatch contract; a correction commit is not a standalone candidate.
 
 Across the target-Milestone Task set, wait only after ready dispatch, primary-Coder work,
 integration, state refresh, and local checks are exhausted. Every Codex `wait_agent` call uses
-the actual tool argument `{"timeout_ms": 3600000}` (1 hour) as a maximum wait. An agent
+the actual tool argument `{"timeout_ms": 600000}` (10 minutes) as a maximum wait. An agent
 completion or attention event returns early and the primary session handles it immediately
 without calling `list_agents`.
 
-If the full hour expires without an event, call `list_agents` once. Handle any completed or
+If the full ten minutes expires without an event, call `list_agents` once. Handle any completed or
 attention-needed dispatch immediately. If the snapshot reports `running`, finish any unrelated
-ready scheduling work and return to the same maximum one-hour `wait_agent` call. Do not call
+ready scheduling work and return to the same maximum ten-minute `wait_agent` call. Do not call
 `list_agents` more than once for the same timeout.
 
 Between lifecycle events and timeout boundaries, do not poll `list_agents`, send a message to

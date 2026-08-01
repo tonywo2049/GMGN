@@ -156,7 +156,7 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_wait_control(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            '{"timeout_ms": 3600000}',
+            '{"timeout_ms": 600000}',
             '{"timeout_ms": 60000}',
         )
         self.assert_rejected("run-task 关键执行控制")
@@ -166,8 +166,8 @@ class ValidateSkillsTests(unittest.TestCase):
         original = path.read_text(encoding="utf-8")
         cases = (
             (
-                "If the full hour expires without an event, call `list_agents` once",
-                "If the full hour expires, immediately wait again",
+                "If the full ten minutes expires without an event, call `list_agents` once",
+                "If the full ten minutes expires, immediately wait again",
             ),
             (
                 "Between lifecycle events and timeout boundaries, do not poll `list_agents`",
@@ -184,7 +184,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "If the snapshot reports `running`, finish any unrelated\nready scheduling "
-                "work and return to the same maximum one-hour `wait_agent` call",
+                "work and return to the same maximum ten-minute `wait_agent` call",
                 "If that snapshot reports running, interrupt it to reclaim capacity",
             ),
             (
