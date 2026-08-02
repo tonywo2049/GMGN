@@ -694,6 +694,42 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.replace(relative, old, new)
                 self.assert_rejected(f"{relative}: 角色边界")
 
+    def test_rejects_leaf_profile_agent_creation_drift(self) -> None:
+        cases = (
+            (".codex/agents/author.toml", "不得创建其他 Agent。", "可创建其他 Agent。"),
+            (".codex/agents/coder.toml", "不得创建其他 Agent。", "可创建其他 Agent。"),
+            (
+                ".codex/agents/researcher.toml",
+                "禁止修改项目文件或创建其他 Agent。",
+                "可修改项目文件或创建其他 Agent。",
+            ),
+            (
+                ".codex/agents/verifier.toml",
+                "不要编辑 tracked files 或创建其他 Agent。",
+                "可编辑 tracked files 或创建其他 Agent。",
+            ),
+            (
+                ".codex/agents/critic.toml",
+                "只审指定规范文档含义及最小必要的上下游上下文；不得编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
+                "只审指定规范文档含义及最小必要的上下游上下文；可编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
+            ),
+            (
+                ".codex/agents/reviewer.toml",
+                "只审固定实现与测试候选；不得创建其他 Agent，也不主动编辑工作区。",
+                "只审固定实现与测试候选；可创建其他 Agent，也可主动编辑工作区。",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                try:
+                    self.assert_rejected(f"{relative}: 角色边界")
+                finally:
+                    path.write_text(original, encoding="utf-8")
+
     def test_rejects_commander_runner_coder_profile_boundary_drift(self) -> None:
         cases = (
             (
@@ -702,9 +738,29 @@ class ValidateSkillsTests(unittest.TestCase):
                 "任意 merge 都可复用原证据",
             ),
             (
+                ".codex/agents/commander.toml",
+                "集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。",
+                "集成时严格按更新共享基线、现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、释放锁的顺序执行。",
+            ),
+            (
                 ".codex/agents/runner.toml",
                 "主 Session 创建或恢复适用 Commander",
                 "Runner 自己创建或恢复 Commander",
+            ),
+            (
+                ".codex/agents/runner.toml",
+                "可直接创建 Coder、Researcher 和风险触发的 Verifier；",
+                "不得直接创建 Coder、Researcher 和风险触发的 Verifier；",
+            ),
+            (
+                ".codex/agents/runner.toml",
+                "只有 Owner、适用权威、当前流程或 Commander brief 明确要求时才创建独立 Critic 或 Reviewer。",
+                "可无条件创建独立 Critic 或 Reviewer。",
+            ),
+            (
+                ".codex/agents/runner.toml",
+                "不得创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
+                "可创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
             ),
             (
                 ".codex/agents/coder.toml",
@@ -714,8 +770,14 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         for relative, old, new in cases:
             with self.subTest(relative=relative):
-                self.replace(relative, old, new)
-                self.assert_rejected(f"{relative}: 角色边界")
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                try:
+                    self.assert_rejected(f"{relative}: 角色边界")
+                finally:
+                    path.write_text(original, encoding="utf-8")
 
     def test_rejects_commander_runner_boundary_drift(self) -> None:
         cases = (

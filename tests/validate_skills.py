@@ -291,14 +291,55 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
     ),
 }
 ROLE_PROFILE_CONTROLS = {
-    "commander": ("Commander brief", "主 Session", "不得创建其他 Agent", "同一 Commander", "共享基线", "只有不改变候选内容的 merge 才可复用原证据"),
-    "runner": ("Runner brief", "一个 Runner 只负责一个 Task", "正常实现/测试审查由 Runner 自己", "不得创建 Commander", "needs_commander", "主 Session 创建或恢复适用 Commander", "ready_for_integration", "主 Session 为此创建 Commander"),
-    "author": ("Author brief", "主 Session", "创建其他 Agent"),
-    "coder": ("Coder brief", "Task Runner", "创建或恢复 Card/Log", "不得创建其他 Agent", "不决定上游语义", "不关闭 Task"),
-    "researcher": ("Researcher brief", "创建其他 Agent"),
-    "verifier": ("Verifier brief", "创建其他 Agent", "required:<trigger>"),
-    "critic": ("Critic brief", "不得编辑文件", "创建其他 Agent", "只用于文档/语义"),
-    "reviewer": ("Reviewer brief", "不得创建其他 Agent", "不主动编辑工作区", "不审规范文档"),
+    "commander": (
+        "Commander brief",
+        "主 Session",
+        "不得创建其他 Agent",
+        "同一 Commander",
+        "共享基线",
+        "集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。",
+        "只有不改变候选内容的 merge 才可复用原证据",
+    ),
+    "runner": (
+        "Runner brief",
+        "一个 Runner 只负责一个 Task",
+        "可直接创建 Coder、Researcher 和风险触发的 Verifier；",
+        "只有 Owner、适用权威、当前流程或 Commander brief 明确要求时才创建独立 Critic 或 Reviewer。",
+        "正常实现/测试审查由 Runner 自己",
+        "不得创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
+        "needs_commander",
+        "主 Session 创建或恢复适用 Commander",
+        "ready_for_integration",
+        "主 Session 为此创建 Commander",
+    ),
+    "author": ("Author brief", "主 Session", "不得创建其他 Agent。"),
+    "coder": (
+        "Coder brief",
+        "Task Runner",
+        "创建或恢复 Card/Log",
+        "不得创建其他 Agent。",
+        "不决定上游语义",
+        "不关闭 Task",
+    ),
+    "researcher": (
+        "Researcher brief",
+        "禁止修改项目文件或创建其他 Agent。",
+    ),
+    "verifier": (
+        "Verifier brief",
+        "不要编辑 tracked files 或创建其他 Agent。",
+        "required:<trigger>",
+    ),
+    "critic": (
+        "Critic brief",
+        "只审指定规范文档含义及最小必要的上下游上下文；不得编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
+        "只用于文档/语义",
+    ),
+    "reviewer": (
+        "Reviewer brief",
+        "只审固定实现与测试候选；不得创建其他 Agent，也不主动编辑工作区。",
+        "不审规范文档",
+    ),
 }
 LEGACY_ROLE = "adjud" + "icator"
 ROADMAP_APPROVAL_CONTROLS = (
