@@ -5,7 +5,7 @@ description: "Use after Requirement review to create or semantically revise the 
 
 # Design stage: requirements → implementation decisions
 
-<HARD-GATE>`Requirement.md` and the current approved Decision must exist. Requirement must have been directly reviewed and accepted by its active Adjudicator. If either authority is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
+<HARD-GATE>`Requirement.md` and the current approved Decision must exist. Requirement must have passed its owning-stage acceptance and Critic necessity gates. If either authority is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
 
 ## Language, bundle, and authority
 
@@ -60,12 +60,12 @@ the bounded external-solution research below before drafting or editing any Desi
 For a revision, limit the research to the semantic delta and its direct impact surface; neither
 delta size nor an already-clear problem waives it.</HARD-GATE>
 
-The assigned Adjudicator derives one bounded research scope from reviewed R/ACs, applicable
+The primary orchestrator derives one bounded research scope from accepted R/ACs, applicable
 D-IDs, external constraints, and the known integration environment. State the technical
 problem, hard constraints and exclusions, comparison dimensions, and evidence needed to treat
-a solution as mature or validated. State
-observable candidate and source inclusion and exclusion conditions, and the Design decision
-the research will support. Do not preselect architecture, modules,
+a solution as mature or validated. State observable candidate and source inclusion and
+exclusion conditions, and the Design decision the research will support. Do not preselect
+architecture, modules,
 interfaces, data structures, or a technical stack beyond choices already fixed by approved
 authority or observed integration facts. Repository inspection may supply constraints and later
 feasibility evidence, but it does not count as external research.
@@ -73,21 +73,21 @@ feasibility evidence, but it does not count as external research.
 A meaning-preserving correction or mechanical change does not alter Design-owned meaning and is
 outside this trigger.
 
-If the Owner has not already named external solutions to include or exclude, the Adjudicator
-asks one plain, self-contained question through the primary orchestrator's exact relay that
-summarizes the research scope and says that current internet sources will be searched when
-none are specified. Include any Owner-named candidate in the research without assuming that
-it will be selected. When the Owner names none, proceed with authorized Researcher discovery
-without further questions.
+If the Owner has not already named external solutions to include or exclude, the primary
+orchestrator asks one plain, self-contained question that summarizes the research scope and
+says that current internet sources will be searched when none are specified. Include any
+Owner-named candidate in the research without assuming that
+it will be selected. When the Owner names none, proceed with authorized discovery without
+further questions.
 
-After the scope and any Owner-named candidates are fixed, the Adjudicator returns one
-Researcher dispatch and the primary orchestrator adds runtime facts and sends it. The
-Adjudicator does not search external sources itself. When the Owner names none, the brief
-authorizes the Researcher to discover up to three credible candidates and collect source-by-source
-evidence by applying the stated observable inclusion and exclusion conditions. The Researcher
-may decide whether a candidate or source enters the collection set only by those conditions. The research
-covers one to three relevant external solutions before Design drafting: keep one when it is the
-only credible candidate, collect two when a real tradeoff exists, and add a third only when it
+After the scope and any Owner-named candidates are fixed, the primary orchestrator performs
+the bounded collection or creates one Researcher when independent or parallel collection is
+useful. A Researcher brief authorizes discovery of up to three credible candidates and
+source-by-source evidence under the stated observable inclusion and exclusion conditions. The
+Researcher may decide whether a candidate or source enters the collection set only by those
+conditions; it does not compare or select. The research covers one to three relevant external
+solutions before Design drafting: keep one when it is the only credible candidate, collect two
+when a real tradeoff exists, and add a third only when it
 is a distinct credible path; do not pad the set. Use primary evidence such as an official
 standard, specification, documentation, reference implementation, maintainer source and release
 record, production case, audit, or paper. Search snippets, rankings, stars, and popularity alone
@@ -96,7 +96,7 @@ For a software candidate, inspect source code and tests relevant to the current 
 explicitly checked upstream release, version, or commit; documentation, rankings, or the project
 name alone are insufficient.
 
-The same Adjudicator aggregates the returned evidence, compares only what can change the
+The primary orchestrator aggregates collected evidence, compares only what can change the
 decision, and selects the Design-owned solution: current R/AC and constraint coverage,
 compatibility, security boundaries, maintenance, and adoption cost. Route a tradeoff
 that changes upstream meaning to `gmgn`. If no credible external solution fits, record the
@@ -195,29 +195,30 @@ Before return, apply this Design Ready gate:
 ## Writer and review loop
 
 Use the registered `gmgn` Skill's shared document-candidate and dispatch rules, and record the
-Decision and Requirement commits. The Adjudicator first resolves the root R/AC mapping and
-selects only child artifacts justified by current R/ACs. It then dispatches one primary Author
-for root `Design.md` and complete Bundle reconciliation. Add shared architecture, module
-boundaries, dependency direction, and ownership only when those R/ACs require them. The Author
-integrates provider/consumer seams, shared state, error order, and schema references into one
+Decision and Requirement commits. The primary orchestrator first resolves the root R/AC
+mapping and selects only child artifacts justified by current R/ACs. It then dispatches one
+independent Author for root `Design.md` and complete Bundle reconciliation. Add shared
+architecture, module boundaries, dependency direction, and ownership only when those R/ACs
+require them. The Author integrates provider/consumer seams, shared state, error order, and
+schema references into one
 complete immutable Bundle candidate, commits it, and waits.
 
 The primary orchestrator checks candidate identity and runs prepared deterministic checks,
-then forwards the fixed complete Bundle and exact evidence to the same active Adjudicator.
-That Adjudicator directly checks for any implementation-significant decision still
+then checks the fixed complete Bundle for any implementation-significant decision still
 unspecified: public or cross-unit decisions, authority, validation entry points, state
 effects, failures, recovery, and parameters; provider and consumer compatibility; object-
 phase legality; structural-authority consistency; global-versus-local rule conflicts; R/AC
-traceability; and whether each separate artifact can be deleted.
+traceability; and whether each separate artifact can be deleted. It applies the Critic
+necessity gate and adjudicates any Critic finding.
 
-The Adjudicator sends an accepted in-scope finding to the same primary Author. A Design-owned
+The primary orchestrator sends an accepted in-scope finding to the same Author. A Design-owned
 decision omitted from the fixed candidate but required by that finding remains a repair by that
-Author and the same active Adjudicator while accepted or upstream authority, the prepared
-objective, and the write boundary remain unchanged. Adding or changing Design-owned meaning alone
-does not create a new semantic case or batch and does not restart the current research cycle. Only
-a change to accepted or upstream authority or a material expansion of the prepared objective or
-write boundary enters Controlled revision as a new semantic case. Accept only the complete Bundle
-at one commit as the shared Design baseline.
+Author in the same batch while accepted or upstream authority, the prepared objective, and the
+write boundary remain unchanged. Adding or changing Design-owned meaning alone does not create
+a new semantic batch or restart the current research cycle. Only a change to accepted or
+upstream authority or a material expansion of the prepared objective or write boundary enters
+Controlled revision as a new batch. Accept only the complete Bundle at one commit as the shared
+Design baseline.
 
 ## Controlled revision
 
@@ -237,9 +238,9 @@ at one commit as the shared Design baseline.
    including when an accepted in-scope finding requires an omitted Design-owned decision; when
    that boundary is crossed, narrow the delta back to reviewed authority or open the new batch.
 6. Revise only the affected design, contract, schema, and links; do not redesign unrelated
-   structures. The same active Adjudicator directly reviews the fixed semantic delta and its
-   direct impact surface and accepts it at the new Bundle commit or returns a minimum finding
-   to the same primary Author. Old review remains attached to the old commit.
+   structures. The primary orchestrator applies the Critic necessity gate to the fixed semantic
+   delta and its direct impact surface, accepts it at the new Bundle commit, or returns an
+   accepted minimum finding to the same Author. Old review remains attached to the old commit.
 7. A compatible update is mechanical only when it does not affect behavior, security, or an
    interface; otherwise route it back through `write-design`.
 
@@ -252,6 +253,6 @@ Require the recorded writer to reconcile the Bundle links: no orphan child, unma
 unapplied implementation-relevant D-ID, unresolved structure authority, or cross-unit
 boundary with competing definitions. For
 creation or a semantic revision, run the writer/review loop above using the
-English-only dispatch contract. Obtain Adjudicator acceptance and let the primary orchestrator
-integrate only when required by workspace topology. Design acceptance marks the complete
-Bundle `approved`, not `closed`.
+English-only dispatch contract. Obtain primary-orchestrator acceptance and integrate through
+the primary orchestrator only when required by workspace topology. Design acceptance marks the
+complete Bundle `approved`, not `closed`.

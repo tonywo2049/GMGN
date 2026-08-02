@@ -46,8 +46,8 @@ GMGN 只有一套 workflow，不维护中英两个插件。skill 根据项目现
 D-ID，不重复定义决议；`DecisionLog.md` 只记录已批准变更，不进入正常下游上下文。
 
 ROADMAP 中每个 Milestone 都要映射 WhitePaper 和适用 D-ID，写明一个结果及其价值、必要产出物和一个结果级
-成功信号，并分开表达 `now | next | later`、相对优先级和真实依赖。Adjudicator 解决语义，Author
-写成一份完整推荐候选，由负责人一次批准；主 session 只传递与调度。ROADMAP 不拥有 E2E 路径。
+成功信号，并分开表达 `now | next | later`、相对优先级和真实依赖。主 session 解决语义，独立
+Author 写成一份完整推荐候选，由负责人一次批准。ROADMAP 不拥有 E2E 路径。
 
 每个阶段文档只增加一种信息：Decision 记录明确集中供下游使用的决议；ROADMAP 分配部分有序的
 Milestone 及其结果；Goal 把当前 Milestone 细化为 Requirement 依据和定性 Close 标准；
@@ -69,27 +69,27 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 |---|---|---|
 | 十一件共享 skill | 支持 | 支持 |
 | 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
-| 固定实现/测试候选审查 | 同一 active Adjudicator | 同一 active Adjudicator |
-| 确定性本地检查 | Primary orchestrator 运行已声明命令 | Primary orchestrator 运行已声明命令 |
+| 固定实现/测试候选审查 | Task Runner；仅明确要求时使用独立 Reviewer | Task Runner；仅明确要求时使用独立 Reviewer |
+| 确定性本地检查 | `run-task` 外由主 session 执行，内部由 Runner 执行，集成时由 Commander 执行 | `run-task` 外由主 session 执行，内部由 Runner 执行，集成时由 Commander 执行 |
 | 风险触发的最终验证 | [由政策定义](skills/gmgn/references/en/assurance-policy.json) | [由政策定义](skills/gmgn/references/en/assurance-policy.json) |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 每个受委派角色都遵循
-[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。一个有边界的 active Adjudicator
-负责与负责人讨论，并直接审查每个固定文档候选或完整实现/测试候选。Primary orchestrator 只原样
-传递、检查候选身份、运行已声明的确定性命令并原样转交证据，不作语义 finding 或候选接受。
-同范围 finding 交回同一 Author 或 Coder，修复提交后仍由同一 Adjudicator 继续本案。objective 与
-写边界未变时，Adjudicator、Author 或 Coder 保持同一未完成 dispatch。Verifier 仍由
+[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。`run-task` 之外，主 session 保留完整
+上下文，负责与负责人讨论、作出流程与语义决定、调度 Agent、裁定 finding 和集成。上游权威、计划
+与设计候选必须由独立 Author 撰写；等义机械修改只需机检。主 session 只有在 Critic 必要性门禁识别
+到实质风险或自己无法判断时才创建 Critic，并负责裁定返回。Verifier 仍由
 [`gmgn-assurance-v3`](skills/gmgn/references/en/assurance-policy.json)按风险触发。实现审查范围由
 [代码审查契约](skills/gmgn/references/en/code-review.md)定义。
 
-`Task.md` 仍是 Milestone 索引。Milestone 启动后，`run-task` 为每个已接受 Task 创建稳定的
-`Card.md` 执行与验证契约和可替换的 `Log.md`，无需另行确认执行集，Task ready 后直接调度。它还
-负责隔离 writer lane、运行时工具、监测、审查、集成与关闭。Coder 在同一 dispatch 内完成
-RED/GREEN，不等待主 session 批准 RED，并在完整候选 checkpoint 提交后等待。Primary
-orchestrator 重放已准备的 RED/GREEN 与其他确定性检查，同一 active Adjudicator 直接审查固定
-实现/测试候选；同范围 finding 仍由同一 Coder 修复。只有已接受内容集成后，项目声明的全部必需
-检查都在准确的共享基线候选上通过，Task 才能关闭。
+`Task.md` 仍是 Milestone 索引。只有 `run-task` 使用 Commander-and-Runner 结构。主 session 不先
+计算 ready set，直接创建 Commander；Commander 读取现行权威与状态，为每个选中的 Task 返回一份
+完整 Runner 任务书。每个 Runner 负责一个 Task 及其 workspace，直接管理 Coder 和按需的
+Researcher、Verifier，并通常自行审查固定实现/测试候选。Coder 创建或恢复 Card/Log、验证契约、
+RED/GREEN checkpoint、实现与相关证据；Runner 准备最终 Task 候选。Runner 回传
+`ready_for_integration` 后，主 session 创建 Commander，由它取得锁、同步最新基线、确认候选、执行
+门禁并更新共享基线；主 session 不再重复集成或语义审查。会改变候选内容的 rebase、冲突处理或
+Commander 修改会使受影响证据失效，并回到同一 Runner 的门禁。
 完整规则只在 [`run-task`](skills/run-task/SKILL.md) 中维护。
 
 Milestone 关闭后发现未完成工作时，直接回到 `initiated`，清空当前 `accepted_result`，只重开受
@@ -321,7 +321,7 @@ SHA-256。该校验和只证明制品完整性，不能作为流程锚点。`--s
 [DocStar](https://github.com/tonywo2049/DocStar) 可机检文档链的断链、单向边和任务闭包；
 本仓 `.docstar/conventions/conventions.json` 是当前 GMGN 的适配约定，包含 D-ID 索引。
 Decision 项目应把它放入文档语料根；只有已安装 `gmgn-v1` preset 含等价 Decision 规则时才直接
-使用 preset。CodeGraph 可辅助源码定位；Task 执行时，主 session 会在每个源码 workspace 中自动
+使用 preset。CodeGraph 可辅助源码定位；Task 执行时，每个 Runner 会在自己的源码 workspace 中自动
 初始化可用的 CodeGraph 索引，失败则退回定向读取。GMGN 不依赖它们才能安装。具体规则由
 [`run-task`](skills/run-task/SKILL.md)定义。每次 DocStar 调用仍实时全量重建，不使用缓存。
 Telemetry hooks 与报告器只在 DocStar 外部统计调用次数、耗时、命令类型和后续 grep/read；

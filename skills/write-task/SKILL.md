@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 # Task.md: milestone task index
 
-<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have been directly reviewed and accepted by its active Adjudicator at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
+<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have passed its owning-stage acceptance and Critic necessity gates at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing rules. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -69,25 +69,27 @@ the Task ID.
 
 ## Writer and review loop
 
-The assigned Adjudicator resolves Task boundaries and prepares one Author brief under the
-registered `gmgn` Skill's shared document-candidate and dispatch rules. The Author writes and
-revises `Task.md`, commits the fixed candidate, and waits. The primary orchestrator checks
-candidate identity and prepared machine evidence. The same active Adjudicator directly applies
-the Task boundary and split test to every affected row and reports under-splitting or an
-incorrect boundary. AC coverage and an acyclic dependency DAG do not substitute for this
-check, and Task count alone is not a finding. An in-scope finding returns to the same Author.
-A fix that expands authority or scope beyond the accepted finding becomes a separately scoped
-change.
+The primary orchestrator resolves Task boundaries and prepares one Author brief under the
+registered `gmgn` Skill's shared document-candidate and dispatch rules. The independent Author
+writes and revises `Task.md`, commits the fixed candidate, and waits. The primary orchestrator
+checks candidate identity and prepared machine evidence, applies the Task boundary and split
+test to every affected row, and applies the Critic necessity gate. It adjudicates under-
+splitting or an incorrect boundary and returns an accepted in-scope repair to the same Author.
+AC coverage and an acyclic dependency DAG do not substitute for this check, and Task count
+alone is not a finding. A fix that expands accepted authority, objective, or write boundary
+becomes a separately scoped change.
 
 ## Controlled revision
 
-- Revise only affected task rows, AC mappings, dependencies, status, and execution pointers.
-  Do not reopen unrelated tasks.
+- Semantic changes to task rows, AC mappings, or dependencies require the Author loop above.
+  Revise only affected content and do not reopen unrelated Tasks.
+- Meaning-preserving status and execution-pointer refresh is mechanical and uses machine
+  checks without an Author or Critic.
 
 ## Exit
 
-Before acceptance, require the Author and Adjudicator to confirm every row passes the Task
-boundary and split test; every Task has an upstream anchor, only real prerequisites, and
+Before acceptance, require the Author and primary orchestrator to confirm every row passes the
+Task boundary and split test; every Task has an upstream anchor, only real prerequisites, and
 current status/execution values; every in-scope AC is covered; the dependency graph is
 acyclic; every result that passes the Task boundary remains separately visible; and no design
 decision or execution detail appears in `Task.md`.

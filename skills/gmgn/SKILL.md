@@ -51,41 +51,52 @@ and resume the stage that raised it after owner approval and affected propagatio
 
 ## Roles and independent checks
 
-The primary orchestrator keeps context and acts only as the exact relay, mechanical scheduler,
-workspace manager, deterministic checker, integration owner, and shared-state updater. It does
-not plan solutions, conduct semantic owner dialogue, write document candidates, select semantic
-checks, semantically review candidates, or adjudicate findings. One bounded Adjudicator owns
-those semantic actions for each case and remains assigned through owner waits, Author or Coder
-candidate checkpoints, direct fixed-candidate review, and accepted finding fixes. Independent
-cases may use parallel Adjudicators; overlapping declared authority or impact cones remain
-serialized. Delegated roles follow the dispatch contract.
+The primary orchestrator retains complete context. Outside `run-task`, it conducts semantic
+Owner dialogue, analyzes evidence, makes workflow and semantic decisions, schedules agents,
+adjudicates Critic and Reviewer findings, integrates accepted candidates, and updates shared
+state. It may perform meaning-preserving mechanical edits, but it never writes an upstream
+authority, plan, or design candidate. Creation or semantic revision of WhitePaper, Decision,
+ROADMAP, Goal, Requirement, Design, Task, or equivalent authority requires an independent
+Author. Do not create an Author when no candidate is needed.
+
+Only `run-task` uses a Commander for bounded global judgment and one Runner per Task. The
+primary orchestrator creates or resumes Commanders and mechanically creates Runners from
+their complete briefs. A Commander is not used in other stages. Delegated roles follow the
+dispatch contract.
 
 Select the check path by the surface that changed:
 
 | Changed surface | Check path |
 |---|---|
-| Fixed WhitePaper/Decision/ROADMAP/Goal/Requirement/Design/Task candidate | Same active Adjudicator directly reviews it under the owning stage |
-| Fixed complete implementation/test candidate | Same active Adjudicator directly reviews it under `code-review` and `run-task` |
-| Recorded `required:<trigger>` classification | Verifier after the Adjudicator accepts the review surface |
+| Fixed WhitePaper/Decision/ROADMAP/Goal/Requirement/Design/Task candidate | Primary orchestrator applies the Critic necessity gate and adjudicates any Critic findings |
+| Fixed complete implementation/test candidate in normal `run-task` | Its Runner reviews under `code-review`; independent Reviewer only when explicitly required |
+| Recorded `required:<trigger>` classification | Fresh Verifier after relevant review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
-The Adjudicator does not maximize finding count. It reports an issue only when leaving it
-unresolved creates concrete material harm, no accepted effective fallback contains that harm,
-and a smallest sufficient correction can be stated. Otherwise it accepts. In-scope repair
-returns to the same Author or Coder while the objective and write boundary remain unchanged.
-The primary orchestrator checks candidate identity, runs prepared deterministic commands, and
-forwards exact results without semantic interpretation. After a fix it reruns only affected
-checks, and the same Adjudicator inspects the exact fix delta and affected surfaces. An omitted
-stage-owned decision required by an accepted in-scope finding remains a repair by the same Author
-or Coder and the same active Adjudicator; adding or changing that meaning alone does not create a
-new case. Only a change to accepted or upstream authority or a material expansion of the prepared
-objective or write boundary creates a separately scoped case.
+Before dispatching a Critic, the primary orchestrator identifies concrete material harm that
+the Owner has not accepted, no accepted effective fallback contains, and independent criticism
+could plausibly change acceptance or the next action. Dispatch one fresh Critic only when that
+risk can be named or the primary orchestrator cannot decide. Otherwise skip Critic, record one
+sentence explaining why, and run affected machine checks. A meaning-preserving mechanical edit
+never needs a Critic.
+
+Critic and Reviewer do not maximize finding count. A valid return may contain no findings.
+Report an issue only when leaving it unresolved creates concrete material harm, no accepted
+effective fallback contains that harm, and a smallest sufficient correction can be stated.
+Each semantic candidate batch has at most one Critic round. The primary orchestrator adjudicates
+document findings; the Runner adjudicates in-Task implementation findings. An accepted in-scope
+repair returns to the same Author or Coder while objective and write boundary remain unchanged.
+After a fix, the adjudicating caller inspects the exact delta and reruns only affected checks.
+An omitted stage-owned decision required by an accepted finding remains a repair in the same
+batch. Only a change to accepted or upstream authority or a material expansion of the prepared
+objective or write boundary creates a separately scoped batch.
 
 A Verifier is exceptional. Apply the final-candidate classification from the
 [assurance policy](references/en/assurance-policy.json) mechanically when recorded facts make
-it explicit; route only judgment-dependent trigger applicability to the active Adjudicator.
-Use `not-required` or `required:<trigger>` and do not dispatch until the active Adjudicator has
-accepted the review surface. The owning stage defines candidate timing and fix handling.
+it explicit. The primary orchestrator owns classification outside `run-task`; the Runner owns
+it for its Task and returns any cross-Task or authority question through the Commander path.
+Use `not-required` or `required:<trigger>` and do not dispatch until relevant review blockers
+clear. The owning stage defines candidate timing and fix handling.
 
 ## Minimality gates
 
@@ -105,29 +116,32 @@ not restate those stage rules.
 
 ## Document candidates
 
-The active Adjudicator conducts the owner dialogue and prepares one bounded semantic Author
-brief only when the candidate is ready to write. One Author creates, self-checks, commits, and
-revises that document candidate while its objective and write boundary remain unchanged. The
-primary orchestrator adds only runtime and workspace facts and never drafts the candidate.
-The Author's self-check is not review. After the complete candidate is fixed, the primary
-orchestrator checks its identity, runs affected machine checks, and returns the candidate and
-exact evidence to the same Adjudicator for direct review. The Adjudicator accepts or sends an
-in-scope finding to the same Author; equivalent mechanical propagation uses machine checks
-only. An omitted stage-owned decision required by an accepted in-scope finding remains a repair
-by that Author and the same active Adjudicator. It becomes a new semantic case only when accepted
-or upstream authority changes or the prepared objective or write boundary materially expands.
+The primary orchestrator conducts Owner dialogue, resolves the candidate meaning, and prepares
+one bounded Author brief only when the candidate is ready to write. One independent Author
+creates, self-checks, commits, and revises that document candidate while its objective and write
+boundary remain unchanged. The Author's self-check is not review.
 
-The primary orchestrator performs links, machine checks, and integration. Do not create an
-Integrator role.
+After the complete candidate is fixed, the primary orchestrator checks identity, runs affected
+machine checks, and applies the Critic necessity gate. It adjudicates any Critic findings and
+sends an accepted in-scope repair to the same Author. An omitted stage-owned decision required
+by that finding remains a repair in the same Author dispatch. It becomes a new semantic batch
+only when accepted or upstream authority changes or the prepared objective or write boundary
+materially expands. Meaning-preserving links, formatting, pointers, and state mirrors may be
+applied mechanically by the primary orchestrator with machine checks only.
+
+For these document candidates, the primary orchestrator performs links, machine checks, and
+integration. Do not create an Integrator role.
 
 ## Task execution
 
 `Task.md` is the Milestone index: stable task rows, AC mapping, dependencies, macro status, and
 execution pointers. The registered `run-task` Skill solely owns Card/Log materialization,
 verification contracts, the dependency-aware ready set, capacity prioritization, writer
-lanes, runtime tools, Codex agent monitoring, direct fixed implementation/test candidate
-review by the active Adjudicator, risk-triggered verification, shared-baseline checks, and
-Task closure. Do not copy those rules here.
+lanes, runtime tools, Codex agent monitoring, Runner review, risk-triggered verification,
+integration by a Commander, shared-baseline checks, and Task closure. On run-task entry, the
+primary orchestrator creates a Commander without collecting or analyzing the ready set; the
+Commander reads current authority and returns complete Runner briefs. Do not copy the detailed
+rules here.
 
 ## Controlled-change routing
 
@@ -141,24 +155,26 @@ Route a semantic change to the single authority that owns it:
 | Goal active boundary, necessary Milestone-local exclusion, ROADMAP deliverable/success-signal coverage, or qualitative Close outcome | `write-goal` revision |
 | Requirement behavior, quantified parameter, constraint, or decidable AC | `write-requirement` revision |
 | Design structure, implementation decision, interface contract, data, or failure path | `write-design` revision |
-| Task division, dependency, AC mapping, status, or execution pointer | `write-task` revision |
+| Task division, dependency, AC mapping, or execution-pointer meaning | `write-task` revision |
 
 The current D-ID takes precedence over the category rows below it. When no D-ID exists and no
 new Decision entry is selected, route the meaning to its normal stage authority.
 
 Start from the approved commit, record the semantic delta and impact cone, and update only
 affected authority, tasks, code, tests, evidence, and state. Meaning-preserving mechanical
-changes use machine checks without reapproval. Reopening a Milestone does not by itself
+changes, including Task status and execution-pointer refresh, use machine checks under the
+active owning stage without reapproval. Reopening a Milestone does not by itself
 reopen its normative documents or unaffected work.
 
-For a narrow bug or mechanical one-step change, identify the smallest authority and
-acceptance condition, implement it, have the active Adjudicator directly review the fixed
-candidate, add risk-triggered verification only when required, and refresh state. Do not
-fabricate the full document chain.
+For a narrow bug or mechanical one-step change, identify the smallest authority and acceptance
+condition. Route implementation through the smallest applicable Task and `run-task`; apply a
+meaning-preserving document edit mechanically when allowed, add risk-triggered verification
+only when required, and refresh state. Do not fabricate the full document chain.
 
 <HARD-GATE>Never skip a missing prerequisite, redefine upstream meaning downstream, execute an
-unauthorized Milestone, let a delegated agent self-review, expose an unchecked implementation
-combination as the shared baseline, or push, publish, or deploy without explicit authority.</HARD-GATE>
+unauthorized Milestone, let a delegated writer accept its own candidate, expose an unchecked
+implementation combination as the shared baseline, or push, publish, or deploy without
+explicit authority.</HARD-GATE>
 
 Before every substantive return, self-check the active contract and correct in-scope defects.
 Disclose only unresolved material risk; do not output a fixed `Reflection` section.

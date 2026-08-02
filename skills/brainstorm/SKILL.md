@@ -5,7 +5,7 @@ description: "Use when a WhitePaper does not exist, needs a major rethink, or an
 
 # Brainstorm → WhitePaper
 
-<HARD-GATE>In creation mode, do not enter `write-decision`, create downstream documents, or write implementation code before the WhitePaper candidate is committed locally, directly reviewed and accepted by the same active Adjudicator, and approved by the owner. In revision mode, pause only dependent work whose premise changed until the owner approves the accepted semantic delta at a new commit. “The project is simple” is not a bypass.</HARD-GATE>
+<HARD-GATE>In creation mode, do not enter `write-decision`, create downstream documents, or write implementation code before an independent Author commits the WhitePaper candidate locally, the primary orchestrator completes the Critic necessity gate and accepts its meaning, and the Owner approves it. In revision mode, pause only dependent work whose premise changed until the Owner approves the accepted semantic delta at a new commit. “The project is simple” is not a bypass.</HARD-GATE>
 
 ## Language and writing rules
 
@@ -15,12 +15,11 @@ writing rules. Use the active project/user locale for artifact prose. The WhiteP
 
 ## Working rhythm
 
-One Adjudicator stays assigned to the Brainstorm case, conducts the owner dialogue through the
-primary orchestrator's exact relay, asks one question at a time, records rulings in its case
-context, and challenges premature implementation or solutions disguised as requirements.
-When the meaning is ready to draft, it returns one bounded Author dispatch. The primary
-orchestrator appends runtime and workspace facts; the Author writes the WhitePaper candidate.
-Any Researcher follows the shared dispatch contract and returns facts to the same Adjudicator.
+The primary orchestrator conducts the Owner dialogue, asks one question at a time, retains
+rulings in session context, and challenges premature implementation or solutions disguised as
+requirements. When the meaning is ready to draft, it prepares one bounded Author brief. The
+independent Author writes the WhitePaper candidate. Any Researcher follows the shared dispatch
+contract and returns source-by-source facts to the primary orchestrator for analysis.
 
 Use as needed:
 
@@ -43,17 +42,17 @@ Do not introduce R-AC IDs or quantitative requirement criteria here.
 
 ## Writer and review-selection loop
 
-1. The Adjudicator resolves material problem, scope, and harm-order questions with the owner,
-   then prepares the Author brief.
+1. The primary orchestrator resolves material problem, scope, and harm-order questions with
+   the Owner, then prepares the Author brief.
 2. The same Author creates and revises one complete candidate through the registered `gmgn`
    Skill's shared document-candidate and dispatch rules, commits a fixed checkpoint, and waits.
-3. The primary orchestrator verifies candidate identity, runs prepared machine checks, and
-   returns exact evidence to the same Adjudicator. That Adjudicator directly checks the
-   problem, scope, harm order, invariants, evidence, and deletion of unsupported content;
-   an in-scope finding returns to the same Author.
-4. After accepting the fixed candidate, the Adjudicator asks the owner to approve it and its
-   remaining material risks—or that none are known. After approval, the primary orchestrator
-   applies mechanical links and state, then runs affected machine checks.
+3. The primary orchestrator verifies candidate identity, runs prepared machine checks, checks
+   the problem, scope, harm order, invariants, evidence, and deletion of unsupported content,
+   and applies the Critic necessity gate. It adjudicates any Critic finding and returns an
+   accepted in-scope repair to the same Author.
+4. After accepting the fixed candidate, the primary orchestrator asks the Owner to approve it
+   and its remaining material risks—or that none are known. After approval, it applies
+   mechanical links and state, then runs affected machine checks.
 
 ## Revision mode
 
@@ -64,9 +63,9 @@ whole project.
    impact cone.
 2. Have the assigned Author edit only the WhitePaper sections that are authoritative for the
    changed meaning. Preserve unaffected conclusions and prior decision history.
-3. Scope research and direct Adjudicator review to the delta plus the minimum context needed
+3. Scope research and any selected Critic review to the delta plus the minimum context needed
    to falsify it.
-4. Have the owner approve the semantic delta at a new Git commit. The old approval remains
+4. Have the Owner approve the semantic delta at a new Git commit. The old approval remains
    attached to the old commit.
 5. Reconcile affected Decision rulings first, then propagate only through their affected
    ROADMAP or G-R-D-T content and return to the stage that raised the change. Do not rerun
@@ -78,8 +77,8 @@ revision mode or seeking reapproval.
 
 ## Exit
 
-The Adjudicator binds owner approval to the shortest unambiguous commit reference. In creation
-mode, the primary orchestrator completes any workspace-topology-required integration and
-use **REQUIRED next skill: `write-decision`**. In revision mode, commit, propagate the approved delta
-through its impact cone, and return to the stage that raised the change rather than restarting
-the full chain.
+The primary orchestrator binds Owner approval to the shortest unambiguous commit reference. In
+creation mode, it completes any workspace-topology-required integration and uses
+**REQUIRED next skill: `write-decision`**. In revision mode, commit and propagate the approved
+delta through its impact cone, then return to the stage that raised the change rather than
+restarting the full chain.

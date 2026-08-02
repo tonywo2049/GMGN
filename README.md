@@ -69,9 +69,9 @@ downstream context.
 
 Every ROADMAP Milestone maps to WhitePaper and applicable D-IDs, states one outcome and its value, names necessary
 deliverables and one result-level success signal, and separates `now | next | later`,
-relative priority, and real dependencies. The Adjudicator resolves its meaning, an Author
-writes one complete recommended map for owner approval, and the primary session only relays
-and schedules. ROADMAP does not own an E2E path.
+relative priority, and real dependencies. The primary session resolves its meaning and an
+independent Author writes one complete recommended map for Owner approval. ROADMAP does not
+own an E2E path.
 
 Each stage document adds one kind of information: Decision records rulings explicitly
 centralized for downstream use; ROADMAP allocates partially ordered Milestones and their
@@ -98,35 +98,34 @@ the reviewed implementation-matching commit as `closed`.
 |---|---|---|
 | Eleven shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
-| Fixed implementation/test candidate review | Same active Adjudicator | Same active Adjudicator |
-| Deterministic local checks | Primary orchestrator runs the declared commands | Primary orchestrator runs the declared commands |
+| Fixed implementation/test candidate review | Task Runner; independent Reviewer only when explicitly required | Task Runner; independent Reviewer only when explicitly required |
+| Deterministic local checks | Primary orchestrator outside `run-task`; Runner and a Commander during integration | Primary orchestrator outside `run-task`; Runner and a Commander during integration |
 | Risk-triggered final verification | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 Every delegated role follows the
-[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). One bounded active
-Adjudicator conducts owner dialogue and directly reviews each fixed document or complete
-implementation/test candidate. The primary orchestrator relays exact messages, checks
-candidate identity, runs declared deterministic commands, and forwards their evidence without
-making a semantic finding or accepting the candidate. In-scope findings return to the same
-Author or Coder, and the same Adjudicator continues the case after the writer commits the fix.
-An Adjudicator, Author, or Coder resumes the same unfinished dispatch while its objective and
-write boundary remain unchanged. A Verifier remains risk-triggered under
+[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). Outside `run-task`, the
+primary orchestrator retains context, conducts Owner dialogue, makes semantic and workflow
+decisions, dispatches agents, adjudicates findings, and integrates. An independent Author must
+write every upstream authority, plan, or design candidate; meaning-preserving mechanical edits
+need only machine checks. The primary orchestrator dispatches a Critic only when its necessity
+gate identifies a material risk or cannot decide, then adjudicates that return. A Verifier
+remains risk-triggered under
 [`gmgn-assurance-v3`](skills/gmgn/references/en/assurance-policy.json). The implementation
 review surface is defined by the
 [code-review contract](skills/gmgn/references/en/code-review.md).
 
-`Task.md` remains a Milestone index. In an initiated Milestone, `run-task` creates a stable
-`Card.md` execution and verification contract plus a replaceable `Log.md` for every accepted
-row and executes it when ready without another execution-set confirmation. It then owns
-ready-set scheduling, isolated writer lanes, runtime tools, monitoring, review, integration,
-and closure. Coder RED/GREEN runs in one dispatch without a primary-session approval pause.
-The Coder commits and waits at a complete candidate checkpoint; the primary orchestrator
-replays the prepared RED/GREEN and other deterministic checks, and the same active
-Adjudicator reviews the fixed implementation/test candidate. The same Coder handles an
-in-scope finding. A Task closes only after the accepted content is integrated and every
-project-declared required check passes against that exact shared-baseline candidate. The
-complete rules live in
+`Task.md` remains a Milestone index. Only `run-task` uses the Commander-and-Runner flow. The
+primary session first creates a Commander without precomputing the ready set; that Commander
+reads current authority and returns complete briefs for one Runner per selected Task. Each
+Runner owns its Task workspace, directly manages its Coder and any needed Researcher or
+Verifier, and normally reviews the fixed implementation/test candidate itself. Coder creates
+or resumes Card/Log, verification contract, RED/GREEN checkpoints, implementation, and related
+evidence. Runner prepares the final Task candidate. When it reports `ready_for_integration`,
+the primary session creates one Commander to lock, synchronize, identify, check, and update the
+shared baseline; it does not repeat integration or semantic review. A content-changing rebase,
+conflict resolution, or Commander edit invalidates affected candidate-bound evidence and
+returns through the same Runner gates. The complete rules live in
 [`run-task`](skills/run-task/SKILL.md).
 
 A closed Milestone returns to `initiated` when unfinished work is found. Its current
@@ -380,8 +379,8 @@ Telemetry hooks and reporters observe from outside DocStar, recording call count
 time, command type, and subsequent grep/read activity. `grep_avoided` is descriptive and
 does not claim that DocStar caused a grep to be avoided.
 
-CodeGraph is an optional source-navigation aid. During task execution, the primary orchestrator
-automatically initializes an available CodeGraph index in each source workspace and falls back
+CodeGraph is an optional source-navigation aid. During Task execution, each Runner
+automatically initializes an available CodeGraph index in its source workspace and falls back
 to targeted reads if initialization fails. Exact DocStar and CodeGraph rules are defined by
 [`run-task`](skills/run-task/SKILL.md).
 
