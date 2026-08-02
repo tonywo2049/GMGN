@@ -167,8 +167,8 @@ semantics, AC mapping, and granularity check; Task count itself is not a measure
 or overdesign.
 
 For an initiated Milestone, every accepted Task row enters execution when ready without a
-separate owner confirmation. `run-task` creates exactly two files for each new Task, or reuses
-them for a reopened Task, before Coder dispatch:
+separate owner confirmation. The Task's Coder creates exactly two files for each new Task, or
+restores them for a reopened Task, before production implementation:
 
 - `execution/<card_id>/Card.md` — normative execution and verification contract with its completion
   criterion.
