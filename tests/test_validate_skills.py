@@ -191,6 +191,26 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assert_rejected("write-design 外部调研边界")
                 path.write_text(original, encoding="utf-8")
 
+    def test_rejects_in_scope_repair_boundary_regression(self) -> None:
+        cases = (
+            (
+                "skills/gmgn/SKILL.md",
+                "A fix that introduces new meaning or widens the write boundary is a separately scoped case.\n"
+                "A change that invents new meaning is a new semantic case owned by its stage.",
+            ),
+            (
+                "skills/write-design/SKILL.md",
+                "If a fix must invent or change Design-owned meaning, it is a new semantic case under Controlled revision.",
+            ),
+        )
+        for relative, contradiction in cases:
+            with self.subTest(relative=relative, contradiction=contradiction):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                path.write_text(original + f"\n{contradiction}\n", encoding="utf-8")
+                self.assert_rejected("范围内 finding 修复边界")
+                path.write_text(original, encoding="utf-8")
+
     def test_rejects_run_task_test_first_policy_drift(self) -> None:
         # This protects approved Skill text; it is not task-level RED evidence.
         cases = (

@@ -326,6 +326,37 @@ WRITE_DESIGN_RESEARCH_CONTROLS = (
     "The bounded external research for the initial creation or current semantic revision is\n   complete",
     "Before editing that semantic delta, complete its bounded external research under External\n   solution research",
 )
+IN_SCOPE_REPAIR_CONTROLS = {
+    Path("skills/gmgn/SKILL.md"): (
+        "An omitted stage-owned decision required by an accepted in-scope finding remains a repair by the same Author\n"
+        "or Coder and the same active Adjudicator",
+        "Only a change to accepted or upstream authority or a material expansion of the prepared\n"
+        "objective or write boundary creates a separately scoped case",
+        "An omitted stage-owned decision required by an accepted in-scope finding remains a repair\n"
+        "by that Author and the same active Adjudicator",
+        "It becomes a new semantic case only when accepted\n"
+        "or upstream authority changes or the prepared objective or write boundary materially expands",
+    ),
+    WRITE_DESIGN: (
+        "A Design-owned\ndecision omitted from the fixed candidate but required by that finding remains a repair by that\n"
+        "Author and the same active Adjudicator",
+        "Adding or changing Design-owned meaning alone\n"
+        "does not create a new semantic case or batch and does not restart the current research cycle",
+        "Only\na change to accepted or upstream authority or a material expansion of the prepared objective or\n"
+        "write boundary enters Controlled revision as a new semantic case",
+        "It opens a new batch only when it changes accepted or upstream authority or materially\n"
+        "   expands the prepared objective or write boundary",
+    ),
+}
+IN_SCOPE_REPAIR_CONTRADICTIONS = {
+    Path("skills/gmgn/SKILL.md"): (
+        "A fix that introduces new meaning or widens the write boundary is a separately scoped case",
+        "A change that invents new meaning is a new semantic case owned by its stage",
+    ),
+    WRITE_DESIGN: (
+        "If a fix must invent or change Design-owned meaning, it is a new semantic case under Controlled revision",
+    ),
+}
 RELEASE_VERIFIER_TRIGGER_CONTROLS = (
     "The `trigger` must exactly match a member of that policy's `verifier.triggers` list",
 )
@@ -528,6 +559,13 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         "write-design 外部调研边界",
         errors,
     )
+    for relative, controls in IN_SCOPE_REPAIR_CONTROLS.items():
+        active_text = active_markdown(read(relative))
+        require_fragments(active_text, controls, "范围内 finding 修复边界", errors)
+        normalized_active_text = normalized(active_text)
+        for contradiction in IN_SCOPE_REPAIR_CONTRADICTIONS[relative]:
+            if normalized(contradiction) in normalized_active_text:
+                errors.append(f"{relative}: 范围内 finding 修复边界含冲突规则 {contradiction}")
     require_active_fragments(
         read("skills/gmgn/SKILL.md"),
         GMGN_RUN_TASK_ROUTE_CONTROLS,

@@ -75,8 +75,11 @@ and a smallest sufficient correction can be stated. Otherwise it accepts. In-sco
 returns to the same Author or Coder while the objective and write boundary remain unchanged.
 The primary orchestrator checks candidate identity, runs prepared deterministic commands, and
 forwards exact results without semantic interpretation. After a fix it reruns only affected
-checks, and the same Adjudicator inspects the exact fix delta and affected surfaces. A fix that
-introduces new meaning or widens the write boundary is a separately scoped case.
+checks, and the same Adjudicator inspects the exact fix delta and affected surfaces. An omitted
+stage-owned decision required by an accepted in-scope finding remains a repair by the same Author
+or Coder and the same active Adjudicator; adding or changing that meaning alone does not create a
+new case. Only a change to accepted or upstream authority or a material expansion of the prepared
+objective or write boundary creates a separately scoped case.
 
 A Verifier is exceptional. Apply the final-candidate classification from the
 [assurance policy](references/en/assurance-policy.json) mechanically when recorded facts make
@@ -110,7 +113,9 @@ The Author's self-check is not review. After the complete candidate is fixed, th
 orchestrator checks its identity, runs affected machine checks, and returns the candidate and
 exact evidence to the same Adjudicator for direct review. The Adjudicator accepts or sends an
 in-scope finding to the same Author; equivalent mechanical propagation uses machine checks
-only. A change that invents new meaning is a new semantic case owned by its stage.
+only. An omitted stage-owned decision required by an accepted in-scope finding remains a repair
+by that Author and the same active Adjudicator. It becomes a new semantic case only when accepted
+or upstream authority changes or the prepared objective or write boundary materially expands.
 
 The primary orchestrator performs links, machine checks, and integration. Do not create an
 Integrator role.

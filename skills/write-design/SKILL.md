@@ -210,10 +210,14 @@ effects, failures, recovery, and parameters; provider and consumer compatibility
 phase legality; structural-authority consistency; global-versus-local rule conflicts; R/AC
 traceability; and whether each separate artifact can be deleted.
 
-The Adjudicator sends an accepted in-scope finding to the same primary Author. If a fix must
-invent or change Design-owned meaning, it is a new semantic case under Controlled revision,
-not a repair of the old candidate. Accept only the complete Bundle at one commit as the shared
-Design baseline.
+The Adjudicator sends an accepted in-scope finding to the same primary Author. A Design-owned
+decision omitted from the fixed candidate but required by that finding remains a repair by that
+Author and the same active Adjudicator while accepted or upstream authority, the prepared
+objective, and the write boundary remain unchanged. Adding or changing Design-owned meaning alone
+does not create a new semantic case or batch and does not restart the current research cycle. Only
+a change to accepted or upstream authority or a material expansion of the prepared objective or
+write boundary enters Controlled revision as a new semantic case. Accept only the complete Bundle
+at one commit as the shared Design baseline.
 
 ## Controlled revision
 
@@ -228,7 +232,10 @@ Design baseline.
    solution research.
 5. Adding or changing a public type or Port, authority source, required validation call site,
    error priority, state or durability order, or provider/consumer obligation is a semantic
-   delta. Narrow it back to the reviewed authority or open a new batch.
+   delta. It opens a new batch only when it changes accepted or upstream authority or materially
+   expands the prepared objective or write boundary. Otherwise keep it in the current batch,
+   including when an accepted in-scope finding requires an omitted Design-owned decision; when
+   that boundary is crossed, narrow the delta back to reviewed authority or open the new batch.
 6. Revise only the affected design, contract, schema, and links; do not redesign unrelated
    structures. The same active Adjudicator directly reviews the fixed semantic delta and its
    direct impact surface and accepts it at the new Bundle commit or returns a minimum finding
