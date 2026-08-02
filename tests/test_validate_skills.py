@@ -160,6 +160,19 @@ class ValidateSkillsTests(unittest.TestCase):
                 "The Researcher compares candidates and selects the Design-owned solution",
             ),
             (
+                "inspect source code and tests relevant to the current problem at an\n"
+                "explicitly checked upstream release, version, or commit",
+                "inspect documentation for a current software release",
+            ),
+            (
+                "keep the smallest closed code slice",
+                "keep the selected source files",
+            ),
+            (
+                "exact reused file, module, and symbol boundary",
+                "general reuse scope",
+            ),
+            (
                 "Before editing that semantic delta, complete its bounded external research under External\n"
                 "   solution research",
                 "When needed, consider external research after editing that semantic delta",

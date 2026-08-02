@@ -92,19 +92,38 @@ is a distinct credible path; do not pad the set. Use primary evidence such as an
 standard, specification, documentation, reference implementation, maintainer source and release
 record, production case, audit, or paper. Search snippets, rankings, stars, and popularity alone
 do not prove maturity or fit. Record the checked version or date for facts that can change.
+For a software candidate, inspect source code and tests relevant to the current problem at an
+explicitly checked upstream release, version, or commit; documentation, rankings, or the project
+name alone are insufficient.
 
 The same Adjudicator aggregates the returned evidence, compares only what can change the
 decision, and selects the Design-owned solution: current R/AC and constraint coverage,
-compatibility, security boundaries, maintenance, licensing, and adoption cost. Route a tradeoff
+compatibility, security boundaries, maintenance, and adoption cost. Route a tradeoff
 that changes upstream meaning to `gmgn`. If no credible external solution fits, record the
-search boundary and the material reason, then design the smallest new solution instead of
-inventing candidates.
+search boundary and material reason instead of inventing candidates. Choose direct new
+implementation or reference-only reimplementation only when the research establishes a
+material no-fit against current R/ACs or constraints.
+
+When reusing source, keep the smallest closed code slice. Every retained upstream file, module,
+symbol, helper, type, or test must be directly required by a current R/AC or be a necessary
+dependency for another retained item to work correctly. Keep necessary validation, invariants,
+error handling, recovery and security safeguards, unavoidable helpers and types, and the minimum
+relevant tests. Exclude unrelated features, CLIs, UIs, examples, plugins, configuration,
+extensibility, and future abstractions.
 
 Carry into the owning Design artifact the selected solution or no-fit result, checked version
 or date, primary evidence, and key fit or gap. Retain a rejected candidate only when omitting
 it would make the current choice unclear or remove a live rollback path. Do not create
 `Research.md` or store the working scope, search terms, full research report, or candidate
 chronology in the Design Bundle.
+
+When source is reused or adapted, Design records, at the smallest stable useful granularity, the
+upstream identity, checked revision, exact reused file, module, and symbol boundary, unavoidable
+transitive items, local destination and adaptations, explicit exclusions, primary source and test
+evidence, and verification point. This does not require a whole-repository inventory or a
+line-by-line list. For copied, ported, or adapted source, the checked upstream revision is the
+source authority. For an ordinary package dependency, Design records the evaluated version;
+the manifest or lockfile owns the exact production pin.
 
 The following are applicability checks, not required headings or a document template:
 
@@ -148,6 +167,11 @@ vector, or conformance specification only when the structural authority cannot e
 required derivation, ordering, or byte result. Design defines these authorities; it does not
 implement production I/O, storage, or providers.
 
+Treat a known-answer test (KAT) or other vector that defines expected results as Design
+authority regardless of its path or executable form. Validate its creation or revision with
+the applicable reproduction or conformance check, not RED/GREEN. Use an approved, unchanged
+vector as an implementation RED/GREEN oracle only under `run-task`.
+
 Keep the Bundle `draft` while any implementation-significant decision remains unresolved.
 
 Do not include commands, full results, candidate chronology, work status, execution history,
@@ -157,7 +181,8 @@ coexisting-version compatibility requirement needs them.
 Before return, apply this Design Ready gate:
 
 1. The bounded external research for the initial creation or current semantic revision is
-   complete, and Design records the selected solution or no-fit result with primary evidence.
+   complete, and Design records the selected solution or material no-fit plus the applicable
+   evidence, revision, reuse boundary, exclusions, and verification point.
 2. No implementation-significant question, hidden default, or unapproved parameter remains.
 3. Every applicable boundary has one structure authority and a closed producer-to-state path.
 4. Every R/AC and retained design element has one resolvable owner, implementation result, and
@@ -214,6 +239,8 @@ only the complete Bundle at one commit as the shared Design baseline.
    fresh independent Critic round scoped to that delta and its direct impact surface, plus
    Adjudicator acceptance at the new Bundle commit. Old review remains attached to the old
    commit.
+7. A compatible update is mechanical only when it does not affect behavior, security, or an
+   interface; otherwise route it back through `write-design`.
 
 Meaning-preserving mechanical changes use same-batch link, mapping pointer, and status
 refresh plus machine checks without reapproval.

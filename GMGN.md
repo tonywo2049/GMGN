@@ -271,8 +271,13 @@ Choose the first sufficient option:
 2. reuse existing repository behavior;
 3. standard library or platform-native capability;
 4. existing dependency;
-5. direct implementation;
-6. the smallest new structure.
+5. inspect a trusted external implementation and extract or adapt only its smallest closed
+   code slice;
+6. direct implementation;
+7. the smallest new structure.
+
+Selecting an external project does not authorize forking or importing its whole repository or
+bringing in code that the current requirement does not need.
 
 Do not add roles, state machines, identity history, configuration, wrappers, or documents
 without a current requirement. Preserve trust-boundary validation, security, accessibility,

@@ -309,6 +309,9 @@ WRITE_DESIGN_RESEARCH_CONTROLS = (
     "the Researcher to discover up to three credible candidates",
     "whether a candidate or source enters the collection set only by those conditions",
     "The same Adjudicator aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
+    "inspect source code and tests relevant to the current problem at an\nexplicitly checked upstream release, version, or commit",
+    "keep the smallest closed code slice",
+    "exact reused file, module, and symbol boundary",
     "The bounded external research for the initial creation or current semantic revision is\n   complete",
     "Before editing that semantic delta, complete its bounded external research under External\n   solution research",
 )
