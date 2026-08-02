@@ -147,19 +147,19 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Any small Design change is outside this trigger",
             ),
             (
-                "observable candidate and source inclusion and exclusion conditions",
+                "observable candidate and source inclusion and\nexclusion conditions",
                 "general candidate preferences",
             ),
             (
-                "The\nAdjudicator does not search external sources itself.",
-                "The Adjudicator searches external sources itself.",
+                "the primary orchestrator performs\nthe bounded collection or creates one Researcher when independent or parallel collection is\nuseful.",
+                "The Researcher always selects the collection strategy.",
             ),
             (
-                "Researcher to discover up to three credible candidates",
+                "A Researcher brief authorizes discovery of up to three credible candidates",
                 "Researcher to collect owner-named candidates",
             ),
             (
-                "The same Adjudicator aggregates the returned evidence, compares only what can change the\n"
+                "The primary orchestrator aggregates collected evidence, compares only what can change the\n"
                 "decision, and selects the Design-owned solution",
                 "The Researcher compares candidates and selects the Design-owned solution",
             ),
@@ -215,23 +215,23 @@ class ValidateSkillsTests(unittest.TestCase):
         # This protects approved Skill text; it is not task-level RED evidence.
         cases = (
             (
-                "every implementation lane\nuses a delegated Coder",
+                "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the",
                 "the primary orchestrator may implement one lane",
             ),
             (
-                "The Coder encodes those approved criteria; it does not define acceptance meaning",
+                "The Coder encodes the accepted criteria; it does not define acceptance meaning",
                 "The Coder defines acceptance meaning and encodes its own criteria",
             ),
             (
-                "structural regression, not behavior TDD evidence",
+                "structural\nregression, not behavior TDD evidence",
                 "behavior TDD evidence",
             ),
             (
-                "no separate\nprimary-orchestrator or Adjudicator approval is required",
-                "primary-orchestrator approval is required",
+                "The Coder does not request or wait\nfor separate RED approval from the Runner, Commander, or primary orchestrator.",
+                "The Coder waits for separate RED approval.",
             ),
             (
-                "Any result-affecting target-test\nchange invalidates its RED evidence",
+                "Any result-affecting target-test change\ninvalidates RED evidence",
                 "A result-affecting target-test change preserves its RED evidence",
             ),
             (
@@ -258,8 +258,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "  test cases. Each case identifies its exact approved Requirement, AC, Design, Contract, or\n"
                 "  Task completion-criterion anchor; scenario or input; observable expected result; and the\n"
                 "  wrong behavior it detects. One case may cover multiple anchors, and existing-behavior cases\n"
-                "  may already pass, but every changed behavior must have discriminating pre-implementation\n"
-                "  failure coverage;",
+                "  may already pass, but every changed behavior needs discriminating pre-implementation failure\n"
+                "  coverage;",
                 "- behavior work records approved tests;",
                 "run-task 关键执行控制",
             ),
@@ -269,28 +269,28 @@ class ValidateSkillsTests(unittest.TestCase):
                 "For RED-gated work, the initial Coder brief authorizes the complete test and production write\n"
                 "boundary. Require the Coder to create and record the test-only RED checkpoint before production\n"
                 "work, then continue directly to GREEN in the same dispatch. The Coder does not request or wait\n"
-                "for a separate RED approval from the primary orchestrator or Adjudicator.",
+                "for separate RED approval from the Runner, Commander, or primary orchestrator.",
                 "For RED-gated work, implementation may proceed before later validation.",
                 "run-task 关键执行控制",
             ),
             (
                 "recorded RED and same-command GREEN",
                 "skills/run-task/SKILL.md",
-                "After recording RED, freeze the target tests and every helper that can affect their verdict.\n"
-                "The Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
-                "target command before running required regression checks. Any result-affecting target-test\n"
-                "change invalidates its RED evidence. Stop production work, recreate the test-only checkpoint\n"
-                "against the original production baseline, record valid RED again, and then continue; never\n"
-                "delete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.",
+                "After recording RED, freeze target tests and every helper that can affect their verdict. The\n"
+                "Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
+                "target command before required regression checks. Any result-affecting target-test change\n"
+                "invalidates RED evidence. Stop production work, recreate the test-only checkpoint against the\n"
+                "original production baseline, record valid RED again, and then continue. Never delete, skip,\n"
+                "weaken, bypass, or move production logic into a test to obtain GREEN.",
                 "After recording RED, implementation may alter tests as needed.",
                 "run-task 关键执行控制",
             ),
             (
                 "optional refactor rule",
                 "skills/run-task/SKILL.md",
-                "After the first GREEN, refactor only to correct a concrete structure problem. When refactoring,\n"
-                "retain a pre-refactor GREEN checkpoint and rerun the same target and required regression checks;\n"
-                "otherwise skip refactoring without creating another checkpoint.",
+                "After the first GREEN, refactor only to correct a concrete structure problem. When\n"
+                "refactoring, retain a pre-refactor GREEN checkpoint and rerun the same target and required\n"
+                "regression checks; otherwise skip refactoring without creating another checkpoint.",
                 "After the first GREEN, refactoring is optional.",
                 "run-task 关键执行控制",
             ),
@@ -334,7 +334,7 @@ class ValidateSkillsTests(unittest.TestCase):
         original = path.read_text(encoding="utf-8")
         cases = (
             (
-                "If the full ten minutes expires without an event, call `list_agents` once",
+                "If the full ten minutes expires without an event, the caller calls `list_agents` once.",
                 "If the full ten minutes expires, immediately wait again",
             ),
             (
@@ -342,26 +342,26 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Poll list_agents whenever useful",
             ),
             (
-                "Do not call\n`list_agents` more than once for the same timeout",
+                "Do not call `list_agents` more than once for the same timeout.",
                 "Call list_agents repeatedly after a timeout",
             ),
             (
-                "While any dispatched agent is\n`running`, do not call `interrupt_agent`, "
-                "end the orchestration, or return a final task result",
+                "A running dispatch remains unfinished work. Do not call `interrupt_agent`, end orchestration,\n"
+                "or return a final Task result while a required direct agent is `running`.",
                 "Stop a slow agent after repeated timeouts",
             ),
             (
-                "If the snapshot reports `running`, finish any unrelated\nready scheduling "
-                "work and return to the same maximum ten-minute `wait_agent` call",
+                "If the snapshot reports `running`,\nfinish unrelated ready work at that level and return to the same maximum ten-minute\n"
+                "`wait_agent` call.",
                 "If that snapshot reports running, interrupt it to reclaim capacity",
             ),
             (
-                "time or token budget are not such evidence",
+                "a session time or token budget are not such\nevidence",
                 "time or token budget permits interruption",
             ),
             (
-                "does not create or send\nheartbeat, unchanged `running`, timeout, agent-count, "
-                "or progress data to the user, Log,\ntelemetry, or another agent",
+                "Do not send heartbeat, unchanged `running`, timeout, agent-count, or routine progress\n"
+                "data to the Owner, Log, telemetry, or another agent.",
                 "sends heartbeat progress data while waiting",
             ),
         )
@@ -375,7 +375,7 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_missing_ready_set_priority(self) -> None:
         self.replace(
             "skills/run-task/SKILL.md",
-            "largest number of currently blocked tasks ready",
+            "the largest\nnumber of currently blocked Tasks ready",
             "smallest card first",
         )
         self.assert_rejected("run-task 关键执行控制")
@@ -392,39 +392,39 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "The terminal completion return retires the agent",
+                "A terminal completion retires the agent.",
                 "Any return retires the agent",
-                "派发授权与生命周期",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "One authorization may cover a named set of external operations against an exact target",
                 "Every external operation needs separate authorization",
-                "派发授权与生命周期",
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
+                "| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-terra` | `high` |",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "| Coder, Researcher | `gpt-5.6-terra` | `max` |",
                 "| Coder, Researcher | `gpt-5.6-sol` | `high` |",
-                "派发授权与生命周期",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "Researcher** is an information collector only",
+                "It does not synthesize, compare, infer, recommend, or select.",
                 "Researcher** analyzes and recommends solutions",
-                "派发授权与生命周期",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "these are the only\nGMGN agent roles",
+                "These are the only GMGN agent roles.",
                 "additional roles may be invented when useful",
-                "派发授权与生命周期",
-            ),
-            (
-                "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "applicable authority, scope, checks, and environment validity inputs",
-                "candidate only",
-                "派发授权与生命周期",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/release/SKILL.md",
@@ -434,7 +434,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/run-task/SKILL.md",
-                "sends the primary orchestrator an interim decision request",
+                "it returns a structured `needs_commander` event for cross-Task or shared-",
                 "returns a terminal result",
                 "run-task 关键执行控制",
             ),
@@ -446,30 +446,23 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/roadmap/SKILL.md",
-                "The Author writes one complete\n"
-                "recommended candidate without asking the owner to approve fields or allocations separately",
+                "The independent Author writes one complete recommended candidate without asking the Owner to\n"
+                "approve fields or allocations separately.",
                 "asks the owner to approve every allocation",
                 "ROADMAP 一次批准",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "The primary orchestrator does not interpret\n"
-                "machine results or make a semantic finding",
-                "The primary orchestrator interprets machine results and accepts the candidate",
-                "派发候选 checkpoint 边界",
-            ),
-            (
-                "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "If the scheduling pass finds no explicit next\n"
-                "consumer, remove the exact GMGN-managed worktree",
+                "If the scheduling pass finds no explicit next consumer, remove\n"
+                "the exact GMGN-managed worktree.",
                 "Keep an unassigned worktree for possible future reuse",
-                "派发授权与生命周期",
+                "Commander/Runner 权威边界",
             ),
             (
-                "agents/adjudicator.md",
-                "All owner interaction passes through the primary orchestrator as an exact relay",
-                "The Adjudicator asks the owner directly",
-                "Adjudicator 角色边界",
+                "agents/commander.md",
+                "Only the primary\norchestrator creates, resumes, or retires a Commander.",
+                "Any Runner creates, resumes, or retires a Commander.",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/write-goal/SKILL.md",
@@ -479,7 +472,7 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/run-task/SKILL.md",
-                "scan the entire target-Milestone\nTask set",
+                "The Commander scans the entire\ntarget-Milestone Task set",
                 "scan only the separately confirmed execution\nset",
                 "run-task 关键执行控制",
             ),
@@ -507,7 +500,7 @@ class ValidateSkillsTests(unittest.TestCase):
                     original.replace(required, invalid, 1) + f"\n{hidden}\n",
                     encoding="utf-8",
                 )
-                self.assert_rejected("派发授权与生命周期")
+                self.assert_rejected("Commander/Runner 权威边界")
                 path.write_text(original, encoding="utf-8")
 
     def test_rejects_conflicting_rule_alongside_required_rule(self) -> None:
@@ -537,34 +530,34 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "GMGN.md",
-                "The same active Adjudicator\n"
-                "that formed the case directly reviews each fixed document candidate",
-                "A separate assessment agent reviews each fixed document candidate",
-                "gmgn 固定候选审查边界",
+                "The primary\norchestrator records the Commander result mechanically and does not repeat integration or\n"
+                "semantic review.",
+                "The primary orchestrator performs a second integration and semantic review.",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "A candidate checkpoint does not retire and later reactivate its writer",
+                "An Author or Coder remains assigned after a candidate checkpoint",
                 "A candidate checkpoint retires its writer for later reactivation",
-                "派发候选 checkpoint 边界",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/code-review.md",
-                "Return an accepted finding to the same Coder",
+                "The Runner adjudicates in-Task findings and sends an accepted minimum repair to the same\nCoder",
                 "Return an accepted finding to a fresh Coder",
-                "code-review 写审分离边界",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/run-task/SKILL.md",
+                "Ordinary deterministic local execution belongs to the Runner; Coder output remains supporting",
                 "Ordinary deterministic local execution belongs to the primary orchestrator",
-                "Ordinary deterministic local execution belongs to the Adjudicator",
                 "run-task 关键执行控制",
             ),
             (
                 "agents/verifier.md",
-                "checks belong to the primary orchestrator",
+                "checks belong to the caller.",
                 "checks belong to the Verifier",
-                "Verifier 风险触发边界",
+                "Commander/Runner 权威边界",
             ),
         )
         for relative, old, new, expected in cases:
@@ -650,12 +643,30 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assert_rejected("sandbox_mode 必须是字符串")
 
     def test_rejects_role_sandbox_drift(self) -> None:
-        self.replace(
-            ".codex/agents/coder.toml",
-            'sandbox_mode = "workspace-write"',
-            'sandbox_mode = "read-only"',
+        cases = (
+            ("commander", "workspace-write", "read-only"),
+            ("runner", "workspace-write", "read-only"),
+            ("author", "workspace-write", "read-only"),
+            ("coder", "workspace-write", "read-only"),
+            ("verifier", "workspace-write", "read-only"),
+            ("reviewer", "workspace-write", "read-only"),
+            ("critic", "read-only", "workspace-write"),
+            ("researcher", "read-only", "workspace-write"),
         )
-        self.assert_rejected("sandbox_mode 应为 workspace-write")
+        for role, expected, wrong in cases:
+            with self.subTest(role=role):
+                relative = f".codex/agents/{role}.toml"
+                self.replace(
+                    relative,
+                    f'sandbox_mode = "{expected}"',
+                    f'sandbox_mode = "{wrong}"',
+                )
+                self.assert_rejected(f"sandbox_mode 应为 {expected}")
+                self.replace(
+                    relative,
+                    f'sandbox_mode = "{wrong}"',
+                    f'sandbox_mode = "{expected}"',
+                )
 
     def test_rejects_unregistered_role_profiles(self) -> None:
         markdown = self.root / "agents/extra.md"
@@ -666,14 +677,93 @@ class ValidateSkillsTests(unittest.TestCase):
         toml.write_text('name = "extra"\n', encoding="utf-8")
         self.assert_rejected("Codex 角色集合不一致")
 
-    def test_rejects_deleted_role_words_on_active_surfaces(self) -> None:
+    def test_rejects_legacy_role_words_on_active_surfaces(self) -> None:
         path = self.root / "GMGN.md"
         original = path.read_text(encoding="utf-8")
-        for role_word in ("Critic", "Reviewer"):
-            with self.subTest(role_word=role_word):
-                path.write_text(original + f"\nIndependent {role_word} role.\n", encoding="utf-8")
-                self.assert_rejected("含已删除独立角色词")
-        path.write_text(original, encoding="utf-8")
+        legacy_role = "adjud" + "icator"
+        path.write_text(original + f"\nIndependent {legacy_role} role.\n", encoding="utf-8")
+        self.assert_rejected("含已删除角色词")
+
+    def test_rejects_critic_reviewer_profile_boundary_drift(self) -> None:
+        cases = (
+            (".codex/agents/critic.toml", "只用于文档/语义", "可审实现与测试"),
+            (".codex/agents/reviewer.toml", "不审规范文档", "可审规范文档"),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                self.replace(relative, old, new)
+                self.assert_rejected(f"{relative}: 角色边界")
+
+    def test_rejects_commander_runner_coder_profile_boundary_drift(self) -> None:
+        cases = (
+            (
+                ".codex/agents/commander.toml",
+                "只有不改变候选内容的 merge 才可复用原证据",
+                "任意 merge 都可复用原证据",
+            ),
+            (
+                ".codex/agents/runner.toml",
+                "主 Session 创建或恢复适用 Commander",
+                "Runner 自己创建或恢复 Commander",
+            ),
+            (
+                ".codex/agents/coder.toml",
+                "不关闭 Task",
+                "可关闭 Task",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative):
+                self.replace(relative, old, new)
+                self.assert_rejected(f"{relative}: 角色边界")
+
+    def test_rejects_commander_runner_boundary_drift(self) -> None:
+        cases = (
+            (
+                "skills/gmgn/SKILL.md",
+                "Only `run-task` uses a Commander for bounded global judgment and one Runner per Task.",
+                "Every stage uses a Commander for global judgment.",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "only the primary orchestrator creates, resumes, and retires a Commander;",
+                "a Runner creates, resumes, and retires a Commander;",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "A Runner never creates a Commander, Author, another Runner, or any unnamed role.",
+                "A Runner may create a Commander, Author, another Runner, or an unnamed role.",
+            ),
+            (
+                "skills/gmgn/references/en/code-review.md",
+                "Reviewer is used only for implementation and\ntest candidates; Critic covers normative document meaning.",
+                "Reviewer is used for document candidates.",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "`needs_commander` and `ready_for_integration` are transient events, not Task, Card, Log, or\nworkflow states.",
+                "needs_commander and ready_for_integration are workflow states.",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "1. acquire the existing integration lock;",
+                "1. update the shared baseline before acquiring the lock;",
+            ),
+            (
+                "GMGN.md",
+                "The primary\norchestrator records the Commander result mechanically and does not repeat integration or\nsemantic review.",
+                "The primary orchestrator performs a second integration and semantic review.",
+            ),
+            (
+                "agents/coder.md",
+                "Do not create other agents.",
+                "Create other agents when useful.",
+            ),
+        )
+        for relative, old, new in cases:
+            with self.subTest(relative=relative, rule=old):
+                self.replace(relative, old, new)
+                self.assert_rejected("Commander/Runner 权威边界")
 
     def test_rejects_docstar_task_column_drift(self) -> None:
         path = self.root / ".docstar/conventions/conventions.json"

@@ -1,4 +1,4 @@
 interface:
   display_name: "Run Ready Tasks / 执行 Ready 任务卡"
   short_description: "Continuously run ready cards in isolated lanes, then integrate and close / 滚动并行执行 ready 卡并串行集成关账"
-  default_prompt: "Use $run-task to execute every ready Task in the initiated target Milestone under its Card, review, integration, and closure rules. / 请用 $run-task 按 Card、审查、集成与关闭规则执行已启动目标 Milestone 中的所有 ready Task。"
+  default_prompt: "Use $run-task: let Commander decide ready work, let one Runner execute each Task, and let Commander directly integrate each checked final candidate. / 请用 $run-task：由 Commander 决定 ready 工作、每个 Task 由一个 Runner 执行，并由 Commander 直接集成已检查的最终候选。"

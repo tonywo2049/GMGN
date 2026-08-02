@@ -17,9 +17,12 @@ ALLOWED_PREFIXES = (
 )
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "LICENSE"}
 AGENT_ROLES = (
-    "adjudicator",
+    "commander",
+    "runner",
     "author",
     "coder",
+    "critic",
+    "reviewer",
     "researcher",
     "verifier",
 )
@@ -210,7 +213,7 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
             self.assertIn(
-                "create exactly two files for every newly materialized task",
+                "create exactly two files for every newly materialized Task",
                 run_task_skill,
             )
             self.assertIn("The verification contract selects an executable oracle", run_task_skill)
