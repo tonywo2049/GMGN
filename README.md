@@ -98,30 +98,35 @@ the reviewed implementation-matching commit as `closed`.
 |---|---|---|
 | Eleven shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
-| Code review and deterministic local checks | `/review`; CLI: `codex review --commit/--base` plus project commands | Independent reviewer plus project commands; `/code-review` only for an authorized GitHub PR |
+| Fixed implementation/test candidate review | Same active Adjudicator | Same active Adjudicator |
+| Deterministic local checks | Primary orchestrator runs the declared commands | Primary orchestrator runs the declared commands |
 | Risk-triggered final verification | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 Every delegated role follows the
-[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). Each semantic candidate
-batch has at most one Critic round, and each implementation candidate has
-exactly one Reviewer round. One bounded Adjudicator conducts owner dialogue and adjudicates
-semantic findings; the primary orchestrator relays exact messages, schedules deterministic
-transitions, checks candidate identity, and runs affected machine checks without another
-Critic or Reviewer. An Adjudicator and Author resume the same unfinished dispatch after owner
-input while their objective and write boundary remain unchanged. A Verifier
-remains risk-triggered under
-[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json). The Review surface is
-defined by the [code-review contract](skills/gmgn/references/en/code-review.md).
+[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). One bounded active
+Adjudicator conducts owner dialogue and directly reviews each fixed document or complete
+implementation/test candidate. The primary orchestrator relays exact messages, checks
+candidate identity, runs declared deterministic commands, and forwards their evidence without
+making a semantic finding or accepting the candidate. In-scope findings return to the same
+Author or Coder, and the same Adjudicator continues the case after the writer commits the fix.
+An Adjudicator, Author, or Coder resumes the same unfinished dispatch while its objective and
+write boundary remain unchanged. A Verifier remains risk-triggered under
+[`gmgn-assurance-v3`](skills/gmgn/references/en/assurance-policy.json). The implementation
+review surface is defined by the
+[code-review contract](skills/gmgn/references/en/code-review.md).
 
 `Task.md` remains a Milestone index. In an initiated Milestone, `run-task` creates a stable
 `Card.md` execution and verification contract plus a replaceable `Log.md` for every accepted
 row and executes it when ready without another execution-set confirmation. It then owns
 ready-set scheduling, isolated writer lanes, runtime tools, monitoring, review, integration,
-and closure. Coder RED/GREEN runs in one dispatch without a primary-session approval pause;
-the single final Reviewer replays the recorded checkpoint. A Task closes only after the
-reviewed content is integrated and every project-declared required check passes against that
-exact shared-baseline candidate. The complete rules live in
+and closure. Coder RED/GREEN runs in one dispatch without a primary-session approval pause.
+The Coder commits and waits at a complete candidate checkpoint; the primary orchestrator
+replays the prepared RED/GREEN and other deterministic checks, and the same active
+Adjudicator reviews the fixed implementation/test candidate. The same Coder handles an
+in-scope finding. A Task closes only after the accepted content is integrated and every
+project-declared required check passes against that exact shared-baseline candidate. The
+complete rules live in
 [`run-task`](skills/run-task/SKILL.md).
 
 A closed Milestone returns to `initiated` when unfinished work is found. Its current

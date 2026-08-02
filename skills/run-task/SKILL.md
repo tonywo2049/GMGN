@@ -1,6 +1,6 @@
 ---
 name: run-task
-description: "Use when an initiated Milestone has accepted Task.md rows: materialize Card/Log execution contracts, run every ready row without separate execution-set confirmation, review each frozen candidate once, add risk-triggered final verification, integrate required checks, and close. Milestone 已启动且 Task.md 已接受后，无需另行确认执行集，直接调度所有 ready Task；每个固定候选只做一轮独立审查，再完成风险验证与共享基线必需检查后关账。"
+description: "Use when an initiated Milestone has accepted Task.md rows: materialize Card/Log execution contracts, run every ready row without separate execution-set confirmation, have the active Adjudicator directly review each fixed candidate, add risk-triggered final verification, integrate required checks, and close. Milestone 已启动且 Task.md 已接受后，无需另行确认执行集，直接调度所有 ready Task；同一 active Adjudicator 直接审查固定候选，再完成风险验证与共享基线必需检查后关账。"
 ---
 
 # Run target-milestone task cards
@@ -17,8 +17,9 @@ primary-orchestrator or Adjudicator approval is required.</HARD-GATE>
 
 The primary orchestrator owns deterministic ready-set scheduling, runtime state, workspace
 management, integration, and the shared baseline. The active Adjudicator owns execution
-semantics, authority gaps, judgment-dependent assurance classification, and finding
-adjudication. One assigned Author writes the Card/Log and task-state candidates for a Card,
+semantics, authority gaps, direct review of fixed implementation/test candidates,
+judgment-dependent assurance classification, and findings. One assigned Author writes the
+Card/Log and task-state candidates for a Card,
 and every implementation lane
 uses a delegated Coder. The primary orchestrator does not write those candidates, act as a
 Coder, take over another writer's lane, review its own candidate, or replace a required
@@ -142,9 +143,10 @@ Authorization and missing-information pauses follow the dispatch contract.
 Apply these run-task tool requirements from this section only:
 
 - **Ponytail:** every Coder brief requires the registered `ponytail:ponytail` Skill at `full`.
-  A Reviewer brief for implementation or test-code changes requires
-  `ponytail:ponytail-review`. Resolve availability before the role writes or accepts code.
-  Missing Ponytail blocks that code candidate; do not copy its rules or silently continue.
+  The active Adjudicator reviewing an implementation or test-code candidate requires
+  `ponytail:ponytail-review`. The primary orchestrator confirms availability before code is
+  written or accepted and runs the prepared deterministic commands. Missing Ponytail blocks
+  that code candidate; do not copy its rules or silently continue.
 - **CodeGraph:** before the first delegated source-discovery role starts in a source
   workspace, the primary orchestrator checks that exact workspace. If the CLI is available and
   `.codegraph/` is absent, automatically run `codegraph init <workspace>` once and confirm a
@@ -236,46 +238,48 @@ heartbeat, unchanged `running`, timeout, agent-count, or progress data to the us
 telemetry, or another agent. Platform-native lifecycle telemetry, if any, remains out of band.
 Report only material progress, a blocker, a decision request, or the final result.
 
-## 5. Review the candidate once
+## 5. Review the fixed candidate
 
-Apply the code-review contract loaded through the registered `gmgn` Skill. Resolve an
-unclean candidate application or judgment-required integration conflict with a fresh Coder
-before committing the content that will be reviewed. Freeze that complete candidate while
-Review is active.
+Apply the code-review contract loaded through the registered `gmgn` Skill. Resolve an unclean
+candidate application or judgment-required integration conflict before freezing the complete
+candidate. The Coder commits that candidate checkpoint and waits for acceptance or an in-scope
+finding; it does not retire at the checkpoint.
 
-For a RED-gated candidate, bind the brief to the original baseline, recorded RED checkpoint,
-final candidate, authority-derived cases, target command, and any pre-refactor GREEN
-checkpoint. In a disposable copy, the Reviewer independently replays the same target command
-at the recorded RED checkpoint and final candidate, confirming the expected target failure and
-GREEN respectively. It also checks that the tests can reject wrong behavior and that no result-
-affecting test or helper change weakened the recorded oracle. This replay is ordinary
-deterministic Review evidence, not another Reviewer round or a Verifier trigger.
+The primary orchestrator verifies candidate identity and, in a disposable copy or declared
+generated paths, runs the prepared RED/GREEN replay, targeted checks, and required regression
+commands. For a RED-gated candidate, bind the evidence to the original baseline, recorded RED
+checkpoint, final candidate, authority-derived cases, target command, and any pre-refactor
+GREEN checkpoint. Replay the target command at the RED checkpoint and final candidate to
+confirm the expected failure and GREEN. Forward the exact command, environment, exit code,
+limitation, side effect, and candidate-identity result without interpretation.
 
-Create exactly one fresh Reviewer for the complete implementation and test-code candidate.
-This is the Task execution's only Reviewer round. Collect all active Review returns before
-editing. A `no findings` return follows the deterministic verification or integration path.
-The primary orchestrator forwards material findings unchanged to the active Adjudicator, which
-adjudicates once, rejects scope expansion, and prepares one batched fix brief. The primary
-orchestrator sends that brief to a fresh Coder. The Adjudicator checks the complete fix delta
-against accepted findings and authority; the primary orchestrator reruns affected machine
-checks.
+The same active Adjudicator directly reviews the complete fixed implementation/test candidate
+and machine evidence under the code-review contract. It checks that the tests can reject wrong
+behavior and that no result-affecting test or helper change weakened the recorded oracle. It
+returns `accept` or `dispatch` containing the minimum repair brief for a material finding with
+no accepted effective fallback.
 
-Never create or dispatch another Reviewer to recheck findings or fixes. Resuming the same
-active Reviewer after an interim request does not create another round and requires the fixed
-candidate to remain unchanged. If a fix changes approved behavior, scope, interface authority,
-or another upstream meaning, route it to the owning stage instead of treating it as a Review
-fix. If the Adjudicator cannot determine from existing authority that every accepted blocker
-is resolved, keep the Task unaccepted. Non-blocking suggestions do not reopen an
-acceptable candidate. Record the reviewed anchor, findings and rulings, exact fix delta,
-commands/results, and post-fix checks in final evidence.
+Send an in-scope finding to the same still-active Coder. The Coder commits a new complete
+candidate checkpoint. The primary orchestrator reruns only checks affected by the finding or
+fix, and the same Adjudicator inspects the exact fix delta and affected surfaces without
+rechecking unchanged work. Do not dispatch another assessment agent or a fresh Coder for that
+same objective and write boundary.
+
+If a fix changes approved behavior, scope, interface authority, objective, write boundary, or
+another upstream meaning, route it to the owning stage or create a new dispatch instead of
+treating it as an in-scope repair. If the Adjudicator cannot determine from existing authority
+that every accepted finding is resolved, keep the Task unaccepted. Non-blocking suggestions do
+not reopen an acceptable candidate. Record the reviewed anchor, finding and ruling, exact fix
+delta, commands/results, and post-fix checks in final evidence.
 
 ## 6. Add a Verifier only for recorded risk
 
-Ordinary deterministic local execution belongs to Review; Coder output remains supporting
-evidence. The primary orchestrator applies `not-required` or `required:<trigger>` mechanically
+Ordinary deterministic local execution belongs to the primary orchestrator; Coder output
+remains supporting evidence. The primary orchestrator applies `not-required` or
+`required:<trigger>` mechanically
 when the current assurance policy and recorded facts make the classification explicit. Route
 only a judgment-dependent trigger to the active Adjudicator. Record the classification in Log.
-Do not dispatch a Verifier while a Review blocker remains.
+Do not dispatch a Verifier before the active Adjudicator accepts the review surface.
 
 When required, dispatch one fresh Verifier against the fixed final candidate. It runs only the
 minimum non-transferable or explicitly independent plan and returns exact commands,
@@ -284,10 +288,10 @@ unavailable required command is not a pass. The Verifier leaves every tracked fi
 and does not broaden the plan after the trigger is decided.
 
 Do not run the same verification before and after clean mechanical integration without a
-recorded risk reason. If verification fails, record the decision and use a fresh Coder. A
-fix reruns affected checks before a fresh Verifier when the recorded trigger still applies.
-The Reviewer is not repeated. Route any fix that changes approved authority or scope
-upstream.
+recorded risk reason. If verification fails, record the evidence and route it through the
+owning stage and dispatch contract. Any resulting repair reruns affected checks before a fresh
+Verifier when the recorded trigger still applies. Route any fix that changes approved
+authority or scope upstream.
 
 ## 7. Integrate, check the shared baseline, and close
 

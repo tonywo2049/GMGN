@@ -87,9 +87,10 @@ not another bold D-ID definition.
 3. It prepares one Author brief; the Author writes the complete current Decision candidate.
    In revision mode, change only affected entries.
 4. Process the semantic candidate through the registered `gmgn` Skill's shared document-
-   candidate and dispatch rules. A selected Critic checks decision clarity, current meaning,
-   deletion, and impact.
-5. The Adjudicator adjudicates findings and presents the committed candidate and remaining
+   candidate and dispatch rules. The same active Adjudicator directly reviews the fixed
+   candidate for necessity, current meaning, deletion priority, clarity, and impact; an
+   in-scope finding returns to the same Author.
+5. After accepting the candidate, the Adjudicator presents it and remaining
    material risks—or that none are known—for owner approval through the exact relay.
 6. After approval, the same Author appends the compact Log event using the approved semantic
    commit. The primary orchestrator applies mechanical state and reciprocal links and

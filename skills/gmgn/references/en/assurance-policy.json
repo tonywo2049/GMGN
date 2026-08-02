@@ -1,14 +1,6 @@
 {
-  "schema_version": "gmgn.assurance-policy.v2",
-  "policy_id": "gmgn-assurance-v2",
-  "reviewer": {
-    "required_for": [
-      "implementation-diff",
-      "test-code-diff"
-    ],
-    "execution": "deterministic-local",
-    "candidate_integrity": "reviewed-content-unchanged"
-  },
+  "schema_version": "gmgn.assurance-policy.v3",
+  "policy_id": "gmgn-assurance-v3",
   "verifier": {
     "default": false,
     "candidate": "blocker-resolved-final",
@@ -18,7 +10,7 @@
     },
     "triggers": [
       "artifact-not-fully-machine-checkable",
-      "reviewer-unavailable-real-startup-or-e2e",
+      "real-startup-or-e2e-not-covered-by-deterministic-local-checks",
       "explicit-independent-execution-requirement"
     ]
   }

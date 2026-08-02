@@ -5,7 +5,7 @@ description: "Use after Requirement review to create or semantically revise the 
 
 # Design stage: requirements → implementation decisions
 
-<HARD-GATE>`Requirement.md` and the current approved Decision must exist. Requirement must have passed the Critic necessity gate and any required Critic review plus Adjudicator acceptance. If either authority is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
+<HARD-GATE>`Requirement.md` and the current approved Decision must exist. Requirement must have been directly reviewed and accepted by its active Adjudicator. If either authority is missing or design work exposes changed upstream meaning, stop and return the issue to `gmgn` for routing instead of redefining it in Design.</HARD-GATE>
 
 ## Language, bundle, and authority
 
@@ -117,13 +117,14 @@ it would make the current choice unclear or remove a live rollback path. Do not 
 `Research.md` or store the working scope, search terms, full research report, or candidate
 chronology in the Design Bundle.
 
-When source is reused or adapted, Design records, at the smallest stable useful granularity, the
-upstream identity, checked revision, exact reused file, module, and symbol boundary, unavoidable
-transitive items, local destination and adaptations, explicit exclusions, primary source and test
-evidence, and verification point. This does not require a whole-repository inventory or a
-line-by-line list. For copied, ported, or adapted source, the checked upstream revision is the
-source authority. For an ordinary package dependency, Design records the evaluated version;
-the manifest or lockfile owns the exact production pin.
+When source is reused or adapted, Design records the upstream identity, checked revision, and
+exact reuse boundary at the smallest stable and useful file, module, or symbol granularity,
+unavoidable transitive items, local destination and adaptations, explicit exclusions, primary
+source and test evidence, and verification point. Select the file, module, or symbol level that
+matches the current reuse shape; all three are not required. This does not require a whole-
+repository inventory or a line-by-line list. For copied, ported, or adapted source, the checked
+upstream revision is the source authority. For an ordinary package dependency, Design records
+the evaluated version; the manifest or lockfile owns the exact production pin.
 
 The following are applicability checks, not required headings or a document template:
 
@@ -191,34 +192,28 @@ Before return, apply this Design Ready gate:
 6. Removing, reusing, making native, or directly replacing any retained structure would lose a
    current accepted outcome or safeguard.
 
-## Writer and review-selection loop
+## Writer and review loop
 
 Use the registered `gmgn` Skill's shared document-candidate and dispatch rules, and record the
 Decision and Requirement commits. The Adjudicator first resolves the root R/AC mapping and
 selects only child artifacts justified by current R/ACs. It then dispatches one primary Author
 for root `Design.md` and complete Bundle reconciliation. Add shared architecture, module
-boundaries, dependency direction, and ownership only when those R/ACs require them. For useful
-parallelism, the Adjudicator may dispatch additional Authors by bounded semantic module, not
-mechanically by file count. Each additional Author writes only its declared child artifacts
-and self-checks their links and local closure.
+boundaries, dependency direction, and ownership only when those R/ACs require them. The Author
+integrates provider/consumer seams, shared state, error order, and schema references into one
+complete immutable Bundle candidate, commits it, and waits.
 
-The primary Author integrates provider/consumer seams, shared state, error order, and schema
-references into one complete immutable Bundle candidate. When the Adjudicator's necessity gate
-selects Critic, a small Bundle uses one fresh Critic; a
-large Bundle may use parallel fresh Critics on bounded module scopes plus one Bundle-seam
-scope in the same round. Every Critic reads the same candidate commit, all returns are
-collected before editing, and physical file count never determines the number of Critics.
+The primary orchestrator checks candidate identity and runs prepared deterministic checks,
+then forwards the fixed complete Bundle and exact evidence to the same active Adjudicator.
+That Adjudicator directly checks for any implementation-significant decision still
+unspecified: public or cross-unit decisions, authority, validation entry points, state
+effects, failures, recovery, and parameters; provider and consumer compatibility; object-
+phase legality; structural-authority consistency; global-versus-local rule conflicts; R/AC
+traceability; and whether each separate artifact can be deleted.
 
-When dispatched, Critics find any implementation-significant decision still unspecified.
-Reject any public or cross-unit decision, authority, validation entry, state effect, failure,
-recovery, or parameter left ambiguous. Check provider and consumer feasibility, object-phase
-legality, structural authority consistency, global-versus-local rule conflicts, R/AC
-traceability, and whether each separate artifact can be deleted.
-
-The Adjudicator resolves findings through the shared document-candidate loop and sends accepted
-in-scope fixes to the same primary Author. If a fix must invent or change Design-owned meaning,
-it is a new semantic batch under Controlled revision, not a recheck of the old batch. Accept
-only the complete Bundle at one commit as the shared Design baseline.
+The Adjudicator sends an accepted in-scope finding to the same primary Author. If a fix must
+invent or change Design-owned meaning, it is a new semantic case under Controlled revision,
+not a repair of the old candidate. Accept only the complete Bundle at one commit as the shared
+Design baseline.
 
 ## Controlled revision
 
@@ -235,10 +230,9 @@ only the complete Bundle at one commit as the shared Design baseline.
    error priority, state or durability order, or provider/consumer obligation is a semantic
    delta. Narrow it back to the reviewed authority or open a new batch.
 6. Revise only the affected design, contract, schema, and links; do not redesign unrelated
-   structures. A semantic delta applies the Critic necessity gate and receives any required
-   fresh independent Critic round scoped to that delta and its direct impact surface, plus
-   Adjudicator acceptance at the new Bundle commit. Old review remains attached to the old
-   commit.
+   structures. The same active Adjudicator directly reviews the fixed semantic delta and its
+   direct impact surface and accepts it at the new Bundle commit or returns a minimum finding
+   to the same primary Author. Old review remains attached to the old commit.
 7. A compatible update is mechanical only when it does not affect behavior, security, or an
    interface; otherwise route it back through `write-design`.
 
@@ -250,7 +244,7 @@ refresh plus machine checks without reapproval.
 Require the recorded writer to reconcile the Bundle links: no orphan child, unmapped R/AC,
 unapplied implementation-relevant D-ID, unresolved structure authority, or cross-unit
 boundary with competing definitions. For
-creation or a semantic revision, run the writer/review-selection loop above using the
+creation or a semantic revision, run the writer/review loop above using the
 English-only dispatch contract. Obtain Adjudicator acceptance and let the primary orchestrator
 integrate only when required by workspace topology. Design acceptance marks the complete
 Bundle `approved`, not `closed`.

@@ -78,14 +78,16 @@ After the Owner answers, the Adjudicator translates it into an exact Author brie
 smallest sufficient R/AC change and Goal Close trace. The Owner decides the product meaning;
 the Author owns its formalization. Do not ask the Owner to review or approve individual R/AC.
 
-## Writer and review-selection loop
+## Writer and review loop
 
 Record the Decision and Goal commits, then use the registered `gmgn` Skill's shared document-
-candidate and dispatch rules. When Owner input was required, override the normal necessity
-gate and dispatch one fresh independent Critic to compare the question, answer, and resulting
-R/AC for omitted, added, or changed meaning. Otherwise use the shared Critic necessity gate.
-The Adjudicator rules on findings. The primary orchestrator checks accepted links, mappings,
-candidate identity, and state.
+candidate and dispatch rules. The Author commits a fixed candidate and waits. The primary
+orchestrator checks links, mappings, candidate identity, state, and other prepared machine
+checks, then returns exact evidence to the same active Adjudicator. That Adjudicator directly
+reviews every fixed Requirement candidate for upstream consistency, deletion priority, and
+decidable ACs. When the Owner answered a question, it also compares the original question,
+verbatim answer, and resulting R/AC for omitted, added, or changed meaning. An in-scope finding
+returns to the same Author.
 
 ## Controlled revision
 
@@ -94,8 +96,8 @@ candidate identity, and state.
    delta, affected R/AC IDs, and proposed new commit.
 3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
    Do not re-analyze unaffected Goal Close outcomes.
-4. A delta that changes a decision or reasonable understanding follows the writer/review-
-   selection loop and receives Adjudicator acceptance at a new commit. Old review remains
+4. A delta that changes a decision or reasonable understanding follows the writer/review
+   loop and receives Adjudicator acceptance at a new commit. Old review remains
    attached to the old commit.
 Meaning-preserving mechanical changes use same-batch link, ID reference, and status
 refresh plus machine checks without reapproval.
@@ -109,8 +111,8 @@ number links its authority; every Requirement-owned threshold is measurable; eve
 Requirement-owned decision is resolved; every confirmed Owner answer is represented in R/AC without omitted, added, or
 changed meaning; and no technical solution, task, execution information, or actual
 verification result has leaked into Requirement. For creation or a semantic revision, run
-the writer/review-selection loop using the English-only dispatch contract; when Critic is
-required, tell it to emphasize upstream consistency, acceptance quality, and deletion of any
-R/AC that does not serve a current Goal Close outcome. Obtain Adjudicator acceptance, then let
-the primary orchestrator integrate only when required by
+the writer/review loop using the English-only dispatch contract. The active Adjudicator
+emphasizes upstream consistency, acceptance quality, and deletion of any R/AC that does not
+serve a current Goal Close outcome. Obtain Adjudicator acceptance, then let the primary
+orchestrator integrate only when required by
 workspace topology.

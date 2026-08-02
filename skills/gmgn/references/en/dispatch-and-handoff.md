@@ -17,7 +17,7 @@ This contract defines required facts, not a fill-in prompt or a separate Handoff
 <HARD-GATE>Before creating any delegated agent, the primary orchestrator reads this current
 contract, the owning stage's role-selection rules, and the selected platform-specific GMGN
 role profile. It maps the dispatch to exactly one of
-`adjudicator | author | coder | critic | reviewer | verifier | researcher`; these are the only
+`adjudicator | author | coder | verifier | researcher`; these are the only
 GMGN agent roles. It does not create a generic, unnamed, or ad hoc role. A task name or
 `dispatch_id` may distinguish instances but does not define another role. If none fits, route
 the unresolved semantic case to an Adjudicator instead of inventing a role or deciding it in
@@ -29,12 +29,14 @@ or missing-information request is an interim pause, not a terminal return: the a
 the primary orchestrator, waits without consuming an execution slot when the platform permits,
 and resumes the same dispatch when answered. No separate case-state document is required.
 
-An Adjudicator remains assigned through owner questions and every bounded child dispatch for
-its semantic case. Its `ask_owner` and `dispatch` actions are interim; only `accept`, explicit
-cancellation, invalidation, or hard failure ends the case. The primary orchestrator relays the
-owner's answer verbatim to that same Adjudicator. An Author likewise remains assigned through
-candidate checkpoints, owner feedback, and accepted fixes while its objective and write
-boundary remain unchanged. Do not keep an Author before a candidate is ready to write.
+An Adjudicator remains assigned through owner questions, every bounded child dispatch, every
+fixed Author or Coder candidate checkpoint, direct candidate review, and accepted finding fix
+for its semantic case. Its `ask_owner` and `dispatch` actions are interim; only `accept`,
+explicit cancellation, invalidation, or hard failure ends the case. The primary orchestrator
+relays the owner's answer verbatim to that same Adjudicator. An Author or Coder likewise
+remains assigned after returning a candidate checkpoint and waits for acceptance or an
+in-scope finding while its objective and write boundary remain unchanged. Do not keep an
+Author before a document candidate is ready to write.
 
 The terminal completion return retires the agent. Never resume, reactivate, repurpose, or send
 later work to a retired agent. Explicit cancellation, an invalidated objective, or a hard
@@ -43,17 +45,19 @@ valid, continue with a new agent and brief; treat retained workspace changes as 
 draft. A later objective or separately scoped semantic or implementation change likewise
 creates another agent from another prepared brief.
 
-An initial implementation candidate has one fresh Reviewer dispatch. Accepted finding fixes do
-not create another Critic or Reviewer dispatch; the active Adjudicator rules on their semantic
-sufficiency, and the primary orchestrator checks candidate identity and affected machine checks.
+A candidate checkpoint does not retire and later reactivate its writer. The primary
+orchestrator fixes the candidate identity, runs the prepared deterministic checks, and returns
+the candidate plus exact evidence to the same active Adjudicator. Accepted finding fixes stay
+in that Adjudicator case and the same Author or Coder dispatch when objective and write
+boundary remain unchanged.
 
 The primary orchestrator is the persistent relay and mechanical scheduler, not a delegated
 agent. It retains complete session context, associates each case with its active agents,
 selects a stage from observable repository state, appends runtime facts to prepared semantic
 briefs, schedules capacity, manages workspaces, runs deterministic checks, integrates accepted
 candidates, and updates shared state. It does not conduct semantic owner dialogue, plan a
-solution, draft a document candidate, decide Critic necessity, adjudicate findings, summarize
-or reinterpret semantic messages, or act as a Coder. Those duties belong to an Adjudicator,
+solution, draft a document candidate, semantically review candidates, adjudicate findings,
+summarize or reinterpret semantic messages, or act as a Coder. Those duties belong to an Adjudicator,
 Author, or Coder as applicable.
 
 ## Select and report the runtime
@@ -64,9 +68,8 @@ On Codex, use this fixed mapping:
 
 | Role | `model` | `reasoning_effort` |
 |---|---|---|
-| Adjudicator, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |
-| Coder | `gpt-5.6-terra` | `max` |
-| Researcher | `gpt-5.6-terra` | `max` |
+| Adjudicator, Author, Verifier | `gpt-5.6-sol` | `max` |
+| Coder, Researcher | `gpt-5.6-terra` | `max` |
 
 If the required combination is unavailable, report that limitation before dispatch.
 
@@ -92,10 +95,9 @@ unchanged. Expanding the operation set, target, or side effects requires another
 An interim answer may provide authorization, missing information, or a proven meaning-
 preserving refresh of an authority anchor needed for the same objective and declared write
 boundary. It does not create another dispatch. A new objective or materially wider write
-boundary requires a new brief and agent. A Critic, Reviewer, or Verifier may resume only while
-its fixed candidate, applicable authority, scope, checks, and environment validity inputs
-remain unchanged. Otherwise the fixed review surface is invalidated and requires a new brief
-and agent.
+boundary requires a new brief and agent. A Verifier may resume only while its fixed candidate,
+applicable authority, scope, checks, and environment validity inputs remain unchanged.
+Otherwise its fixed verification surface is invalidated and requires a new brief and agent.
 
 Create one Adjudicator per bounded semantic case only when judgment or owner dialogue is
 needed. Cases with disjoint declared authority and impact cones may run in parallel. Serialize
@@ -144,10 +146,12 @@ load them through normal discovery and follow their own local resources. Put res
 decisions, including any assurance classification, directly in the brief instead of passing
 another Skill's internal resource path.
 
-When preparing a Reviewer brief, use the shared [code-review contract](code-review.md) to
-resolve its complete-candidate surface, evidence, and finding gate before dispatch. Put the
-applicable resolved rules in the brief; the delegated role does not need another Skill's
-internal path.
+When preparing an implementation or test candidate, use the shared
+[code-review contract](code-review.md) to resolve the complete-candidate surface, prepared
+deterministic commands, evidence, and finding gate before Coder dispatch. Put the applicable
+resolved rules in the brief. After the Coder checkpoint, the primary orchestrator attaches
+candidate-identity results and exact command evidence for the same active Adjudicator; it does
+not prepare another role brief or interpret the evidence.
 
 Do not use an interim answer to expand the prepared objective or write boundary. Do not put
 credentials, telemetry instructions, or unrelated project history in a brief.
@@ -195,37 +199,44 @@ or create evidence merely to prove that a compliance check ran.
 
 ## Commit and hand off review candidates
 
-The writer completes its machine checks before the candidate is committed for independent
-review. Freeze the candidate while Review is active. The owning stage and code-review contract
-resolve the review mode and surface; this contract requires only one fresh dispatch and one
-immutable evidence boundary for each selected role.
+The writer completes its self-checks before committing the candidate checkpoint. Self-checks,
+tests, and a writer's explanation are evidence, not review or acceptance. Freeze the complete
+candidate while the active Adjudicator reviews it. The owning stage and code-review contract
+resolve the surface; this contract adds no mode, round, or candidate data structure.
 
-Critic and Reviewer are not expected to maximize finding count, and a valid review may return
-no findings. Report only concrete material harm with no accepted effective fallback and a
-smallest sufficient correction. Omit preference-only, speculative, low-impact, or adequately
-contained issues that do not change acceptance or the next action.
+The primary orchestrator verifies the candidate identity and runs the prepared deterministic
+commands in a disposable copy or declared generated paths. It forwards the fixed candidate,
+the identity result, and exact commands, environment, exit codes, limitations, and side effects
+to the same active Adjudicator without interpretation. The Adjudicator reports a finding only
+for concrete material harm with no accepted effective fallback and a smallest sufficient
+correction; otherwise it accepts.
 
-## Route returns without a mandatory adjudication hop
+An accepted finding returns to the same Author or Coder under the same dispatch while the
+objective and write boundary remain unchanged. The writer commits a new complete candidate
+checkpoint. The primary orchestrator reruns only affected checks, and the same Adjudicator
+reviews the exact repair delta and affected surfaces without rechecking unchanged work.
 
-The primary orchestrator follows an explicit deterministic transition for routine Coder or
-Verifier completion, machine-check results, capacity changes, and implementation Review with
-`no findings`. It does not forward every return to an Adjudicator.
+## Route returns to the active case
 
-Forward Author and Researcher returns, every Critic return, material Reviewer findings, and any
-semantic gap, authority conflict, or owner choice unchanged to the active Adjudicator for that
-case. The Adjudicator returns `ask_owner`, `dispatch`, or `accept`; the primary orchestrator
-executes that action without semantic rewriting. If no active Adjudicator exists for a new
-semantic case, create one from the exact return and applicable authority pointers.
+Forward Author and Coder candidate checkpoints, Researcher returns, candidate-identity results,
+deterministic machine evidence, and any semantic gap, authority conflict, or owner choice
+unchanged to the active Adjudicator for that case. The primary orchestrator does not interpret
+machine results or make a semantic finding. The Adjudicator returns `ask_owner`, `dispatch`, or
+`accept`; the primary orchestrator executes that action without semantic rewriting. If no
+active Adjudicator exists for a new semantic case, create one from the exact return and
+applicable authority pointers. Routine Verifier completion, capacity, and unchanged progress
+remain deterministic lifecycle inputs and do not create a semantic case.
 
 ## Role completion
 
 - **Adjudicator** returns interim `ask_owner` or `dispatch` actions until one terminal `accept`
   closes its semantic case.
 - **Author** returns a bounded candidate checkpoint, self-check evidence, and deviations, then
-  waits for owner feedback or adjudication until the objective completes.
-- **Critic** and **Reviewer** are read-only and return material findings or `no findings`.
-- **Coder** returns its bounded implementation candidate, checks, deviations, and unresolved
-  material risk; an isolated handoff also returns the complete candidate range.
+  waits for owner feedback or adjudication until the objective completes. Its checkpoint is
+  interim, not a terminal return.
+- **Coder** returns a bounded complete candidate checkpoint, checks, deviations, unresolved
+  material risk, and for an isolated handoff the complete candidate range, then waits. Its
+  checkpoint is interim, not a terminal return.
 - **Verifier** returns exact evidence for its recorded final-candidate trigger and leaves
   tracked files unchanged.
 - **Researcher** is an information collector only. It returns source-by-source observations

@@ -28,13 +28,11 @@ SKILLS = {
     "close-milestone",
     "release",
 }
-ROLES = {"adjudicator", "author", "coder", "critic", "reviewer", "researcher", "verifier"}
+ROLES = {"adjudicator", "author", "coder", "researcher", "verifier"}
 ROLE_SANDBOX = {
     "adjudicator": "read-only",
     "author": "workspace-write",
     "coder": "workspace-write",
-    "critic": "read-only",
-    "reviewer": "workspace-write",
     "researcher": "read-only",
     "verifier": "workspace-write",
 }
@@ -43,7 +41,7 @@ OLD_TASK_HEADER = "| # | task | spec anchor | prerequisite | failing test | stat
 ASSURANCE_POLICY = Path("skills/gmgn/references/en/assurance-policy.json")
 VERIFIER_TRIGGERS = [
     "artifact-not-fully-machine-checkable",
-    "reviewer-unavailable-real-startup-or-e2e",
+    "real-startup-or-e2e-not-covered-by-deterministic-local-checks",
     "explicit-independent-execution-requirement",
 ]
 WRITING_RULES = Path("skills/gmgn/references/en/writing-rules.md")
@@ -86,7 +84,7 @@ RUN_TASK_CONTROLS = (
     "never\ndelete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.",
     "After the first GREEN, refactor only to correct a concrete structure problem.",
     "otherwise skip refactoring without creating another checkpoint.",
-    "Reviewer independently replays the same target command",
+    "Replay the target command at the RED checkpoint and final candidate",
     "Treat safe lane saturation as a scheduling invariant",
     "At run-task entry, after Card\npreparation",
     "scan the entire target-Milestone Task set",
@@ -123,10 +121,13 @@ RUN_TASK_CONTROLS = (
     "does not create or send\n"
     "heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,\n"
     "telemetry, or another agent",
-    "Create exactly one fresh Reviewer",
-    "This is the Task execution's only Reviewer round",
-    "Never create or dispatch another Reviewer to recheck findings or fixes",
-    "forwards material findings unchanged to the active Adjudicator",
+    "The same active Adjudicator directly reviews the complete fixed implementation/test candidate",
+    "Send an in-scope finding to the same still-active Coder",
+    "reruns only checks affected by the finding or\nfix",
+    "the same Adjudicator inspects the exact fix delta and affected surfaces",
+    "Do not dispatch another assessment agent or a fresh Coder",
+    "Ordinary deterministic local execution belongs to the primary orchestrator",
+    "Do not dispatch a Verifier before the active Adjudicator accepts the review surface",
     "The assigned Author writes Task status, Card/Log state, traceability, and final evidence",
 )
 RUN_TASK_EXCLUSIVE_MARKERS = (
@@ -140,25 +141,34 @@ RUN_TASK_EXCLUSIVE_MARKERS = (
     "codegraph init",
     "commit-bound brief",
 )
-GMGN_SINGLE_REVIEW_CONTROLS = (
-    "Each semantic candidate batch has at most one Critic round",
-    "each Task execution has\nexactly one Reviewer round",
-    "without dispatching\nthat role again",
+GMGN_REVIEW_CONTROLS = (
+    "The same active Adjudicator\nthat formed the case directly reviews each fixed document candidate",
+    "each complete\nimplementation/test candidate",
+    "checks candidate identity, runs the prepared deterministic commands",
+    "same Author or Coder",
 )
-DISPATCH_SINGLE_REVIEW_CONTROLS = (
-    "An initial implementation\ncandidate has one fresh Reviewer dispatch",
-    "Accepted finding fixes do not create another\nCritic or Reviewer dispatch",
+DISPATCH_CANDIDATE_CONTROLS = (
+    "fixed Author or Coder candidate checkpoint",
+    "A candidate checkpoint does not retire and later reactivate its writer",
+    "Forward Author and Coder candidate checkpoints",
+    "The primary orchestrator does not interpret\nmachine results or make a semantic finding",
+)
+CODE_REVIEW_CONTROLS = (
+    "The same active Adjudicator that owns the execution case directly reviews the complete fixed",
+    "The primary orchestrator verifies candidate identity and runs the prepared targeted",
+    "Return an accepted finding to the same Coder",
+    "The same Adjudicator then inspects the exact fix delta and affected surfaces",
 )
 DISPATCH_LIFECYCLE_CONTROLS = (
     "An authorization or missing-information request is an interim\npause, not a terminal return",
     "An Adjudicator remains assigned through owner questions",
     "Its `ask_owner` and `dispatch` actions are interim",
     "owner's answer verbatim to that same Adjudicator",
-    "An Author likewise remains assigned through\ncandidate checkpoints, owner feedback, and accepted fixes",
+    "An Author or Coder likewise\nremains assigned after returning a candidate checkpoint",
     "The terminal completion return retires the agent",
     "Never resume, reactivate, repurpose, or send\nlater work to a retired agent",
     "applicable authority, scope, checks, and environment validity inputs\nremain unchanged",
-    "Otherwise the fixed review surface is invalidated and requires a new brief\nand agent",
+    "Otherwise its fixed verification surface is invalidated and requires a new brief and agent",
 )
 DISPATCH_ROLE_PROFILE_CONTROLS = (
     "Before creating any delegated agent, the primary orchestrator reads this current\ncontract",
@@ -167,7 +177,7 @@ DISPATCH_ROLE_PROFILE_CONTROLS = (
     "It does not create a generic, unnamed, or ad hoc role",
     "A task name or `dispatch_id` may\ndistinguish instances but does not define another role",
     "The brief must carry\nthe selected profile's applicable instructions",
-    "`adjudicator | author | coder | critic | reviewer | verifier | researcher`",
+    "`adjudicator | author | coder | verifier | researcher`",
     "On Codex, read `.codex/agents/<role>.toml`",
     "load `agents/<role>.md` for the\nselected GMGN role",
 )
@@ -176,9 +186,8 @@ EXTERNAL_AUTHORIZATION_CONTROLS = (
     "Expanding the operation set, target, or side effects requires another authorization",
 )
 RUNTIME_ROLE_ROWS = (
-    "| Adjudicator, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
-    "| Coder | `gpt-5.6-terra` | `max` |",
-    "| Researcher | `gpt-5.6-terra` | `max` |",
+    "| Adjudicator, Author, Verifier | `gpt-5.6-sol` | `max` |",
+    "| Coder, Researcher | `gpt-5.6-terra` | `max` |",
 )
 RUNTIME_SELECTION_CONTROLS = (
     "reads the current `spawn_agent` schema",
@@ -195,15 +204,15 @@ RESEARCHER_CONTROLS = (
 )
 DISPATCH_ADJUDICATION_CONTROLS = (
     "The primary orchestrator is the persistent relay and mechanical scheduler",
-    "It does not conduct semantic owner dialogue, plan a\nsolution, draft a document candidate, decide Critic necessity, adjudicate findings",
+    "It does not conduct semantic owner dialogue, plan a\nsolution, draft a document candidate, semantically review candidates, adjudicate findings",
     "For an initial Adjudicator dispatch, the primary orchestrator copies the owner's request",
     "The Adjudicator prepares the semantic fields",
     "without\nparaphrasing the semantic payload",
     "Create one Adjudicator per bounded semantic case only when judgment or owner dialogue is\nneeded",
     "Cases with disjoint declared authority and impact cones may run in parallel",
     "Do not keep an Adjudicator pool",
-    "It does not forward every return to an Adjudicator",
-    "Forward Author and Researcher returns, every Critic return, material Reviewer findings",
+    "Forward Author and Coder candidate checkpoints, Researcher returns",
+    "without semantic rewriting",
     "The Adjudicator returns `ask_owner`, `dispatch`, or `accept`",
 )
 DISPATCH_WORKSPACE_CONTROLS = (
@@ -226,7 +235,20 @@ ADJUDICATOR_PROFILE_CONTROLS = (
     "`ask_owner`",
     "`dispatch`",
     "`accept`",
-    "Do not request routine Coder completion",
+    "Receive Author or Coder candidate checkpoints",
+    "Report a finding only when leaving it unresolved creates concrete material harm",
+    "same Author or Coder while objective and write boundary remain unchanged",
+)
+CODER_PROFILE_CONTROLS = (
+    "return an interim candidate checkpoint",
+    "remain in the same dispatch and wait",
+    "Apply that finding in the same dispatch when objective and write boundary remain unchanged",
+    "not self-review or candidate acceptance",
+)
+VERIFIER_PROFILE_CONTROLS = (
+    "checks belong to the primary orchestrator",
+    "active Adjudicator has accepted\nthe review surface",
+    "recorded `required:<trigger>` applies",
 )
 ROADMAP_APPROVAL_CONTROLS = (
     "The Author writes one complete\nrecommended candidate without asking the owner to approve fields or allocations separately",
@@ -261,17 +283,6 @@ CONTRADICTORY_POLICY_MARKERS = (
 CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS = (
     ("edit first", "research later"),
     ("implementation before RED", "approval later"),
-)
-CODE_REVIEW_SINGLE_CONTROLS = (
-    "Each Task execution has exactly one Reviewer\nround",
-    "without another Reviewer round",
-)
-REVIEWER_SINGLE_CONTROLS = (
-    "the complete candidate surface",
-    "only Reviewer round",
-)
-CRITIC_SINGLE_CONTROLS = (
-    "only Critic round",
 )
 LATEST_EVENT_VALUES = (
     "latest_event: [Current](#current)",
@@ -311,7 +322,7 @@ WRITE_DESIGN_RESEARCH_CONTROLS = (
     "The same Adjudicator aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
     "inspect source code and tests relevant to the current problem at an\nexplicitly checked upstream release, version, or commit",
     "keep the smallest closed code slice",
-    "exact reused file, module, and symbol boundary",
+    "exact reuse boundary at the smallest stable and useful file, module, or symbol granularity",
     "The bounded external research for the initial creation or current semantic revision is\n   complete",
     "Before editing that semantic delta, complete its bounded external research under External\n   solution research",
 )
@@ -530,6 +541,11 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         text = read(relative)
         active_text = active_markdown(text)
         normalized_active_text = normalized(active_text)
+        deleted_role = re.search(r"\b(?:critic|reviewer)\b", active_text, re.I)
+        if deleted_role:
+            errors.append(
+                f"{relative}: 含已删除独立角色词 {deleted_role.group(0)}"
+            )
         if OLD_TASK_HEADER in text:
             errors.append(f"{relative}: 含旧 Task 表头")
         if "writing-contract.md" in text.casefold():
@@ -582,24 +598,15 @@ def validate_assurance_policy(errors: list[str]) -> None:
     if not isinstance(policy, dict):
         errors.append(f"{ASSURANCE_POLICY}: 顶层必须是对象")
         return
-    expected_keys = {"schema_version", "policy_id", "reviewer", "verifier"}
+    expected_keys = {"schema_version", "policy_id", "verifier"}
     if set(policy) != expected_keys:
         errors.append(
             f"{ASSURANCE_POLICY}: 顶层字段应为 {sorted(expected_keys)}"
         )
-    if policy.get("schema_version") != "gmgn.assurance-policy.v2":
+    if policy.get("schema_version") != "gmgn.assurance-policy.v3":
         errors.append(f"{ASSURANCE_POLICY}: schema_version 无效")
-    if policy.get("policy_id") != "gmgn-assurance-v2":
+    if policy.get("policy_id") != "gmgn-assurance-v3":
         errors.append(f"{ASSURANCE_POLICY}: policy_id 无效")
-
-    reviewer = policy.get("reviewer")
-    expected_reviewer = {
-        "required_for": ["implementation-diff", "test-code-diff"],
-        "execution": "deterministic-local",
-        "candidate_integrity": "reviewed-content-unchanged",
-    }
-    if reviewer != expected_reviewer:
-        errors.append(f"{ASSURANCE_POLICY}: Reviewer 策略无效")
 
     verifier = policy.get("verifier")
     if not isinstance(verifier, dict) or verifier.get("default") is not False:
@@ -638,33 +645,33 @@ def validate_run_task_controls(errors: list[str]) -> None:
     run_task = read(RUN_TASK)
     require_active_fragments(run_task, RUN_TASK_CONTROLS, "run-task 关键执行控制", errors)
     require_active_fragments(
-        read("skills/gmgn/SKILL.md"),
-        GMGN_SINGLE_REVIEW_CONTROLS,
-        "gmgn 单轮独立审查边界",
+        read("GMGN.md"),
+        GMGN_REVIEW_CONTROLS,
+        "gmgn 固定候选审查边界",
         errors,
     )
     require_active_fragments(
         read(DISPATCH_CONTRACT),
-        DISPATCH_SINGLE_REVIEW_CONTROLS,
-        "派发单轮独立审查边界",
+        DISPATCH_CANDIDATE_CONTROLS,
+        "派发候选 checkpoint 边界",
         errors,
     )
     require_active_fragments(
         read("skills/gmgn/references/en/code-review.md"),
-        CODE_REVIEW_SINGLE_CONTROLS,
-        "code-review 单轮审查边界",
+        CODE_REVIEW_CONTROLS,
+        "code-review 写审分离边界",
         errors,
     )
     require_active_fragments(
-        read("agents/reviewer.md"),
-        REVIEWER_SINGLE_CONTROLS,
-        "Reviewer 单轮审查边界",
+        read("agents/coder.md"),
+        CODER_PROFILE_CONTROLS,
+        "Coder candidate checkpoint 边界",
         errors,
     )
     require_active_fragments(
-        read("agents/critic.md"),
-        CRITIC_SINGLE_CONTROLS,
-        "Critic 单轮审查边界",
+        read("agents/verifier.md"),
+        VERIFIER_PROFILE_CONTROLS,
+        "Verifier 风险触发边界",
         errors,
     )
     for relative in active_policy_files():
@@ -690,6 +697,18 @@ def validate_run_task_controls(errors: list[str]) -> None:
 
 
 def validate_roles(errors: list[str]) -> None:
+    actual_markdown = {path.stem for path in (ROOT / "agents").glob("*.md")}
+    actual_toml = {path.stem for path in (ROOT / ".codex/agents").glob("*.toml")}
+    if actual_markdown != ROLES:
+        errors.append(
+            f"Claude 角色集合不一致: expected={sorted(ROLES)}, "
+            f"actual={sorted(actual_markdown)}"
+        )
+    if actual_toml != ROLES:
+        errors.append(
+            f"Codex 角色集合不一致: expected={sorted(ROLES)}, "
+            f"actual={sorted(actual_toml)}"
+        )
     for role in sorted(ROLES):
         markdown = Path("agents") / f"{role}.md"
         toml_path = Path(".codex/agents") / f"{role}.toml"

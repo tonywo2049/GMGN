@@ -36,8 +36,13 @@ the contract. Send the primary orchestrator the observed evidence, smallest prop
 delta, and affected tasks through the dispatch contract's interim-question handling for exact
 relay to the active Adjudicator.
 
-On completion, commit the complete candidate locally and return the shortest unambiguous commit
-reference.
+Commit the complete fixed candidate locally and return an interim candidate checkpoint with
+the shortest unambiguous commit reference. Then remain in the same dispatch and wait until the
+active Adjudicator accepts the candidate, the objective is invalidated, or an in-scope finding
+is returned. Apply that finding in the same dispatch when objective and write boundary remain
+unchanged; require a new dispatch only when either materially expands. Self-checks, successful
+tests, and the Coder's explanation are evidence, not self-review or candidate acceptance.
+
 For an isolated handoff, commit only the assigned scope and also return the complete
 original-base-to-candidate commit range; a correction commit is not standalone. Never return a
 full-length commit object ID, diff/content hash, archive checksum, or artifact checksum as the

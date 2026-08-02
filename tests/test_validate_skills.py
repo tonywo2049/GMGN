@@ -64,12 +64,16 @@ class ValidateSkillsTests(unittest.TestCase):
         (self.root / "skills/write-goal/agents/openai.yaml").unlink()
         self.assert_rejected("agents/openai.yaml: 缺失")
 
-    def test_rejects_assurance_review_duplication(self) -> None:
+    def test_rejects_assurance_review_block_substitutes(self) -> None:
         path = self.root / "skills/gmgn/references/en/assurance-policy.json"
-        policy = json.loads(path.read_text(encoding="utf-8"))
-        policy["review"] = {"max_rounds": 2}
-        path.write_text(json.dumps(policy), encoding="utf-8")
-        self.assert_rejected("顶层字段应为")
+        original = path.read_text(encoding="utf-8")
+        for key in ("candidate_review", "review"):
+            with self.subTest(key=key):
+                policy = json.loads(original)
+                policy[key] = {"required": True}
+                path.write_text(json.dumps(policy), encoding="utf-8")
+                self.assert_rejected("顶层字段应为")
+        path.write_text(original, encoding="utf-8")
 
     def test_rejects_invalid_verifier_trigger(self) -> None:
         path = self.root / "skills/gmgn/references/en/assurance-policy.json"
@@ -169,7 +173,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 "keep the selected source files",
             ),
             (
-                "exact reused file, module, and symbol boundary",
+                "exact reuse boundary at the smallest stable and useful file, module, or symbol granularity",
                 "general reuse scope",
             ),
             (
@@ -211,8 +215,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "A result-affecting target-test change preserves its RED evidence",
             ),
             (
-                "Reviewer independently replays the same target command",
-                "Reviewer trusts the Coder's recorded command",
+                "Replay the target command at the RED checkpoint and final candidate",
+                "Trust the Coder's recorded command",
             ),
         )
         path = self.root / "skills/run-task/SKILL.md"
@@ -380,8 +384,8 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "| Researcher | `gpt-5.6-terra` | `max` |",
-                "| Researcher | `gpt-5.6-sol` | `high` |",
+                "| Coder, Researcher | `gpt-5.6-terra` | `max` |",
+                "| Coder, Researcher | `gpt-5.6-sol` | `high` |",
                 "派发授权与生命周期",
             ),
             (
@@ -429,9 +433,10 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "It does not forward every return to an Adjudicator",
-                "Every return goes to an Adjudicator",
-                "派发授权与生命周期",
+                "The primary orchestrator does not interpret\n"
+                "machine results or make a semantic finding",
+                "The primary orchestrator interprets machine results and accepts the candidate",
+                "派发候选 checkpoint 边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
@@ -471,8 +476,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_required_rule_hidden_in_inactive_markdown(self) -> None:
         path = self.root / "skills/gmgn/references/en/dispatch-and-handoff.md"
         original = path.read_text(encoding="utf-8")
-        required = "| Researcher | `gpt-5.6-terra` | `max` |"
-        invalid = "| Researcher | `gpt-5.6-sol` | `high` |"
+        required = "| Coder, Researcher | `gpt-5.6-terra` | `max` |"
+        invalid = "| Coder, Researcher | `gpt-5.6-sol` | `high` |"
         for hidden in (
             f"<!-- {required} -->",
             f"```markdown\n{required}\n```",
@@ -508,45 +513,38 @@ class ValidateSkillsTests(unittest.TestCase):
                 self.assert_rejected("含冲突规则")
                 path.write_text(original, encoding="utf-8")
 
-    def test_rejects_missing_single_review_limit(self) -> None:
-        self.replace(
-            "skills/run-task/SKILL.md",
-            "Never create or dispatch another Reviewer to recheck findings or fixes",
-            "Dispatch another Reviewer to recheck fixes",
-        )
-        self.assert_rejected("run-task 关键执行控制")
-
-    def test_rejects_single_review_contract_drift(self) -> None:
+    def test_rejects_candidate_review_boundary_drift(self) -> None:
         cases = (
             (
-                "skills/gmgn/SKILL.md",
-                "Each semantic candidate batch has at most one Critic round",
-                "Each semantic candidate may have two Critic rounds",
-                "gmgn 单轮独立审查边界",
+                "GMGN.md",
+                "The same active Adjudicator\n"
+                "that formed the case directly reviews each fixed document candidate",
+                "A separate assessment agent reviews each fixed document candidate",
+                "gmgn 固定候选审查边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "Accepted finding fixes do\nnot create another Critic or Reviewer dispatch",
-                "Accepted fixes create another Reviewer dispatch",
-                "派发单轮独立审查边界",
+                "A candidate checkpoint does not retire and later reactivate its writer",
+                "A candidate checkpoint retires its writer for later reactivation",
+                "派发候选 checkpoint 边界",
             ),
             (
                 "skills/gmgn/references/en/code-review.md",
-                "Each Task execution has exactly one Reviewer\nround",
-                "Each Task execution has two Reviewer rounds",
-                "code-review 单轮审查边界",
+                "Return an accepted finding to the same Coder",
+                "Return an accepted finding to a fresh Coder",
+                "code-review 写审分离边界",
             ),
             (
-                "agents/reviewer.md",
-                "only Reviewer round",
-                "first Reviewer round",
-                "Reviewer 单轮审查边界",
+                "skills/run-task/SKILL.md",
+                "Ordinary deterministic local execution belongs to the primary orchestrator",
+                "Ordinary deterministic local execution belongs to the Adjudicator",
+                "run-task 关键执行控制",
             ),
             (
-                "agents/critic.md",
-                "only Critic round",
-                "first Critic round",
-                "Critic 单轮审查边界",
+                "agents/verifier.md",
+                "checks belong to the primary orchestrator",
+                "checks belong to the Verifier",
+                "Verifier 风险触发边界",
             ),
         )
         for relative, old, new, expected in cases:
@@ -627,17 +625,35 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assert_rejected("含已废止规则")
 
     def test_rejects_invalid_role_toml(self) -> None:
-        path = self.root / ".codex/agents/reviewer.toml"
+        path = self.root / ".codex/agents/coder.toml"
         path.write_text('name = "broken"\n', encoding="utf-8")
         self.assert_rejected("sandbox_mode 必须是字符串")
 
     def test_rejects_role_sandbox_drift(self) -> None:
         self.replace(
-            ".codex/agents/reviewer.toml",
+            ".codex/agents/coder.toml",
             'sandbox_mode = "workspace-write"',
             'sandbox_mode = "read-only"',
         )
         self.assert_rejected("sandbox_mode 应为 workspace-write")
+
+    def test_rejects_unregistered_role_profiles(self) -> None:
+        markdown = self.root / "agents/extra.md"
+        toml = self.root / ".codex/agents/extra.toml"
+        markdown.write_text("---\nname: extra\n---\n", encoding="utf-8")
+        self.assert_rejected("Claude 角色集合不一致")
+        markdown.unlink()
+        toml.write_text('name = "extra"\n', encoding="utf-8")
+        self.assert_rejected("Codex 角色集合不一致")
+
+    def test_rejects_deleted_role_words_on_active_surfaces(self) -> None:
+        path = self.root / "GMGN.md"
+        original = path.read_text(encoding="utf-8")
+        for role_word in ("Critic", "Reviewer"):
+            with self.subTest(role_word=role_word):
+                path.write_text(original + f"\nIndependent {role_word} role.\n", encoding="utf-8")
+                self.assert_rejected("含已删除独立角色词")
+        path.write_text(original, encoding="utf-8")
 
     def test_rejects_docstar_task_column_drift(self) -> None:
         path = self.root / ".docstar/conventions/conventions.json"

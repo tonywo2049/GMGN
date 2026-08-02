@@ -71,12 +71,14 @@ The assigned Author performs one semantic batch:
 This candidate changes only the ROADMAP initiation state/link and Goal and has no shared-
 baseline effect before approval.
 
-## Writer and review-selection loop
+## Writer and review loop
 
 Record the Decision and ROADMAP commits, then process one complete Goal candidate through the
-registered `gmgn` Skill's shared document-candidate and dispatch rules. The Adjudicator rules
-on semantic findings; the primary orchestrator checks only the proposed ROADMAP state,
-candidate identity, and reciprocal links.
+registered `gmgn` Skill's shared document-candidate and dispatch rules. After the Author fixes
+the candidate, the primary orchestrator checks only candidate identity, the proposed ROADMAP
+state, reciprocal links, and other prepared machine checks. The same active Adjudicator
+directly reviews the fixed Goal meaning or revision delta and returns any in-scope finding to
+the same Author.
 
 With no unresolved blocker, the Adjudicator presents the exact committed Goal candidate and
 remaining material risks—or that none are known—for one owner approval through the exact
@@ -93,9 +95,10 @@ mechanical reciprocal-link record and integrates the candidate without another s
 3. Revise only the active boundary, necessary Milestone-local exclusions, ROADMAP
    deliverable/success-signal coverage, or qualitative Close outcomes. Preserve unaffected
    content. Leave behavior, constraints, parameters, and AC choices to Requirement.
-4. If the delta changes a decision or reasonable understanding, the Adjudicator applies the
-   Critic necessity gate, runs any required independent criticism, adjudicates the affected
-   content, and binds it to a new commit. Old review remains attached to the old commit.
+4. If the delta changes a decision or reasonable understanding, the same active Adjudicator
+   directly reviews the fixed delta and affected context, then accepts it at a new commit or
+   returns a minimum in-scope finding to the same Author. Old review remains attached to the
+   old commit.
 Meaning-preserving mechanical changes use same-batch link and status refresh plus
 machine checks without reapproval.
 
@@ -118,6 +121,6 @@ Require the assigned Author to confirm:
 - an invalid mapping returns to `gmgn` for routing instead of changing upstream meaning in
   Goal.
 
-For creation or a semantic revision, run the writer/review-selection loop using the
+For creation or a semantic revision, run the writer/review loop using the
 English-only dispatch contract, obtain Adjudicator acceptance, and let the primary orchestrator
 integrate only when required by workspace topology.

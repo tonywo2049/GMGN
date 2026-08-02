@@ -69,24 +69,27 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 |---|---|---|
 | 十一件共享 skill | 支持 | 支持 |
 | 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
-| 代码审查与确定性本地检查 | `/review`；CLI 用 `codex review --commit/--base`，并运行项目命令 | 独立 reviewer 并运行项目命令；`/code-review` 仅用于已授权评论的 GitHub PR |
+| 固定实现/测试候选审查 | 同一 active Adjudicator | 同一 active Adjudicator |
+| 确定性本地检查 | Primary orchestrator 运行已声明命令 | Primary orchestrator 运行已声明命令 |
 | 风险触发的最终验证 | [由政策定义](skills/gmgn/references/en/assurance-policy.json) | [由政策定义](skills/gmgn/references/en/assurance-policy.json) |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 每个受委派角色都遵循
-[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。每个语义候选批次最多一轮 Critic，
-每个实现候选恰好一轮 Reviewer。一个有边界的 Adjudicator 负责与负责人讨论并裁定语义 finding；
-主 session 只原样传递、执行确定性调度、检查候选身份并运行受影响机器检查，不再派第二个 Critic
-或 Reviewer。objective 与写边界未变时，Adjudicator 和 Author 在负责人回答后继续同一未完成
-dispatch。Verifier 仍由
-[`gmgn-assurance-v2`](skills/gmgn/references/en/assurance-policy.json)按风险触发。审查范围由
+[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。一个有边界的 active Adjudicator
+负责与负责人讨论，并直接审查每个固定文档候选或完整实现/测试候选。Primary orchestrator 只原样
+传递、检查候选身份、运行已声明的确定性命令并原样转交证据，不作语义 finding 或候选接受。
+同范围 finding 交回同一 Author 或 Coder，修复提交后仍由同一 Adjudicator 继续本案。objective 与
+写边界未变时，Adjudicator、Author 或 Coder 保持同一未完成 dispatch。Verifier 仍由
+[`gmgn-assurance-v3`](skills/gmgn/references/en/assurance-policy.json)按风险触发。实现审查范围由
 [代码审查契约](skills/gmgn/references/en/code-review.md)定义。
 
 `Task.md` 仍是 Milestone 索引。Milestone 启动后，`run-task` 为每个已接受 Task 创建稳定的
 `Card.md` 执行与验证契约和可替换的 `Log.md`，无需另行确认执行集，Task ready 后直接调度。它还
 负责隔离 writer lane、运行时工具、监测、审查、集成与关闭。Coder 在同一 dispatch 内完成
-RED/GREEN，不等待主 session 批准 RED；唯一一次最终 Reviewer 重放记录的 checkpoint。只有已审
-内容集成后，项目声明的全部必需检查都在准确的共享基线候选上通过，Task 才能关闭。
+RED/GREEN，不等待主 session 批准 RED，并在完整候选 checkpoint 提交后等待。Primary
+orchestrator 重放已准备的 RED/GREEN 与其他确定性检查，同一 active Adjudicator 直接审查固定
+实现/测试候选；同范围 finding 仍由同一 Coder 修复。只有已接受内容集成后，项目声明的全部必需
+检查都在准确的共享基线候选上通过，Task 才能关闭。
 完整规则只在 [`run-task`](skills/run-task/SKILL.md) 中维护。
 
 Milestone 关闭后发现未完成工作时，直接回到 `initiated`，清空当前 `accepted_result`，只重开受

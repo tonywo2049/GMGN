@@ -5,7 +5,7 @@ description: "Use after Design review to create or change Task.md: milestone tas
 
 # Task.md: milestone task index
 
-<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have passed the Critic necessity gate and any required Critic review plus Adjudicator acceptance at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
+<HARD-GATE>The complete linked Design Bundle—root `Design.md` plus every applicable module, `design/Contract.md`, split contract, and structural authority—must have been directly reviewed and accepted by its active Adjudicator at one commit. Record `target_milestone_id`; every task belongs to that Milestone. If planning exposes changed upstream meaning or an implementation-significant unknown, stop and return the issue to `gmgn` for routing instead of deciding it in Task.</HARD-GATE>
 
 Before writing, load the registered `gmgn` Skill through normal discovery and follow its local
 writing rules. Use the Design locale for artifact prose. Keep filename `Task.md`, `type:
@@ -71,11 +71,13 @@ the Task ID.
 
 The assigned Adjudicator resolves Task boundaries and prepares one Author brief under the
 registered `gmgn` Skill's shared document-candidate and dispatch rules. The Author writes and
-revises `Task.md`. A selected Critic must apply the Task boundary to every affected row and
-report under-splitting or an incorrect boundary. AC coverage and an acyclic dependency DAG do
-not substitute for this check, and Task count alone is not a finding. The Adjudicator rules on
-findings and sends in-scope fixes to the same Author. A fix that expands authority or scope
-beyond accepted findings becomes a separately scoped change.
+revises `Task.md`, commits the fixed candidate, and waits. The primary orchestrator checks
+candidate identity and prepared machine evidence. The same active Adjudicator directly applies
+the Task boundary and split test to every affected row and reports under-splitting or an
+incorrect boundary. AC coverage and an acyclic dependency DAG do not substitute for this
+check, and Task count alone is not a finding. An in-scope finding returns to the same Author.
+A fix that expands authority or scope beyond the accepted finding becomes a separately scoped
+change.
 
 ## Controlled revision
 
