@@ -273,6 +273,8 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         "Its Runner reviews under `code-review`; independent Reviewer only when explicitly required",
         "Critic and Reviewer do not maximize finding count. A valid return may contain no findings.",
         "Report an issue only when leaving it unresolved creates concrete material harm, no accepted\neffective fallback contains that harm, and a smallest sufficient correction can be stated.",
+        "Apply a deletion test before dispatch: the caller must state which uncontained material outcome\nwould change if the Critic were omitted. A candidate does not inherit its downstream domain's\nrisk level. Conservative scheduling, delayed readiness, additional dependencies, and work with\nan existing effective pause or return fallback are not material harm unless current facts show\nan uncontained Milestone, external, or irreversible impact. If omitting the Critic changes\nneither acceptance nor the next action, skip it.",
+        "`artifact-not-fully-machine-checkable` does not apply merely because a normative document's\nmeaning cannot be fully machine-checked. The responsible caller and optional Critic gate own\ndocument semantics. Require a Verifier only when an observation remains that no other check can\nreplace or that must occur in a real environment, or when independent execution is explicitly\nrequired.",
         "Do not create an Integrator role.",
     ),
     DISPATCH_CONTRACT: (

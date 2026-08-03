@@ -89,6 +89,13 @@ Critic only when that risk can be named or the caller cannot decide. Otherwise s
 record one sentence explaining why, and run affected machine checks. A meaning-preserving
 mechanical edit never needs a Critic.
 
+Apply a deletion test before dispatch: the caller must state which uncontained material outcome
+would change if the Critic were omitted. A candidate does not inherit its downstream domain's
+risk level. Conservative scheduling, delayed readiness, additional dependencies, and work with
+an existing effective pause or return fallback are not material harm unless current facts show
+an uncontained Milestone, external, or irreversible impact. If omitting the Critic changes
+neither acceptance nor the next action, skip it.
+
 Critic and Reviewer do not maximize finding count. A valid return may contain no findings.
 Report an issue only when leaving it unresolved creates concrete material harm, no accepted
 effective fallback contains that harm, and a smallest sufficient correction can be stated.
@@ -108,6 +115,12 @@ it explicit. The responsible primary orchestrator or Commander owns classificati
 through the Commander path.
 Use `not-required` or `required:<trigger>` and do not dispatch until relevant review blockers
 clear. The owning stage defines candidate timing and fix handling.
+
+`artifact-not-fully-machine-checkable` does not apply merely because a normative document's
+meaning cannot be fully machine-checked. The responsible caller and optional Critic gate own
+document semantics. Require a Verifier only when an observation remains that no other check can
+replace or that must occur in a real environment, or when independent execution is explicitly
+required.
 
 ## Minimality gates
 
