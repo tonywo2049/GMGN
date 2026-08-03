@@ -41,10 +41,10 @@ Once recorded:
 A stage may retain a decision in its normal authority when it is not recorded in
 `Decision.md`. Never keep the same ruling normative in both places.
 
-The assigned Adjudicator recommends the option, scope, and downstream consequence, then asks
-the owner one material question at a time through the primary orchestrator's exact relay when
-the ruling itself is unresolved. Do not create an Ask document or reject a Decision candidate
-merely because its scope is narrow. The owner makes the final ruling.
+The primary orchestrator recommends the option, scope, and downstream consequence, then asks
+the Owner one material question at a time when the ruling itself is unresolved. Do not create
+an Ask document or reject a Decision candidate merely because its scope is narrow. The Owner
+makes the final ruling.
 
 ## Decision.md content
 
@@ -81,16 +81,17 @@ not another bold D-ID definition.
 
 ## Authoring and approval
 
-1. The Adjudicator reads the approved WhitePaper, current `Decision.md`, and only the Log
+1. The primary orchestrator reads the approved WhitePaper, current `Decision.md`, and only the Log
    history needed to preserve IDs or understand the proposed delta.
-2. It resolves material ruling and downstream-scope questions with the owner.
-3. It prepares one Author brief; the Author writes the complete current Decision candidate.
-   In revision mode, change only affected entries.
+2. It resolves material ruling and downstream-scope questions with the Owner.
+3. It prepares one Author brief; the independent Author writes the complete current Decision
+   candidate. In revision mode, change only affected entries.
 4. Process the semantic candidate through the registered `gmgn` Skill's shared document-
-   candidate and dispatch rules. A selected Critic checks decision clarity, current meaning,
-   deletion, and impact.
-5. The Adjudicator adjudicates findings and presents the committed candidate and remaining
-   material risks—or that none are known—for owner approval through the exact relay.
+   candidate and dispatch rules. The primary orchestrator checks necessity, current meaning,
+   deletion priority, clarity, and impact, applies the Critic necessity gate, adjudicates any
+   Critic finding, and returns an accepted in-scope repair to the same Author.
+5. After accepting the candidate, the primary orchestrator presents it and remaining material
+   risks—or that none are known—for Owner approval.
 6. After approval, the same Author appends the compact Log event using the approved semantic
    commit. The primary orchestrator applies mechanical state and reciprocal links and
    integrates the approval record. Do not reopen semantic review for this mechanical record.

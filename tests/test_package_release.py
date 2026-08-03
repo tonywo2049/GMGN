@@ -17,12 +17,13 @@ ALLOWED_PREFIXES = (
 )
 ALLOWED_FILES = {"README.md", "README.zh-CN.md", "GMGN.md", "LICENSE"}
 AGENT_ROLES = (
-    "adjudicator",
+    "commander",
+    "runner",
     "author",
     "coder",
     "critic",
-    "researcher",
     "reviewer",
+    "researcher",
     "verifier",
 )
 REQUIRED_CODEX_AGENT_PROFILES = {f".codex/agents/{role}.toml" for role in AGENT_ROLES}
@@ -190,8 +191,20 @@ class PackageReleaseTests(unittest.TestCase):
             )
             self.assertIn(".agents/plugins/marketplace.json", names)
             self.assertIn(".docstar/conventions/conventions.json", names)
-            self.assertTrue(REQUIRED_CODEX_AGENT_PROFILES <= set(names))
-            self.assertTrue(REQUIRED_CLAUDE_AGENT_PROFILES <= set(names))
+            packaged_codex_profiles = {
+                name
+                for name in names
+                if name.startswith(".codex/agents/") and name.endswith(".toml")
+            }
+            packaged_claude_profiles = {
+                name
+                for name in names
+                if name.startswith("agents/")
+                and name.endswith(".md")
+                and len(Path(name).parts) == 2
+            }
+            self.assertEqual(packaged_codex_profiles, REQUIRED_CODEX_AGENT_PROFILES)
+            self.assertEqual(packaged_claude_profiles, REQUIRED_CLAUDE_AGENT_PROFILES)
             self.assertIn("skills/write-decision/agents/openai.yaml", names)
             self.assertTrue(REQUIRED_REFERENCE_FILES <= set(names))
             self.assertIn("README.zh-CN.md", names)
@@ -200,7 +213,7 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertTrue(REQUIRED_TELEMETRY_FILES <= set(names))
             self.assertEqual(create_systems, {3})
             self.assertIn(
-                "create exactly two files for every newly materialized task",
+                "create exactly two files for every newly materialized Task",
                 run_task_skill,
             )
             self.assertIn("The verification contract selects an executable oracle", run_task_skill)

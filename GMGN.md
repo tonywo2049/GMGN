@@ -6,17 +6,17 @@ downstream: [writing rules](skills/gmgn/references/en/writing-rules.md), [dispat
 status: approved
 type: whitepaper
 nature: normative
-assurance_policy: gmgn-assurance-v2
+assurance_policy: gmgn-assurance-v3
 ---
 
 # GMGN: a lightweight engineering method for agent collaboration
 
-GMGN coordinates one accountable human owner, one primary AI relay and scheduler, and bounded
-task agents. It addresses two risks:
+GMGN coordinates one accountable human owner, one primary AI orchestrator, and bounded task
+agents. It addresses two risks:
 
 - **representation drift** — documents, status, tests, and evidence stop matching reality;
-- **shared blind spots** — a writer and reviewer inherit the same assumptions and miss the
-  same defect.
+- **shared blind spots** — a writer's own checks can preserve the same assumptions and miss
+  the same defect.
 
 The response is a small set of versioned authorities, independent checks selected by impact,
 and same-batch state refresh. GMGN is not a reason to create roles, files, or gates that the
@@ -27,36 +27,47 @@ current task does not need.
 - **Owner** decides scope, stage approvals, release authority, and any semantic removal or
   reassignment of a completion criterion, and reviews Milestone closure. Closure review is not
   an irrevocable acceptance decision.
-- **Primary orchestrator** retains the complete session context and acts only as the exact
-  owner/agent relay, observable-state router, mechanical scheduler, workspace manager,
-  deterministic checker, integration owner, and shared-state updater. It appends runtime facts
-  to semantic briefs without paraphrasing them. It does not conduct semantic owner dialogue,
-  plan solutions, write document candidates, decide Critic necessity, adjudicate findings, or
-  act as a Coder. During long-running work, it must not send a progress update while observable
-  state is unchanged; update only for material progress, a blocker, a decision request, or the
-  final result.
-- **Adjudicator** owns one bounded semantic case: owner dialogue through the primary relay,
-  research synthesis, solution and authority rulings, Critic necessity, finding adjudication,
-  and the next semantic action. It returns only `ask_owner | dispatch | accept` and does not
-  edit project files. Independent cases may use parallel Adjudicators; overlapping authority
-  or impact cones are serialized.
-- **Author** writes and revises one bounded document candidate from an Adjudicator-prepared
-  semantic brief.
-- **Coder** implements one bounded Card attempt.
-- **Critic** independently challenges document meaning.
-- **Reviewer** independently reviews implementation or test-code diffs and runs the prepared
-  deterministic local checks against that candidate commit.
+- **Primary orchestrator** retains the complete session context, routes stages, conducts Owner
+  dialogue, analyzes evidence, makes workflow and semantic decisions, schedules agents,
+  adjudicates Critic and Reviewer findings, manages workspaces, and updates shared state.
+  Outside `run-task`, it integrates accepted candidates. It may perform meaning-preserving
+  mechanical edits, but it does not write upstream authority, planning, or design candidates
+  and does not act as a Coder. During long-running work, it must not send a progress update
+  while observable state is unchanged; update only for material progress, a blocker, a
+  decision request, or the final result.
+- **Commander** is the single workspace-write global-judgment role used only in `run-task`.
+  One bounded Commander reads current repository state, computes ready work, supplies complete
+  Runner briefs, resolves cross-Task conflicts and upstream returns, and integrates one fixed
+  candidate under the existing lock and evidence gates. Only the primary orchestrator creates,
+  resumes, or retires it. A Commander creates no agents and has no role variants or standing
+  pool.
+- **Runner** owns one accepted Task and its repository workspace set end to end. It directly
+  creates any needed Coder, Researcher, or risk-triggered Verifier, normally reviews the Coder
+  candidate itself, and reports only substantive structured state or results to the primary
+  orchestrator. Parallel Runners do not coordinate directly.
+- **Author** independently writes and revises one bounded upstream authority, plan, design, or
+  closure document candidate from a primary-orchestrator brief. Its self-check is not review
+  or acceptance of its own candidate. Normal Task execution does not use an Author.
+- **Coder** creates or resumes one Card/Log execution contract and implements its bounded Task
+  candidate. Its tests and self-checks are evidence, not review or acceptance.
+- **Critic** independently challenges a fixed normative document candidate when the primary
+  orchestrator's necessity gate selects it.
+- **Reviewer** independently reviews only a fixed implementation and test candidate when the
+  Owner, authority, workflow, or Commander explicitly requires that role. Normal `run-task`
+  review is performed by the Task's Runner.
 - **Researcher** collects bounded source-by-source facts without comparing or selecting a
-  solution; the active Adjudicator synthesizes them.
+  solution; its caller analyzes and decides. The primary orchestrator may create it outside
+  `run-task`, and a Runner may create it inside `run-task`.
 - **Verifier** independently executes checks against one fixed final candidate only when the
   [assurance policy](skills/gmgn/references/en/assurance-policy.json) records a trigger.
 
 Every delegated agent follows the
 [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). The primary orchestrator
-is not a delegated agent and remains the mechanical integration owner; there is no
-Integrator-agent role. An Adjudicator or Author waiting for owner input or a bounded child
-return keeps its identity and resumes the same unfinished dispatch without a separate state
-document. It retires only when that objective completes, is invalidated, or is cancelled.
+is not a delegated agent. Only `run-task` uses the Commander-and-Runner hub-and-spoke flow;
+other stages remain in the primary session. An active Commander, Runner, Author, or Coder
+keeps its identity through an interim question, child return, candidate checkpoint, or
+in-scope repair while objective and write boundary remain unchanged. It retires when that
+objective completes, is invalidated, is cancelled, or hard-fails. There is no Integrator role.
 
 ## 2. Authority and document chain
 
@@ -70,24 +81,25 @@ WhitePaper → Decision → ROADMAP → Goal → Requirement → Design Bundle �
 
 - WhitePaper owns the problem, goals, scope, non-goals, and invariants.
 - `Decision.md` may own any accepted ruling explicitly recorded for downstream consumption,
-  regardless of subject or Milestone scope. The assigned Adjudicator identifies candidates
+  regardless of subject or Milestone scope. The primary orchestrator identifies candidates
   and recommends their options, scope, and downstream consequences; the human owner makes the
   ruling. Stable D-IDs identify current rulings. `DecisionLog.md` is descriptive
   accepted-change history and never downstream authority.
 - ROADMAP owns outcome-based Milestone allocation, `now | next | later` horizons, relative
   priority, real cross-Milestone dependencies, necessary deliverables, result-level success
   signals, and a curated Backlog. Dependencies create only a partial order; Milestone IDs and
-  display order do not. The Adjudicator resolves allocation meaning and an Author writes one
-  complete map for owner approval. The Adjudicator asks beforehand only when an irreversible
-  blocking choice cannot be safely recommended or deferred. ROADMAP does not own an E2E path
+  display order do not. The primary orchestrator resolves allocation meaning and an Author
+  writes one complete map for Owner approval. The primary orchestrator asks beforehand only
+  when an irreversible blocking choice cannot be safely recommended or deferred. ROADMAP does not own an E2E path
   or detailed Close criteria.
 - Goal refines one eligible `now` Milestone for exactly two purposes: provide the basis for
   Requirement and define qualitative Milestone Close criteria. It owns only the active
   boundary needed to prevent scope ambiguity, necessary Milestone-local exclusions that do
   not remove upstream obligations, ROADMAP deliverable/success-signal coverage, and the
   smallest sufficient set of qualitative Close outcomes. Result grouping is optional and
-  creates no separate authority. An Author drafts the candidate after Adjudicator clarification;
-  one owner approval of the exact candidate both initiates the Milestone and approves Goal.
+  creates no separate authority. An Author drafts the candidate after the primary
+  orchestrator resolves its meaning; one Owner approval of the exact candidate both initiates
+  the Milestone and approves Goal.
 - Requirement translates Goal into required observable behavior, quantified parameters,
   constraints, and decidable acceptance criteria (ACs).
 - `Design.md` is the root Design authority and complete R/AC mapping entry. Add architecture,
@@ -130,10 +142,9 @@ an isolated worktree. Checksums are evidence only. Editing a file never moves ap
 automatically.
 
 Documents under a project-declared archive root are historical storage, not active authority.
-Adjudicators, Authors, Critics, Reviewers, Researchers, and Verifiers do not read, cite, or use
-them as context or evidence. Exclude archive roots from briefs and generated context. If active
-work needs archived meaning, restore it to the active tree through its owning authority before
-use.
+Delegated agents do not read, cite, or use them as context or evidence. Exclude archive roots
+from briefs and generated context. If active work needs archived meaning, restore it to the
+active tree through its owning authority before use.
 
 Human prose may be English or Chinese. Machine fields, IDs, status tokens, and Task headers
 remain stable. The complete structural rules are in
@@ -156,8 +167,8 @@ semantics, AC mapping, and granularity check; Task count itself is not a measure
 or overdesign.
 
 For an initiated Milestone, every accepted Task row enters execution when ready without a
-separate owner confirmation. `run-task` creates exactly two files for each new Task, or reuses
-them for a reopened Task, before Coder dispatch:
+separate owner confirmation. The Task's Coder creates exactly two files for each new Task, or
+restores them for a reopened Task, before production implementation:
 
 - `execution/<card_id>/Card.md` — normative execution and verification contract with its completion
   criterion.
@@ -169,26 +180,69 @@ in `run-task` and the writing rules.
 
 ## 4. Review and verification
 
-Commit the complete candidate locally before independent checks. Document meaning passes the
-Critic necessity gate defined by the [GMGN router](skills/gmgn/SKILL.md). Each semantic
-candidate batch has at most one Critic round. Each implementation candidate has exactly one
-Reviewer round owned by `run-task`; the
-[code-review contract](skills/gmgn/references/en/code-review.md) owns its Review surface.
-Accepted fixes are adjudicated by the active Adjudicator; the primary orchestrator checks
-candidate identity and affected machine checks without another Critic or Reviewer.
+Commit and freeze the complete candidate locally before review. For a normative document
+candidate, the primary orchestrator applies the Critic necessity gate in the GMGN router and
+adjudicates any Critic findings. A meaning-preserving mechanical change uses machine checks
+without Critic. Each semantic candidate batch has at most one Critic round.
 
-A fresh Verifier remains risk-triggered rather than automatic. Failed, skipped, timed-out, or
-unavailable required checks are not passes. The
-[assurance policy](skills/gmgn/references/en/assurance-policy.json) defines role triggers,
-and stage Skills define when Review and verification are dispatched.
+For implementation and test candidates, the Task's Runner normally performs the independent-
+writer Review under the [code-review contract](skills/gmgn/references/en/code-review.md). Create
+an independent Reviewer only when explicitly required by the Owner, applicable authority,
+current workflow, or Commander brief. Reviewer never reviews a document-only candidate.
+
+Critic and Reviewer report an issue only when leaving it unresolved causes concrete material
+harm, no accepted effective fallback contains that harm, and a smallest sufficient correction
+can be stated. The primary orchestrator adjudicates document findings; the Runner adjudicates
+in-Task implementation findings. An accepted in-scope repair returns to the same Author or
+Coder while objective and write boundary remain unchanged. The adjudicating caller checks the
+exact repair and reruns only affected commands without automatically dispatching another
+Critic or Reviewer.
+
+A fresh Verifier remains risk-triggered rather than automatic and runs only after relevant
+review blockers clear. Failed, skipped, timed-out, or unavailable required checks are not
+passes. The
+[assurance policy](skills/gmgn/references/en/assurance-policy.json) defines its triggers, and
+stage Skills define candidate timing and fix handling.
 
 ## 5. Task execution and integration
 
 `run-task` owns Card/Log materialization, the dependency-aware ready set, conflict-aware
-parallel dispatch, runtime tool policy, bounded writer lanes, Codex agent monitoring, the
-single Review dispatch, verification, integration, and Task closure. The primary orchestrator
-retains runtime state, the integration queue, and the shared baseline. An Adjudicator resolves
-execution semantics and findings; an Author writes Card/Log and other document candidates.
+parallel dispatch, runtime tool policy, bounded writer lanes, Codex agent monitoring, direct
+fixed-candidate review, verification, integration, and Task closure. On entry, the primary
+orchestrator creates a Commander with the Owner instruction, repository, and observable entry
+points without collecting or analyzing the ready set. The Commander reads authority and state,
+computes the ready set, and returns complete briefs; the primary orchestrator mechanically
+creates one Runner per selected Task without rewriting those briefs.
+
+The Runner owns its Task and repository workspace set, directly manages its Coder and any
+needed Researcher or Verifier, normally performs Review itself, and prepares the complete
+candidate. Coder writes or restores Card/Log, verification contract, tests, implementation,
+and related evidence; Runner may write Review, assurance classification, Verifier result, Task
+state, final evidence, and other execution-document content. Normal Task execution does not use
+an Author.
+
+In a Git-backed project with a shared remote, each Task uses one stable Task-named branch,
+one writable worktree, and at most one pull request in every repository it changes. Those
+objects belong to the Task-repository change rather than the current Agent ID; a replacement
+Runner resumes them. The Runner is the only remote writer, publishes coherent checkpoints
+under shared authorization, and creates or marks the pull request ready for the fixed final
+candidate. An earlier Draft is used only when required host checks or requested collaboration
+needs it. Read-only roles do not receive a branch or writable worktree merely for independence.
+
+When a Runner reports a candidate ready, the primary orchestrator creates one Commander with
+the integration brief. That Commander obtains the existing integration lock, synchronizes the
+latest shared baseline, forms and identifies the final candidate, runs or verifies the bound
+gates, updates the shared baseline through the repository's merge policy, and releases the
+lock. A native merge queue may supply that serialization; protected-branch rules and required
+checks remain gates. GMGN does not add a parallel lock or integration branch when the queue
+already covers the boundary. A content-changing rebase, conflict resolution, or Commander edit
+invalidates affected candidate-bound evidence and returns through the same Runner gates. A
+content-preserving merge commit may reuse it. A multi-repository Task closes only after every
+required repository candidate and cross-repository gate is integrated; its shared baseline is
+the recorded set of one current commit per participating repository, not an atomic cross-
+repository transaction. The primary
+orchestrator records the Commander result mechanically and does not repeat integration or
+semantic review.
 
 All Coder lanes use the same approved Design Bundle commit and must not invent or edit shared
 interface authority. Evidence that contradicts Design or Contract returns upstream through
@@ -214,7 +268,8 @@ the path in ROADMAP.
 
 Closure also reconciles every retained Contract ID with provider and consumer code plus
 conformance/integration evidence. A semantic mismatch returns to `write-design`; closure never
-edits authority to excuse code. Closure review marks the reconciled Contract commit `closed`.
+edits authority to excuse code. The accepted closure candidate marks the reconciled Contract
+commit `closed`.
 Owner review is one review input; it does not make the result irrevocable or separately
 authorize integration.
 
@@ -243,9 +298,9 @@ not reasons to repeat Milestone closure. The shared external-operation authoriza
 dispatch contract applies across execution and release.
 
 For a narrow bug or one-step mechanical change, identify the smallest authority and acceptance
-condition, implement it, independently review the diff and deterministic local behavior, add
-separate final-candidate verification only when a risk trigger requires it, and refresh state.
-Do not fabricate the full document chain.
+condition. Route implementation through the smallest applicable Task and `run-task`; apply
+meaning-preserving document changes mechanically, add final-candidate verification only when a
+risk trigger requires it, and refresh state. Do not fabricate the full document chain.
 
 ## 7. Tools and anti-overdesign boundary
 
@@ -259,11 +314,11 @@ change that document's own result if removed. A possible future need, speculativ
 workflow narration, downstream management, or implementation convenience is not an owner.
 Anything removable without weakening the document's purpose is overdesign.
 
-When dispatched, the independent Critic applies the deletion test to affected stage candidates
-except Task division, whose necessity and boundary checks are owned by
-[`write-task`](skills/write-task/SKILL.md). For other candidates it first attempts deletion,
-reuse, native behavior, or a direct solution. Unresolved overdesign is a material acceptance
-finding, not a wording, cleanup, or low-impact preference.
+The primary orchestrator applies the deletion test to affected fixed stage candidates, and a
+selected Critic independently challenges it. Task division keeps its own necessity and
+boundary checks under [`write-task`](skills/write-task/SKILL.md). For other candidates first
+attempt deletion, reuse, native behavior, or a direct solution. Unresolved overdesign is a
+material acceptance finding, not a wording, cleanup, or low-impact preference.
 
 Choose the first sufficient option:
 
@@ -271,8 +326,13 @@ Choose the first sufficient option:
 2. reuse existing repository behavior;
 3. standard library or platform-native capability;
 4. existing dependency;
-5. direct implementation;
-6. the smallest new structure.
+5. inspect a trusted external implementation and extract or adapt only its smallest closed
+   code slice;
+6. direct implementation;
+7. the smallest new structure.
+
+Selecting an external project does not authorize forking or importing its whole repository or
+bringing in code that the current requirement does not need.
 
 Do not add roles, state machines, identity history, configuration, wrappers, or documents
 without a current requirement. Preserve trust-boundary validation, security, accessibility,

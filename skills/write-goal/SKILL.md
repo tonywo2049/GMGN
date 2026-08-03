@@ -15,11 +15,11 @@ writing rules. Use the ROADMAP locale unless the owner changes it explicitly. Ke
 
 ## Working rhythm
 
-The assigned Adjudicator reads the approved WhitePaper, current Decision, and target ROADMAP
+The primary orchestrator reads the approved WhitePaper, current Decision, and target ROADMAP
 Milestone, then forms the complete Goal meaning directly. Do not run a routine discovery or
-question checklist. It asks the owner through the primary orchestrator's exact relay only when
-two or more interpretations remain consistent with upstream authority and the answer would
-change the active Milestone boundary or whether it can Close. Combine related blocking
+question checklist. It asks the Owner only when two or more interpretations remain consistent
+with upstream authority and the answer would change the active Milestone boundary or whether
+it can Close. Combine related blocking
 ambiguity into the smallest useful question, recommend one option, and state the real
 alternative and its effect on Requirement scope or Close. When resolved, dispatch one Author
 to write the candidate.
@@ -29,7 +29,7 @@ behavior, parameters, architecture, tests, or tasks. Leave Requirement-owned det
 Requirement. If an unresolved ruling needed by the current Goal crosses Milestones or
 constrains a shared project object, return it to `gmgn` for Decision routing instead of
 writing or deciding it in Goal. If no blocking Goal-owned ambiguity remains, write the
-candidate without intermediate questions.
+candidate through the assigned Author without intermediate questions.
 
 ## Goal content
 
@@ -71,16 +71,18 @@ The assigned Author performs one semantic batch:
 This candidate changes only the ROADMAP initiation state/link and Goal and has no shared-
 baseline effect before approval.
 
-## Writer and review-selection loop
+## Writer and review loop
 
 Record the Decision and ROADMAP commits, then process one complete Goal candidate through the
-registered `gmgn` Skill's shared document-candidate and dispatch rules. The Adjudicator rules
-on semantic findings; the primary orchestrator checks only the proposed ROADMAP state,
-candidate identity, and reciprocal links.
+registered `gmgn` Skill's shared document-candidate and dispatch rules. After the Author fixes
+the candidate, the primary orchestrator checks candidate identity, proposed ROADMAP state,
+reciprocal links, fixed Goal meaning or revision delta, and other prepared machine checks. It
+applies the Critic necessity gate, adjudicates any Critic finding, and returns an accepted
+in-scope repair to the same Author.
 
-With no unresolved blocker, the Adjudicator presents the exact committed Goal candidate and
-remaining material risks—or that none are known—for one owner approval through the exact
-relay. That approval both authorizes the Milestone state change and approves Goal meaning.
+With no unresolved blocker, the primary orchestrator presents the exact committed Goal
+candidate and remaining material risks—or that none are known—for one Owner approval. That
+approval both authorizes the Milestone state change and approves Goal meaning.
 Then the Author moves Goal to `status: approved`; the primary orchestrator applies the
 mechanical reciprocal-link record and integrates the candidate without another semantic review.
 
@@ -93,9 +95,10 @@ mechanical reciprocal-link record and integrates the candidate without another s
 3. Revise only the active boundary, necessary Milestone-local exclusions, ROADMAP
    deliverable/success-signal coverage, or qualitative Close outcomes. Preserve unaffected
    content. Leave behavior, constraints, parameters, and AC choices to Requirement.
-4. If the delta changes a decision or reasonable understanding, the Adjudicator applies the
-   Critic necessity gate, runs any required independent criticism, adjudicates the affected
-   content, and binds it to a new commit. Old review remains attached to the old commit.
+4. If the delta changes a decision or reasonable understanding, the primary orchestrator
+   applies the Critic necessity gate to the fixed delta and affected context, adjudicates any
+   finding, then accepts it at a new commit or returns a minimum in-scope repair to the same
+   Author. Old review remains attached to the old commit.
 Meaning-preserving mechanical changes use same-batch link and status refresh plus
 machine checks without reapproval.
 
@@ -118,6 +121,6 @@ Require the assigned Author to confirm:
 - an invalid mapping returns to `gmgn` for routing instead of changing upstream meaning in
   Goal.
 
-For creation or a semantic revision, run the writer/review-selection loop using the
-English-only dispatch contract, obtain Adjudicator acceptance, and let the primary orchestrator
-integrate only when required by workspace topology.
+For creation or a semantic revision, run the writer/review loop using the
+English-only dispatch contract, obtain primary-orchestrator acceptance, and integrate through
+the primary orchestrator only when required by workspace topology.

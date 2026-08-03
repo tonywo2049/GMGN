@@ -1,6 +1,6 @@
 ---
 locale: en
-purpose: Define the single independent implementation Review surface, evidence, and finding format across supported runtimes.
+purpose: Define review of one fixed implementation and test candidate across supported runtimes.
 upstream: [GMGN methodology](../../../../GMGN.md), [dispatch and handoff](dispatch-and-handoff.md)
 downstream: [Reviewer role](../../../../agents/reviewer.md)
 status: approved
@@ -10,56 +10,84 @@ nature: normative
 
 # Code-review contract
 
-## 1. Select the surface
+## 1. Fix the complete surface
 
-- Codex Desktop: `/review`.
+Before Review, the Coder commits and freezes the complete implementation and test candidate
+and returns a checkpoint to its Runner. Bind the Review surface to that candidate, original
+baseline, Requirement, Design, applicable Contract, Card, declared write boundary, applicable
+RED and GREEN checkpoints, and prepared deterministic-check evidence. Never review an
+uncommitted mutable diff, only a correction commit, or a writer summary instead of the actual
+candidate.
+
+Coder self-checks and successful tests are supporting evidence. They are not review or
+acceptance of the Coder's own candidate.
+
+## 2. Select the reviewing path
+
+During normal `run-task`, the Task's Runner reviews the fixed implementation and test
+candidate. This is independent of the Coder that wrote it and does not create another role.
+Create one independent Reviewer only when the Owner, applicable authority, current workflow
+rule, or Commander brief explicitly requires it. Reviewer is used only for implementation and
+test candidates; Critic covers normative document meaning.
+
+When an independent Reviewer is required, select the available surface:
+
+- Codex Desktop: `/review` when it can use the prepared fixed surface;
 - Codex CLI: `codex review --commit <short-commit>` or `--base <branch>`; do not combine a
-  scope flag with a custom prompt.
+  scope flag with a custom prompt;
 - Claude Code: an independent no-edit Reviewer that may run prepared commands; use
-  `/code-review` only when the user authorized work on a GitHub PR.
-- If the native surface is unavailable, dispatch an independent no-edit Reviewer with the
-  permissions required by its prepared plan; do not skip Review.
+  `/code-review` only when the Owner authorized work on a GitHub PR; or
+- a fresh no-edit Reviewer under the dispatch contract when the native surface is unavailable.
 
-Every Review is a fresh dispatch under the
-[dispatch contract](dispatch-and-handoff.md). Each Task execution has exactly one Reviewer
-round. The Reviewer never inherits writer or earlier-agent conversation history.
+The Reviewer receives no writer or earlier-agent conversation history. A missing required
+surface does not justify skipping explicitly required independent Review.
 
-## 2. Review the complete candidate
+## 3. Review correctness and material harm
 
-Before Review, commit and freeze the complete implementation and test-code candidate. Bind the
-brief to that candidate and its applicable Requirement, Design, Contract, Card, write
-boundary, and prepared checks. Never review an uncommitted mutable diff or only a correction
-commit.
+Apply every question below to the complete assigned surface:
 
-Apply every question below to the assigned surface:
+1. Does it satisfy Requirement, Design, Contract, Card, and the declared write boundary?
+2. Does it preserve necessary correctness, regression behavior, safety, data, security,
+   accessibility, performance, recovery, compatibility, and resource protections?
+3. Can each changed test or executable check reject an incorrect implementation, and are the
+   applicable RED/GREEN checkpoints still valid?
+4. Is it the simplest sufficient implementation without removable structure?
+5. Would leaving an observed issue unresolved create concrete material harm?
+6. Does an accepted effective fallback already contain that harm?
+7. What is the smallest sufficient correction?
 
-1. Does it satisfy its Requirement, Design, Contract, Card, and prepared write boundary?
-2. Can each changed test or executable check fail when the implementation is wrong?
-3. Does leaving an observed issue unresolved cause concrete correctness, regression, safety,
-   data, accessibility, performance, or acceptance harm?
-4. Does an accepted effective fallback already contain that harm?
-5. What is the smallest sufficient correction?
+Report a finding only when the answers establish concrete material harm, no accepted effective
+fallback, and a smallest sufficient correction. A valid Review may contain no findings. Omit
+preference-only, speculative, low-impact, cleanup, refactoring, broader-coverage, or adequately
+contained observations when they do not change acceptance or the next action.
 
-A valid Review may return no findings. Omit preference-only, speculative, low-impact,
-cleanup, refactoring, broader-coverage, or adequately contained observations when they do not
-change acceptance or the next action. Do not propose a broader redesign when a smaller
-correction or effective fallback is sufficient.
+## 4. Preserve deterministic evidence
 
-Run every deterministic targeted, negative, integration, and project check required by the
-prepared brief. Add exploratory checks only for a concrete risk. A skipped, timed-out, or
-unavailable required tool or command is not a pass.
+The Runner runs or obtains every prepared targeted, negative, integration, project, and
+applicable RED/GREEN replay command. An independent Reviewer may run the same prepared checks
+when its brief assigns them. Use a disposable copy when a command may write; otherwise allow
+only declared generated or cache paths. Preserve exact command, environment, exit code,
+result, limitation, and side effect.
 
-## 3. Preserve and return evidence
+Recompare tracked content only after a command or event that could change it. Material drift
+invalidates the Review. A skipped, timed-out, or unavailable required command is not a pass.
+Add an exploratory check only for a concrete risk.
 
-Do not intentionally edit workspace files. Prefer a disposable copy when a command may write;
-otherwise allow only declared generated or cache paths. Recompare tracked content with the
-candidate only after a command or event that could change it. Material content drift
-invalidates the Review.
+## 5. Adjudicate and repair once
 
-Return material findings or explicit no-findings coverage together with exact commands,
-environment, exit codes, limitations, and side effects. The return identifies the reviewed
-candidate. Interim questions follow the dispatch contract. The primary orchestrator forwards
-material findings unchanged to the active Adjudicator, which adjudicates them and the semantic
-sufficiency of accepted fixes. The primary orchestrator checks candidate identity and runs
-affected machine checks without another Reviewer round. A `no findings` return follows the
-owning execution Skill's deterministic transition without a mandatory Adjudicator hop.
+The Runner adjudicates in-Task findings and sends an accepted minimum repair to the same
+Coder while objective and write boundary remain unchanged. When an independent Reviewer was
+required, its return informs that Runner ruling; the Reviewer does not decide its own finding.
+The Coder commits a new complete checkpoint. The Runner inspects the exact repair delta and
+reruns only affected checks without automatically creating another Reviewer.
+
+An omitted in-scope implementation detail required by an accepted finding remains a repair
+while accepted authority, objective, and write boundary remain unchanged. A fix that changes
+approved behavior, interface or other upstream authority, Task objective, or write boundary
+returns through the primary orchestrator to a Commander and the owning stage.
+
+For integration, any rebase, conflict resolution, or Commander edit that changes candidate
+content invalidates the affected Review and other candidate-bound evidence. Re-enter the
+affected Runner gates before updating the shared baseline. If integration adds only a merge
+commit and candidate content is unchanged, the original Review evidence remains valid. Do not
+add a review mode, round field, risk table, or separate candidate-review document.

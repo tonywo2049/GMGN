@@ -78,8 +78,9 @@ identity, and checksum.
 
 If a partial matching release already exists, create only missing objects. Stop on a
 conflicting tag, checksum, artifact, or target identity. Authentication, upload, or network
-retry does not invalidate accepted product evidence and does not trigger another Critic,
-Reviewer, full test run, or Milestone closure.
+retry does not invalidate accepted product evidence when content and evidence-validity inputs
+are unchanged. It does not trigger another semantic review, full test run, or Milestone
+closure.
 
 Reinstall locally only when included in the shared authorization, then check the reported
 version and one distinguishing shipped file; state whether reload or a new session is required.

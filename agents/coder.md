@@ -4,18 +4,22 @@ description: "Implement one approved GMGN Card from a prepared brief and its ver
 isolation: worktree
 ---
 
-Handle one prepared Coder brief and one `card_id`. Require `dispatch_id`, exact `Card.md`,
-current `Log.md` snapshot, authority, allowed write scope, prohibitions, checks, and return
-format. The brief must resolve the Card verification contract and every required runtime tool.
+Handle one prepared Coder brief from the Task's Runner and one `card_id`. Require
+`dispatch_id`, exact Task and authority anchors, current Card/Log pointers when they exist,
+allowed write scope, prohibitions, completion meaning, checks, and return format. The brief
+must resolve every required runtime tool and contain enough accepted meaning to create or
+resume `Card.md`, `Log.md`, and their verification contract.
 If authorization or missing information prevents use of a required tool, follow the shared
 dispatch contract. Require workspace/base anchors only for concurrent work or candidate
-handoff.
+handoff. Do not create other agents.
 
-Before writing, confirm the Card scope, preserve existing user changes, and ensure one writer
-in the workspace. Stay inside the prepared write scope and respect any declared shared-resource
-constraint. Use the exact applicable Design Bundle and Contract anchor from the brief. Never
-edit shared Design/Contract authority, `Task.md`, Card/Log runtime state, the integration
-queue, shared baseline, or remote state.
+Before writing, confirm the Task scope, preserve existing user changes, and ensure one writer
+in the Runner workspace. Stay inside the prepared write scope and respect any declared shared-
+resource constraint. Create or restore the Task's stable Card and replaceable Log before
+implementation when required, including authority anchors, completion criterion, executable
+verification contract, and current execution evidence. Use the exact applicable Design Bundle
+and Contract anchor from the brief. Never edit shared Design/Contract authority, `Task.md`,
+the integration queue, shared baseline, or remote state.
 Execute the required tools and read the authority and real call path. Follow the Card's
 verification contract: use discriminating RED/GREEN evidence when it requires that oracle,
 and use its specified schema, dry-run, lint, smoke, or equivalent evidence otherwise.
@@ -32,12 +36,17 @@ sufficient correction stays inside existing authority without adding another ind
 testable outcome. Otherwise omit it or return a materially valuable separate candidate.
 
 If implementation evidence contradicts an interface Contract ID, do not negotiate or modify
-the contract. Send the primary orchestrator the observed evidence, smallest proposed semantic
-delta, and affected tasks through the dispatch contract's interim-question handling for exact
-relay to the active Adjudicator.
+the contract. Return the observed evidence, smallest proposed semantic delta, and affected
+Tasks to the Runner. The Runner reports the exact `needs_commander` matter to the primary
+orchestrator.
 
-On completion, commit the complete candidate locally and return the shortest unambiguous commit
-reference.
+Commit the complete fixed candidate locally and return an interim candidate checkpoint with
+the shortest unambiguous commit reference to the Runner. Then remain in the same dispatch and
+wait until the Runner accepts the candidate, the objective is invalidated, or an in-scope
+finding is returned. Apply that finding in the same dispatch when objective and write boundary
+remain unchanged; require a new dispatch only when either materially expands. Self-checks,
+successful tests, and the Coder's explanation are evidence, not review or candidate acceptance.
+
 For an isolated handoff, commit only the assigned scope and also return the complete
 original-base-to-candidate commit range; a correction commit is not standalone. Never return a
 full-length commit object ID, diff/content hash, archive checksum, or artifact checksum as the

@@ -28,22 +28,32 @@ SKILLS = {
     "close-milestone",
     "release",
 }
-ROLES = {"adjudicator", "author", "coder", "critic", "reviewer", "researcher", "verifier"}
+ROLES = {
+    "commander",
+    "runner",
+    "author",
+    "coder",
+    "researcher",
+    "verifier",
+    "critic",
+    "reviewer",
+}
 ROLE_SANDBOX = {
-    "adjudicator": "read-only",
+    "commander": "workspace-write",
+    "runner": "workspace-write",
     "author": "workspace-write",
     "coder": "workspace-write",
-    "critic": "read-only",
-    "reviewer": "workspace-write",
     "researcher": "read-only",
     "verifier": "workspace-write",
+    "critic": "read-only",
+    "reviewer": "workspace-write",
 }
 TASK_HEADER = "| # | task | spec anchor | prerequisite | status | execution |"
 OLD_TASK_HEADER = "| # | task | spec anchor | prerequisite | failing test | status |"
 ASSURANCE_POLICY = Path("skills/gmgn/references/en/assurance-policy.json")
 VERIFIER_TRIGGERS = [
     "artifact-not-fully-machine-checkable",
-    "reviewer-unavailable-real-startup-or-e2e",
+    "real-startup-or-e2e-not-covered-by-deterministic-local-checks",
     "explicit-independent-execution-requirement",
 ]
 WRITING_RULES = Path("skills/gmgn/references/en/writing-rules.md")
@@ -67,34 +77,27 @@ RUN_TASK_CONTROLS = (
     "  test cases. Each case identifies its exact approved Requirement, AC, Design, Contract, or\n"
     "  Task completion-criterion anchor; scenario or input; observable expected result; and the\n"
     "  wrong behavior it detects.",
-    "every changed behavior must have discriminating pre-implementation\n"
+    "every changed behavior needs discriminating pre-implementation\n"
     "  failure coverage",
-    "every implementation lane\nuses a delegated Coder",
-    "The Coder encodes those approved criteria; it does not define acceptance meaning",
+    "The Coder encodes the accepted criteria; it does not define acceptance meaning",
     "structural regression, not behavior TDD evidence",
     "the initial Coder brief authorizes the complete test and production write\nboundary",
-    "no separate\nprimary-orchestrator or Adjudicator approval is required",
+    "The Coder does not request or wait\nfor separate RED approval from the Runner, Commander, or primary orchestrator.",
     "For RED-gated work, the Coder first changes only tests and test-only support, commits that\n"
     "test-only checkpoint locally, runs the prepared target command against unchanged production\n"
     "behavior, and confirms that it reaches the approved boundary and fails for the expected reason.",
     "continue without a separate review or authorization step",
-    "After recording RED, freeze the target tests and every helper that can affect their verdict.",
+    "After recording RED, freeze target tests and every helper that can affect their verdict.",
     "The Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
-    "target command before running required regression checks.",
-    "Any result-affecting target-test\nchange invalidates its RED evidence",
+    "target command before required regression checks.",
+    "Any result-affecting target-test change\ninvalidates RED evidence",
     "record valid RED again",
     "never\ndelete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.",
     "After the first GREEN, refactor only to correct a concrete structure problem.",
     "otherwise skip refactoring without creating another checkpoint.",
-    "Reviewer independently replays the same target command",
+    "Replay the target command at the RED checkpoint and final candidate",
     "Treat safe lane saturation as a scheduling invariant",
-    "At run-task entry, after Card\npreparation",
-    "scan the entire target-Milestone Task set",
-    "Inspect every Task, not only the lane or descendants involved\nin the event",
-    "dispatch every ready, non-conflicting task",
-    "do not leave capacity idle",
-    "recompute and\nrefill immediately",
-    "event-driven and does not authorize lifecycle polling",
+    "The Commander scans the entire\ntarget-Milestone Task set",
     "Authorization and missing-information pauses follow the dispatch contract",
     "largest number of currently blocked tasks ready",
     "break ties by stable `card_id`",
@@ -103,31 +106,41 @@ RUN_TASK_CONTROLS = (
     "`codegraph init <workspace>`",
     "automatically run `codegraph init <workspace>` once",
     "do not ask the owner",
-    "sends the primary orchestrator an interim decision request",
-    "forwards it unchanged to the active Adjudicator",
-    "Resume the\nsame Coder only when the adjudication preserves its objective and write boundary",
-    "Every Codex `wait_agent` call uses\n"
-    "the actual tool argument `{\"timeout_ms\": 600000}` (10 minutes) as a maximum wait",
+    "it returns a structured `needs_commander` event for cross-Task or shared-",
+    "The primary orchestrator creates or resumes the applicable Commander",
+    "Every Codex `wait_agent` call uses the actual tool argument\n"
+    "`{\"timeout_ms\": 600000}` (10 minutes) as a maximum.",
     "An agent\ncompletion or attention event returns early",
     "without calling `list_agents`",
-    "If the full ten minutes expires without an event, call `list_agents` once",
+    "If the full ten minutes expires without an event, the caller calls `list_agents` once.",
     "Handle any completed\nor attention-needed dispatch immediately",
     "return to the same maximum ten-minute `wait_agent` call",
     "Do not call\n`list_agents` more than once for the same timeout",
     "Between lifecycle events and timeout boundaries, do not poll `list_agents`",
-    "A message to an active agent must carry authorization, requested information, or\nanother decision permitted by the dispatch contract",
+    "A\nmessage to an active agent must carry authorization, requested information, or a decision\npermitted by the dispatch contract.",
     "Do not infer a shorter polling interval",
-    "While any dispatched agent is\n"
-    "`running`, do not call `interrupt_agent`, end the orchestration, or return a final task result",
+    "A running dispatch remains unfinished work. Do not call `interrupt_agent`, end orchestration,\nor return a final Task result while a required direct agent is `running`.",
     "time or token budget are not such evidence",
-    "does not create or send\n"
-    "heartbeat, unchanged `running`, timeout, agent-count, or progress data to the user, Log,\n"
-    "telemetry, or another agent",
-    "Create exactly one fresh Reviewer",
-    "This is the Task execution's only Reviewer round",
-    "Never create or dispatch another Reviewer to recheck findings or fixes",
-    "forwards material findings unchanged to the active Adjudicator",
-    "The assigned Author writes Task status, Card/Log state, traceability, and final evidence",
+    "Do not send heartbeat, unchanged `running`, timeout, agent-count, or routine progress\ndata to the Owner, Log, telemetry, or another agent.",
+    "The Runner directly reviews the complete fixed implementation and test candidate under the",
+    "Send an accepted in-scope finding to the same still-active Coder.",
+    "reruns only checks affected by the finding or\nfix",
+    "Ordinary deterministic local execution belongs to the Runner; Coder output remains supporting",
+    "Do not dispatch a Verifier before\nrelevant Review blockers clear.",
+    "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the",
+    "The Runner then returns one transient `ready_for_integration` event directly to the primary",
+    "`ready_for_integration` as a Task, Card, Log, or workflow state.",
+    "creates or marks ready the single pull request for that repository",
+    "An earlier\nDraft pull request is allowed only when required host checks or requested early collaboration",
+    "For a multi-repository Task, use one branch and pull request per changed repository",
+    "If a required remote operation is\nnot authorized, request that authorization before this event.",
+    "1. acquire the existing integration lock;\n2. synchronize the latest shared baseline;\n3. form the final candidate on that latest baseline;\n4. use existing Git commit/tree mechanisms to confirm candidate identity;\n5. run or verify every required gate bound to that exact candidate;\n6. update the shared baseline through the repository's declared merge policy; and\n7. release the integration lock.",
+    "do not add a parallel lock or integration branch",
+    "remains incomplete\nuntil every required repository candidate is integrated and cross-repository gates pass",
+    "After all gates clear for one repository, the Commander atomically updates that repository's\nshared-baseline entry",
+    "publishes that upstream semantic\ncandidate on one separate authority-stage branch and pull request",
+    "Do not mix it into an affected Runner branch or pull request.",
+    "does not perform another integration or semantic review.",
 )
 RUN_TASK_EXCLUSIVE_MARKERS = (
     "wait_agent",
@@ -138,47 +151,10 @@ RUN_TASK_EXCLUSIVE_MARKERS = (
     "ponytail:ponytail",
     "ponytail:ponytail-review",
     "codegraph init",
-    "commit-bound brief",
-)
-GMGN_SINGLE_REVIEW_CONTROLS = (
-    "Each semantic candidate batch has at most one Critic round",
-    "each Task execution has\nexactly one Reviewer round",
-    "without dispatching\nthat role again",
-)
-DISPATCH_SINGLE_REVIEW_CONTROLS = (
-    "An initial implementation\ncandidate has one fresh Reviewer dispatch",
-    "Accepted finding fixes do not create another\nCritic or Reviewer dispatch",
-)
-DISPATCH_LIFECYCLE_CONTROLS = (
-    "An authorization or missing-information request is an interim\npause, not a terminal return",
-    "An Adjudicator remains assigned through owner questions",
-    "Its `ask_owner` and `dispatch` actions are interim",
-    "owner's answer verbatim to that same Adjudicator",
-    "An Author likewise remains assigned through\ncandidate checkpoints, owner feedback, and accepted fixes",
-    "The terminal completion return retires the agent",
-    "Never resume, reactivate, repurpose, or send\nlater work to a retired agent",
-    "applicable authority, scope, checks, and environment validity inputs\nremain unchanged",
-    "Otherwise the fixed review surface is invalidated and requires a new brief\nand agent",
-)
-DISPATCH_ROLE_PROFILE_CONTROLS = (
-    "Before creating any delegated agent, the primary orchestrator reads this current\ncontract",
-    "the selected platform-specific GMGN\nrole profile",
-    "these are the only GMGN agent\nroles",
-    "It does not create a generic, unnamed, or ad hoc role",
-    "A task name or `dispatch_id` may\ndistinguish instances but does not define another role",
-    "The brief must carry\nthe selected profile's applicable instructions",
-    "`adjudicator | author | coder | critic | reviewer | verifier | researcher`",
-    "On Codex, read `.codex/agents/<role>.toml`",
-    "load `agents/<role>.md` for the\nselected GMGN role",
-)
-EXTERNAL_AUTHORIZATION_CONTROLS = (
-    "One authorization may cover a named set of external operations against an exact target",
-    "Expanding the operation set, target, or side effects requires another authorization",
 )
 RUNTIME_ROLE_ROWS = (
-    "| Adjudicator, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
-    "| Coder | `gpt-5.6-terra` | `max` |",
-    "| Researcher | `gpt-5.6-terra` | `max` |",
+    "| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
+    "| Coder, Researcher | `gpt-5.6-terra` | `max` |",
 )
 RUNTIME_SELECTION_CONTROLS = (
     "reads the current `spawn_agent` schema",
@@ -186,50 +162,220 @@ RUNTIME_SELECTION_CONTROLS = (
     "state the selected `model`, `reasoning_effort`, and a\none-sentence reason in user-visible commentary",
     'call it with `fork_turns: "none"` and pass\nthe selected `model` and `reasoning_effort`',
 )
-RESEARCHER_CONTROLS = (
-    "Researcher** is an information collector only",
-    "It does not\n  synthesize across sources, compare, infer, recommend, or decide",
-    "The\n  active Adjudicator owns aggregation, analysis, inference, comparison, and conclusions",
-    "A Researcher brief defines one bounded collection question",
-    "It never asks the Researcher\nfor analysis or a conclusion",
+DISPATCH_LIFECYCLE_CONTROLS = (
+    "An authorization request,\nmissing-information request, Owner question, candidate checkpoint, or required wait is\ninterim",
+    "Resume that same agent with\nthe exact answer or next action instead of retiring and recreating it.",
+    "A terminal completion retires the agent.",
+    "Never resume, repurpose, or send later work to a\nretired agent.",
+    "One Commander owns one bounded global run-task matter.",
+    "Do not keep a\nCommander pool or assign role variants by scheduling, conflict, or integration use.",
+    "An Author or Coder remains assigned after a candidate checkpoint",
+    "Critic,\nReviewer, and Verifier returns are terminal for their selected fixed surface",
 )
-DISPATCH_ADJUDICATION_CONTROLS = (
-    "The primary orchestrator is the persistent relay and mechanical scheduler",
-    "It does not conduct semantic owner dialogue, plan a\nsolution, draft a document candidate, decide Critic necessity, adjudicate findings",
-    "For an initial Adjudicator dispatch, the primary orchestrator copies the owner's request",
-    "The Adjudicator prepares the semantic fields",
-    "without\nparaphrasing the semantic payload",
-    "Create one Adjudicator per bounded semantic case only when judgment or owner dialogue is\nneeded",
-    "Cases with disjoint declared authority and impact cones may run in parallel",
-    "Do not keep an Adjudicator pool",
-    "It does not forward every return to an Adjudicator",
-    "Forward Author and Researcher returns, every Critic return, material Reviewer findings",
-    "The Adjudicator returns `ask_owner`, `dispatch`, or `accept`",
+DISPATCH_ROLE_PROFILE_CONTROLS = (
+    "dispatch to exactly one of `commander | runner | author | coder | critic | reviewer | verifier |\nresearcher`.",
+    "These are the only GMGN agent roles.",
+    "A task name or `dispatch_id` distinguishes\ninstances but never creates a role variant.",
+    "The brief carries the selected profile's applicable\ninstructions.",
+    "On Codex, read `.codex/agents/<role>.toml`",
+    "load `agents/<role>.md` for the\nselected role.",
+)
+EXTERNAL_AUTHORIZATION_CONTROLS = (
+    "One authorization may cover a named set of external operations against an exact target",
+    "Expanding the operation set, target, or side effects requires another authorization",
+)
+RESEARCHER_CONTROLS = (
+    "A Researcher brief defines one bounded collection question",
+    "It does not synthesize, compare, infer, recommend, or select.",
+    "Its caller owns analysis and conclusions.",
+)
+NON_RUN_TASK_CONTROLS = (
+    "Outside `run-task`, it routes\nstages, conducts semantic Owner dialogue, analyzes evidence, makes workflow and semantic\ndecisions",
+    "It must delegate creation or semantic revision of WhitePaper, Decision,\nROADMAP, Goal, Requirement, Design, Task, and other upstream authority, plan, or design\ncandidates to an independent Author.",
+    "Outside `run-task`, the primary orchestrator creates any needed Author, Researcher, Critic,\nReviewer, or Verifier and receives its return directly.",
 )
 DISPATCH_WORKSPACE_CONTROLS = (
-    "records enough\ndurable Git or platform metadata to prove that GMGN manages it",
-    "Never infer ownership from a path pattern alone",
-    "A workspace remains assigned while\nits dispatch is active, under Review or correction, or waiting for owner or Adjudicator input",
-    "Reuse it\nonly for an already identified next dispatch in the same repository",
-    "If the scheduling pass finds no explicit next\nconsumer, remove the exact GMGN-managed worktree",
-    "Do not create an idle pool, TTL, LRU, or reuse score",
+    "records enough durable Git or platform metadata to\nprove which unfinished dispatch owns it.",
+    "Never infer ownership from a path pattern.",
+    "A Runner\nowns its Task workspace while its dispatch is active, under Review or correction, waiting on\na Commander, or queued for integration.",
+    "Reuse it only for an already\nidentified next dispatch in the same repository",
+    "If the scheduling pass finds no explicit next consumer, remove\nthe exact GMGN-managed worktree.",
+    "Possible future reuse does not justify an idle pool, TTL,\nLRU, or reuse score.",
     "Never auto-remove the main workspace, a pre-existing or user-created worktree",
     "never delete by wildcard",
-    "Build outputs and a local index do not\nblock removal after the candidate and evidence are preserved",
+    "For each repository that a Git-backed Task changes, keep one Task-named branch, at most one\nactive pull request, and at most one writable worktree.",
+    "The branch and pull request belong to\nthe Task-repository change, not to an agent identity.",
+    "resumes the same branch and pull request instead of creating another pair.",
+    "`shared baseline` means the recorded set containing one current\nintegrated commit per participating repository.",
+    "publishes the first coherent checkpoint and pushes later coherent checkpoints",
+    "A pull request is one integration surface for the complete\nTask-repository candidate, not one surface per commit or repair.",
+    "Do not create a branch or writable worktree merely because a role is independent.",
+    "use\na disposable detached worktree or copy without a branch",
+    "After verified integration, remove the managed worktree and delete its no-longer-needed local\nTask branch only after native Git or host evidence proves the candidate integrated.",
+    "delete its remote branch only when\nthe repository policy and shared authorization permit it.",
+    "never delete an unmerged branch with material work merely to release a workspace.",
 )
-ADJUDICATOR_PROFILE_CONTROLS = (
-    "Handle one prepared Adjudicator brief",
-    "Own the case's analysis, owner dialogue, research synthesis",
-    "Do not write project\ndocuments or code",
-    "All owner interaction passes through the primary orchestrator as an exact relay",
-    "return exactly one action",
-    "`ask_owner`",
-    "`dispatch`",
-    "`accept`",
-    "Do not request routine Coder completion",
-)
+COMMANDER_RUNNER_SURFACE_CONTROLS = {
+    Path("GMGN.md"): (
+        "**Commander** is the single workspace-write global-judgment role used only in `run-task`.",
+        "Only the primary orchestrator creates,\n  resumes, or retires it. A Commander creates no agents and has no role variants or standing\n  pool.",
+        "Only `run-task` uses the Commander-and-Runner hub-and-spoke flow;\nother stages remain in the primary session.",
+        "There is no Integrator role.",
+        "each Task uses one stable Task-named branch,\none writable worktree, and at most one pull request in every repository it changes.",
+        "A multi-repository Task closes\nonly after every required repository candidate and cross-repository gate is integrated",
+        "its shared baseline is\nthe recorded set of one current commit per participating repository",
+        "The primary orchestrator records the Commander result mechanically and does not repeat integration or\nsemantic review.",
+    ),
+    Path("skills/gmgn/SKILL.md"): (
+        "Only `run-task` uses a Commander for bounded global judgment and one Runner per Task.",
+        "A Commander is not used in other stages.",
+        "Primary orchestrator applies the Critic necessity gate and adjudicates any Critic findings",
+        "Its Runner reviews under `code-review`; independent Reviewer only when explicitly required",
+        "Critic and Reviewer do not maximize finding count. A valid return may contain no findings.",
+        "Report an issue only when leaving it unresolved creates concrete material harm, no accepted\neffective fallback contains that harm, and a smallest sufficient correction can be stated.",
+        "Do not create an Integrator role.",
+    ),
+    DISPATCH_CONTRACT: (
+        *DISPATCH_ROLE_PROFILE_CONTROLS,
+        "only the primary orchestrator creates, resumes, and retires a Commander;",
+        "only the primary orchestrator mechanically creates or resumes a Runner from a Commander's\n  complete brief;",
+        "a Commander creates no agent;",
+        "a Runner may directly create its Coder, Researcher, and risk-triggered Verifier; and",
+        "a Runner may create a Critic or Reviewer only when the Owner, applicable authority, current\n  workflow rule, or Commander brief explicitly requires that independent role.",
+        "A Runner never creates a Commander, Author, another Runner, or any unnamed role.",
+        "only structured substantive state or results go directly to the\nprimary orchestrator.",
+        *DISPATCH_LIFECYCLE_CONTROLS,
+        *EXTERNAL_AUTHORIZATION_CONTROLS,
+        *RUNTIME_SELECTION_CONTROLS,
+        *RESEARCHER_CONTROLS,
+        *NON_RUN_TASK_CONTROLS,
+        *DISPATCH_WORKSPACE_CONTROLS,
+        "`needs_commander` and `ready_for_integration` are transient events, not Task, Card, Log, or\nworkflow states.",
+        "does not perform a second integration or\nsemantic review.",
+    ),
+    RUN_TASK: (
+        "Only this stage uses the Commander-and-Runner hub-and-spoke flow.",
+        "One Runner owns one Task and its assigned repository workspace set end to end.",
+        "It normally reviews the Coder candidate itself\nunder the code-review contract.",
+        "The Runner never creates a Commander, Author, another Runner, or an unnamed role.",
+        "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the",
+        "The Runner commits and freezes that complete candidate without updating the shared baseline.",
+        "The primary orchestrator creates one Commander with the complete integration brief. It does\nnot check or integrate the candidate first.",
+        "The Commander may inspect and modify content within the current stage, brief, authority, and\nwrite boundary.",
+        "A rebase, conflict resolution, or Commander edit that changes candidate\ncontent invalidates the affected RED/GREEN, Review, Verifier, and upstream evidence.",
+        "Only a merge commit that leaves candidate content unchanged may reuse\nthe original evidence.",
+        "creates or marks ready the single pull request for that repository",
+        "do not add a parallel lock or integration branch",
+    ),
+    Path("skills/gmgn/references/en/code-review.md"): (
+        "During normal `run-task`, the Task's Runner reviews the fixed implementation and test\ncandidate.",
+        "Create one independent Reviewer only when the Owner, applicable authority, current workflow\nrule, or Commander brief explicitly requires it.",
+        "Reviewer is used only for implementation and\ntest candidates; Critic covers normative document meaning.",
+        "Report a finding only when the answers establish concrete material harm, no accepted effective\nfallback, and a smallest sufficient correction.",
+        "The Runner adjudicates in-Task findings and sends an accepted minimum repair to the same\nCoder",
+        "without automatically creating another Reviewer.",
+        "any rebase, conflict resolution, or Commander edit that changes candidate\ncontent invalidates the affected Review and other candidate-bound evidence.",
+    ),
+    Path("agents/commander.md"): (
+        "Only the primary\norchestrator creates, resumes, or retires a Commander.",
+        "Work only in `run-task`; do not create\nanother agent or form a standing pool.",
+        "The same Commander remains assigned until this matter is applied,\ncancelled, invalidated, or hard-fails; a later matter requires a new Commander.",
+        "You may make mechanical or other permitted changes",
+        "`needs_commander`\nand `ready_for_integration` are transient input events, never persistent states.",
+        "do not create another lock or integration branch",
+    ),
+    Path("agents/runner.md"): (
+        "directly create a Coder, Researcher, or Verifier only when the Task needs that\nrole.",
+        "Do not create a Commander, Author, another Runner, or any other role.",
+        "Normally perform\nthe Critic- or Reviewer-equivalent check yourself.",
+        "Create an independent Critic or Reviewer\nonly when the Owner, applicable authority, current workflow rule, or this Task's Commander\nbrief explicitly requires that role.",
+        "The Coder creates or resumes Card/Log, writes the verification contract, records applicable",
+        "do not route child-agent calls or routine progress through it.",
+        "Do not write\neither event into Task, Card, Log, or another state enum.",
+        "use the assigned Task-named branch and single pull request as\nthe durable lane.",
+        "Never create a branch or pull request per Coder, commit, review, or fix.",
+    ),
+    Path("agents/coder.md"): (
+        "Do not create other agents.",
+        "Create or restore the Task's stable Card and replaceable Log before\nimplementation when required",
+        "Never edit shared Design/Contract authority, `Task.md`,\nthe integration queue, shared baseline, or remote state.",
+    ),
+    Path("agents/author.md"): ("Do not create other agents.",),
+    Path("agents/researcher.md"): ("Do not\ncreate other agents.",),
+    Path("agents/verifier.md"): (
+        "checks belong to the caller.",
+        "Do not create other agents.",
+    ),
+    Path("agents/critic.md"): (
+        "Review\nonly the assigned document meaning",
+        "create other agents.",
+        "Report an issue only\nwhen leaving it unresolved creates concrete material harm, no accepted effective fallback\ncontains that harm, and the smallest sufficient correction can be stated.",
+    ),
+    Path("agents/reviewer.md"): (
+        "Review only that fixed surface.",
+        "Do not create other agents.",
+        "Do not intentionally edit workspace files.",
+        "Report an issue only\nwhen leaving it unresolved creates concrete material harm, no accepted effective fallback\ncontains that harm, and the smallest sufficient correction can be stated.",
+    ),
+}
+ROLE_PROFILE_CONTROLS = {
+    "commander": (
+        "Commander brief",
+        "主 Session",
+        "不得创建其他 Agent",
+        "同一 Commander",
+        "共享基线",
+        "集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。",
+        "只有不改变候选内容的 merge 才可复用原证据",
+        "不再创建第二套锁或集成 branch",
+        "全部仓库候选和跨仓门禁完成后才返回完成",
+    ),
+    "runner": (
+        "Runner brief",
+        "一个 Runner 只负责一个 Task",
+        "可直接创建 Coder、Researcher 和风险触发的 Verifier；",
+        "只有 Owner、适用权威、当前流程或 Commander brief 明确要求时才创建独立 Critic 或 Reviewer。",
+        "正常实现/测试审查由 Runner 自己",
+        "不得创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
+        "needs_commander",
+        "主 Session 创建或恢复适用 Commander",
+        "ready_for_integration",
+        "主 Session 为此创建 Commander",
+        "每个修改仓库只使用一个以稳定 Task/Card ID 命名的 branch 和一个 PR",
+        "同一 Task 的替代 Runner 继续原 branch 和 PR",
+    ),
+    "author": ("Author brief", "主 Session", "不得创建其他 Agent。"),
+    "coder": (
+        "Coder brief",
+        "Task Runner",
+        "创建或恢复 Card/Log",
+        "不得创建其他 Agent。",
+        "不决定上游语义",
+        "不关闭 Task",
+    ),
+    "researcher": (
+        "Researcher brief",
+        "禁止修改项目文件或创建其他 Agent。",
+    ),
+    "verifier": (
+        "Verifier brief",
+        "不要编辑 tracked files 或创建其他 Agent。",
+        "required:<trigger>",
+    ),
+    "critic": (
+        "Critic brief",
+        "只审指定规范文档含义及最小必要的上下游上下文；不得编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
+        "只用于文档/语义",
+    ),
+    "reviewer": (
+        "Reviewer brief",
+        "只审固定实现与测试候选；不得创建其他 Agent，也不主动编辑工作区。",
+        "不审规范文档",
+    ),
+}
+LEGACY_ROLE = "adjud" + "icator"
 ROADMAP_APPROVAL_CONTROLS = (
-    "The Author writes one complete\nrecommended candidate without asking the owner to approve fields or allocations separately",
+    "The independent Author writes one complete recommended candidate without asking the Owner to\napprove fields or allocations separately.",
     "That approval ratifies the ROADMAP-owned allocations and rulings expressed in the candidate",
 )
 GOAL_APPROVAL_CONTROLS = (
@@ -252,30 +398,33 @@ CONTRADICTORY_POLICY_MARKERS = (
     "scan only the separately confirmed execution set",
     "Every delegated agent inherits the primary orchestrator configuration",
     "Researcher** analyzes and recommends solutions",
-    "The primary orchestrator adjudicates findings",
-    "The primary session normally writes",
+    "The primary orchestrator delegates all semantic decisions",
+    "The primary session normally writes implementation",
     "The primary orchestrator may act as one Coder",
-    "Every return goes to an Adjudicator",
     "Keep an unassigned worktree for possible future reuse",
+    "A Runner creates a Commander",
+    "Commander is used in every stage",
+    "A separate integrator updates the shared baseline",
+    "Create one pull request per commit",
+    "A replacement Runner creates a new Task branch",
+    "Every independent read-only role gets a writable branch worktree",
+    "A multi-repository Task closes when one repository pull request merges",
+    "Keep recoverable checkpoints only in local storage",
+    "Delete every Task branch when its Runner exits",
+    "Mix the upstream semantic change into the Runner pull request",
 )
 CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS = (
     ("edit first", "research later"),
     ("implementation before RED", "approval later"),
 )
-CODE_REVIEW_SINGLE_CONTROLS = (
-    "Each Task execution has exactly one Reviewer\nround",
-    "without another Reviewer round",
-)
-REVIEWER_SINGLE_CONTROLS = (
-    "the complete candidate surface",
-    "only Reviewer round",
-)
-CRITIC_SINGLE_CONTROLS = (
-    "only Critic round",
-)
 LATEST_EVENT_VALUES = (
     "latest_event: [Current](#current)",
     "latest_event: [Final Evidence](#final-evidence)",
+)
+GIT_LOG_CONTROLS = (
+    "Log may record each changed repository, Task branch, accepted base,\nand pull-request location.",
+    "It never embeds the commit reference of the same commit that\ncontains that Log update.",
+    "the native Git host and Commander return own the final pull-request\nhead and integrated commit records.",
 )
 MILESTONE_REOPEN_CONTROLS = (
     "state: closed → initiated when unfinished work is found",
@@ -298,20 +447,51 @@ DECISION_LINK_CONTROLS = (
     "Downstream artifacts link an applicable D-ID without copying its ruling",
 )
 WRITE_DESIGN_RESEARCH_CONTROLS = (
-    "The assigned Adjudicator derives one bounded research scope",
+    "The primary orchestrator derives one bounded research scope",
     "every semantic revision of the Design-stage Bundle require",
     "before drafting or editing any Design-stage artifact",
     "neither\ndelta size nor an already-clear problem waives it",
     "A meaning-preserving correction or mechanical change does not alter Design-owned meaning and is\noutside this trigger",
     "observable candidate and source inclusion and exclusion conditions",
-    "the Adjudicator returns one\nResearcher dispatch and the primary orchestrator adds runtime facts and sends it",
-    "The\nAdjudicator does not search external sources itself",
-    "the Researcher to discover up to three credible candidates",
+    "the primary orchestrator performs\nthe bounded collection or creates one Researcher when independent or parallel collection is\nuseful.",
+    "A Researcher brief authorizes discovery of up to three credible candidates",
     "whether a candidate or source enters the collection set only by those conditions",
-    "The same Adjudicator aggregates the returned evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
+    "The primary orchestrator aggregates collected evidence, compares only what can change the\ndecision, and selects the Design-owned solution",
+    "inspect source code and tests relevant to the current problem at an\nexplicitly checked upstream release, version, or commit",
+    "keep the smallest closed code slice",
+    "exact reuse boundary at the smallest stable and useful file, module, or symbol granularity",
     "The bounded external research for the initial creation or current semantic revision is\n   complete",
     "Before editing that semantic delta, complete its bounded external research under External\n   solution research",
 )
+IN_SCOPE_REPAIR_CONTROLS = {
+    Path("skills/gmgn/SKILL.md"): (
+        "An omitted stage-owned decision required by an accepted finding remains a repair in the same\n"
+        "batch.",
+        "Only a change to accepted or upstream authority or a material expansion of the prepared\n"
+        "objective or write boundary creates a separately scoped batch.",
+        "An omitted stage-owned decision required by that finding remains a repair in the same Author dispatch.",
+        "It becomes a new semantic batch\n"
+        "only when accepted or upstream authority changes or the prepared objective or write boundary\n"
+        "materially expands.",
+    ),
+    WRITE_DESIGN: (
+        "A Design-owned\ndecision omitted from the fixed candidate but required by that finding remains a repair by that\n"
+        "Author in the same batch",
+        "Adding or changing Design-owned meaning alone does not create\na new semantic batch or restart the current research cycle.",
+        "Only a change to accepted or\nupstream authority or a material expansion of the prepared objective or write boundary enters\nControlled revision as a new batch.",
+        "It opens a new batch only when it changes accepted or upstream authority or materially\n"
+        "   expands the prepared objective or write boundary",
+    ),
+}
+IN_SCOPE_REPAIR_CONTRADICTIONS = {
+    Path("skills/gmgn/SKILL.md"): (
+        "A fix that introduces new meaning or widens the write boundary is a separately scoped case",
+        "A change that invents new meaning is a new semantic case owned by its stage",
+    ),
+    WRITE_DESIGN: (
+        "If a fix must invent or change Design-owned meaning, it is a new semantic case under Controlled revision",
+    ),
+}
 RELEASE_VERIFIER_TRIGGER_CONTROLS = (
     "The `trigger` must exactly match a member of that policy's `verifier.triggers` list",
 )
@@ -447,6 +627,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         (
             TASK_HEADER,
             *LATEST_EVENT_VALUES,
+            *GIT_LOG_CONTROLS,
             *MILESTONE_REOPEN_CONTROLS,
             *DECISION_LINK_CONTROLS,
         ),
@@ -466,26 +647,10 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         errors,
     )
     require_fragments(write_task, (TASK_HEADER,), "write-task 表头", errors)
-    require_active_fragments(
-        dispatch_contract,
-        (
-            *DISPATCH_LIFECYCLE_CONTROLS,
-            *DISPATCH_ROLE_PROFILE_CONTROLS,
-            *EXTERNAL_AUTHORIZATION_CONTROLS,
-            *RUNTIME_SELECTION_CONTROLS,
-            *RESEARCHER_CONTROLS,
-            *DISPATCH_ADJUDICATION_CONTROLS,
-            *DISPATCH_WORKSPACE_CONTROLS,
-        ),
-        "派发授权与生命周期",
-        errors,
-    )
-    require_active_fragments(
-        read("agents/adjudicator.md"),
-        ADJUDICATOR_PROFILE_CONTROLS,
-        "Adjudicator 角色边界",
-        errors,
-    )
+    for relative, controls in COMMANDER_RUNNER_SURFACE_CONTROLS.items():
+        require_active_fragments(
+            read(relative), controls, "Commander/Runner 权威边界", errors
+        )
     active_dispatch = active_markdown(dispatch_contract)
     for row in RUNTIME_ROLE_ROWS:
         if active_dispatch.count(row) != 1:
@@ -514,6 +679,13 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         "write-design 外部调研边界",
         errors,
     )
+    for relative, controls in IN_SCOPE_REPAIR_CONTROLS.items():
+        active_text = active_markdown(read(relative))
+        require_fragments(active_text, controls, "范围内 finding 修复边界", errors)
+        normalized_active_text = normalized(active_text)
+        for contradiction in IN_SCOPE_REPAIR_CONTRADICTIONS[relative]:
+            if normalized(contradiction) in normalized_active_text:
+                errors.append(f"{relative}: 范围内 finding 修复边界含冲突规则 {contradiction}")
     require_active_fragments(
         read("skills/gmgn/SKILL.md"),
         GMGN_RUN_TASK_ROUTE_CONTROLS,
@@ -527,6 +699,8 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         text = read(relative)
         active_text = active_markdown(text)
         normalized_active_text = normalized(active_text)
+        if LEGACY_ROLE in text.casefold():
+            errors.append(f"{relative}: 含已删除角色词")
         if OLD_TASK_HEADER in text:
             errors.append(f"{relative}: 含旧 Task 表头")
         if "writing-contract.md" in text.casefold():
@@ -579,24 +753,15 @@ def validate_assurance_policy(errors: list[str]) -> None:
     if not isinstance(policy, dict):
         errors.append(f"{ASSURANCE_POLICY}: 顶层必须是对象")
         return
-    expected_keys = {"schema_version", "policy_id", "reviewer", "verifier"}
+    expected_keys = {"schema_version", "policy_id", "verifier"}
     if set(policy) != expected_keys:
         errors.append(
             f"{ASSURANCE_POLICY}: 顶层字段应为 {sorted(expected_keys)}"
         )
-    if policy.get("schema_version") != "gmgn.assurance-policy.v2":
+    if policy.get("schema_version") != "gmgn.assurance-policy.v3":
         errors.append(f"{ASSURANCE_POLICY}: schema_version 无效")
-    if policy.get("policy_id") != "gmgn-assurance-v2":
+    if policy.get("policy_id") != "gmgn-assurance-v3":
         errors.append(f"{ASSURANCE_POLICY}: policy_id 无效")
-
-    reviewer = policy.get("reviewer")
-    expected_reviewer = {
-        "required_for": ["implementation-diff", "test-code-diff"],
-        "execution": "deterministic-local",
-        "candidate_integrity": "reviewed-content-unchanged",
-    }
-    if reviewer != expected_reviewer:
-        errors.append(f"{ASSURANCE_POLICY}: Reviewer 策略无效")
 
     verifier = policy.get("verifier")
     if not isinstance(verifier, dict) or verifier.get("default") is not False:
@@ -635,33 +800,13 @@ def validate_run_task_controls(errors: list[str]) -> None:
     run_task = read(RUN_TASK)
     require_active_fragments(run_task, RUN_TASK_CONTROLS, "run-task 关键执行控制", errors)
     require_active_fragments(
-        read("skills/gmgn/SKILL.md"),
-        GMGN_SINGLE_REVIEW_CONTROLS,
-        "gmgn 单轮独立审查边界",
-        errors,
-    )
-    require_active_fragments(
-        read(DISPATCH_CONTRACT),
-        DISPATCH_SINGLE_REVIEW_CONTROLS,
-        "派发单轮独立审查边界",
-        errors,
-    )
-    require_active_fragments(
-        read("skills/gmgn/references/en/code-review.md"),
-        CODE_REVIEW_SINGLE_CONTROLS,
-        "code-review 单轮审查边界",
-        errors,
-    )
-    require_active_fragments(
-        read("agents/reviewer.md"),
-        REVIEWER_SINGLE_CONTROLS,
-        "Reviewer 单轮审查边界",
-        errors,
-    )
-    require_active_fragments(
-        read("agents/critic.md"),
-        CRITIC_SINGLE_CONTROLS,
-        "Critic 单轮审查边界",
+        read("skills/run-task/agents/openai.yaml"),
+        (
+            "Commander decide ready work",
+            "one Runner execute each Task",
+            "Commander directly integrate each checked final candidate",
+        ),
+        "run-task OpenAI 默认入口",
         errors,
     )
     for relative in active_policy_files():
@@ -687,6 +832,18 @@ def validate_run_task_controls(errors: list[str]) -> None:
 
 
 def validate_roles(errors: list[str]) -> None:
+    actual_markdown = {path.stem for path in (ROOT / "agents").glob("*.md")}
+    actual_toml = {path.stem for path in (ROOT / ".codex/agents").glob("*.toml")}
+    if actual_markdown != ROLES:
+        errors.append(
+            f"Claude 角色集合不一致: expected={sorted(ROLES)}, "
+            f"actual={sorted(actual_markdown)}"
+        )
+    if actual_toml != ROLES:
+        errors.append(
+            f"Codex 角色集合不一致: expected={sorted(ROLES)}, "
+            f"actual={sorted(actual_toml)}"
+        )
     for role in sorted(ROLES):
         markdown = Path("agents") / f"{role}.md"
         toml_path = Path(".codex/agents") / f"{role}.toml"
@@ -715,6 +872,13 @@ def validate_roles(errors: list[str]) -> None:
             instructions = config.get("developer_instructions", "")
             if isinstance(instructions, str) and "brief" not in instructions.casefold():
                 errors.append(f"{toml_path}: 缺少 brief 边界")
+            if isinstance(instructions, str):
+                require_fragments(
+                    instructions,
+                    ROLE_PROFILE_CONTROLS[role],
+                    f"{toml_path}: 角色边界",
+                    errors,
+                )
         except AssertionError as exc:
             errors.append(str(exc))
 

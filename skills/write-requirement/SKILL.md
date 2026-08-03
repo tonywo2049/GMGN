@@ -51,7 +51,7 @@ writing rules. Use the Goal locale for artifact prose. Keep filename `Requiremen
 
 ## Clarification and translation
 
-Before creating or semantically revising R/AC, the assigned Adjudicator builds the most
+Before creating or semantically revising R/AC, the primary orchestrator builds the most
 complete candidate meaning allowed by the approved authorities. Do not start with a routine
 question checklist. For each unresolved point:
 
@@ -59,8 +59,8 @@ question checklist. For each unresolved point:
 - derive it without asking when an approved authority already decides it;
 - when it is Requirement-owned and the viable choices would not materially change product
   meaning or acceptance, choose the simplest sufficient option needed to make R/AC decidable;
-- ask the Owner through the primary orchestrator's exact relay only when two or more upstream-
-  consistent choices remain and the choice would materially change observable behavior, a
+- ask the Owner only when two or more upstream-consistent choices remain and the choice would
+  materially change observable behavior, a
   constraint, a parameter, or an AC.
 
 Combine choices that have the same background and consequences into one higher-level
@@ -74,18 +74,20 @@ question. Use self-contained plain language. Explain any unavoidable domain term
 appears. Do not require the Owner to interpret R/AC notation or implementation details.
 Implementation choices belong to Design.
 
-After the Owner answers, the Adjudicator translates it into an exact Author brief for the
-smallest sufficient R/AC change and Goal Close trace. The Owner decides the product meaning;
-the Author owns its formalization. Do not ask the Owner to review or approve individual R/AC.
+After the Owner answers, the primary orchestrator translates it into an exact Author brief for
+the smallest sufficient R/AC change and Goal Close trace. The Owner decides the product
+meaning; the independent Author owns its formalization. Do not ask the Owner to review or
+approve individual R/AC.
 
-## Writer and review-selection loop
+## Writer and review loop
 
 Record the Decision and Goal commits, then use the registered `gmgn` Skill's shared document-
-candidate and dispatch rules. When Owner input was required, override the normal necessity
-gate and dispatch one fresh independent Critic to compare the question, answer, and resulting
-R/AC for omitted, added, or changed meaning. Otherwise use the shared Critic necessity gate.
-The Adjudicator rules on findings. The primary orchestrator checks accepted links, mappings,
-candidate identity, and state.
+candidate and dispatch rules. The independent Author commits a fixed candidate and waits. The
+primary orchestrator checks links, mappings, candidate identity, state, upstream consistency,
+deletion priority, decidable ACs, and other prepared machine evidence. When the Owner answered
+a question, it also compares the original question, answer, and resulting R/AC for omitted,
+added, or changed meaning. It applies the Critic necessity gate, adjudicates any Critic finding,
+and returns an accepted in-scope repair to the same Author.
 
 ## Controlled revision
 
@@ -94,8 +96,8 @@ candidate identity, and state.
    delta, affected R/AC IDs, and proposed new commit.
 3. Revise only affected requirements, criteria, parameters, constraints, and traceability.
    Do not re-analyze unaffected Goal Close outcomes.
-4. A delta that changes a decision or reasonable understanding follows the writer/review-
-   selection loop and receives Adjudicator acceptance at a new commit. Old review remains
+4. A delta that changes a decision or reasonable understanding follows the writer/review
+   loop and receives primary-orchestrator acceptance at a new commit. Old review remains
    attached to the old commit.
 Meaning-preserving mechanical changes use same-batch link, ID reference, and status
 refresh plus machine checks without reapproval.
@@ -109,8 +111,7 @@ number links its authority; every Requirement-owned threshold is measurable; eve
 Requirement-owned decision is resolved; every confirmed Owner answer is represented in R/AC without omitted, added, or
 changed meaning; and no technical solution, task, execution information, or actual
 verification result has leaked into Requirement. For creation or a semantic revision, run
-the writer/review-selection loop using the English-only dispatch contract; when Critic is
-required, tell it to emphasize upstream consistency, acceptance quality, and deletion of any
-R/AC that does not serve a current Goal Close outcome. Obtain Adjudicator acceptance, then let
-the primary orchestrator integrate only when required by
-workspace topology.
+the writer/review loop using the English-only dispatch contract. The primary orchestrator
+emphasizes upstream consistency, acceptance quality, and deletion of any R/AC that does not
+serve a current Goal Close outcome. Obtain its acceptance, then integrate through the primary
+orchestrator only when required by workspace topology.
