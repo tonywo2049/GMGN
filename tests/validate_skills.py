@@ -128,9 +128,18 @@ RUN_TASK_CONTROLS = (
     "Ordinary deterministic local execution belongs to the Runner; Coder output remains supporting",
     "Do not dispatch a Verifier before\nrelevant Review blockers clear.",
     "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the",
-    "It returns one transient `ready_for_integration` event directly to the primary orchestrator",
+    "The Runner then returns one transient `ready_for_integration` event directly to the primary",
     "`ready_for_integration` as a Task, Card, Log, or workflow state.",
-    "1. acquire the existing integration lock;\n2. synchronize the latest shared baseline;\n3. form the final candidate on that latest baseline;\n4. use existing Git commit/tree mechanisms to confirm candidate identity;\n5. run or verify every required gate bound to that exact candidate;\n6. update the shared baseline; and\n7. release the integration lock.",
+    "creates or marks ready the single pull request for that repository",
+    "An earlier\nDraft pull request is allowed only when required host checks or requested early collaboration",
+    "For a multi-repository Task, use one branch and pull request per changed repository",
+    "If a required remote operation is\nnot authorized, request that authorization before this event.",
+    "1. acquire the existing integration lock;\n2. synchronize the latest shared baseline;\n3. form the final candidate on that latest baseline;\n4. use existing Git commit/tree mechanisms to confirm candidate identity;\n5. run or verify every required gate bound to that exact candidate;\n6. update the shared baseline through the repository's declared merge policy; and\n7. release the integration lock.",
+    "do not add a parallel lock or integration branch",
+    "remains incomplete\nuntil every required repository candidate is integrated and cross-repository gates pass",
+    "After all gates clear for one repository, the Commander atomically updates that repository's\nshared-baseline entry",
+    "publishes that upstream semantic\ncandidate on one separate authority-stage branch and pull request",
+    "Do not mix it into an affected Runner branch or pull request.",
     "does not perform another integration or semantic review.",
 )
 RUN_TASK_EXCLUSIVE_MARKERS = (
@@ -194,6 +203,17 @@ DISPATCH_WORKSPACE_CONTROLS = (
     "Possible future reuse does not justify an idle pool, TTL,\nLRU, or reuse score.",
     "Never auto-remove the main workspace, a pre-existing or user-created worktree",
     "never delete by wildcard",
+    "For each repository that a Git-backed Task changes, keep one Task-named branch, at most one\nactive pull request, and at most one writable worktree.",
+    "The branch and pull request belong to\nthe Task-repository change, not to an agent identity.",
+    "resumes the same branch and pull request instead of creating another pair.",
+    "`shared baseline` means the recorded set containing one current\nintegrated commit per participating repository.",
+    "publishes the first coherent checkpoint and pushes later coherent checkpoints",
+    "A pull request is one integration surface for the complete\nTask-repository candidate, not one surface per commit or repair.",
+    "Do not create a branch or writable worktree merely because a role is independent.",
+    "use\na disposable detached worktree or copy without a branch",
+    "After verified integration, remove the managed worktree and delete its no-longer-needed local\nTask branch only after native Git or host evidence proves the candidate integrated.",
+    "delete its remote branch only when\nthe repository policy and shared authorization permit it.",
+    "never delete an unmerged branch with material work merely to release a workspace.",
 )
 COMMANDER_RUNNER_SURFACE_CONTROLS = {
     Path("GMGN.md"): (
@@ -201,6 +221,9 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         "Only the primary orchestrator creates,\n  resumes, or retires it. A Commander creates no agents and has no role variants or standing\n  pool.",
         "Only `run-task` uses the Commander-and-Runner hub-and-spoke flow;\nother stages remain in the primary session.",
         "There is no Integrator role.",
+        "each Task uses one stable Task-named branch,\none writable worktree, and at most one pull request in every repository it changes.",
+        "A multi-repository Task closes\nonly after every required repository candidate and cross-repository gate is integrated",
+        "its shared baseline is\nthe recorded set of one current commit per participating repository",
         "The primary orchestrator records the Commander result mechanically and does not repeat integration or\nsemantic review.",
     ),
     Path("skills/gmgn/SKILL.md"): (
@@ -232,7 +255,7 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
     ),
     RUN_TASK: (
         "Only this stage uses the Commander-and-Runner hub-and-spoke flow.",
-        "One Runner owns one Task and its assigned workspace end to end.",
+        "One Runner owns one Task and its assigned repository workspace set end to end.",
         "It normally reviews the Coder candidate itself\nunder the code-review contract.",
         "The Runner never creates a Commander, Author, another Runner, or an unnamed role.",
         "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the",
@@ -241,6 +264,8 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         "The Commander may inspect and modify content within the current stage, brief, authority, and\nwrite boundary.",
         "A rebase, conflict resolution, or Commander edit that changes candidate\ncontent invalidates the affected RED/GREEN, Review, Verifier, and upstream evidence.",
         "Only a merge commit that leaves candidate content unchanged may reuse\nthe original evidence.",
+        "creates or marks ready the single pull request for that repository",
+        "do not add a parallel lock or integration branch",
     ),
     Path("skills/gmgn/references/en/code-review.md"): (
         "During normal `run-task`, the Task's Runner reviews the fixed implementation and test\ncandidate.",
@@ -257,6 +282,7 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         "The same Commander remains assigned until this matter is applied,\ncancelled, invalidated, or hard-fails; a later matter requires a new Commander.",
         "You may make mechanical or other permitted changes",
         "`needs_commander`\nand `ready_for_integration` are transient input events, never persistent states.",
+        "do not create another lock or integration branch",
     ),
     Path("agents/runner.md"): (
         "directly create a Coder, Researcher, or Verifier only when the Task needs that\nrole.",
@@ -266,6 +292,8 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         "The Coder creates or resumes Card/Log, writes the verification contract, records applicable",
         "do not route child-agent calls or routine progress through it.",
         "Do not write\neither event into Task, Card, Log, or another state enum.",
+        "use the assigned Task-named branch and single pull request as\nthe durable lane.",
+        "Never create a branch or pull request per Coder, commit, review, or fix.",
     ),
     Path("agents/coder.md"): (
         "Do not create other agents.",
@@ -299,6 +327,8 @@ ROLE_PROFILE_CONTROLS = {
         "共享基线",
         "集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。",
         "只有不改变候选内容的 merge 才可复用原证据",
+        "不再创建第二套锁或集成 branch",
+        "全部仓库候选和跨仓门禁完成后才返回完成",
     ),
     "runner": (
         "Runner brief",
@@ -311,6 +341,8 @@ ROLE_PROFILE_CONTROLS = {
         "主 Session 创建或恢复适用 Commander",
         "ready_for_integration",
         "主 Session 为此创建 Commander",
+        "每个修改仓库只使用一个以稳定 Task/Card ID 命名的 branch 和一个 PR",
+        "同一 Task 的替代 Runner 继续原 branch 和 PR",
     ),
     "author": ("Author brief", "主 Session", "不得创建其他 Agent。"),
     "coder": (
@@ -373,6 +405,13 @@ CONTRADICTORY_POLICY_MARKERS = (
     "A Runner creates a Commander",
     "Commander is used in every stage",
     "A separate integrator updates the shared baseline",
+    "Create one pull request per commit",
+    "A replacement Runner creates a new Task branch",
+    "Every independent read-only role gets a writable branch worktree",
+    "A multi-repository Task closes when one repository pull request merges",
+    "Keep recoverable checkpoints only in local storage",
+    "Delete every Task branch when its Runner exits",
+    "Mix the upstream semantic change into the Runner pull request",
 )
 CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS = (
     ("edit first", "research later"),
@@ -381,6 +420,11 @@ CONTRADICTORY_DESIGN_TDD_EXCEPTION_MARKERS = (
 LATEST_EVENT_VALUES = (
     "latest_event: [Current](#current)",
     "latest_event: [Final Evidence](#final-evidence)",
+)
+GIT_LOG_CONTROLS = (
+    "Log may record each changed repository, Task branch, accepted base,\nand pull-request location.",
+    "It never embeds the commit reference of the same commit that\ncontains that Log update.",
+    "the native Git host and Commander return own the final pull-request\nhead and integrated commit records.",
 )
 MILESTONE_REOPEN_CONTROLS = (
     "state: closed → initiated when unfinished work is found",
@@ -583,6 +627,7 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         (
             TASK_HEADER,
             *LATEST_EVENT_VALUES,
+            *GIT_LOG_CONTROLS,
             *MILESTONE_REOPEN_CONTROLS,
             *DECISION_LINK_CONTROLS,
         ),

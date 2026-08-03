@@ -22,11 +22,12 @@ Commander reads current authority and state, computes the dependency-aware ready
 returns the number of Runners to create plus each complete Runner brief. The primary
 orchestrator mechanically creates those Runners without rewriting their briefs.
 
-One Runner owns one Task and its assigned workspace end to end. It directly creates any needed
-Coder, Researcher, and risk-triggered Verifier. It normally reviews the Coder candidate itself
-under the code-review contract. It creates an independent Critic or Reviewer only when the
-Owner, applicable authority, this Skill, or the Commander brief explicitly requires that role.
-The Runner never creates a Commander, Author, another Runner, or an unnamed role.
+One Runner owns one Task and its assigned repository workspace set end to end. It directly
+creates any needed Coder, Researcher, and risk-triggered Verifier. It normally reviews the
+Coder candidate itself under the code-review contract. It creates an independent Critic or
+Reviewer only when the Owner, applicable authority, this Skill, or the Commander brief
+explicitly requires that role. The Runner never creates a Commander, Author, another Runner,
+or an unnamed role.
 
 Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the
 verification contract, records applicable RED/GREEN checkpoints, implements the change, and
@@ -141,9 +142,11 @@ it ad hoc.
 
 Use the dispatch contract loaded through the registered `gmgn` Skill. A Commander supplies a
 complete Runner brief with the Task and Card anchors when they exist, exact Design Bundle and
-Contract anchors, objective, allowed write boundary, known conflict and lock facts, required
-checks, and return gates. The primary orchestrator does not rewrite it. The Runner adds only
-Task-local facts learned inside its workspace and prepares exact child briefs.
+Contract anchors, objective, every changed repository and workspace, and, for Git-backed work,
+the accepted bases, stable Task branch names, shared-remote policy, and authorization. It also
+contains the allowed write boundary, known conflict and lock facts, required checks, and return
+gates. The primary orchestrator does not rewrite it. The Runner adds only Task-local facts
+learned inside its workspace and prepares exact child briefs.
 
 For RED-gated work, the initial Coder brief authorizes the complete test and production write
 boundary. Require the Coder to create and record the test-only RED checkpoint before production
@@ -180,6 +183,14 @@ writer per workspace. Concurrent Runners use isolated workspaces; a sole Runner 
 current workspace. Require baseline/HEAD checks and transferable-candidate facts only when
 concurrency or handoff makes them material. Within one Runner workspace, the Runner and its
 Coder write only in separate turns.
+
+Apply the dispatch contract's Git boundary to every changed repository. The primary
+orchestrator provisions or assigns the Task-named branch and writable worktree; the Runner is
+their only remote writer and the Coder never pushes. Under existing shared authorization, the
+Runner publishes the first coherent checkpoint and pushes later coherent checkpoints before
+any pause, handoff, or pull-request update. A replacement Runner resumes the same branch and
+pull request. Do not create per-Coder, per-review, per-repair, or per-commit branches or pull
+requests.
 
 For RED-gated work, the Coder first changes only tests and test-only support, commits that
 test-only checkpoint locally, runs the prepared target command against unchanged production
@@ -320,10 +331,25 @@ checkpoint plus post-refactor result or that refactoring was skipped for lack of
 Keep RED addressable through Review; do not create a separate RED, GREEN, Review,
 verification, or integration document.
 
+When final evidence and the candidate are committed together, record the last addressable
+implementation or verification checkpoint rather than attempting to write that commit's own
+reference into `Log.md`. The pull-request head, host checks, and Commander integration return
+bind the final frozen commit outside that commit's content.
+
 The Runner commits and freezes that complete candidate without updating the shared baseline.
-It returns one transient `ready_for_integration` event directly to the primary orchestrator
-with candidate anchor, original baseline, complete isolated range, changed files, Review and
-Verifier evidence, required gates, workspace, deviations, and material risks. Do not persist
+For a repository with an authorized shared pull-request remote, it pushes the frozen Task
+branch and creates or marks ready the single pull request for that repository. An earlier
+Draft pull request is allowed only when required host checks or requested early collaboration
+need it; continue with that same pull request. Its head must identify the frozen candidate.
+For a multi-repository Task, use one branch and pull request per changed repository and return
+the complete set together; do not designate one repository's pull request as a synthetic Task
+closure record.
+
+The Runner then returns one transient `ready_for_integration` event directly to the primary
+orchestrator with each repository's branch, pull request when present, candidate anchor,
+original baseline, complete isolated range, changed files, and workspace, plus Review and
+Verifier evidence, required gates, deviations, and material risks. If a required remote
+operation is not authorized, request that authorization before this event. Do not persist
 `ready_for_integration` as a Task, Card, Log, or workflow state.
 
 The primary orchestrator creates one Commander with the complete integration brief. It does
@@ -335,8 +361,15 @@ Runner repair required by this bounded integration matter. The Commander execute
 3. form the final candidate on that latest baseline;
 4. use existing Git commit/tree mechanisms to confirm candidate identity;
 5. run or verify every required gate bound to that exact candidate;
-6. update the shared baseline; and
+6. update the shared baseline through the repository's declared merge policy; and
 7. release the integration lock.
+
+Use a native merge queue as the existing integration lock when it provides the required
+serialization; protected-branch rules and required checks remain gates rather than a lock. Do
+not add a parallel lock or integration branch when the native queue already covers that
+boundary. A multi-repository Task follows only its approved compatibility order and remains
+incomplete until every required repository candidate is integrated and cross-repository gates
+pass. Git does not make those repository updates atomic.
 
 The Commander may inspect and modify content within the current stage, brief, authority, and
 write boundary. A rebase, conflict resolution, or Commander edit that changes candidate
@@ -355,8 +388,9 @@ skipped, unavailable, unauthorized, or unexecuted required check is not a pass. 
 check needs a push not covered by shared external-operation authorization, keep the Task
 unclosed and return the authorization request through the primary orchestrator.
 
-After all gates clear, the Commander atomically updates the shared baseline to the exact
-checked commit and releases the lock. Do not modify tracked content after final checks.
+After all gates clear for one repository, the Commander atomically updates that repository's
+shared-baseline entry to the exact checked commit and releases the lock. Do not modify tracked
+content after final checks.
 Candidate-bound evidence produced after the commit remains in its native system keyed to that
 commit; do not amend Log only to copy it. If tracked evidence is required, produce it before
 freezing and run final checks against that frozen candidate.
@@ -388,6 +422,13 @@ Decision uses `write-requirement`. The primary orchestrator then runs that non-r
 under its normal Author and Critic rules while the same unresolved Commander matter may wait.
 Pause only affected providers, consumers, integration Tasks, and descendants; unrelated
 Runners continue.
+
+With a shared pull-request remote, the primary orchestrator publishes that upstream semantic
+candidate on one separate authority-stage branch and pull request after its Author completes.
+Do not mix it into an affected Runner branch or pull request. Integrate and approve that
+authority candidate first; then refresh the affected Runner's accepted base and rerun only the
+gates invalidated by the semantic change. Task-local execution evidence and meaning-preserving
+documentation remain in the Runner candidate.
 
 A revised authority produces a newly accepted commit. Refresh only affected Task/Card anchors,
 tests, and briefs, then resume an eligible existing Runner and Coder when objective and write

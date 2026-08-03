@@ -118,15 +118,26 @@ review surface is defined by the
 `Task.md` remains a Milestone index. Only `run-task` uses the Commander-and-Runner flow. The
 primary session first creates a Commander without precomputing the ready set; that Commander
 reads current authority and returns complete briefs for one Runner per selected Task. Each
-Runner owns its Task workspace, directly manages its Coder and any needed Researcher or
-Verifier, and normally reviews the fixed implementation/test candidate itself. Coder creates
-or resumes Card/Log, verification contract, RED/GREEN checkpoints, implementation, and related
-evidence. Runner prepares the final Task candidate. When it reports `ready_for_integration`,
+Runner owns its Task repository workspace set, directly manages its Coder and any needed
+Researcher or Verifier, and normally reviews the fixed implementation/test candidate itself.
+Coder creates or resumes Card/Log, verification contract, RED/GREEN checkpoints,
+implementation, and related evidence. Runner prepares the final Task candidate. When it
+reports `ready_for_integration`,
 the primary session creates one Commander to lock, synchronize, identify, check, and update the
 shared baseline; it does not repeat integration or semantic review. A content-changing rebase,
 conflict resolution, or Commander edit invalidates affected candidate-bound evidence and
 returns through the same Runner gates. The complete rules live in
 [`run-task`](skills/run-task/SKILL.md).
+
+With a shared Git remote, every Task uses one stable Task-named branch, one writable worktree,
+and at most one pull request in each repository it changes. The Runner is the sole remote
+writer and pushes coherent checkpoints under shared authorization. It creates or marks the
+single pull request ready for the frozen final candidate; an earlier Draft is optional only
+for required host checks or requested collaboration. A replacement Runner resumes the same
+branch and pull request. Commander applies the repository's protected-branch and merge-policy
+gates and uses its merge queue for serialization when available, without adding an integration
+branch. Multi-repository Tasks close only after every required repository candidate and cross-
+repository check is integrated.
 
 A closed Milestone returns to `initiated` when unfinished work is found. Its current
 `accepted_result` is cleared, only affected work is reopened, and downstream Milestones are

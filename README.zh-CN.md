@@ -85,12 +85,20 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 `Task.md` 仍是 Milestone 索引。只有 `run-task` 使用 Commander-and-Runner 结构。主 session 不先
 计算 ready set，直接创建 Commander；Commander 读取现行权威与状态，为每个选中的 Task 返回一份
 完整 Runner 任务书。每个 Runner 负责一个 Task 及其 workspace，直接管理 Coder 和按需的
-Researcher、Verifier，并通常自行审查固定实现/测试候选。Coder 创建或恢复 Card/Log、验证契约、
-RED/GREEN checkpoint、实现与相关证据；Runner 准备最终 Task 候选。Runner 回传
+Researcher、Verifier，并通常自行审查固定实现/测试候选；多仓时 workspace 是对应仓库工作区集合。
+Coder 创建或恢复 Card/Log、验证契约、RED/GREEN checkpoint、实现与相关证据；Runner 准备最终
+Task 候选。Runner 回传
 `ready_for_integration` 后，主 session 创建 Commander，由它取得锁、同步最新基线、确认候选、执行
 门禁并更新共享基线；主 session 不再重复集成或语义审查。会改变候选内容的 rebase、冲突处理或
 Commander 修改会使受影响证据失效，并回到同一 Runner 的门禁。
 完整规则只在 [`run-task`](skills/run-task/SKILL.md) 中维护。
+
+使用共享 Git 远端时，每个 Task 在每个修改仓库中只使用一个以稳定 Task ID 命名的 branch、一个
+可写 worktree 和至多一个 PR。Runner 是唯一远端 writer，在共享授权范围内推送可恢复 checkpoint，
+并在最终固定候选就绪时创建 PR 或把已有 Draft 转为 Ready；只有必需的远端检查或明确的提前协作才
+提早创建 Draft。替代 Runner 继续原 branch 和 PR。Commander 直接使用仓库已有的 protected branch、
+required checks 和 merge policy 作为门禁；有 merge queue 时用它串行集成，不增加 integration
+branch。多仓 Task 只有在所有必要仓库候选和跨仓检查都集成后才关闭。
 
 Milestone 关闭后发现未完成工作时，直接回到 `initiated`，清空当前 `accepted_result`，只重开受
 影响工作。只有影响分析确认下游受影响时才调整下游状态。负责人复核只是关账审查节点，不产生不可

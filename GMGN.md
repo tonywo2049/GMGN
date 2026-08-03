@@ -41,9 +41,9 @@ current task does not need.
   candidate under the existing lock and evidence gates. Only the primary orchestrator creates,
   resumes, or retires it. A Commander creates no agents and has no role variants or standing
   pool.
-- **Runner** owns one accepted Task and its workspace end to end. It directly creates any
-  needed Coder, Researcher, or risk-triggered Verifier, normally reviews the Coder candidate
-  itself, and reports only substantive structured state or results to the primary
+- **Runner** owns one accepted Task and its repository workspace set end to end. It directly
+  creates any needed Coder, Researcher, or risk-triggered Verifier, normally reviews the Coder
+  candidate itself, and reports only substantive structured state or results to the primary
   orchestrator. Parallel Runners do not coordinate directly.
 - **Author** independently writes and revises one bounded upstream authority, plan, design, or
   closure document candidate from a primary-orchestrator brief. Its self-check is not review
@@ -214,18 +214,33 @@ points without collecting or analyzing the ready set. The Commander reads author
 computes the ready set, and returns complete briefs; the primary orchestrator mechanically
 creates one Runner per selected Task without rewriting those briefs.
 
-The Runner owns its Task and workspace, directly manages its Coder and any needed Researcher
-or Verifier, normally performs Review itself, and prepares the complete candidate. Coder writes
-or restores Card/Log, verification contract, tests, implementation, and related evidence;
-Runner may write Review, assurance classification, Verifier result, Task state, final evidence,
-and other execution-document content. Normal Task execution does not use an Author.
+The Runner owns its Task and repository workspace set, directly manages its Coder and any
+needed Researcher or Verifier, normally performs Review itself, and prepares the complete
+candidate. Coder writes or restores Card/Log, verification contract, tests, implementation,
+and related evidence; Runner may write Review, assurance classification, Verifier result, Task
+state, final evidence, and other execution-document content. Normal Task execution does not use
+an Author.
+
+In a Git-backed project with a shared remote, each Task uses one stable Task-named branch,
+one writable worktree, and at most one pull request in every repository it changes. Those
+objects belong to the Task-repository change rather than the current Agent ID; a replacement
+Runner resumes them. The Runner is the only remote writer, publishes coherent checkpoints
+under shared authorization, and creates or marks the pull request ready for the fixed final
+candidate. An earlier Draft is used only when required host checks or requested collaboration
+needs it. Read-only roles do not receive a branch or writable worktree merely for independence.
 
 When a Runner reports a candidate ready, the primary orchestrator creates one Commander with
 the integration brief. That Commander obtains the existing integration lock, synchronizes the
 latest shared baseline, forms and identifies the final candidate, runs or verifies the bound
-gates, updates the shared baseline, and releases the lock. A content-changing rebase, conflict
-resolution, or Commander edit invalidates affected candidate-bound evidence and returns
-through the same Runner gates. A content-preserving merge commit may reuse it. The primary
+gates, updates the shared baseline through the repository's merge policy, and releases the
+lock. A native merge queue may supply that serialization; protected-branch rules and required
+checks remain gates. GMGN does not add a parallel lock or integration branch when the queue
+already covers the boundary. A content-changing rebase, conflict resolution, or Commander edit
+invalidates affected candidate-bound evidence and returns through the same Runner gates. A
+content-preserving merge commit may reuse it. A multi-repository Task closes only after every
+required repository candidate and cross-repository gate is integrated; its shared baseline is
+the recorded set of one current commit per participating repository, not an atomic cross-
+repository transaction. The primary
 orchestrator records the Commander result mechanically and does not repeat integration or
 semantic review.
 

@@ -64,7 +64,7 @@ Inside `run-task`:
 - only the primary orchestrator mechanically creates or resumes a Runner from a Commander's
   complete brief;
 - a Commander creates no agent;
-- one Runner owns one Task and its workspace end to end;
+- one Runner owns one Task and its repository workspace set end to end;
 - a Runner may directly create its Coder, Researcher, and risk-triggered Verifier; and
 - a Runner may create a Critic or Reviewer only when the Owner, applicable authority, current
   workflow rule, or Commander brief explicitly requires that independent role.
@@ -191,6 +191,31 @@ owns its Task workspace while its dispatch is active, under Review or correction
 a Commander, or queued for integration. Its child writers use that same assignment one at a
 time.
 
+For each repository that a Git-backed Task changes, keep one Task-named branch, at most one
+active pull request, and at most one writable worktree. The branch and pull request belong to
+the Task-repository change, not to an agent identity. The current Runner owns them and is the
+only remote writer; its Coder changes the same workspace in separate turns and never writes
+remote state. If a Runner hard-fails or is replaced, its successor treats retained content as
+unverified and resumes the same branch and pull request instead of creating another pair. Name
+the branch with a stable Task or Card ID, never a transient Agent ID.
+
+For a multi-repository Task, `shared baseline` means the recorded set containing one current
+integrated commit per participating repository. Each repository update is atomic by itself;
+the set is not a cross-repository transaction.
+
+When shared external-operation authorization covers the exact repository and Task branch,
+the Runner publishes the first coherent checkpoint and pushes later coherent checkpoints
+before pausing, handing off, or updating a pull request. Do not leave a reported recoverable
+checkpoint only in local storage. A pull request is one integration surface for the complete
+Task-repository candidate, not one surface per commit or repair. `run-task` owns its exact
+creation and ready timing.
+
+Do not create a branch or writable worktree merely because a role is independent. A no-edit
+Critic, Researcher, Reviewer, or Verifier reads the fixed Git object or existing frozen
+workspace when that is sufficient. If an assigned command requires an isolated checkout, use
+a disposable detached worktree or copy without a branch, keep tracked content unchanged, and
+remove it after the check.
+
 When a dispatch becomes terminal, release its workspace. Reuse it only for an already
 identified next dispatch in the same repository when the previous candidate is integrated or
 ended, ordinary tracked and untracked work is clean, and it can move to the next exact
@@ -198,6 +223,13 @@ baseline without losing material evidence. Retain ignored build outputs and refr
 source index after rebinding. If the scheduling pass finds no explicit next consumer, remove
 the exact GMGN-managed worktree. Possible future reuse does not justify an idle pool, TTL,
 LRU, or reuse score.
+
+After verified integration, remove the managed worktree and delete its no-longer-needed local
+Task branch only after native Git or host evidence proves the candidate integrated. Let the
+host close the merged pull request; delete its remote branch only when the repository policy
+and shared authorization permit it. For cancellation, preserve every material checkpoint
+first and close or retain the pull request according to the explicit disposition; never delete
+an unmerged branch with material work merely to release a workspace.
 
 Never auto-remove the main workspace, a pre-existing or user-created worktree, or a project-
 declared persistent workspace. On the next entry, preserve unfinished assignments and reclaim

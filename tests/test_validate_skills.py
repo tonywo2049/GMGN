@@ -517,6 +517,22 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/run-task/SKILL.md",
                 "Scan only the separately confirmed execution set",
             ),
+            (
+                "skills/run-task/SKILL.md",
+                "Create one pull request per commit",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "A replacement Runner creates a new Task branch",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Delete every Task branch when its Runner exits",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "Mix the upstream semantic change into the Runner pull request",
+            ),
         )
         for relative, contradiction in cases:
             with self.subTest(relative=relative, contradiction=contradiction):
@@ -826,6 +842,47 @@ class ValidateSkillsTests(unittest.TestCase):
             with self.subTest(relative=relative, rule=old):
                 self.replace(relative, old, new)
                 self.assert_rejected("Commander/Runner 权威边界")
+
+    def test_rejects_git_collaboration_boundary_drift(self) -> None:
+        cases = (
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "The branch and pull request belong to\n"
+                "the Task-repository change, not to an agent identity.",
+                "The branch and pull request belong to each transient agent identity.",
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/run-task/SKILL.md",
+                "creates or marks ready the single pull request for that repository",
+                "creates one pull request for every candidate commit",
+                "run-task 关键执行控制",
+            ),
+            (
+                "skills/gmgn/references/en/writing-rules.md",
+                "It never embeds the commit reference of the same commit that\n"
+                "contains that Log update.",
+                "It embeds the current commit reference in that same commit.",
+                "writing-rules 机器字段",
+            ),
+            (
+                ".codex/agents/runner.toml",
+                "同一 Task 的替代 Runner 继续原 branch 和 PR",
+                "同一 Task 的替代 Runner 创建新 branch 和 PR",
+                ".codex/agents/runner.toml: 角色边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "After verified integration, remove the managed worktree and delete its no-longer-needed local\n"
+                "Task branch only after native Git or host evidence proves the candidate integrated.",
+                "Delete the Task branch before integration finishes.",
+                "Commander/Runner 权威边界",
+            ),
+        )
+        for relative, old, new, expected in cases:
+            with self.subTest(relative=relative, rule=old):
+                self.replace(relative, old, new)
+                self.assert_rejected(expected)
 
     def test_rejects_docstar_task_column_drift(self) -> None:
         path = self.root / ".docstar/conventions/conventions.json"

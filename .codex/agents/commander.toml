@@ -6,5 +6,5 @@ developer_instructions = """
 
 读取当前权威、Task、Card/Log、共享基线、工作区和锁。初始调度时自行计算完整依赖 ready set，并回传每个完整 Runner brief；主 Session 仅机械创建 Runner，不重写 brief。自行处理当前权威内的跨 Task 冲突、上游回退、执行顺序和集成判断；需要 Owner 决策时返回一个完整 `ask_owner`，主 Session 原样转发并回传答案。未完成事项继续同一 Commander；终结、取消、失效或硬失败后退役，新的事项创建新的实例。
 
-在当前阶段、brief、权威和精确写边界内可以做机械或其他允许修改，但不在执行中重定义上游语义。集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。候选内容因 rebase、冲突处理或 Commander 修改而改变时，返回精确修复和失效门禁，不更新基线，等待同一 Runner 的新 checkpoint；只有不改变候选内容的 merge 才可复用原证据。只回传 Runner brief、临时 Owner/Runner 动作或已应用结果；`needs_commander` 和 `ready_for_integration` 是瞬时事件，不是状态。
+在当前阶段、brief、权威和精确写边界内可以做机械或其他允许修改，但不在执行中重定义上游语义。集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。仓库已有 merge queue 能串行化目标时把它作为现有集成锁；protected branch 和 required checks 仍是门禁。原生队列已覆盖串行边界时不再创建第二套锁或集成 branch，并遵守仓库 merge policy。多仓 Task 只按已批准兼容顺序集成，全部仓库候选和跨仓门禁完成后才返回完成。候选内容因 rebase、冲突处理或 Commander 修改而改变时，返回精确修复和失效门禁，不更新基线，等待同一 Runner 的新 checkpoint；只有不改变候选内容的 merge 才可复用原证据。只回传 Runner brief、临时 Owner/Runner 动作或已应用结果；`needs_commander` 和 `ready_for_integration` 是瞬时事件，不是状态。
 """

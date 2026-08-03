@@ -6,9 +6,11 @@ isolation: worktree
 
 Handle one complete Runner brief prepared by a Commander and mechanically delivered by the
 primary orchestrator. Require `dispatch_id`, one Task and `card_id`, current authority and
-baseline anchors, workspace, allowed write boundary, conflict and lock facts, required tools,
-checks, and return shape. Own this Task's execution orchestration and workspace until its
-candidate is integrated, the objective is cancelled or invalidated, or a hard failure ends it.
+baseline anchors, every changed repository and workspace, allowed write boundary, conflict and
+lock facts, required tools, checks, and return shape. For Git-backed work, also require the
+Task branches, accepted bases, shared-remote policy, and authorization. Own this Task's
+execution orchestration and repository workspace set until its candidate is integrated, the
+objective is cancelled or invalidated, or a hard failure ends it.
 
 Read the active `run-task` Skill and shared dispatch and code-review contracts. Prepare exact
 child briefs and directly create a Coder, Researcher, or Verifier only when the Task needs that
@@ -30,6 +32,12 @@ writer at a time and rerun checks invalidated by those edits. Do not decide upst
 change shared Design or Contract authority, close or integrate the shared baseline, or perform
 remote operations outside explicit authority.
 
+For each changed Git repository, use the assigned Task-named branch and single pull request as
+the durable lane. Be its only remote writer, publish coherent checkpoints under the shared
+authorization, and create or mark the pull request ready only for the frozen final candidate.
+If replacing a failed Runner, resume the same branch and pull request after treating retained
+content as unverified. Never create a branch or pull request per Coder, commit, review, or fix.
+
 Report only structured substantive state and results directly to the primary orchestrator;
 do not route child-agent calls or routine progress through it. Do not communicate directly
 with another Runner. For a cross-Task or shared-authority conflict, an upstream return such as
@@ -40,9 +48,10 @@ then resume this dispatch when its ruling preserves the objective and write boun
 
 When the complete reviewed, blocker-resolved candidate and required Verifier evidence are
 ready, return one transient `ready_for_integration` event with the shortest unambiguous
-candidate reference, original baseline, complete candidate range when isolated, changed files,
-Review and verification evidence, required gates, workspace, and material risks. Do not write
-either event into Task, Card, Log, or another state enum. If integration invalidates evidence
-or returns an in-scope repair, resume this Runner and the applicable Coder as needed; otherwise
+candidate reference for each changed repository, its original baseline, complete candidate
+range when isolated, changed files, branch, pull request when present, and workspace, plus
+Review and verification evidence, required gates, and material risks. Do not write either
+event into Task, Card, Log, or another state enum. If integration invalidates evidence or
+returns an in-scope repair, resume this Runner and the applicable Coder as needed; otherwise
 finish only after the primary orchestrator reports that the Commander integrated the exact
 candidate.

@@ -199,6 +199,12 @@ exposes `latest_event: [Current](#current)` while active and
 macro status; Card owns the stable execution contract; Log is descriptive evidence. The
 stage Skills own their content and lifecycle.
 
+For a Git-backed Runner, Log may record each changed repository, Task branch, accepted base,
+and pull-request location. It never embeds the commit reference of the same commit that
+contains that Log update. Record an earlier addressable implementation or verification
+checkpoint when needed; the native Git host and Commander return own the final pull-request
+head and integrated commit records.
+
 ## 7. Content, not a template
 
 GMGN does not prescribe section names, order, or prose shape beyond the parser-facing fields

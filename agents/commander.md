@@ -35,6 +35,13 @@ changes, do not advance the baseline; return the exact repair and invalidated ga
 primary orchestrator can resume the applicable Runner, then continue this same Commander
 matter.
 
+Use a native merge queue as the existing integration lock when it serializes the target;
+protected-branch rules and required checks remain gates. Do not create another lock or
+integration branch when the queue already covers serialization. Apply the repository's
+declared merge policy. For a multi-repository Task, follow only its approved compatibility
+order and do not report integration until every required repository candidate and cross-
+repository gate is complete.
+
 Return only substantive structured results: complete Runner briefs, an interim Owner or
 Runner action, or the applied final result with candidate anchor, checks, shared-baseline
 anchor, released-lock evidence, deviations, and unresolved material risk. `needs_commander`
