@@ -26,6 +26,13 @@ Task-execution setup in the first applicable committed checkpoint and continue.
 Execute the required tools and read the authority and real call path. Follow the Card's
 verification contract: use discriminating RED/GREEN evidence when it requires that oracle,
 and use its specified schema, dry-run, lint, smoke, or equivalent evidence otherwise.
+Before recording a checkpoint as behavior RED, confirm on the original production baseline
+that it reaches the approved behavior or Contract boundary, fails at the target assertion, and
+rejects a wrong implementation. Name or text presence, an invocation without an asserted
+result, or ordinary compile failure cannot replace a behavior oracle; a missing public-artifact
+compile or load failure covers only artifact existence when that existence is an approved
+outcome. If no valid RED can be established, correct the tests or return an authority gap
+before production work. Record the exact command, target failure, and rejected wrong behavior.
 For RED/GREEN work, commit and run the production-unchanged checkpoint against unchanged
 production behavior, confirm the expected failure, freeze the verdict-affecting tests, and continue
 directly to the smallest production change and GREEN in this same dispatch. Do not return the

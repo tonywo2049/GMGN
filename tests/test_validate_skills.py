@@ -891,6 +891,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "有效 RED 记录后不返回确认，直接继续 GREEN",
                 "RED 后返回 Runner 等待确认",
             ),
+            (
+                ".codex/agents/gmgn_coder.toml",
+                "无法建立有效 RED 时，不得开始生产实现",
+                "无效 RED 也可以继续生产实现",
+            ),
         )
         for relative, old, new in cases:
             with self.subTest(relative=relative):
@@ -924,6 +929,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "agents/commander.md",
                 "keep caller-only mechanical workspace setup separate from\neach Runner brief.",
                 "copy caller-only mechanical workspace setup into\neach Runner brief.",
+            ),
+            (
+                "agents/coder.md",
+                "Before recording a checkpoint as behavior RED",
+                "Any failing checkpoint is behavior RED",
             ),
             (
                 "skills/gmgn/references/en/code-review.md",
