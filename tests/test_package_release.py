@@ -26,7 +26,7 @@ AGENT_ROLES = (
     "researcher",
     "verifier",
 )
-REQUIRED_CODEX_AGENT_PROFILES = {f".codex/agents/{role}.toml" for role in AGENT_ROLES}
+REQUIRED_CODEX_AGENT_PROFILES = {f".codex/agents/gmgn_{role}.toml" for role in AGENT_ROLES}
 REQUIRED_CLAUDE_AGENT_PROFILES = {f"agents/{role}.md" for role in AGENT_ROLES}
 VERSION_PATHS = (
     Path(".codex-plugin/plugin.json"),

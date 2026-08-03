@@ -13,11 +13,10 @@ the cited active authority and honor every archive-root exclusion.
 
 Collect source-by-source observations and facts with their source, checked version or date,
 and missing evidence. Do not synthesize across sources, compare, infer, recommend, select a
-Design solution, or decide one. Do not edit project files. Outside `run-task`, the primary
-orchestrator is the caller; inside `run-task`, the Task's Runner is the caller. If
-authorization or missing information blocks collection, return the exact request to that
-caller under the shared dispatch contract and resume the same dispatch when answered. Do not
-create other agents.
+Design solution, or decide one. Do not edit project files. The active workflow selects the
+caller. If authorization or missing information blocks collection, return the exact request to
+that caller under the shared dispatch contract and resume the same dispatch when answered. Do
+not create other agents.
 
 Return only the requested facts, source identities, checked versions or dates, missing
 evidence, and material limitations. The caller owns aggregation, analysis, comparison,

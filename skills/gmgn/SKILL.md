@@ -60,32 +60,36 @@ ROADMAP, Goal, Requirement, Design, Task, or equivalent authority requires an in
 Author. Do not create an Author when no candidate is needed.
 
 Only `run-task` uses a Commander for bounded global judgment and one Runner per Task. The
-primary orchestrator creates or resumes Commanders and mechanically creates Runners from
-their complete briefs. A Commander is not used in other stages. Delegated roles follow the
-dispatch contract.
+primary orchestrator creates or resumes Commanders and mechanically creates Runners from their
+complete briefs. A Commander may directly create any named Agent assigned by the active
+workflow. If its live run-task matter requires an upstream change, it invokes that owning Skill
+and creates its required roles inside the same dispatch. This exception does not use Commander
+for ordinary non-run-task work. Delegated roles follow the dispatch contract.
 
 Select the check path by the surface that changed:
 
 | Changed surface | Check path |
 |---|---|
-| Fixed WhitePaper/Decision/ROADMAP/Goal/Requirement/Design/Task candidate | Primary orchestrator applies the Critic necessity gate and adjudicates any Critic findings |
+| Fixed WhitePaper/Decision/ROADMAP/Goal/Requirement/Design/Task candidate | Primary orchestrator applies the Critic gate normally; the active Commander does so for an upstream candidate inside its run-task matter |
 | Fixed complete implementation/test candidate in normal `run-task` | Its Runner reviews under `code-review`; independent Reviewer only when explicitly required |
 | Recorded `required:<trigger>` classification | Fresh Verifier after relevant review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
 
-Before dispatching a Critic, the primary orchestrator identifies concrete material harm that
-the Owner has not accepted, no accepted effective fallback contains, and independent criticism
-could plausibly change acceptance or the next action. Dispatch one fresh Critic only when that
-risk can be named or the primary orchestrator cannot decide. Otherwise skip Critic, record one
-sentence explaining why, and run affected machine checks. A meaning-preserving mechanical edit
-never needs a Critic.
+Before dispatching a Critic, the caller responsible for the candidate identifies concrete
+material harm that the Owner has not accepted, no accepted effective fallback contains, and
+independent criticism could plausibly change acceptance or the next action. Dispatch one fresh
+Critic only when that risk can be named or the caller cannot decide. Otherwise skip Critic,
+record one sentence explaining why, and run affected machine checks. A meaning-preserving
+mechanical edit never needs a Critic.
 
 Critic and Reviewer do not maximize finding count. A valid return may contain no findings.
 Report an issue only when leaving it unresolved creates concrete material harm, no accepted
 effective fallback contains that harm, and a smallest sufficient correction can be stated.
 Each semantic candidate batch has at most one Critic round. The primary orchestrator adjudicates
-document findings; the Runner adjudicates in-Task implementation findings. An accepted in-scope
-repair returns to the same Author or Coder while objective and write boundary remain unchanged.
+document findings outside `run-task`; the active Commander adjudicates an upstream candidate in
+its run-task matter; and the Runner adjudicates in-Task implementation findings. An accepted
+in-scope repair returns to the same Author or Coder while objective and write boundary remain
+unchanged.
 After a fix, the adjudicating caller inspects the exact delta and reruns only affected checks.
 An omitted stage-owned decision required by an accepted finding remains a repair in the same
 batch. Only a change to accepted or upstream authority or a material expansion of the prepared
@@ -116,21 +120,24 @@ not restate those stage rules.
 
 ## Document candidates
 
-The primary orchestrator conducts Owner dialogue, resolves the candidate meaning, and prepares
-one bounded Author brief only when the candidate is ready to write. One independent Author
-creates, self-checks, commits, and revises that document candidate while its objective and write
-boundary remain unchanged. The Author's self-check is not review.
+Outside `run-task`, the primary orchestrator conducts Owner dialogue, resolves the candidate
+meaning, and prepares one bounded Author brief only when the candidate is ready to write. For an
+upstream change raised by a live run-task matter, its Commander performs those actions under the
+owning Skill and sends any Owner question through the primary orchestrator unchanged. One
+independent Author creates, self-checks, commits, and revises that document candidate while its
+objective and write boundary remain unchanged. The Author's self-check is not review.
 
-After the complete candidate is fixed, the primary orchestrator checks identity, runs affected
-machine checks, and applies the Critic necessity gate. It adjudicates any Critic findings and
-sends an accepted in-scope repair to the same Author. An omitted stage-owned decision required
-by that finding remains a repair in the same Author dispatch. It becomes a new semantic batch
-only when accepted or upstream authority changes or the prepared objective or write boundary
-materially expands. Meaning-preserving links, formatting, pointers, and state mirrors may be
-applied mechanically by the primary orchestrator with machine checks only.
+After the complete candidate is fixed, the same deciding caller checks identity, runs affected
+machine checks, applies the Critic necessity gate, adjudicates any Critic findings, and sends an
+accepted in-scope repair to the same Author. An omitted stage-owned decision required by that
+finding remains a repair in the same Author dispatch. It becomes a new semantic batch only when
+accepted or upstream authority changes or the prepared objective or write boundary materially
+expands. Meaning-preserving links, formatting, pointers, and state mirrors may be applied
+mechanically with machine checks only.
 
-For these document candidates, the primary orchestrator performs links, machine checks, and
-integration. Do not create an Integrator role.
+The primary orchestrator integrates these document candidates outside `run-task`; the Commander
+directly integrates an upstream candidate belonging to its live run-task matter. Do not create
+an Integrator role.
 
 ## Task execution
 
@@ -140,8 +147,9 @@ verification contracts, the dependency-aware ready set, capacity prioritization,
 lanes, runtime tools, Codex agent monitoring, Runner review, risk-triggered verification,
 integration by a Commander, shared-baseline checks, and Task closure. On run-task entry, the
 primary orchestrator creates a Commander without collecting or analyzing the ready set; the
-Commander reads current authority and returns complete Runner briefs. Do not copy the detailed
-rules here.
+Commander reads current authority and returns complete Runner briefs. A run-task upstream
+change stays with the same Commander, which invokes the owning Skill and directly manages its
+selected agents and integration. Do not copy the detailed rules here.
 
 ## Controlled-change routing
 
@@ -158,7 +166,10 @@ Route a semantic change to the single authority that owns it:
 | Task division, dependency, AC mapping, or execution-pointer meaning | `write-task` revision |
 
 The current D-ID takes precedence over the category rows below it. When no D-ID exists and no
-new Decision entry is selected, route the meaning to its normal stage authority.
+new Decision entry is selected, route the meaning to its normal stage authority. Outside
+`run-task`, the primary orchestrator performs that route. For a live run-task matter, its
+Commander invokes the owning Skill inside the same dispatch and resumes run-task after the
+upstream candidate is accepted and integrated.
 
 Start from the approved commit, record the semantic delta and impact cone, and update only
 affected authority, tasks, code, tests, evidence, and state. Meaning-preserving mechanical

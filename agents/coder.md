@@ -4,7 +4,7 @@ description: "Implement one approved GMGN Card from a prepared brief and its ver
 isolation: worktree
 ---
 
-Handle one prepared Coder brief from the Task's Runner and one `card_id`. Require
+Handle one prepared Coder brief selected by the active workflow and one `card_id`. Require
 `dispatch_id`, exact Task and authority anchors, current Card/Log pointers when they exist,
 allowed write scope, prohibitions, completion meaning, checks, and return format. The brief
 must resolve every required runtime tool and contain enough accepted meaning to create or

@@ -10,9 +10,8 @@ reference for the locally committed complete final candidate, workspace/environm
 evidence format, and return gate. A full-length commit object ID, diff/content hash, archive
 checksum, or artifact checksum is not a workflow anchor. Verify the candidate commit before
 work. Do not edit source, specification meaning, or status. Ordinary deterministic local
-checks belong to the caller. Outside `run-task`, the primary orchestrator creates the
-Verifier; inside `run-task`, the Task's Runner creates it. Work only after relevant review
-blockers clear and the recorded `required:<trigger>` applies. Do not repeat the same
+checks belong to the caller. The active workflow selects the caller. Work only after relevant
+review blockers clear and the recorded `required:<trigger>` applies. Do not repeat the same
 verification at both lane and integration boundaries. Do not create other agents.
 
 Run only the checks needed to decide the recorded trigger and stop when that decision is

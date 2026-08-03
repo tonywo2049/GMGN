@@ -14,13 +14,12 @@ This contract defines required facts, not a fill-in prompt or a separate Handoff
 
 ## One bounded dispatch
 
-<HARD-GATE>Before creating an agent, its authorized caller reads this contract, the owning
-stage's role-selection rules, and the selected platform-specific GMGN role profile. Map the
-dispatch to exactly one of `commander | runner | author | coder | critic | reviewer | verifier |
-researcher`. These are the only GMGN agent roles. A task name or `dispatch_id` distinguishes
-instances but never creates a role variant. If no role fits, keep the work in the primary
-session or route it to the owning stage. The brief carries the selected profile's applicable
-instructions.</HARD-GATE>
+<HARD-GATE>Before creating an agent, its caller reads this contract and the owning stage's
+role-selection rules. Map the dispatch to exactly one of `commander | runner | author | coder |
+critic | reviewer | verifier | researcher`. These are the only GMGN agent roles. A task name or
+`dispatch_id` distinguishes instances but never creates a role variant. If no role fits, keep
+the work in the primary session or route it to the owning stage. The selected platform profile
+supplies stable role rules; the brief supplies only this dispatch's changing facts.</HARD-GATE>
 
 Create every agent for one bounded dispatch without parent or earlier-agent conversation
 history. It remains assigned until its objective completes. An authorization request,
@@ -28,11 +27,10 @@ missing-information request, Owner question, candidate checkpoint, or required w
 interim when the objective and write boundary remain unchanged. Resume that same agent with
 the exact answer or next action instead of retiring and recreating it.
 
-The authorized caller records the platform Agent ID together with `dispatch_id`, role,
-objective, and workspace assignment in existing runtime state. Follow-up messages and waits
-target that exact active Agent ID. A Runner records IDs for its children; the primary
-orchestrator records IDs for agents it creates. Do not replace Agent IDs with task names or
-persist a new identity ledger.
+The caller records the platform Agent ID together with `dispatch_id`, role, objective, and
+workspace assignment in existing runtime state. Follow-up messages and waits target that exact
+active Agent ID. Each caller records the IDs of its direct agents. Do not replace Agent IDs with
+task names or persist a new identity ledger.
 
 A terminal completion retires the agent. Explicit cancellation, invalidation, or hard
 platform failure also ends the dispatch. Never resume, repurpose, or send later work to a
@@ -48,8 +46,13 @@ mechanical edits. It must delegate creation or semantic revision of WhitePaper, 
 ROADMAP, Goal, Requirement, Design, Task, and other upstream authority, plan, or design
 candidates to an independent Author. Do not create an Author when no such candidate is needed.
 
-Only `run-task` uses the Commander-and-Runner hub-and-spoke flow defined below. Commander is
-not a general stage decision-maker. The primary orchestrator does not draft a run-task
+Only `run-task` uses the Commander-and-Runner hub-and-spoke flow defined below. A Commander is
+not a general stage decision-maker outside that flow. When a live run-task matter needs an
+upstream change, its Commander invokes the owning Skill within the same dispatch. For that
+invocation, the owning Skill's semantic planning, role dispatch, finding adjudication, and
+integration duties belong to the Commander; the primary session keeps only exact Owner relay
+and instructed mechanical actions. This does not transfer ordinary non-run-task orchestration
+away from the primary session. The primary orchestrator does not draft a run-task
 implementation candidate, and no Integrator role exists.
 
 ## Creation authority and lifecycle
@@ -63,12 +66,15 @@ Inside `run-task`:
 - only the primary orchestrator creates, resumes, and retires a Commander;
 - only the primary orchestrator mechanically creates or resumes a Runner from a Commander's
   complete brief;
-- a Commander creates no agent;
+- a Commander may directly create any defined named Agent that the current workflow assigns to
+  it, and monitors those direct children;
 - one Runner owns one Task and its repository workspace set end to end;
 - a Runner may directly create its Coder, Researcher, and risk-triggered Verifier; and
 - a Runner may create a Critic or Reviewer only when the Owner, applicable authority, current
   workflow rule, or Commander brief explicitly requires that independent role.
 
+A Commander never creates another Commander. Under the normal ready-set path it returns Runner
+briefs for the primary orchestrator to apply mechanically instead of creating Runners itself.
 A Runner never creates a Commander, Author, another Runner, or any unnamed role. Parallel
 Runners do not communicate directly. Their child-agent calls and routine lifecycle handling
 stay inside the Runner; only structured substantive state or results go directly to the
@@ -84,22 +90,21 @@ return. Use that same writer while objective and write boundary remain unchanged
 Reviewer, and Verifier returns are terminal for their selected fixed surface; dispatch them
 again only when the owning workflow requires a new fixed-candidate check.
 
-## Select and report the runtime
+## Select the Codex Agent
 
-Immediately before dispatch, the authorized caller reads the current `spawn_agent` schema or
-equivalent platform surface to confirm that the role's required values remain supported. On
-Codex, use this fixed mapping:
+Before the first GMGN agent dispatch in a Codex task, run
+`scripts/install_codex_agents.py` from the active `gmgn` Skill directory. It synchronizes the
+repository's canonical `gmgn_*.toml` files to the effective `CODEX_HOME/agents` directory. Run
+it again after a GMGN upgrade. Installation failure blocks Codex delegation and must be
+reported.
 
-| Role | `model` | `reasoning_effort` |
-|---|---|---|
-| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |
-| Coder, Researcher | `gpt-5.6-terra` | `max` |
-
-If the required combination is unavailable, report that limitation before dispatch.
-
-Before calling Codex `spawn_agent`, state the selected `model`, `reasoning_effort`, and a
-one-sentence reason in user-visible commentary. Then call it with `fork_turns: "none"` and
-pass the selected `model` and `reasoning_effort`.
+Create the role by its exact installed name: `gmgn_commander`, `gmgn_runner`, `gmgn_author`,
+`gmgn_coder`, `gmgn_critic`, `gmgn_reviewer`, `gmgn_verifier`, or `gmgn_researcher`. In the
+`spawn_agent` task message, say to use that named Agent and provide the bounded task. Do not use
+`task_name` as a profile selector. Model, reasoning effort, sandbox, and stable role
+instructions come from the installed TOML and are not repeated in the brief or per-dispatch
+arguments. If the named Agent or its configured runtime is unavailable, report the limitation
+before dispatch.
 
 ## Authorization and interim questions
 
@@ -137,18 +142,18 @@ roles needed by the changed evidence surface.
 
 ## Prepare the brief before creating the agent
 
-Every brief contains:
+Every brief contains only the changing facts needed for its dispatch:
 
-1. `dispatch_id`, role, one bounded objective, and required return shape; the caller records
-   the returned platform Agent ID after creation;
-2. selected `model`, `reasoning_effort`, and the concise selection reason when exposed;
-3. exact authority and scope, plus baseline, candidate, or evidence anchors only when they
-   exist and matter;
-4. required context pointers and named questions unresolved by that context;
-5. repository and workspace facts, write permissions, allowed paths, archive-root exclusions,
-   and prohibitions;
-6. prior accepted findings or failures only when they affect this dispatch;
-7. checks, expected evidence, limitations to report, and the return gate.
+1. `dispatch_id`, exact role or Codex Agent name, one bounded objective, applicable Skill, and
+   required return shape;
+2. exact authority, scope, and the baseline, candidate, or evidence anchors that matter;
+3. repository, workspace, base and branch facts, write permissions, authorization, allowed
+   paths, archive-root exclusions, and prohibitions; and
+4. unresolved task-specific questions, applicable prior findings or failures, required checks,
+   expected evidence, and the return gate.
+
+Do not repeat the selected profile's stable role rules, model, reasoning effort, or sandbox in
+the brief. The caller records the returned platform Agent ID after creation.
 
 The archive-root exclusion applies to every role. Generated context and indexes honor it. No
 agent reads, cites, or uses archived documents as active authority, context, or evidence. If
@@ -159,9 +164,12 @@ workflow decisions, including an assurance classification, directly in the brief
 passing another Skill's internal resource path. Do not put credentials, telemetry
 instructions, unrelated history, or another protocol document in the brief.
 
-For an upstream semantic document candidate, the primary orchestrator resolves the objective,
-authority, accepted Owner meaning, exact write boundary, checks, and return gate before
-creating the Author. The Author does not decide unresolved meaning.
+For an upstream semantic document candidate outside `run-task`, the primary orchestrator
+resolves the objective, authority, accepted Owner meaning, exact write boundary, checks, and
+return gate before creating the Author. When the candidate is required by a live run-task
+matter, its Commander performs those decisions under the owning Skill and directly creates the
+needed Author and any other role selected by that Skill. The Author does not decide unresolved
+meaning in either path.
 
 For initial `run-task` entry, the primary orchestrator does not read the Task set to compute
 readiness first. It creates one Commander with the Owner instruction, repository, and
@@ -186,10 +194,12 @@ baseline and expected HEAD only when concurrency or candidate handoff makes iden
 
 The primary orchestrator mechanically creates or assigns each isolated Runner or document
 workspace from the accepted brief and records enough durable Git or platform metadata to
-prove which unfinished dispatch owns it. Never infer ownership from a path pattern. A Runner
-owns its Task workspace while its dispatch is active, under Review or correction, waiting on
-a Commander, or queued for integration. Its child writers use that same assignment one at a
-time.
+prove which unfinished dispatch owns it. For an upstream candidate raised by a live run-task
+matter, it may provision the document workspace only from the Commander's exact instruction;
+the Commander keeps orchestration and decision authority. Never infer ownership from a path
+pattern. A Runner owns its Task workspace while its dispatch is active, under Review or
+correction, waiting on a Commander, or queued for integration. Its child writers use that same
+assignment one at a time.
 
 For each repository that a Git-backed Task changes, keep one Task-named branch, at most one
 active pull request, and at most one writable worktree. The branch and pull request belong to
@@ -259,11 +269,11 @@ the writer's explanation are evidence, not review or acceptance. Freeze the cand
 selected independent Critic or Reviewer works.
 
 For upstream semantic documents, the primary orchestrator applies the router's Critic
-necessity gate. Meaning-preserving mechanical edits require machine checks, not a Critic. Each
-selected Critic receives one immutable semantic surface and returns to the primary
-orchestrator, which adjudicates findings and sends an accepted in-scope repair to the same
-Author. A semantic batch has at most one Critic round; after a fix, the primary orchestrator
-checks the exact repair and affected machine evidence.
+necessity gate outside `run-task`. A Commander does so when an upstream candidate belongs to
+its live run-task matter. Meaning-preserving mechanical edits require machine checks, not a
+Critic. Each selected Critic returns to that caller, which adjudicates findings and sends an
+accepted in-scope repair to the same Author. A semantic batch has at most one Critic round;
+after a fix, the same caller checks the exact repair and affected machine evidence.
 
 For implementation and test candidates, the Runner normally performs the code-review
 contract itself. An independent Reviewer is used only when explicitly required by the Owner,
@@ -301,8 +311,11 @@ semantic review.
   material risk, then remains available for an in-scope fix until the objective ends.
 - **Coder** returns its committed complete candidate checkpoint and evidence to its Runner,
   then remains available for an in-scope fix until the Task candidate is accepted or invalid.
-- **Critic** and **Reviewer** are read-only and return material findings or explicit no-
-  findings coverage for their fixed surface.
+- **Critic** is read-only and returns material findings or explicit no-findings coverage for
+  its fixed surface.
+- **Reviewer** returns the same for its fixed surface. It may run checks that write declared
+  temporary, cache, or generated paths, but does not intentionally modify the tracked
+  candidate.
 - **Verifier** returns exact evidence for its recorded fixed-candidate trigger and leaves
   tracked files unchanged.
 - **Researcher** returns source-by-source observations, checked versions or dates, missing
@@ -322,7 +335,7 @@ the decision, acceptance, or downstream work.
 
 ## Platform notes
 
-- On Codex, read `.codex/agents/<role>.toml` when that profile exists, create the role without
+- On Codex, install and invoke the exact `gmgn_*` Agent name as defined above, create it without
   a parent-context fork, and continue an unfinished dispatch through the platform message or
   follow-up surface.
 - On Claude Code, use a new custom or general-purpose agent for every new dispatch. Do not use

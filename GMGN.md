@@ -37,37 +37,43 @@ current task does not need.
   decision request, or the final result.
 - **Commander** is the single workspace-write global-judgment role used only in `run-task`.
   One bounded Commander reads current repository state, computes ready work, supplies complete
-  Runner briefs, resolves cross-Task conflicts and upstream returns, and integrates one fixed
-  candidate under the existing lock and evidence gates. Only the primary orchestrator creates,
-  resumes, or retires it. A Commander creates no agents and has no role variants or standing
+  Runner briefs, resolves cross-Task conflicts and upstream returns, and directly integrates
+  checked candidates. Only the primary orchestrator creates, resumes, or retires it and
+  mechanically creates Runners from its briefs. The Commander may directly create any named
+  Agent assigned by the active workflow. For an upstream change, it invokes the owning Skill
+  and creates the required roles inside the same dispatch. It has no role variants or standing
   pool.
 - **Runner** owns one accepted Task and its repository workspace set end to end. It directly
   creates any needed Coder, Researcher, or risk-triggered Verifier, normally reviews the Coder
   candidate itself, and reports only substantive structured state or results to the primary
   orchestrator. Parallel Runners do not coordinate directly.
 - **Author** independently writes and revises one bounded upstream authority, plan, design, or
-  closure document candidate from a primary-orchestrator brief. Its self-check is not review
-  or acceptance of its own candidate. Normal Task execution does not use an Author.
+  closure document candidate from a prepared brief. The primary orchestrator normally prepares
+  it; a Commander does so for an upstream change inside its live run-task matter. The Author's
+  self-check is not review or acceptance of its own candidate. Normal Task execution does not
+  use an Author.
 - **Coder** creates or resumes one Card/Log execution contract and implements its bounded Task
   candidate. Its tests and self-checks are evidence, not review or acceptance.
-- **Critic** independently challenges a fixed normative document candidate when the primary
-  orchestrator's necessity gate selects it.
+- **Critic** independently challenges a fixed normative document candidate when its deciding
+  caller's necessity gate selects it.
 - **Reviewer** independently reviews only a fixed implementation and test candidate when the
   Owner, authority, workflow, or Commander explicitly requires that role. Normal `run-task`
   review is performed by the Task's Runner.
 - **Researcher** collects bounded source-by-source facts without comparing or selecting a
-  solution; its caller analyzes and decides. The primary orchestrator may create it outside
-  `run-task`, and a Runner may create it inside `run-task`.
+  solution; its caller analyzes and decides. The active workflow may assign that call to the
+  primary orchestrator, a Commander, or a Runner.
 - **Verifier** independently executes checks against one fixed final candidate only when the
   [assurance policy](skills/gmgn/references/en/assurance-policy.json) records a trigger.
 
 Every delegated agent follows the
 [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). The primary orchestrator
 is not a delegated agent. Only `run-task` uses the Commander-and-Runner hub-and-spoke flow;
-other stages remain in the primary session. An active Commander, Runner, Author, or Coder
-keeps its identity through an interim question, child return, candidate checkpoint, or
-in-scope repair while objective and write boundary remain unchanged. It retires when that
-objective completes, is invalidated, is cancelled, or hard-fails. There is no Integrator role.
+other stages remain in the primary session unless an active run-task Commander invokes their
+owning Skill for its bounded matter. That exception does not make Commander a general stage
+role. An active Commander, Runner, Author, or Coder keeps its identity through an interim
+question, child return, candidate checkpoint, or in-scope repair while objective and write
+boundary remain unchanged. It retires when that objective completes, is invalidated, is
+cancelled, or hard-fails. There is no Integrator role.
 
 ## 2. Authority and document chain
 
@@ -181,9 +187,10 @@ in `run-task` and the writing rules.
 ## 4. Review and verification
 
 Commit and freeze the complete candidate locally before review. For a normative document
-candidate, the primary orchestrator applies the Critic necessity gate in the GMGN router and
-adjudicates any Critic findings. A meaning-preserving mechanical change uses machine checks
-without Critic. Each semantic candidate batch has at most one Critic round.
+candidate, the primary orchestrator normally applies the Critic necessity gate in the GMGN
+router and adjudicates any Critic findings. A Commander does so for an upstream candidate in
+its live run-task matter. A meaning-preserving mechanical change uses machine checks without
+Critic. Each semantic candidate batch has at most one Critic round.
 
 For implementation and test candidates, the Task's Runner normally performs the independent-
 writer Review under the [code-review contract](skills/gmgn/references/en/code-review.md). Create
@@ -192,11 +199,12 @@ current workflow, or Commander brief. Reviewer never reviews a document-only can
 
 Critic and Reviewer report an issue only when leaving it unresolved causes concrete material
 harm, no accepted effective fallback contains that harm, and a smallest sufficient correction
-can be stated. The primary orchestrator adjudicates document findings; the Runner adjudicates
-in-Task implementation findings. An accepted in-scope repair returns to the same Author or
-Coder while objective and write boundary remain unchanged. The adjudicating caller checks the
-exact repair and reruns only affected commands without automatically dispatching another
-Critic or Reviewer.
+can be stated. The primary orchestrator adjudicates document findings outside `run-task`; the
+Commander adjudicates an upstream document candidate in its live run-task matter; and the
+Runner adjudicates in-Task implementation findings. An accepted in-scope repair returns to the
+same Author or Coder while objective and write boundary remain unchanged. The adjudicating
+caller checks the exact repair and reruns only affected commands without automatically
+dispatching another Critic or Reviewer.
 
 A fresh Verifier remains risk-triggered rather than automatic and runs only after relevant
 review blockers clear. Failed, skipped, timed-out, or unavailable required checks are not
@@ -216,10 +224,11 @@ creates one Runner per selected Task without rewriting those briefs.
 
 The Runner owns its Task and repository workspace set, directly manages its Coder and any
 needed Researcher or Verifier, normally performs Review itself, and prepares the complete
-candidate. Coder writes or restores Card/Log, verification contract, tests, implementation,
-and related evidence; Runner may write Review, assurance classification, Verifier result, Task
-state, final evidence, and other execution-document content. Normal Task execution does not use
-an Author.
+candidate. It never creates a Commander; `needs_commander` goes to the primary orchestrator,
+which creates or resumes one without adjudicating the matter. Coder writes or restores
+Card/Log, verification contract, tests, implementation, and related evidence; Runner may write
+Review, assurance classification, Verifier result, Task state, final evidence, and other
+execution-document content. Normal Task execution does not use an Author.
 
 In a Git-backed project with a shared remote, each Task uses one stable Task-named branch,
 one writable worktree, and at most one pull request in every repository it changes. Those
@@ -245,8 +254,10 @@ orchestrator records the Commander result mechanically and does not repeat integ
 semantic review.
 
 All Coder lanes use the same approved Design Bundle commit and must not invent or edit shared
-interface authority. Evidence that contradicts Design or Contract returns upstream through
-the owning stage while unaffected work continues. Discovery does not expand a Card.
+interface authority. When evidence contradicts Design or Contract, the applicable Commander
+invokes the owning Skill inside the same bounded run-task matter, creates its required Agents,
+and directly integrates the accepted upstream candidate while unaffected work continues.
+Discovery does not expand a Card.
 
 A Task closes only after the reviewed content is integrated into the shared baseline and every
 project-declared required check has passed against that exact integrated candidate. Skipped,

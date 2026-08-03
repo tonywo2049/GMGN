@@ -90,8 +90,10 @@ Coder 创建或恢复 Card/Log、验证契约、RED/GREEN checkpoint、实现与
 Task 候选。Runner 回传
 `ready_for_integration` 后，主 session 创建 Commander，由它取得锁、同步最新基线、确认候选、执行
 门禁并更新共享基线；主 session 不再重复集成或语义审查。会改变候选内容的 rebase、冲突处理或
-Commander 修改会使受影响证据失效，并回到同一 Runner 的门禁。
-完整规则只在 [`run-task`](skills/run-task/SKILL.md) 中维护。
+Commander 修改会使受影响证据失效，并回到同一 Runner 的门禁。如果 Task 暴露上游语义缺口，
+该 Commander 会在同一事项中调用 owning Skill，创建其要求的命名 Agent，并直接集成已接受的上游
+候选，再恢复受影响 Runner；主 session 只原样中继负责人消息并执行明确的机械动作。完整规则只在
+[`run-task`](skills/run-task/SKILL.md) 中维护。
 
 使用共享 Git 远端时，每个 Task 在每个修改仓库中只使用一个以稳定 Task ID 命名的 branch、一个
 可写 worktree 和至多一个 PR。Runner 是唯一远端 writer，在共享授权范围内推送可恢复 checkpoint，
@@ -124,6 +126,13 @@ codex plugin add gmgn@GMGN
 ```bash
 codex plugin list
 ```
+
+该任务第一次派发 GMGN Agent 前，活动 `gmgn` Skill 会自动运行
+`scripts/install_codex_agents.py`。这个幂等安装器把仓库中的
+`.codex/agents/gmgn_*.toml` 权威配置同步到有效 `CODEX_HOME/agents` 目录，默认是
+`~/.codex/agents`。Codex 随后按精确 `gmgn_*` 名称创建 Agent；模型、推理强度、sandbox 和稳定角色
+规则从 TOML 加载，任务书只保留本次 workflow、权威、workspace、检查和返回信息。升级后第一次派发
+会再次同步。
 
 然后输入：
 
@@ -297,11 +306,12 @@ hook 结果优先，session JSONL 只补未覆盖调用，同一次等待不重�
 skills/                     十一件跨平台共享 skill
   */agents/openai.yaml      Codex 展示与默认提示元数据
   gmgn/references/en/       英文单一权威的契约与核对单
+  gmgn/scripts/             Codex 命名 Agent 安装器
 agents/                     Claude Code 插件 subagent 角色
 .docstar/conventions/       GMGN 项目本地 DocStar 约定集
 .codex-plugin/plugin.json   Codex 插件清单
 .claude-plugin/             Claude Code 插件与市场清单
-.codex/agents/              本仓可选的 Codex 项目级角色配置
+.codex/agents/              `gmgn_*` Codex 角色权威配置
 .agents/plugins/            Codex marketplace 清单
 tests/                      结构、触发、双平台与发布包校验
 scripts/package_release.py  可复现发布包与 SHA-256 生成器

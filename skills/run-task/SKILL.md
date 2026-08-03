@@ -9,11 +9,11 @@ description: "Use when an initiated Milestone has accepted Task.md rows: let one
 `target_milestone_id`, and have valid Requirement, Design, applicable Contract, and structural-
 authority anchors. If preparing or implementing it still requires a product, architecture,
 interface, data, error, state, recovery, security, or compatibility decision, do not let a
-Runner or Coder decide it: pause only the impact cone and return through a Commander to the
-owning stage. Never expose an unreviewed or unchecked implementation combination as the shared
-baseline. For RED-gated work, the Coder records a valid test-only RED checkpoint against
-unchanged production behavior before production implementation; no separate approval of that
-checkpoint is required.</HARD-GATE>
+Runner or Coder decide it: pause only the impact cone and send the evidence through a
+Commander, which invokes the owning Skill inside the same bounded matter. Never expose an
+unreviewed or unchecked implementation combination as the shared baseline. For RED-gated work,
+the Coder records a valid test-only RED checkpoint against unchanged production behavior
+before production implementation; no separate approval of that checkpoint is required.</HARD-GATE>
 
 Only this stage uses the Commander-and-Runner hub-and-spoke flow. When instructed to advance
 `run-task`, the primary orchestrator does not first read and analyze the ready set. It creates
@@ -21,6 +21,13 @@ one Commander with the Owner instruction, repository, and observable entry point
 Commander reads current authority and state, computes the dependency-aware ready set, and
 returns the number of Runners to create plus each complete Runner brief. The primary
 orchestrator mechanically creates those Runners without rewriting their briefs.
+
+A Commander may directly create any defined named Agent that the current workflow assigns to
+it. The normal ready-set path still leaves Runner creation and resumption to the primary
+orchestrator. When an active matter needs an upstream semantic change, the same Commander
+invokes the owning Skill, creates the roles that Skill requires, and returns to run-task after
+the upstream candidate is accepted and integrated. This does not make Commander a role for
+ordinary work outside `run-task`.
 
 One Runner owns one Task and its assigned repository workspace set end to end. It directly
 creates any needed Coder, Researcher, and risk-triggered Verifier. It normally reviews the
@@ -235,12 +242,13 @@ boundary. The existing Log decision is sufficient; do not create a change-reques
 Before Review, commit the complete candidate locally. Handoff and candidate identity follow
 the dispatch contract; a correction commit is not a standalone candidate.
 
-Each caller monitors only its direct agents: the Runner monitors its children, and the primary
-orchestrator monitors Commanders and Runners. Child invocation and routine progress never pass
-through the primary orchestrator. Wait only after available substantive work at that level is
-exhausted. Every Codex `wait_agent` call uses the actual tool argument
-`{"timeout_ms": 600000}` (10 minutes) as a maximum. An agent completion or attention event
-returns early and the caller handles it immediately without calling `list_agents` first.
+Each caller monitors only its direct agents: the Runner monitors its children, a Commander
+monitors the agents it creates, and the primary orchestrator monitors Commanders and Runners.
+Child invocation and routine progress never pass through the primary orchestrator. Wait only
+after available substantive work at that level is exhausted. Every Codex `wait_agent` call uses
+the actual tool argument `{"timeout_ms": 600000}` (10 minutes) as a maximum. An agent
+completion or attention event returns early and the caller handles it immediately without
+calling `list_agents` first.
 
 If the full ten minutes expires without an event, the caller calls `list_agents` once. Handle
 any completed or attention-needed dispatch immediately. If the snapshot reports `running`,
@@ -418,17 +426,26 @@ does not decide the run-task matter itself.
 The Commander identifies the owning route: changed D-ID or new Decision ruling uses
 `write-decision`; Task boundary or completion meaning uses `write-task`; Design meaning not
 recorded in Decision uses `write-design`; changed observable behavior or AC not recorded in
-Decision uses `write-requirement`. The primary orchestrator then runs that non-run-task stage
-under its normal Author and Critic rules while the same unresolved Commander matter may wait.
-Pause only affected providers, consumers, integration Tasks, and descendants; unrelated
-Runners continue.
+Decision uses `write-requirement`. It invokes that owning Skill inside the same Commander
+dispatch, applies the stage's decision, Author, Critic, approval, and integration rules, and
+directly creates every named Agent that rule selects. Upstream semantic document candidates
+remain Author work. The Commander may make mechanical or other changes allowed by the active
+Skill; any content change invalidates the evidence and gates that depend on it.
 
-With a shared pull-request remote, the primary orchestrator publishes that upstream semantic
-candidate on one separate authority-stage branch and pull request after its Author completes.
-Do not mix it into an affected Runner branch or pull request. Integrate and approve that
-authority candidate first; then refresh the affected Runner's accepted base and rerun only the
-gates invalidated by the semantic change. Task-local execution evidence and meaning-preserving
-documentation remain in the Runner candidate.
+The primary orchestrator remains the exact Owner relay and may mechanically provision a
+document workspace from the Commander's complete instruction. It does not take over planning,
+finding adjudication, or integration. An Owner decision returns as `ask_owner`; the primary
+orchestrator relays the question and answer unchanged to the same Commander. Pause only
+affected providers, consumers, integration Tasks, and descendants; unrelated Runners continue.
+
+With a shared pull-request remote, the Commander uses one separate authority-stage branch,
+writable worktree, and pull request for the upstream candidate. The Author writes and commits
+the candidate locally; the Commander publishes and integrates the accepted candidate under the
+owning Skill and repository policy. Do not mix it into an affected Runner branch or pull
+request. Integrate and approve that authority candidate first; then direct the primary
+orchestrator to refresh the affected Runner's accepted base and resume it mechanically. Rerun
+only gates invalidated by the semantic change. Task-local execution evidence and meaning-
+preserving documentation remain in the Runner candidate.
 
 A revised authority produces a newly accepted commit. Refresh only affected Task/Card anchors,
 tests, and briefs, then resume an eligible existing Runner and Coder when objective and write

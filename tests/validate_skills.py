@@ -38,6 +38,21 @@ ROLES = {
     "critic",
     "reviewer",
 }
+CODEX_AGENT_NAMES = {role: f"gmgn_{role}" for role in ROLES}
+ROLE_RUNTIME = {
+    "commander": ("gpt-5.6-sol", "max"),
+    "runner": ("gpt-5.6-sol", "max"),
+    "author": ("gpt-5.6-sol", "max"),
+    "coder": ("gpt-5.6-luna", "max"),
+    "researcher": ("gpt-5.6-luna", "max"),
+    "verifier": ("gpt-5.6-sol", "max"),
+    "critic": ("gpt-5.6-sol", "max"),
+    "reviewer": ("gpt-5.6-sol", "max"),
+}
+SPAWNING_ROLES = {
+    "commander",
+    "runner",
+}
 ROLE_SANDBOX = {
     "commander": "workspace-write",
     "runner": "workspace-write",
@@ -138,7 +153,8 @@ RUN_TASK_CONTROLS = (
     "do not add a parallel lock or integration branch",
     "remains incomplete\nuntil every required repository candidate is integrated and cross-repository gates pass",
     "After all gates clear for one repository, the Commander atomically updates that repository's\nshared-baseline entry",
-    "publishes that upstream semantic\ncandidate on one separate authority-stage branch and pull request",
+    "The Commander uses one separate authority-stage branch,\nwritable worktree, and pull request for the upstream candidate.",
+    "The Author writes and commits\nthe candidate locally; the Commander publishes and integrates the accepted candidate",
     "Do not mix it into an affected Runner branch or pull request.",
     "does not perform another integration or semantic review.",
 )
@@ -152,15 +168,12 @@ RUN_TASK_EXCLUSIVE_MARKERS = (
     "ponytail:ponytail-review",
     "codegraph init",
 )
-RUNTIME_ROLE_ROWS = (
-    "| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
-    "| Coder, Researcher | `gpt-5.6-terra` | `max` |",
-)
 RUNTIME_SELECTION_CONTROLS = (
-    "reads the current `spawn_agent` schema",
-    *RUNTIME_ROLE_ROWS,
-    "state the selected `model`, `reasoning_effort`, and a\none-sentence reason in user-visible commentary",
-    'call it with `fork_turns: "none"` and pass\nthe selected `model` and `reasoning_effort`',
+    "`scripts/install_codex_agents.py`",
+    "`CODEX_HOME/agents`",
+    "Create the role by its exact installed name: `gmgn_commander`",
+    "Do not use\n`task_name` as a profile selector",
+    "Model, reasoning effort, sandbox, and stable role\ninstructions come from the installed TOML",
 )
 DISPATCH_LIFECYCLE_CONTROLS = (
     "An authorization request,\nmissing-information request, Owner question, candidate checkpoint, or required wait is\ninterim",
@@ -176,8 +189,8 @@ DISPATCH_ROLE_PROFILE_CONTROLS = (
     "dispatch to exactly one of `commander | runner | author | coder | critic | reviewer | verifier |\nresearcher`.",
     "These are the only GMGN agent roles.",
     "A task name or `dispatch_id` distinguishes\ninstances but never creates a role variant.",
-    "The brief carries the selected profile's applicable\ninstructions.",
-    "On Codex, read `.codex/agents/<role>.toml`",
+    "The selected platform profile\nsupplies stable role rules; the brief supplies only this dispatch's changing facts.",
+    "On Codex, install and invoke the exact `gmgn_*` Agent name",
     "load `agents/<role>.md` for the\nselected role.",
 )
 EXTERNAL_AUTHORIZATION_CONTROLS = (
@@ -218,8 +231,10 @@ DISPATCH_WORKSPACE_CONTROLS = (
 COMMANDER_RUNNER_SURFACE_CONTROLS = {
     Path("GMGN.md"): (
         "**Commander** is the single workspace-write global-judgment role used only in `run-task`.",
-        "Only the primary orchestrator creates,\n  resumes, or retires it. A Commander creates no agents and has no role variants or standing\n  pool.",
-        "Only `run-task` uses the Commander-and-Runner hub-and-spoke flow;\nother stages remain in the primary session.",
+        "Only the primary orchestrator creates, resumes, or retires it and\n  mechanically creates Runners from its briefs.",
+        "The Commander may directly create any named\n  Agent assigned by the active workflow.",
+        "Only `run-task` uses the Commander-and-Runner hub-and-spoke flow;\nother stages remain in the primary session unless an active run-task Commander invokes their\nowning Skill for its bounded matter.",
+        "That exception does not make Commander a general stage\nrole.",
         "There is no Integrator role.",
         "each Task uses one stable Task-named branch,\none writable worktree, and at most one pull request in every repository it changes.",
         "A multi-repository Task closes\nonly after every required repository candidate and cross-repository gate is integrated",
@@ -228,8 +243,9 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
     ),
     Path("skills/gmgn/SKILL.md"): (
         "Only `run-task` uses a Commander for bounded global judgment and one Runner per Task.",
-        "A Commander is not used in other stages.",
-        "Primary orchestrator applies the Critic necessity gate and adjudicates any Critic findings",
+        "A Commander may directly create any named Agent assigned by the active\nworkflow.",
+        "This exception does not use Commander\nfor ordinary non-run-task work.",
+        "The primary orchestrator integrates these document candidates outside `run-task`; the Commander\ndirectly integrates an upstream candidate belonging to its live run-task matter.",
         "Its Runner reviews under `code-review`; independent Reviewer only when explicitly required",
         "Critic and Reviewer do not maximize finding count. A valid return may contain no findings.",
         "Report an issue only when leaving it unresolved creates concrete material harm, no accepted\neffective fallback contains that harm, and a smallest sufficient correction can be stated.",
@@ -239,7 +255,9 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         *DISPATCH_ROLE_PROFILE_CONTROLS,
         "only the primary orchestrator creates, resumes, and retires a Commander;",
         "only the primary orchestrator mechanically creates or resumes a Runner from a Commander's\n  complete brief;",
-        "a Commander creates no agent;",
+        "a Commander may directly create any defined named Agent that the current workflow assigns to\n  it, and monitors those direct children;",
+        "A Commander never creates another Commander.",
+        "Under the normal ready-set path it returns Runner\nbriefs for the primary orchestrator to apply mechanically instead of creating Runners itself.",
         "a Runner may directly create its Coder, Researcher, and risk-triggered Verifier; and",
         "a Runner may create a Critic or Reviewer only when the Owner, applicable authority, current\n  workflow rule, or Commander brief explicitly requires that independent role.",
         "A Runner never creates a Commander, Author, another Runner, or any unnamed role.",
@@ -277,8 +295,11 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
         "any rebase, conflict resolution, or Commander edit that changes candidate\ncontent invalidates the affected Review and other candidate-bound evidence.",
     ),
     Path("agents/commander.md"): (
-        "Only the primary\norchestrator creates, resumes, or retires a Commander.",
-        "Work only in `run-task`; do not create\nanother agent or form a standing pool.",
+        "Work only for a bounded\n`run-task` matter; never create another Commander or form a standing pool.",
+        "Directly create and monitor any defined named Agent that the\nactive workflow assigns to you.",
+        "Under the normal ready-set path, return complete\nRunner briefs for the primary orchestrator to create mechanically rather than creating Runners.",
+        "When an upstream\nchange is required, invoke its owning Skill inside this dispatch",
+        "directly integrate the accepted candidate.",
         "The same Commander remains assigned until this matter is applied,\ncancelled, invalidated, or hard-fails; a later matter requires a new Commander.",
         "You may make mechanical or other permitted changes",
         "`needs_commander`\nand `ready_for_integration` are transient input events, never persistent states.",
@@ -286,7 +307,7 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
     ),
     Path("agents/runner.md"): (
         "directly create a Coder, Researcher, or Verifier only when the Task needs that\nrole.",
-        "Do not create a Commander, Author, another Runner, or any other role.",
+        "Do not create a Commander, Author, another Runner, or an unnamed role.",
         "Normally perform\nthe Critic- or Reviewer-equivalent check yourself.",
         "Create an independent Critic or Reviewer\nonly when the Owner, applicable authority, current workflow rule, or this Task's Commander\nbrief explicitly requires that role.",
         "The Coder creates or resumes Card/Log, writes the verification contract, records applicable",
@@ -314,63 +335,73 @@ COMMANDER_RUNNER_SURFACE_CONTROLS = {
     Path("agents/reviewer.md"): (
         "Review only that fixed surface.",
         "Do not create other agents.",
-        "Do not intentionally edit workspace files.",
+        "Do not intentionally edit tracked candidate files.",
         "Report an issue only\nwhen leaving it unresolved creates concrete material harm, no accepted effective fallback\ncontains that harm, and the smallest sufficient correction can be stated.",
     ),
 }
 ROLE_PROFILE_CONTROLS = {
     "commander": (
-        "Commander brief",
-        "主 Session",
-        "不得创建其他 Agent",
-        "同一 Commander",
-        "共享基线",
-        "集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。",
-        "只有不改变候选内容的 merge 才可复用原证据",
-        "不再创建第二套锁或集成 branch",
-        "全部仓库候选和跨仓门禁完成后才返回完成",
+        "GMGN run-task 全局事项",
+        "创建任意已定义的命名 Agent",
+        "普通 Runner 是否由主 Session 机械创建，以当前 run-task 规则为准。",
+        "同一 Commander dispatch 内执行对应的 owning Skill",
+        "上游语义文档交给 Author 写",
+        "通过主 Session 发送 ask_owner",
+        "按当前 Workflow 直接集成",
+        "候选内容发生变化时，不得绕过因此失效的检查和证据",
     ),
     "runner": (
-        "Runner brief",
-        "一个 Runner 只负责一个 Task",
-        "可直接创建 Coder、Researcher 和风险触发的 Verifier；",
-        "只有 Owner、适用权威、当前流程或 Commander brief 明确要求时才创建独立 Critic 或 Reviewer。",
-        "正常实现/测试审查由 Runner 自己",
-        "不得创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
+        "端到端负责一个 Task",
+        "直接创建和监测完成该 Task 所需的子 Agent",
+        "不得创建 Commander",
         "needs_commander",
-        "主 Session 创建或恢复适用 Commander",
-        "ready_for_integration",
-        "主 Session 为此创建 Commander",
-        "每个修改仓库只使用一个以稳定 Task/Card ID 命名的 branch 和一个 PR",
-        "同一 Task 的替代 Runner 继续原 branch 和 PR",
+        "Coder 负责 Card/Log、验证契约、RED/GREEN、实现和执行证据",
+        "Task-local Review",
+        "Task branch 的远端 writer",
+        "不得更新共享基线",
     ),
-    "author": ("Author brief", "主 Session", "不得创建其他 Agent。"),
+    "author": (
+        "上游权威、计划或设计文档候选",
+        "只修改指定文档",
+        "不自行决定未决产品、需求、设计、验收或 Task 含义",
+        "正常 run-task",
+        "不属于 Author",
+        "返回直接调用者",
+    ),
     "coder": (
-        "Coder brief",
-        "Task Runner",
-        "创建或恢复 Card/Log",
-        "不得创建其他 Agent。",
+        "最小充分候选",
+        "负责 Card/Log、验证契约、测试、RED/GREEN、实现和相关执行证据",
         "不决定上游语义",
-        "不关闭 Task",
+        "不修改共享权威或共享基线",
+        "不执行远端写入",
+        "返回直接调用者",
     ),
     "researcher": (
-        "Researcher brief",
-        "禁止修改项目文件或创建其他 Agent。",
+        "逐来源证据、版本或日期、缺失信息和实质限制",
+        "不修改项目文件",
+        "不替调用者作跨来源比较、方案推荐、Design 选择或最终决定",
     ),
     "verifier": (
-        "Verifier brief",
-        "不要编辑 tracked files 或创建其他 Agent。",
-        "required:<trigger>",
+        "风险触发条件和最小验证计划",
+        "不扩大计划",
+        "不要修改 tracked 候选",
+        "都不是通过",
     ),
     "critic": (
-        "Critic brief",
-        "只审指定规范文档含义及最小必要的上下游上下文；不得编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
-        "只用于文档/语义",
+        "上游规范文档候选",
+        "具体实质损害",
+        "no findings",
+        "不编辑候选",
+        "不审查实现代码",
+        "不裁决自己的 finding",
     ),
     "reviewer": (
-        "Reviewer brief",
-        "只审固定实现与测试候选；不得创建其他 Agent，也不主动编辑工作区。",
-        "不审规范文档",
+        "固定的实现与测试候选",
+        "具体实质损害",
+        "no findings",
+        "workspace-write 只用于运行检查",
+        "不要主动修改 tracked 候选",
+        "直接调用者负责裁定",
     ),
 }
 LEGACY_ROLE = "adjud" + "icator"
@@ -651,10 +682,6 @@ def validate_shared_surfaces(errors: list[str]) -> None:
         require_active_fragments(
             read(relative), controls, "Commander/Runner 权威边界", errors
         )
-    active_dispatch = active_markdown(dispatch_contract)
-    for row in RUNTIME_ROLE_ROWS:
-        if active_dispatch.count(row) != 1:
-            errors.append(f"派发运行时映射必须有且只有一行: {row}")
     require_active_fragments(
         read(ROADMAP),
         ROADMAP_APPROVAL_CONTROLS,
@@ -839,14 +866,15 @@ def validate_roles(errors: list[str]) -> None:
             f"Claude 角色集合不一致: expected={sorted(ROLES)}, "
             f"actual={sorted(actual_markdown)}"
         )
-    if actual_toml != ROLES:
+    expected_toml = set(CODEX_AGENT_NAMES.values())
+    if actual_toml != expected_toml:
         errors.append(
-            f"Codex 角色集合不一致: expected={sorted(ROLES)}, "
+            f"Codex 角色集合不一致: expected={sorted(expected_toml)}, "
             f"actual={sorted(actual_toml)}"
         )
     for role in sorted(ROLES):
         markdown = Path("agents") / f"{role}.md"
-        toml_path = Path(".codex/agents") / f"{role}.toml"
+        toml_path = Path(".codex/agents") / f"{CODEX_AGENT_NAMES[role]}.toml"
         try:
             fields = frontmatter(markdown)
             text = read(markdown)
@@ -862,16 +890,43 @@ def validate_roles(errors: list[str]) -> None:
             except tomllib.TOMLDecodeError as exc:
                 errors.append(f"{toml_path}: TOML 无效 ({exc})")
                 continue
-            for key in ("name", "description", "sandbox_mode", "developer_instructions"):
+            required_keys = {
+                "name",
+                "description",
+                "model",
+                "model_reasoning_effort",
+                "sandbox_mode",
+                "developer_instructions",
+            }
+            expected_keys = required_keys | (set() if role in SPAWNING_ROLES else {"agents"})
+            if set(config) != expected_keys:
+                errors.append(
+                    f"{toml_path}: 字段应为 {sorted(expected_keys)}，实际 {sorted(config)}"
+                )
+            for key in required_keys:
                 if not isinstance(config.get(key), str):
                     errors.append(f"{toml_path}: {key} 必须是字符串")
+            if config.get("name") != CODEX_AGENT_NAMES[role]:
+                errors.append(f"{toml_path}: name 应为 {CODEX_AGENT_NAMES[role]}")
+            expected_model, expected_effort = ROLE_RUNTIME[role]
+            if config.get("model") != expected_model:
+                errors.append(f"{toml_path}: model 应为 {expected_model}")
+            if config.get("model_reasoning_effort") != expected_effort:
+                errors.append(
+                    f"{toml_path}: model_reasoning_effort 应为 {expected_effort}"
+                )
             if config.get("sandbox_mode") != ROLE_SANDBOX[role]:
                 errors.append(
                     f"{toml_path}: sandbox_mode 应为 {ROLE_SANDBOX[role]}"
                 )
+            if role in SPAWNING_ROLES:
+                if "agents" in config:
+                    errors.append(f"{toml_path}: 不应覆盖 [agents]，沿用父 Session 与平台配置")
+            elif config.get("agents") != {"enabled": False}:
+                errors.append(f"{toml_path}: [agents].enabled 必须为 false")
             instructions = config.get("developer_instructions", "")
-            if isinstance(instructions, str) and "brief" not in instructions.casefold():
-                errors.append(f"{toml_path}: 缺少 brief 边界")
+            if isinstance(instructions, str) and "任务书" not in instructions:
+                errors.append(f"{toml_path}: 缺少任务书边界")
             if isinstance(instructions, str):
                 require_fragments(
                     instructions,

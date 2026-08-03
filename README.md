@@ -126,7 +126,10 @@ reports `ready_for_integration`,
 the primary session creates one Commander to lock, synchronize, identify, check, and update the
 shared baseline; it does not repeat integration or semantic review. A content-changing rebase,
 conflict resolution, or Commander edit invalidates affected candidate-bound evidence and
-returns through the same Runner gates. The complete rules live in
+returns through the same Runner gates. If a Task exposes an upstream semantic gap, that
+Commander invokes the owning Skill, creates its required named Agents, and directly integrates
+the accepted upstream candidate before resuming affected Runners; the primary session only
+relays Owner messages and performs instructed mechanical actions. The complete rules live in
 [`run-task`](skills/run-task/SKILL.md).
 
 With a shared Git remote, every Task uses one stable Task-named branch, one writable worktree,
@@ -165,6 +168,14 @@ Start a new Codex task, then verify:
 ```bash
 codex plugin list
 ```
+
+Before that task's first GMGN Agent dispatch, the active `gmgn` Skill automatically runs
+`scripts/install_codex_agents.py`. The idempotent installer synchronizes canonical
+`.codex/agents/gmgn_*.toml` profiles to the effective `CODEX_HOME/agents` directory (normally
+`~/.codex/agents`). Codex then invokes the exact `gmgn_*` Agent name; its TOML supplies the
+model, reasoning effort, sandbox, and stable role instructions, so task briefs contain only
+current workflow, authority, workspace, checks, and return facts. The installer runs again on
+the first delegation after an upgrade.
 
 Try:
 
@@ -342,11 +353,12 @@ installation the same reporter is available at `~/.codex/gmgn-telemetry/bin/repo
 skills/                         eleven cross-platform skills
   */agents/openai.yaml          Codex display metadata and default prompts
   gmgn/references/en/           English shared writing, dispatch, review, and assurance contracts
+  gmgn/scripts/                 Codex named-Agent installer
 agents/                         Claude Code plugin subagent roles
 .docstar/conventions/           DocStar-compatible GMGN convention set
 .codex-plugin/plugin.json       Codex plugin manifest
 .claude-plugin/                 Claude Code plugin and marketplace manifests
-.codex/agents/                  optional project-scoped Codex role profiles for this repository
+.codex/agents/                  canonical `gmgn_*` Codex role profiles
 .agents/plugins/                Codex marketplace manifest
 tests/                          structure, language, platform, and package checks
 scripts/package_release.py      deterministic ZIP and SHA-256 builder

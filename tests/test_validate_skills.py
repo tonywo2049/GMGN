@@ -404,14 +404,14 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-sol` | `max` |",
-                "| Commander, Runner, Author, Critic, Reviewer, Verifier | `gpt-5.6-terra` | `high` |",
+                "Create the role by its exact installed name: `gmgn_commander`",
+                "Create the role by its task label instead of an installed Agent name",
                 "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "| Coder, Researcher | `gpt-5.6-terra` | `max` |",
-                "| Coder, Researcher | `gpt-5.6-sol` | `high` |",
+                "Model, reasoning effort, sandbox, and stable role\ninstructions come from the installed TOML",
+                "Model and reasoning effort are repeated in every brief",
                 "Commander/Runner 权威边界",
             ),
             (
@@ -459,9 +459,9 @@ class ValidateSkillsTests(unittest.TestCase):
                 "Commander/Runner 权威边界",
             ),
             (
-                "agents/commander.md",
-                "Only the primary\norchestrator creates, resumes, or retires a Commander.",
-                "Any Runner creates, resumes, or retires a Commander.",
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "A Commander never creates another Commander.",
+                "A Runner may create or resume a Commander.",
                 "Commander/Runner 权威边界",
             ),
             (
@@ -489,8 +489,8 @@ class ValidateSkillsTests(unittest.TestCase):
     def test_rejects_required_rule_hidden_in_inactive_markdown(self) -> None:
         path = self.root / "skills/gmgn/references/en/dispatch-and-handoff.md"
         original = path.read_text(encoding="utf-8")
-        required = "| Coder, Researcher | `gpt-5.6-terra` | `max` |"
-        invalid = "| Coder, Researcher | `gpt-5.6-sol` | `high` |"
+        required = "Create the role by its exact installed name: `gmgn_commander`"
+        invalid = "Create the role without an installed Agent name"
         for hidden in (
             f"<!-- {required} -->",
             f"```markdown\n{required}\n```",
@@ -654,7 +654,7 @@ class ValidateSkillsTests(unittest.TestCase):
         self.assert_rejected("含已废止规则")
 
     def test_rejects_invalid_role_toml(self) -> None:
-        path = self.root / ".codex/agents/coder.toml"
+        path = self.root / ".codex/agents/gmgn_coder.toml"
         path.write_text('name = "broken"\n', encoding="utf-8")
         self.assert_rejected("sandbox_mode 必须是字符串")
 
@@ -671,7 +671,7 @@ class ValidateSkillsTests(unittest.TestCase):
         )
         for role, expected, wrong in cases:
             with self.subTest(role=role):
-                relative = f".codex/agents/{role}.toml"
+                relative = f".codex/agents/gmgn_{role}.toml"
                 self.replace(
                     relative,
                     f'sandbox_mode = "{expected}"',
@@ -683,6 +683,43 @@ class ValidateSkillsTests(unittest.TestCase):
                     f'sandbox_mode = "{wrong}"',
                     f'sandbox_mode = "{expected}"',
                 )
+
+    def test_rejects_role_runtime_and_agent_tool_drift(self) -> None:
+        cases = (
+            (
+                ".codex/agents/gmgn_coder.toml",
+                'model = "gpt-5.6-luna"',
+                'model = "gpt-5.6-sol"',
+                "model 应为 gpt-5.6-luna",
+            ),
+            (
+                ".codex/agents/gmgn_commander.toml",
+                'model_reasoning_effort = "max"',
+                'model_reasoning_effort = "high"',
+                "model_reasoning_effort 应为 max",
+            ),
+            (
+                ".codex/agents/gmgn_commander.toml",
+                'name = "gmgn_commander"',
+                'name = "commander"',
+                "name 应为 gmgn_commander",
+            ),
+        )
+        for relative, old, new, expected in cases:
+            with self.subTest(relative=relative, field=old):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn(old, original)
+                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                try:
+                    self.assert_rejected(expected)
+                finally:
+                    path.write_text(original, encoding="utf-8")
+
+        commander = self.root / ".codex/agents/gmgn_commander.toml"
+        original = commander.read_text(encoding="utf-8")
+        commander.write_text(original + "\n[agents]\nenabled = false\n", encoding="utf-8")
+        self.assert_rejected("不应覆盖 [agents]")
 
     def test_rejects_unregistered_role_profiles(self) -> None:
         markdown = self.root / "agents/extra.md"
@@ -702,37 +739,11 @@ class ValidateSkillsTests(unittest.TestCase):
 
     def test_rejects_critic_reviewer_profile_boundary_drift(self) -> None:
         cases = (
-            (".codex/agents/critic.toml", "只用于文档/语义", "可审实现与测试"),
-            (".codex/agents/reviewer.toml", "不审规范文档", "可审规范文档"),
-        )
-        for relative, old, new in cases:
-            with self.subTest(relative=relative):
-                self.replace(relative, old, new)
-                self.assert_rejected(f"{relative}: 角色边界")
-
-    def test_rejects_leaf_profile_agent_creation_drift(self) -> None:
-        cases = (
-            (".codex/agents/author.toml", "不得创建其他 Agent。", "可创建其他 Agent。"),
-            (".codex/agents/coder.toml", "不得创建其他 Agent。", "可创建其他 Agent。"),
+            (".codex/agents/gmgn_critic.toml", "不审查实现代码", "可以审查实现代码"),
             (
-                ".codex/agents/researcher.toml",
-                "禁止修改项目文件或创建其他 Agent。",
-                "可修改项目文件或创建其他 Agent。",
-            ),
-            (
-                ".codex/agents/verifier.toml",
-                "不要编辑 tracked files 或创建其他 Agent。",
-                "可编辑 tracked files 或创建其他 Agent。",
-            ),
-            (
-                ".codex/agents/critic.toml",
-                "只审指定规范文档含义及最小必要的上下游上下文；不得编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
-                "只审指定规范文档含义及最小必要的上下游上下文；可编辑文件、扩大产品范围、裁决自己的 finding 或创建其他 Agent。",
-            ),
-            (
-                ".codex/agents/reviewer.toml",
-                "只审固定实现与测试候选；不得创建其他 Agent，也不主动编辑工作区。",
-                "只审固定实现与测试候选；可创建其他 Agent，也可主动编辑工作区。",
+                ".codex/agents/gmgn_reviewer.toml",
+                "按照任务书指定的 code-review contract 和权威，独立审查一份固定的实现与测试候选。",
+                "按照任务书指定的规范审查规则和权威，独立审查一份固定的规范文档候选。",
             ),
         )
         for relative, old, new in cases:
@@ -740,48 +751,57 @@ class ValidateSkillsTests(unittest.TestCase):
                 path = self.root / relative
                 original = path.read_text(encoding="utf-8")
                 self.assertIn(old, original)
-                path.write_text(original.replace(old, new, 1), encoding="utf-8")
+                path.write_text(
+                    original.replace(old, new, 1),
+                    encoding="utf-8",
+                )
                 try:
                     self.assert_rejected(f"{relative}: 角色边界")
+                finally:
+                    path.write_text(original, encoding="utf-8")
+
+    def test_rejects_leaf_profile_agent_creation_drift(self) -> None:
+        for role in ("author", "coder", "researcher", "verifier", "critic", "reviewer"):
+            relative = f".codex/agents/gmgn_{role}.toml"
+            with self.subTest(relative=relative):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn("enabled = false", original)
+                path.write_text(
+                    original.replace("enabled = false", "enabled = true", 1),
+                    encoding="utf-8",
+                )
+                try:
+                    self.assert_rejected("[agents].enabled 必须为 false")
                 finally:
                     path.write_text(original, encoding="utf-8")
 
     def test_rejects_commander_runner_coder_profile_boundary_drift(self) -> None:
         cases = (
             (
-                ".codex/agents/commander.toml",
-                "只有不改变候选内容的 merge 才可复用原证据",
-                "任意 merge 都可复用原证据",
+                ".codex/agents/gmgn_commander.toml",
+                "创建任意已定义的命名 Agent",
+                "不得创建任何 Agent",
             ),
             (
-                ".codex/agents/commander.toml",
-                "集成时严格按现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、更新共享基线、释放锁的顺序执行。",
-                "集成时严格按更新共享基线、现有锁、最新共享基线、最终候选、Git commit/tree 身份、绑定门禁、释放锁的顺序执行。",
+                ".codex/agents/gmgn_commander.toml",
+                "同一 Commander dispatch 内执行对应的 owning Skill",
+                "把上游工作退回主 Session",
             ),
             (
-                ".codex/agents/runner.toml",
-                "主 Session 创建或恢复适用 Commander",
-                "Runner 自己创建或恢复 Commander",
+                ".codex/agents/gmgn_runner.toml",
+                "不得创建 Commander",
+                "可以创建 Commander",
             ),
             (
-                ".codex/agents/runner.toml",
-                "可直接创建 Coder、Researcher 和风险触发的 Verifier；",
-                "不得直接创建 Coder、Researcher 和风险触发的 Verifier；",
+                ".codex/agents/gmgn_runner.toml",
+                "不得更新共享基线",
+                "可以更新共享基线",
             ),
             (
-                ".codex/agents/runner.toml",
-                "只有 Owner、适用权威、当前流程或 Commander brief 明确要求时才创建独立 Critic 或 Reviewer。",
-                "可无条件创建独立 Critic 或 Reviewer。",
-            ),
-            (
-                ".codex/agents/runner.toml",
-                "不得创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
-                "可创建 Commander、Author、Runner、未命名角色或上述范围以外的 Agent。",
-            ),
-            (
-                ".codex/agents/coder.toml",
-                "不关闭 Task",
-                "可关闭 Task",
+                ".codex/agents/gmgn_coder.toml",
+                "不执行远端写入",
+                "执行远端写入",
             ),
         )
         for relative, old, new in cases:
@@ -866,10 +886,10 @@ class ValidateSkillsTests(unittest.TestCase):
                 "writing-rules 机器字段",
             ),
             (
-                ".codex/agents/runner.toml",
-                "同一 Task 的替代 Runner 继续原 branch 和 PR",
-                "同一 Task 的替代 Runner 创建新 branch 和 PR",
-                ".codex/agents/runner.toml: 角色边界",
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "resumes the same branch and pull request instead of creating another pair.",
+                "creates another branch and pull request instead of resuming the existing pair.",
+                "Commander/Runner 权威边界",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
