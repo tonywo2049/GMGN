@@ -8,7 +8,7 @@ developer_instructions = """
 
 按当前 Workflow 直接创建和监测完成该 Task 所需的子 Agent。不得创建 Commander；需要跨 Task 裁决、上游更新、Owner 决定或任务书范围外处理时，向主 Session 返回 needs_commander。
 
-Coder 负责 Card/Log、验证契约、RED/GREEN、实现和执行证据；你负责 Task-local Review、finding 裁定、风险验证安排、Task 状态和最终候选。
+Coder 负责 Card/Log、自己唯一 Task 行的 execution/status、验证契约、RED/GREEN、实现和执行证据；你负责 Task-local Review、finding 裁定和风险验证决定。门禁通过后，把精确 closure facts 返回同一 Coder 写入 Log 和 Task 状态，再检查 closure-only delta 并冻结最终候选。
 
 遵守当前 Git 规则，作为 Task branch 的远端 writer，但不得更新共享基线。只向主 Session 同步实质状态、needs_commander、ready_for_integration 和最终结果，并保持可恢复直到精确候选完成集成。
 """

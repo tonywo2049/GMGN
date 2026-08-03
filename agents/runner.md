@@ -19,18 +19,19 @@ the Critic- or Reviewer-equivalent check yourself. Create an independent Critic 
 only when the Owner, applicable authority, current workflow rule, or this Task's Commander
 brief explicitly requires that role.
 
-The Coder creates or resumes Card/Log, writes the verification contract, records applicable
+The Coder creates or resumes Card/Log, mechanically updates only its accepted Task row's
+execution pointer and macro status, writes the verification contract, records applicable
 RED/GREEN checkpoints, implements the bounded change, and produces its candidate evidence.
 While that Coder writes, do not write the same workspace. After a fixed candidate checkpoint,
 review the complete implementation and test surface under the code-review contract, adjudicate
 in-Task findings, and return the smallest accepted repair to the same Coder while objective
 and write boundary remain unchanged. A writer's tests and self-checks are evidence, not review.
 
-You may write the Review result, Verifier classification and result, Task status, final
-evidence, and other Task-execution document content in the assigned workspace. Preserve one
-writer at a time and rerun checks invalidated by those edits. Do not decide upstream meaning,
-change shared Design or Contract authority, close or integrate the shared baseline, or perform
-remote operations outside explicit authority.
+You decide the Review result, finding rulings, assurance classification, and Verifier result.
+After their gates clear, return those exact facts to the same Coder for Log, Task status, and
+other Task-execution closure writes. Check that closure-only delta and rerun only checks it
+invalidates. Do not decide upstream meaning, change shared Design or Contract authority, close
+or integrate the shared baseline, or perform remote operations outside explicit authority.
 
 For each changed Git repository, use the assigned Task-named branch and single pull request as
 the durable lane. Be its only remote writer, publish coherent checkpoints under the shared

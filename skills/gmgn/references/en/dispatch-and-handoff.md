@@ -38,36 +38,39 @@ retired agent. If an unfinished objective remains valid after a hard end, create
 and treat retained workspace content as an unverified draft. A later objective or materially
 wider write boundary requires another brief and agent.
 
-The primary orchestrator retains the complete session context. Outside `run-task`, it routes
-stages, conducts semantic Owner dialogue, analyzes evidence, makes workflow and semantic
-decisions, prepares briefs, schedules agents, adjudicates Critic and Reviewer findings,
-integrates accepted candidates, and updates shared state. It may perform meaning-preserving
-mechanical edits. It must delegate creation or semantic revision of WhitePaper, Decision,
-ROADMAP, Goal, Requirement, Design, Task, and other upstream authority, plan, or design
-candidates to an independent Author. Do not create an Author when no such candidate is needed.
+The primary orchestrator retains the complete session context, routes stages, conducts semantic
+Owner dialogue, manages workspaces, and updates shared state. When the active workflow does not
+select a Commander for a bounded matter, it also analyzes evidence, makes workflow and semantic
+decisions, prepares briefs, schedules agents, adjudicates Critic and Reviewer findings, and
+integrates accepted candidates. It may perform meaning-preserving mechanical edits. It must
+delegate creation or semantic revision of WhitePaper, Decision, ROADMAP, Goal, Requirement,
+Design, Task, and other upstream authority, plan, or design candidates to an independent Author.
+Do not create an Author when no such candidate is needed.
 
-Only `run-task` uses the Commander-and-Runner hub-and-spoke flow defined below. A Commander is
-not a general stage decision-maker outside that flow. When a live run-task matter needs an
-upstream change, its Commander invokes the owning Skill within the same dispatch. For that
-invocation, the owning Skill's semantic planning, role dispatch, finding adjudication, and
-integration duties belong to the Commander; the primary session keeps only exact Owner relay
-and instructed mechanical actions. This does not transfer ordinary non-run-task orchestration
-away from the primary session. The primary orchestrator does not draft a run-task
-implementation candidate, and no Integrator role exists.
+Any stage may select one Commander for a bounded matter. The active workflow, not the role
+profile, decides whether to use it. While selected, the owning Skill's assigned planning, role
+dispatch, finding adjudication, and integration duties belong to that Commander; the primary
+session keeps exact Owner relay, instructed mechanical actions, and final result recording.
+`run-task` requires Commander for its ready-set and integration matters and is the only stage
+that uses Runner-based execution. When an owning Skill assigns one of those duties to the
+primary orchestrator, a selected Commander performs it for its bounded matter; direct Owner
+relay and explicit mechanical actions remain with the primary orchestrator. The primary
+orchestrator never drafts a run-task implementation candidate, and no Integrator role exists.
 
 ## Creation authority and lifecycle
 
-Outside `run-task`, the primary orchestrator creates any needed Author, Researcher, Critic,
-Reviewer, or Verifier and receives its return directly. The primary orchestrator analyzes a
-Researcher return and adjudicates Critic or Reviewer findings.
-
-Inside `run-task`:
+In every stage:
 
 - only the primary orchestrator creates, resumes, and retires a Commander;
+- when no Commander is selected, the primary orchestrator creates and receives any other Agent
+  selected by the active workflow; and
+- a selected Commander may directly create any defined named Agent that the current workflow
+  assigns to it, and monitors those direct children.
+
+Inside `run-task`, additionally:
+
 - only the primary orchestrator mechanically creates or resumes a Runner from a Commander's
   complete brief;
-- a Commander may directly create any defined named Agent that the current workflow assigns to
-  it, and monitors those direct children;
 - one Runner owns one Task and its repository workspace set end to end;
 - a Runner may directly create its Coder, Researcher, and risk-triggered Verifier; and
 - a Runner may create a Critic or Reviewer only when the Owner, applicable authority, current
@@ -83,10 +86,10 @@ primary orchestrator.
 Author, Coder, Critic, Researcher, Reviewer, and Verifier do not create agents. This is a
 workflow role boundary; platform agent availability does not grant broader creation authority.
 
-One Commander owns one bounded global run-task matter. `ask_owner` and waiting for a Runner
-repair or required check are interim. Resume the same Commander until that matter is applied,
-cancelled, invalidated, or hard-fails. A later matter gets a new Commander. Do not keep a
-Commander pool or assign role variants by scheduling, conflict, or integration use.
+One Commander owns one bounded global matter. `ask_owner` and waiting for an assigned child,
+Runner repair, or required check are interim. Resume the same Commander until that matter is
+applied, cancelled, invalidated, or hard-fails. A later matter gets a new Commander. Do not keep
+a Commander pool or assign role variants by stage, scheduling, conflict, or integration use.
 
 An Author or Coder remains assigned after a candidate checkpoint when an in-scope finding may
 return. Use that same writer while objective and write boundary remain unchanged. Critic,
@@ -116,11 +119,11 @@ dispatch.
 ## Authorization and interim questions
 
 A delegated agent requests authorization or missing information from its authorized caller,
-not directly from the human Owner. Outside `run-task`, the primary orchestrator decides within
-existing authority or obtains Owner input. Inside `run-task`, a child returns to its Runner;
-the Runner resolves in-Task facts or sends a structured `needs_commander` event to the primary
-orchestrator for a cross-Task conflict, upstream return, Owner decision, or issue outside its
-brief.
+not directly from the human Owner. A child created by a Commander returns to that Commander; a
+child created by the primary orchestrator returns to the primary orchestrator. Inside
+`run-task`, a Runner child returns to its Runner; the Runner resolves in-Task facts or sends a
+structured `needs_commander` event to the primary orchestrator for a cross-Task conflict,
+upstream return, Owner decision, or issue outside its brief.
 
 When a Commander returns `ask_owner`, the primary orchestrator relays that question unchanged
 and returns the Owner's answer verbatim to the same Commander. A missing external-operation
@@ -139,10 +142,11 @@ while its fixed candidate, applicable authority, scope, checks, and environment-
 inputs remain unchanged. Otherwise the surface is invalid and needs a new brief and agent.
 
 For overlapping shared-baseline or target-Milestone scope, only one primary orchestrator owns
-shared-state mutation at a time. Outside `run-task`, that primary orchestrator integrates.
-Inside `run-task`, only its current Commander holding the existing integration lock may change
-the shared baseline. Other sessions and Runners stay read-only toward that baseline or use
-their assigned isolated, non-overlapping workspaces.
+shared-state mutation at a time. When the active workflow assigns integration to a Commander,
+only that current Commander may change the shared baseline under the owning workflow and
+repository policy; `run-task` additionally requires its existing integration lock. Otherwise
+the primary orchestrator integrates. Other sessions and Runners stay read-only toward that
+baseline or use their assigned isolated, non-overlapping workspaces.
 
 Fresh identity is not a reason to dispatch every role. The router and owning stage select only
 roles needed by the changed evidence surface.
@@ -162,21 +166,29 @@ Every brief contains only the changing facts needed for its dispatch:
 Do not repeat the selected profile's stable role rules, model, reasoning effort, or sandbox in
 the brief. The caller records the returned platform Agent ID after creation.
 
+Resolved workflow selections belong in the brief; the selected procedures do not. Do not copy
+the selected role's child-agent lifecycle, RED/GREEN, monitoring, Review, assurance-execution,
+or completion procedure into the brief.
+
+Caller-only mechanical setup stays outside the agent brief. When a Commander requires the
+primary orchestrator to prepare a Runner workspace, it returns that setup as a separate
+instruction. The Runner brief contains the assigned repository, workspace, base, and branch
+facts and remains unchanged after successful setup. If setup fails, return the exact failure
+to the same Commander without creating the Runner.
+
 The archive-root exclusion applies to every role. Generated context and indexes honor it. No
 agent reads, cites, or uses archived documents as active authority, context, or evidence. If
 current work needs archived meaning, return it to the owning active authority first.
 
 The brief may name registered skills or available tools required for the task. Put resolved
-workflow decisions, including an assurance classification, directly in the brief instead of
-passing another Skill's internal resource path. Do not put credentials, telemetry
-instructions, unrelated history, or another protocol document in the brief.
+workflow decisions, including an assurance classification or explicit independent-review
+requirement, directly in the brief instead of passing another Skill's internal resource path.
+Do not put credentials, telemetry instructions, unrelated history, or another protocol
+document in the brief.
 
-For an upstream semantic document candidate outside `run-task`, the primary orchestrator
+For an upstream semantic document candidate, its responsible primary orchestrator or Commander
 resolves the objective, authority, accepted Owner meaning, exact write boundary, checks, and
-return gate before creating the Author. When the candidate is required by a live run-task
-matter, its Commander performs those decisions under the owning Skill and directly creates the
-needed Author and any other role selected by that Skill. The Author does not decide unresolved
-meaning in either path.
+return gate before creating the Author. The Author does not decide unresolved meaning.
 
 For initial `run-task` entry, the primary orchestrator does not read the Task set to compute
 readiness first. It creates one Commander with the Owner instruction, repository, and
@@ -200,13 +212,12 @@ concurrent writers; a single writer may use the current workspace. Require a res
 baseline and expected HEAD only when concurrency or candidate handoff makes identity material.
 
 The primary orchestrator mechanically creates or assigns each isolated Runner or document
-workspace from the accepted brief and records enough durable Git or platform metadata to
-prove which unfinished dispatch owns it. For an upstream candidate raised by a live run-task
-matter, it may provision the document workspace only from the Commander's exact instruction;
-the Commander keeps orchestration and decision authority. Never infer ownership from a path
-pattern. A Runner owns its Task workspace while its dispatch is active, under Review or
-correction, waiting on a Commander, or queued for integration. Its child writers use that same
-assignment one at a time.
+workspace from the accepted brief and records enough durable Git or platform metadata to prove
+which unfinished dispatch owns it. When a Commander owns the matter, the primary orchestrator
+may provision that workspace only from the Commander's exact instruction; the Commander keeps
+orchestration and decision authority. Never infer ownership from a path pattern. A Runner owns
+its Task workspace while its dispatch is active, under Review or correction, waiting on a
+Commander, or queued for integration. Its child writers use that same assignment one at a time.
 
 For each repository that a Git-backed Task changes, keep one Task-named branch, at most one
 active pull request, and at most one writable worktree. The branch and pull request belong to
@@ -275,10 +286,9 @@ The writer completes self-checks before committing a fixed candidate. Self-check
 the writer's explanation are evidence, not review or acceptance. Freeze the candidate while a
 selected independent Critic or Reviewer works.
 
-For upstream semantic documents, the primary orchestrator applies the router's Critic
-necessity gate outside `run-task`. A Commander does so when an upstream candidate belongs to
-its live run-task matter. Meaning-preserving mechanical edits require machine checks, not a
-Critic. Each selected Critic returns to that caller, which adjudicates findings and sends an
+For upstream semantic documents, the responsible primary orchestrator or Commander applies the
+router's Critic necessity gate. Meaning-preserving mechanical edits require machine checks, not
+a Critic. Each selected Critic returns to that caller, which adjudicates findings and sends an
 accepted in-scope repair to the same Author. A semantic batch has at most one Critic round;
 after a fix, the same caller checks the exact repair and affected machine evidence.
 
@@ -310,14 +320,16 @@ semantic review.
 
 ## Role completion
 
-- **Commander** returns complete Runner briefs, an interim Owner or Runner action, or one
-  applied bounded result. Interim waits keep the same Commander active.
+- **Commander** returns the assigned role dispatches or decisions, complete Runner briefs when
+  applicable, an interim Owner or child action, or one applied bounded result. Interim waits
+  keep the same Commander active.
 - **Runner** returns substantive Task state, `needs_commander`, `ready_for_integration`, or its
   integrated completion result; child dispatch detail stays inside the Runner.
 - **Author** returns its committed candidate checkpoint, self-check evidence, deviations, and
   material risk, then remains available for an in-scope fix until the objective ends.
 - **Coder** returns its committed complete candidate checkpoint and evidence to its Runner,
-  then remains available for an in-scope fix until the Task candidate is accepted or invalid.
+  remains available for an in-scope fix, and, after the Runner supplies accepted closure facts,
+  commits the final Task-local documentation and status candidate.
 - **Critic** is read-only and returns material findings or explicit no-findings coverage for
   its fixed surface.
 - **Reviewer** returns the same for its fixed surface. It may run checks that write declared

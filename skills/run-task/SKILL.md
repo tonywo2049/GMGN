@@ -12,10 +12,10 @@ interface, data, error, state, recovery, security, or compatibility decision, do
 Runner or Coder decide it: pause only the impact cone and send the evidence through a
 Commander, which invokes the owning Skill inside the same bounded matter. Never expose an
 unreviewed or unchecked implementation combination as the shared baseline. For RED-gated work,
-the Coder records a valid test-only RED checkpoint against unchanged production behavior
+the Coder records a valid production-unchanged RED checkpoint against unchanged behavior
 before production implementation; no separate approval of that checkpoint is required.</HARD-GATE>
 
-Only this stage uses the Commander-and-Runner hub-and-spoke flow. When instructed to advance
+This stage requires the Commander-and-Runner hub-and-spoke flow. When instructed to advance
 `run-task`, the primary orchestrator does not first read and analyze the ready set. It creates
 one Commander with the Owner instruction, repository, and observable entry points. The
 Commander reads current authority and state, computes the dependency-aware ready set, and
@@ -26,8 +26,8 @@ A Commander may directly create any defined named Agent that the current workflo
 it. The normal ready-set path still leaves Runner creation and resumption to the primary
 orchestrator. When an active matter needs an upstream semantic change, the same Commander
 invokes the owning Skill, creates the roles that Skill requires, and returns to run-task after
-the upstream candidate is accepted and integrated. This does not make Commander a role for
-ordinary work outside `run-task`.
+the upstream candidate is accepted and integrated. Commander use in another stage follows that
+stage's owning workflow; Runner-based execution remains specific to this Skill.
 
 One Runner owns one Task and its assigned repository workspace set end to end. It directly
 creates any needed Coder, Researcher, and risk-triggered Verifier. It normally reviews the
@@ -36,24 +36,26 @@ Reviewer only when the Owner, applicable authority, this Skill, or the Commander
 explicitly requires that role. The Runner never creates a Commander, Author, another Runner,
 or an unnamed role.
 
-Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the
-verification contract, records applicable RED/GREEN checkpoints, implements the change, and
-produces related evidence. The Runner may write Review, assurance classification, Verifier
-result, Task status, final evidence, and other Task-execution document content. Neither decides
-upstream meaning or updates the shared baseline.
+Normal Task execution does not use an Author. The Coder creates or resumes Card/Log,
+mechanically updates only its accepted Task row's execution pointer and macro status, writes
+the verification contract, records applicable RED/GREEN checkpoints, implements the change,
+and produces related evidence. The Runner owns Review, finding adjudication, assurance
+classification, and Verifier decisions, then returns those exact closure facts to the same
+Coder for Task-local recording. Neither decides upstream meaning or updates the shared
+baseline.
 
 Every accepted Task row for the initiated Milestone enters execution when ready. Do not ask
 the Owner to confirm an execution set. Ask only when excluding or deferring a ready Task would
 change the accepted plan, or when an external operation lacks the shared authorization defined
 by the dispatch contract.
 
-## 1. Materialize or reopen Card and Log
+## 1. Materialize or reopen Card, Log, and Task execution state
 
 Creating the Task Card and Log from an accepted Task row requires no separate Owner
 confirmation. The Commander resolves the bounded Task objective and authority in the complete
 Runner brief. The Runner prepares an exact Coder brief; the Coder creates or resumes the Card,
-Log, verification contract, tests, implementation, and related execution evidence in one
-active dispatch.
+Log, exact Task-row execution state, verification contract, tests, implementation, and related
+execution evidence in one active dispatch.
 
 Before production implementation, create exactly two files for every newly materialized Task:
 
@@ -67,14 +69,16 @@ Before production implementation, create exactly two files for every newly mater
    final evidence summary when closed. Routine dispatch, waiting, unchanged state, and
    successful intermediate checks are not Log entries. Its structural fields and DocStar
    compatibility pointer follow the writing rules loaded through the registered `gmgn` Skill.
-3. After the Coder commits that preparation checkpoint and pauses, the Runner confirms it,
-   replaces the Task row's `execution: none` with the Card link, and sets its macro status to
-   `prepared`. The same Coder then continues implementation without another dispatch.
+3. The Coder replaces only the accepted Task row's `execution: none` with the Card link and
+   sets its macro status to `prepared`. It does not change that row's Task meaning, spec anchor,
+   or prerequisite, or any other row. This setup has no standalone preparation checkpoint,
+   return, pause, or Runner confirmation. Include it in the first applicable committed
+   checkpoint and continue the same dispatch.
 
 For a reopened Task, the Coder reuses the existing Card and Log and updates the Log current
-snapshot with the unfinished work. The Runner keeps the execution link and sets macro status
-to `prepared`. Keep Card unchanged unless an owning-stage revision changed its anchors or
-completion contract.
+snapshot with the unfinished work, keeps the execution link, and sets only that Task row's
+macro status to `prepared`. Keep Card unchanged unless an owning-stage revision changed its
+anchors or completion contract.
 
 The verification contract selects an executable oracle that fits the change:
 
@@ -107,8 +111,8 @@ semantic gap. Return an unresolved gap as `needs_commander` for routing to `writ
 `write-design`, or the owning upstream stage.
 
 Do not create `Verification.md`, `State.md`, a per-role Handoff, or one project-wide execution
-log. Run diff, link, and repository-required document checks before advancing the preparation
-candidate.
+log. Run diff, link, and repository-required document checks before production work without
+returning a separate preparation candidate.
 
 ## 2. Compute and refill the ready set
 
@@ -147,18 +151,28 @@ it ad hoc.
 
 ## 3. Prepare child dispatches and runtime tools
 
-Use the dispatch contract loaded through the registered `gmgn` Skill. A Commander supplies a
-complete Runner brief with the Task and Card anchors when they exist, exact Design Bundle and
-Contract anchors, objective, every changed repository and workspace, and, for Git-backed work,
-the accepted bases, stable Task branch names, shared-remote policy, and authorization. It also
-contains the allowed write boundary, known conflict and lock facts, required checks, and return
-gates. The primary orchestrator does not rewrite it. The Runner adds only Task-local facts
-learned inside its workspace and prepares exact child briefs.
+Use the dispatch contract loaded through the registered `gmgn` Skill. A Commander return
+separates any caller-only mechanical workspace preparation from each complete Runner brief.
+The primary orchestrator applies that preparation before dispatch. If preparation fails, it
+returns the exact failure facts to the same Commander and does not start the Runner. After
+success, it creates the Runner with the Commander's brief unchanged.
 
-For RED-gated work, the initial Coder brief authorizes the complete test and production write
-boundary. Require the Coder to create and record the test-only RED checkpoint before production
-work, then continue directly to GREEN in the same dispatch. The Coder does not request or wait
-for separate RED approval from the Runner, Commander, or primary orchestrator.
+The Runner brief contains only this Task's changing facts and resolved selections: Task and
+Card anchors when they exist, exact Design Bundle and Contract anchors, objective, every
+changed repository and assigned workspace, accepted bases, stable Task branch names, shared-
+remote policy, authorization, allowed write boundary, known conflict and lock facts, required
+checks, expected evidence, and return gates. It may record an explicit independent-review
+requirement or assurance classification, but does not copy stable Runner/Coder, RED/GREEN,
+monitoring, Review, assurance-execution, or completion procedures. The Runner adds only Task-
+local facts learned inside its workspace and prepares exact child briefs.
+
+The initial Coder brief names the exact accepted Task row and limits its `Task.md` write to
+`execution` and macro `status`. For RED-gated work, it authorizes the complete Task-local
+document, test, and production write boundary. Require the Coder to create and record the
+production-unchanged RED checkpoint before production work, then continue directly to GREEN
+in the same dispatch. The Coder does not request or wait for separate RED approval from the
+Runner, Commander, or primary orchestrator, and does not return an interim RED checkpoint for
+confirmation.
 
 Authorization and missing-information pauses follow the dispatch contract. The Runner resolves
 Task-local facts; it returns a structured `needs_commander` event for cross-Task or shared-
@@ -199,30 +213,34 @@ any pause, handoff, or pull-request update. A replacement Runner resumes the sam
 pull request. Do not create per-Coder, per-review, per-repair, or per-commit branches or pull
 requests.
 
-For RED-gated work, the Coder first changes only tests and test-only support, commits that
-test-only checkpoint locally, runs the prepared target command against unchanged production
-behavior, and confirms that it reaches the approved boundary and fails for the expected reason.
+For RED-gated work, the Coder first changes only Task-local execution documents, tests, and
+test-only support, commits that production-unchanged checkpoint locally, runs the prepared
+target command against unchanged production behavior, and confirms that it reaches the
+approved boundary and fails for the expected reason. The checkpoint may include Card, Log,
+and the exact Task-row execution/status update, but no production implementation.
 The RED run must expose prepared failing coverage for every changed behavior; use targeted
 cases when an earlier failure would mask a later one. If the test or failure is invalid, the
 Coder corrects only test scope and repeats RED before production work. If it exposes an
 authority gap, return exact evidence to the Runner, which emits `needs_commander` and waits.
-Otherwise record the checkpoint reference, replay command, exit code, and target failure and
-continue without a separate review or authorization step.
+Otherwise record the checkpoint reference, replay command, exit code, and target failure,
+without pausing or returning it to the Runner, and continue directly to GREEN.
 
 After recording RED, freeze target tests and every helper that can affect their verdict. The
 Coder implements the smallest sufficient production change and obtains GREEN with the same
 target command before required regression checks. Any result-affecting target-test change
-invalidates RED evidence. Stop production work, recreate the test-only checkpoint against the
-original production baseline, record valid RED again, and then continue. Never delete, skip,
-weaken, bypass, or move production logic into a test to obtain GREEN.
+invalidates RED evidence. Stop production work, recreate the production-unchanged checkpoint
+against the original production baseline, record valid RED again, and then continue. Never
+delete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.
 
 After the first GREEN, refactor only to correct a concrete structure problem. When
 refactoring, retain a pre-refactor GREEN checkpoint and rerun the same target and required
 regression checks; otherwise skip refactoring without creating another checkpoint.
 
-A Coder writes only assigned scope and the Card write set. It never edits shared
-Design/Contract authority, `Task.md`, the integration queue, shared baseline, or remote state.
-It follows the Card verification contract, loads required tools, implements the smallest
+A Coder writes only assigned scope and the Card write set. It may create or update Card/Log and
+change only its exact accepted Task row's execution pointer and macro status. It never changes
+that row's Task meaning, spec anchor, prerequisite, or any other Task row, and never edits
+shared Design/Contract authority, the integration queue, shared baseline, or remote state. It
+follows the Card verification contract, loads required tools, implements the smallest
 sufficient change without weakening required tests, validation, error handling, security,
 accessibility, or the real production path, and runs prepared checks.
 
@@ -298,8 +316,8 @@ affected by the finding or fix without automatically creating another Reviewer o
 If a fix changes approved behavior, scope, interface authority, Task objective, write boundary,
 or other upstream meaning, the Runner returns `needs_commander` instead of treating it as an
 in-scope repair. Non-blocking suggestions do not reopen an acceptable candidate. The Runner
-records the reviewed anchor, finding and ruling, exact fix delta, commands/results, and post-
-fix checks in final evidence.
+retains the reviewed anchor, finding and ruling, exact fix delta, commands/results, and post-
+fix checks as closure facts for the same Coder.
 
 ## 6. Add a Verifier only for recorded risk
 
@@ -307,8 +325,8 @@ Ordinary deterministic local execution belongs to the Runner; Coder output remai
 evidence. The Runner applies `not-required` or `required:<trigger>` mechanically when the
 current assurance policy and recorded facts make classification explicit. It resolves a
 Task-local judgment and returns any cross-Task, shared-authority, or Owner decision as
-`needs_commander`. Record the classification in Log. Do not dispatch a Verifier before
-relevant Review blockers clear.
+`needs_commander`. Keep the classification as a closure fact for the same Coder to record in
+Log. Do not dispatch a Verifier before relevant Review blockers clear.
 
 When required, the Runner creates one fresh Verifier against the fixed final candidate. It
 runs only the minimum non-transferable or explicitly independent plan and returns exact
@@ -324,14 +342,16 @@ still applies.
 
 ## 7. Prepare and integrate the final candidate
 
-After Review blockers and any required Verifier clear, the Runner prepares one complete final
-candidate in its workspace. It contains the accepted implementation plus every tracked
-Task-execution closure change:
+After Review blockers and any required Verifier clear, the Runner sends the exact Review,
+finding, assurance, Verifier, and affected-check results to the same still-active Coder with
+one closure instruction. The Coder prepares one complete final candidate containing the
+accepted implementation plus every tracked Task-execution closure change:
 
 - write one final evidence summary in `Log.md` and set its current snapshot to closed;
 - keep `Card.md` unchanged as the stable contract;
 - set only the Task row's macro `status` to `closed` and keep its execution link; and
-- refresh affected AC traceability and existing integration pointers.
+- refresh only affected Task-local AC traceability and existing integration pointers allowed by
+  the brief.
 
 For RED-gated work, final evidence records the RED checkpoint, command, exit code, and target
 failure; the final GREEN candidate and same-command result; and either the pre-refactor GREEN
@@ -344,9 +364,13 @@ implementation or verification checkpoint rather than attempting to write that c
 reference into `Log.md`. The pull-request head, host checks, and Commander integration return
 bind the final frozen commit outside that commit's content.
 
-The Runner commits and freezes that complete candidate without updating the shared baseline.
-For a repository with an authorized shared pull-request remote, it pushes the frozen Task
-branch and creates or marks ready the single pull request for that repository. An earlier
+The Coder commits that closure candidate locally and returns it to the Runner. The Runner
+checks the exact closure delta and affected document checks. If it changes implementation,
+tests, verdict-affecting helpers, Card meaning, or any Task field other than the authorized
+status/execution fields, invalidate and rerun the affected evidence instead of accepting it as
+closure-only. The Runner then freezes the complete candidate without updating the shared
+baseline. For a repository with an authorized shared pull-request remote, it pushes the frozen
+Task branch and creates or marks ready the single pull request for that repository. An earlier
 Draft pull request is allowed only when required host checks or requested early collaboration
 need it; continue with that same pull request. Its head must identify the frozen candidate.
 For a multi-repository Task, use one branch and pull request per changed repository and return

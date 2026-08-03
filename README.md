@@ -99,30 +99,32 @@ the reviewed implementation-matching commit as `closed`.
 | Eleven shared skills | Supported | Supported |
 | Invocation | Natural language or `$gmgn` | Natural language or `/gmgn:gmgn` |
 | Fixed implementation/test candidate review | Task Runner; independent Reviewer only when explicitly required | Task Runner; independent Reviewer only when explicitly required |
-| Deterministic local checks | Primary orchestrator outside `run-task`; Runner and a Commander during integration | Primary orchestrator outside `run-task`; Runner and a Commander during integration |
+| Deterministic local checks | Responsible primary orchestrator or Commander; Runner inside `run-task` | Responsible primary orchestrator or Commander; Runner inside `run-task` |
 | Risk-triggered final verification | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) | [Policy-defined](skills/gmgn/references/en/assurance-policy.json) |
 | Plugin manifest | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 Every delegated role follows the
-[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). Outside `run-task`, the
-primary orchestrator retains context, conducts Owner dialogue, makes semantic and workflow
-decisions, dispatches agents, adjudicates findings, and integrates. An independent Author must
-write every upstream authority, plan, or design candidate; meaning-preserving mechanical edits
-need only machine checks. The primary orchestrator dispatches a Critic only when its necessity
-gate identifies a material risk or cannot decide, then adjudicates that return. A Verifier
-remains risk-triggered under
+[dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md). Any stage may select one
+Commander for a bounded matter; otherwise the primary orchestrator makes its decisions,
+dispatches agents, adjudicates findings, and integrates. Only the primary orchestrator creates
+or resumes Commander and relays Owner messages. An independent Author must write every upstream
+authority, plan, or design candidate; meaning-preserving mechanical edits need only machine
+checks. The responsible primary orchestrator or Commander dispatches a Critic only when its
+necessity gate identifies a material risk or cannot decide, then adjudicates that return. A
+Verifier remains risk-triggered under
 [`gmgn-assurance-v3`](skills/gmgn/references/en/assurance-policy.json). The implementation
 review surface is defined by the
 [code-review contract](skills/gmgn/references/en/code-review.md).
 
-`Task.md` remains a Milestone index. Only `run-task` uses the Commander-and-Runner flow. The
+`Task.md` remains a Milestone index. `run-task` requires the Commander-and-Runner flow. The
 primary session first creates a Commander without precomputing the ready set; that Commander
 reads current authority and returns complete briefs for one Runner per selected Task. Each
 Runner owns its Task repository workspace set, directly manages its Coder and any needed
 Researcher or Verifier, and normally reviews the fixed implementation/test candidate itself.
-Coder creates or resumes Card/Log, verification contract, RED/GREEN checkpoints,
-implementation, and related evidence. Runner prepares the final Task candidate. When it
-reports `ready_for_integration`,
+Coder creates or resumes Card/Log, updates only its accepted Task row's execution pointer and
+status, and produces RED/GREEN implementation evidence without returning a valid RED for
+confirmation. Runner decides Review and assurance, then returns exact closure facts to that
+same Coder before freezing the final Task candidate. When it reports `ready_for_integration`,
 the primary session creates one Commander to lock, synchronize, identify, check, and update the
 shared baseline; it does not repeat integration or semantic review. A content-changing rebase,
 conflict resolution, or Commander edit invalidates affected candidate-bound evidence and

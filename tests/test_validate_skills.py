@@ -215,8 +215,12 @@ class ValidateSkillsTests(unittest.TestCase):
         # This protects approved Skill text; it is not task-level RED evidence.
         cases = (
             (
-                "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log, writes the",
+                "Normal Task execution does not use an Author. The Coder creates or resumes Card/Log,\nmechanically updates only its accepted Task row's execution pointer and macro status",
                 "the primary orchestrator may implement one lane",
+            ),
+            (
+                "This setup has no standalone preparation checkpoint",
+                "The Coder returns a preparation checkpoint for Runner confirmation",
             ),
             (
                 "The Coder encodes the accepted criteria; it does not define acceptance meaning",
@@ -227,8 +231,8 @@ class ValidateSkillsTests(unittest.TestCase):
                 "behavior TDD evidence",
             ),
             (
-                "The Coder does not request or wait\nfor separate RED approval from the Runner, Commander, or primary orchestrator.",
-                "The Coder waits for separate RED approval.",
+                "The Coder does not request or wait for separate RED approval from the\nRunner, Commander, or primary orchestrator, and does not return an interim RED checkpoint for\nconfirmation.",
+                "The Coder returns RED and waits for Runner confirmation.",
             ),
             (
                 "Any result-affecting target-test change\ninvalidates RED evidence",
@@ -264,12 +268,15 @@ class ValidateSkillsTests(unittest.TestCase):
                 "run-task 关键执行控制",
             ),
             (
-                "test-only RED and direct continuation",
+                "production-unchanged RED and direct continuation",
                 "skills/run-task/SKILL.md",
-                "For RED-gated work, the initial Coder brief authorizes the complete test and production write\n"
-                "boundary. Require the Coder to create and record the test-only RED checkpoint before production\n"
-                "work, then continue directly to GREEN in the same dispatch. The Coder does not request or wait\n"
-                "for separate RED approval from the Runner, Commander, or primary orchestrator.",
+                "The initial Coder brief names the exact accepted Task row and limits its `Task.md` write to\n"
+                "`execution` and macro `status`. For RED-gated work, it authorizes the complete Task-local\n"
+                "document, test, and production write boundary. Require the Coder to create and record the\n"
+                "production-unchanged RED checkpoint before production work, then continue directly to GREEN\n"
+                "in the same dispatch. The Coder does not request or wait for separate RED approval from the\n"
+                "Runner, Commander, or primary orchestrator, and does not return an interim RED checkpoint for\n"
+                "confirmation.",
                 "For RED-gated work, implementation may proceed before later validation.",
                 "run-task 关键执行控制",
             ),
@@ -279,9 +286,9 @@ class ValidateSkillsTests(unittest.TestCase):
                 "After recording RED, freeze target tests and every helper that can affect their verdict. The\n"
                 "Coder implements the smallest sufficient production change and obtains GREEN with the same\n"
                 "target command before required regression checks. Any result-affecting target-test change\n"
-                "invalidates RED evidence. Stop production work, recreate the test-only checkpoint against the\n"
-                "original production baseline, record valid RED again, and then continue. Never delete, skip,\n"
-                "weaken, bypass, or move production logic into a test to obtain GREEN.",
+                "invalidates RED evidence. Stop production work, recreate the production-unchanged checkpoint\n"
+                "against the original production baseline, record valid RED again, and then continue. Never\n"
+                "delete, skip, weaken, bypass, or move production logic into a test to obtain GREEN.",
                 "After recording RED, implementation may alter tests as needed.",
                 "run-task 关键执行控制",
             ),
@@ -428,6 +435,12 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Resolved workflow selections belong in the brief; the selected procedures do not.",
+                "Every brief repeats the selected workflow procedures.",
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "It does not synthesize, compare, infer, recommend, or select.",
                 "Researcher** analyzes and recommends solutions",
                 "Commander/Runner 权威边界",
@@ -500,6 +513,12 @@ class ValidateSkillsTests(unittest.TestCase):
                 "scan only the separately confirmed execution\nset",
                 "run-task 关键执行控制",
             ),
+            (
+                "skills/run-task/SKILL.md",
+                "A Commander return\nseparates any caller-only mechanical workspace preparation from each complete Runner brief.",
+                "A Commander copies caller-only workspace preparation into every Runner brief.",
+                "run-task 关键执行控制",
+            ),
         )
         for relative, old, new, expected in cases:
             with self.subTest(relative=relative, rule=old):
@@ -536,6 +555,10 @@ class ValidateSkillsTests(unittest.TestCase):
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "Every external operation needs separate authorization",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Commander may be used only in run-task",
             ),
             (
                 "skills/run-task/SKILL.md",
@@ -829,6 +852,16 @@ class ValidateSkillsTests(unittest.TestCase):
                 "把上游工作退回主 Session",
             ),
             (
+                ".codex/agents/gmgn_commander.toml",
+                "当前 Workflow 决定你所在的阶段和具体职责",
+                "Commander 只能用于 run-task",
+            ),
+            (
+                ".codex/agents/gmgn_commander.toml",
+                "将准备指令与 Runner 任务书分开返回",
+                "将准备指令复制进 Runner 任务书",
+            ),
+            (
                 ".codex/agents/gmgn_runner.toml",
                 "不得创建 Commander",
                 "可以创建 Commander",
@@ -839,9 +872,24 @@ class ValidateSkillsTests(unittest.TestCase):
                 "可以更新共享基线",
             ),
             (
+                ".codex/agents/gmgn_runner.toml",
+                "把精确 closure facts 返回同一 Coder 写入 Log 和 Task 状态",
+                "Runner 自己写入 Log 和 Task 状态",
+            ),
+            (
                 ".codex/agents/gmgn_coder.toml",
                 "不执行远端写入",
                 "执行远端写入",
+            ),
+            (
+                ".codex/agents/gmgn_coder.toml",
+                "Task.md 只改自己行的 execution/status",
+                "Task.md 可以修改任意任务行",
+            ),
+            (
+                ".codex/agents/gmgn_coder.toml",
+                "有效 RED 记录后不返回确认，直接继续 GREEN",
+                "RED 后返回 Runner 等待确认",
             ),
         )
         for relative, old, new in cases:
@@ -859,8 +907,8 @@ class ValidateSkillsTests(unittest.TestCase):
         cases = (
             (
                 "skills/gmgn/SKILL.md",
-                "Only `run-task` uses a Commander for bounded global judgment and one Runner per Task.",
-                "Every stage uses a Commander for global judgment.",
+                "Any stage may select one Commander for a bounded planning, scheduling, conflict, upstream-\nreturn, or integration matter.",
+                "Commander may be used only in run-task.",
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
@@ -871,6 +919,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "A Runner never creates a Commander, Author, another Runner, or any unnamed role.",
                 "A Runner may create a Commander, Author, another Runner, or an unnamed role.",
+            ),
+            (
+                "agents/commander.md",
+                "keep caller-only mechanical workspace setup separate from\neach Runner brief.",
+                "copy caller-only mechanical workspace setup into\neach Runner brief.",
             ),
             (
                 "skills/gmgn/references/en/code-review.md",

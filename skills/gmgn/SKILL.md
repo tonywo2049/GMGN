@@ -51,26 +51,33 @@ and resume the stage that raised it after owner approval and affected propagatio
 
 ## Roles and independent checks
 
-The primary orchestrator retains complete context. Outside `run-task`, it conducts semantic
-Owner dialogue, analyzes evidence, makes workflow and semantic decisions, schedules agents,
-adjudicates Critic and Reviewer findings, integrates accepted candidates, and updates shared
-state. It may perform meaning-preserving mechanical edits, but it never writes an upstream
+The primary orchestrator retains complete context, routes stages, conducts semantic Owner
+dialogue, manages workspaces, and updates shared state. When the active workflow does not select
+a Commander for a bounded matter, it also analyzes evidence, makes workflow and semantic
+decisions, schedules agents, adjudicates Critic and Reviewer findings, and integrates accepted
+candidates. It may perform meaning-preserving mechanical edits, but it never writes an upstream
 authority, plan, or design candidate. Creation or semantic revision of WhitePaper, Decision,
 ROADMAP, Goal, Requirement, Design, Task, or equivalent authority requires an independent
 Author. Do not create an Author when no candidate is needed.
 
-Only `run-task` uses a Commander for bounded global judgment and one Runner per Task. The
-primary orchestrator creates or resumes Commanders and mechanically creates Runners from their
-complete briefs. A Commander may directly create any named Agent assigned by the active
-workflow. If its live run-task matter requires an upstream change, it invokes that owning Skill
-and creates its required roles inside the same dispatch. This exception does not use Commander
-for ordinary non-run-task work. Delegated roles follow the dispatch contract.
+Any stage may select one Commander for a bounded planning, scheduling, conflict, upstream-
+return, or integration matter. The active workflow, not the role profile, makes that selection;
+do not create a Commander merely because a stage exists. Only the primary orchestrator creates,
+resumes, or retires it. While selected, the Commander applies the owning Skill, makes the
+assigned decisions, directly creates and monitors the named Agents selected by that workflow,
+adjudicates their findings, and integrates the accepted candidate. The primary orchestrator
+keeps exact Owner relay and instructed mechanical actions. `run-task` requires Commander for
+its ready-set and integration matters and separately defines one Runner per Task; other stages
+may use Commander without using Runner. When an owning Skill assigns one of those duties to the
+primary orchestrator, a selected Commander performs it for its bounded matter; direct Owner
+relay and explicit mechanical actions remain with the primary orchestrator. Delegated roles
+follow the dispatch contract.
 
 Select the check path by the surface that changed:
 
 | Changed surface | Check path |
 |---|---|
-| Fixed WhitePaper/Decision/ROADMAP/Goal/Requirement/Design/Task candidate | Primary orchestrator applies the Critic gate normally; the active Commander does so for an upstream candidate inside its run-task matter |
+| Fixed WhitePaper/Decision/ROADMAP/Goal/Requirement/Design/Task candidate | Its responsible primary orchestrator or Commander applies the Critic gate |
 | Fixed complete implementation/test candidate in normal `run-task` | Its Runner reviews under `code-review`; independent Reviewer only when explicitly required |
 | Recorded `required:<trigger>` classification | Fresh Verifier after relevant review blockers clear |
 | Equivalent links, formatting, pointers, or status | Machine checks only |
@@ -85,11 +92,10 @@ mechanical edit never needs a Critic.
 Critic and Reviewer do not maximize finding count. A valid return may contain no findings.
 Report an issue only when leaving it unresolved creates concrete material harm, no accepted
 effective fallback contains that harm, and a smallest sufficient correction can be stated.
-Each semantic candidate batch has at most one Critic round. The primary orchestrator adjudicates
-document findings outside `run-task`; the active Commander adjudicates an upstream candidate in
-its run-task matter; and the Runner adjudicates in-Task implementation findings. An accepted
-in-scope repair returns to the same Author or Coder while objective and write boundary remain
-unchanged.
+Each semantic candidate batch has at most one Critic round. The responsible primary
+orchestrator or Commander adjudicates document findings; the Runner adjudicates in-Task
+implementation findings. An accepted in-scope repair returns to the same Author or Coder while
+objective and write boundary remain unchanged.
 After a fix, the adjudicating caller inspects the exact delta and reruns only affected checks.
 An omitted stage-owned decision required by an accepted finding remains a repair in the same
 batch. Only a change to accepted or upstream authority or a material expansion of the prepared
@@ -97,8 +103,9 @@ objective or write boundary creates a separately scoped batch.
 
 A Verifier is exceptional. Apply the final-candidate classification from the
 [assurance policy](references/en/assurance-policy.json) mechanically when recorded facts make
-it explicit. The primary orchestrator owns classification outside `run-task`; the Runner owns
-it for its Task and returns any cross-Task or authority question through the Commander path.
+it explicit. The responsible primary orchestrator or Commander owns classification outside
+`run-task`; the Runner owns it for its Task and returns any cross-Task or authority question
+through the Commander path.
 Use `not-required` or `required:<trigger>` and do not dispatch until relevant review blockers
 clear. The owning stage defines candidate timing and fix handling.
 
@@ -120,12 +127,11 @@ not restate those stage rules.
 
 ## Document candidates
 
-Outside `run-task`, the primary orchestrator conducts Owner dialogue, resolves the candidate
-meaning, and prepares one bounded Author brief only when the candidate is ready to write. For an
-upstream change raised by a live run-task matter, its Commander performs those actions under the
-owning Skill and sends any Owner question through the primary orchestrator unchanged. One
-independent Author creates, self-checks, commits, and revises that document candidate while its
-objective and write boundary remain unchanged. The Author's self-check is not review.
+The responsible primary orchestrator or Commander resolves the candidate meaning and prepares
+one bounded Author brief only when the candidate is ready to write. A Commander sends any Owner
+question through the primary orchestrator unchanged. One independent Author creates, self-
+checks, commits, and revises that document candidate while its objective and write boundary
+remain unchanged. The Author's self-check is not review.
 
 After the complete candidate is fixed, the same deciding caller checks identity, runs affected
 machine checks, applies the Critic necessity gate, adjudicates any Critic findings, and sends an
@@ -135,9 +141,8 @@ accepted or upstream authority changes or the prepared objective or write bounda
 expands. Meaning-preserving links, formatting, pointers, and state mirrors may be applied
 mechanically with machine checks only.
 
-The primary orchestrator integrates these document candidates outside `run-task`; the Commander
-directly integrates an upstream candidate belonging to its live run-task matter. Do not create
-an Integrator role.
+The same responsible primary orchestrator or Commander directly integrates an accepted document
+candidate. Do not create an Integrator role.
 
 ## Task execution
 
@@ -166,10 +171,10 @@ Route a semantic change to the single authority that owns it:
 | Task division, dependency, AC mapping, or execution-pointer meaning | `write-task` revision |
 
 The current D-ID takes precedence over the category rows below it. When no D-ID exists and no
-new Decision entry is selected, route the meaning to its normal stage authority. Outside
-`run-task`, the primary orchestrator performs that route. For a live run-task matter, its
-Commander invokes the owning Skill inside the same dispatch and resumes run-task after the
-upstream candidate is accepted and integrated.
+new Decision entry is selected, route the meaning to its normal stage authority. When no
+Commander is selected, the primary orchestrator performs that route directly; a selected
+Commander invokes the owning Skill inside the same dispatch. A run-task Commander resumes run-
+task after an affected upstream candidate is accepted and integrated.
 
 Start from the approved commit, record the semantic delta and impact cone, and update only
 affected authority, tasks, code, tests, evidence, and state. Meaning-preserving mechanical

@@ -70,24 +70,26 @@ Milestone 关账时再核对提供方、消费方、实现与证据，并记录�
 | 十一件共享 skill | 支持 | 支持 |
 | 自动触发与显式调用 | 自然语言或 `$gmgn` | 自然语言或 `/gmgn:gmgn` |
 | 固定实现/测试候选审查 | Task Runner；仅明确要求时使用独立 Reviewer | Task Runner；仅明确要求时使用独立 Reviewer |
-| 确定性本地检查 | `run-task` 外由主 session 执行，内部由 Runner 执行，集成时由 Commander 执行 | `run-task` 外由主 session 执行，内部由 Runner 执行，集成时由 Commander 执行 |
+| 确定性本地检查 | 由负责事项的主 session 或 Commander 执行；`run-task` 内由 Runner 执行 | 由负责事项的主 session 或 Commander 执行；`run-task` 内由 Runner 执行 |
 | 风险触发的最终验证 | [由政策定义](skills/gmgn/references/en/assurance-policy.json) | [由政策定义](skills/gmgn/references/en/assurance-policy.json) |
 | 平台清单 | `.codex-plugin/plugin.json` | `.claude-plugin/plugin.json` |
 
 每个受委派角色都遵循
-[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。`run-task` 之外，主 session 保留完整
-上下文，负责与负责人讨论、作出流程与语义决定、调度 Agent、裁定 finding 和集成。上游权威、计划
-与设计候选必须由独立 Author 撰写；等义机械修改只需机检。主 session 只有在 Critic 必要性门禁识别
-到实质风险或自己无法判断时才创建 Critic，并负责裁定返回。Verifier 仍由
+[派发契约](skills/gmgn/references/en/dispatch-and-handoff.md)。任一阶段都可以为一个有边界的事项选择
+Commander；未选择时仍由主 session 作出决定、调度 Agent、裁定 finding 和集成。Commander 只由主
+session 创建或恢复，负责人消息也由主 session 中继。上游权威、计划与设计候选必须由独立 Author
+撰写；等义机械修改只需机检。负责事项的主 session 或 Commander 只有在 Critic 必要性门禁识别到
+实质风险或自己无法判断时才创建 Critic，并负责裁定返回。Verifier 仍由
 [`gmgn-assurance-v3`](skills/gmgn/references/en/assurance-policy.json)按风险触发。实现审查范围由
 [代码审查契约](skills/gmgn/references/en/code-review.md)定义。
 
-`Task.md` 仍是 Milestone 索引。只有 `run-task` 使用 Commander-and-Runner 结构。主 session 不先
+`Task.md` 仍是 Milestone 索引。`run-task` 要求使用 Commander-and-Runner 结构。主 session 不先
 计算 ready set，直接创建 Commander；Commander 读取现行权威与状态，为每个选中的 Task 返回一份
 完整 Runner 任务书。每个 Runner 负责一个 Task 及其 workspace，直接管理 Coder 和按需的
 Researcher、Verifier，并通常自行审查固定实现/测试候选；多仓时 workspace 是对应仓库工作区集合。
-Coder 创建或恢复 Card/Log、验证契约、RED/GREEN checkpoint、实现与相关证据；Runner 准备最终
-Task 候选。Runner 回传
+Coder 创建或恢复 Card/Log，只更新自己 Task 行的 execution/status，并完成 RED/GREEN、实现与相关
+证据；有效 RED 不返回确认。Runner 决定 Review 和 assurance，再把精确 closure facts 交给同一
+Coder 写入，之后冻结最终 Task 候选。Runner 回传
 `ready_for_integration` 后，主 session 创建 Commander，由它取得锁、同步最新基线、确认候选、执行
 门禁并更新共享基线；主 session 不再重复集成或语义审查。会改变候选内容的 rebase、冲突处理或
 Commander 修改会使受影响证据失效，并回到同一 Runner 的门禁。如果 Task 暴露上游语义缺口，
