@@ -16,7 +16,7 @@ nature: normative
 
 | field | value |
 |---|---|
-| applicable decisions | [D-001](Decision.md), [D-002](Decision.md), [D-003](Decision.md), [D-004](Decision.md), [D-005](Decision.md) |
+| applicable decisions | [D-001](Decision.md), [D-002](Decision.md), [D-003](Decision.md), [D-004](Decision.md), [D-005](Decision.md), [D-006](Decision.md) |
 | horizon | `now` |
 | relative priority | `1` |
 | prerequisites | `none` |

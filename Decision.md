@@ -3,7 +3,7 @@ locale: en
 purpose: Record the current project rulings that govern execution telemetry collection.
 upstream: [GMGN](GMGN.md)
 downstream: [Decision Log](DecisionLog.md), [ROADMAP](ROADMAP.md)
-status: draft
+status: approved
 type: decision
 nature: normative
 ---

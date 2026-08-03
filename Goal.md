@@ -16,7 +16,7 @@ nature: normative
    are attributable through end-to-end correlated collection. Sources:
    [M1 outcome](ROADMAP.md#outcome-and-allocation-value),
    [M1 deliverable 1](ROADMAP.md#deliverables), [M1 success signal](ROADMAP.md#success-signal),
-   [D-001](Decision.md), and [D-003](Decision.md).
+   [D-001](Decision.md), [D-003](Decision.md), and [D-006](Decision.md).
 2. Linux and macOS `exec_command` process observation meets the fidelity already decided for
    each platform, every run exposes its observation quality, and unknown omissions remain
    unknown. Sources: [M1 deliverable 2](ROADMAP.md#deliverables),

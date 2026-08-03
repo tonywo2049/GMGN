@@ -17,3 +17,4 @@ nature: descriptive
 | 2026-08-03 | D-003 | created | Set process observation granularity. | Separate observed processes from inferred commands. | 258b |
 | 2026-08-03 | D-004 | created | Set platform-specific observation fidelity. | Keep coverage claims within observer evidence. | 258b |
 | 2026-08-03 | D-005 | created | Required telemetry to preserve execution semantics. | Keep telemetry failures non-blocking and behavior-neutral. | 258b |
+| 2026-08-03 | D-006 | created | Set the agent transfer telemetry boundary. | Preserve analyzable transfers without collecting unsafe or hidden content. | 9da9 |
