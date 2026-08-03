@@ -2,7 +2,7 @@
 locale: en
 purpose: Define GMGN roles, document chains, hard gates, independent review, and closure discipline.
 upstream: none
-downstream: [writing rules](skills/gmgn/references/en/writing-rules.md), [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md), [code-review contract](skills/gmgn/references/en/code-review.md)
+downstream: [project decisions](Decision.md), [writing rules](skills/gmgn/references/en/writing-rules.md), [dispatch contract](skills/gmgn/references/en/dispatch-and-handoff.md), [code-review contract](skills/gmgn/references/en/code-review.md)
 status: approved
 type: whitepaper
 nature: normative
