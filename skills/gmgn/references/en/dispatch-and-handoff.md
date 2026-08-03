@@ -80,6 +80,9 @@ Runners do not communicate directly. Their child-agent calls and routine lifecyc
 stay inside the Runner; only structured substantive state or results go directly to the
 primary orchestrator.
 
+Author, Coder, Critic, Researcher, Reviewer, and Verifier do not create agents. This is a
+workflow role boundary; platform agent availability does not grant broader creation authority.
+
 One Commander owns one bounded global run-task matter. `ask_owner` and waiting for a Runner
 repair or required check are interim. Resume the same Commander until that matter is applied,
 cancelled, invalidated, or hard-fails. A later matter gets a new Commander. Do not keep a
@@ -99,12 +102,16 @@ it again after a GMGN upgrade. Installation failure blocks Codex delegation and 
 reported.
 
 Create the role by its exact installed name: `gmgn_commander`, `gmgn_runner`, `gmgn_author`,
-`gmgn_coder`, `gmgn_critic`, `gmgn_reviewer`, `gmgn_verifier`, or `gmgn_researcher`. In the
-`spawn_agent` task message, say to use that named Agent and provide the bounded task. Do not use
-`task_name` as a profile selector. Model, reasoning effort, sandbox, and stable role
-instructions come from the installed TOML and are not repeated in the brief or per-dispatch
-arguments. If the named Agent or its configured runtime is unavailable, report the limitation
-before dispatch.
+`gmgn_coder`, `gmgn_critic`, `gmgn_reviewer`, `gmgn_verifier`, or `gmgn_researcher`. Select that
+exact name with Codex's named-Agent selector (`agent_type` in runtimes that expose the field),
+set `fork_turns="none"`, and also name the selected Agent in the `spawn_agent` task message.
+`task_name` is only the dispatch instance label; do not use it as a profile selector.
+Model, reasoning effort, sandbox, and stable role instructions come from the installed TOML
+and are not repeated in the brief or per-dispatch arguments. The TOML sandbox is the requested
+runtime mode; active parent permissions plus the workflow and brief remain the operative
+boundaries.
+If the named Agent or its configured runtime is unavailable, report the limitation before
+dispatch.
 
 ## Authorization and interim questions
 

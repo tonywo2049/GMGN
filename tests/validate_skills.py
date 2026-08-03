@@ -172,8 +172,11 @@ RUNTIME_SELECTION_CONTROLS = (
     "`scripts/install_codex_agents.py`",
     "`CODEX_HOME/agents`",
     "Create the role by its exact installed name: `gmgn_commander`",
-    "Do not use\n`task_name` as a profile selector",
-    "Model, reasoning effort, sandbox, and stable role\ninstructions come from the installed TOML",
+    "named-Agent selector (`agent_type` in runtimes that expose the field)",
+    "set `fork_turns=\"none\"`",
+    "`task_name` is only the dispatch instance label; do not use it as a profile selector",
+    "Model, reasoning effort, sandbox, and stable role instructions come from the installed TOML",
+    "The TOML sandbox is the requested\nruntime mode; active parent permissions plus the workflow and brief remain the operative\nboundaries.",
 )
 DISPATCH_LIFECYCLE_CONTROLS = (
     "An authorization request,\nmissing-information request, Owner question, candidate checkpoint, or required wait is\ninterim",
@@ -190,6 +193,8 @@ DISPATCH_ROLE_PROFILE_CONTROLS = (
     "These are the only GMGN agent roles.",
     "A task name or `dispatch_id` distinguishes\ninstances but never creates a role variant.",
     "The selected platform profile\nsupplies stable role rules; the brief supplies only this dispatch's changing facts.",
+    "Author, Coder, Critic, Researcher, Reviewer, and Verifier do not create agents.",
+    "This is a\nworkflow role boundary; platform agent availability does not grant broader creation authority.",
     "On Codex, install and invoke the exact `gmgn_*` Agent name",
     "load `agents/<role>.md` for the\nselected role.",
 )
@@ -367,6 +372,7 @@ ROLE_PROFILE_CONTROLS = {
         "正常 run-task",
         "不属于 Author",
         "返回直接调用者",
+        "不创建其他 Agent",
     ),
     "coder": (
         "最小充分候选",
@@ -375,17 +381,20 @@ ROLE_PROFILE_CONTROLS = {
         "不修改共享权威或共享基线",
         "不执行远端写入",
         "返回直接调用者",
+        "不创建其他 Agent",
     ),
     "researcher": (
         "逐来源证据、版本或日期、缺失信息和实质限制",
         "不修改项目文件",
         "不替调用者作跨来源比较、方案推荐、Design 选择或最终决定",
+        "不创建其他 Agent",
     ),
     "verifier": (
         "风险触发条件和最小验证计划",
         "不扩大计划",
         "不要修改 tracked 候选",
         "都不是通过",
+        "不创建其他 Agent",
     ),
     "critic": (
         "上游规范文档候选",
@@ -394,6 +403,7 @@ ROLE_PROFILE_CONTROLS = {
         "不编辑候选",
         "不审查实现代码",
         "不裁决自己的 finding",
+        "不创建其他 Agent",
     ),
     "reviewer": (
         "固定的实现与测试候选",
@@ -402,6 +412,7 @@ ROLE_PROFILE_CONTROLS = {
         "workspace-write 只用于运行检查",
         "不要主动修改 tracked 候选",
         "直接调用者负责裁定",
+        "不创建其他 Agent",
     ),
 }
 LEGACY_ROLE = "adjud" + "icator"

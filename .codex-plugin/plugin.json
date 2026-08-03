@@ -34,8 +34,7 @@
     "defaultPrompt": [
       "Use GMGN to turn my idea into an executable project.",
       "Use GMGN to determine the correct next step.",
-      "用 GMGN 判断这个项目下一步该做什么。",
-      "用 GMGN 按任务卡实现并完成审查。"
+      "用 GMGN 判断这个项目下一步该做什么。"
     ]
   }
 }

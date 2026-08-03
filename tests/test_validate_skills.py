@@ -410,7 +410,19 @@ class ValidateSkillsTests(unittest.TestCase):
             ),
             (
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
-                "Model, reasoning effort, sandbox, and stable role\ninstructions come from the installed TOML",
+                "named-Agent selector (`agent_type` in runtimes that expose the field)",
+                "task message alone without a named-Agent selection",
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                'set `fork_turns="none"`',
+                'set `fork_turns="all"`',
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Model, reasoning effort, sandbox, and stable role instructions come from the installed TOML",
                 "Model and reasoning effort are repeated in every brief",
                 "Commander/Runner 权威边界",
             ),
@@ -424,6 +436,18 @@ class ValidateSkillsTests(unittest.TestCase):
                 "skills/gmgn/references/en/dispatch-and-handoff.md",
                 "These are the only GMGN agent roles.",
                 "additional roles may be invented when useful",
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "Author, Coder, Critic, Researcher, Reviewer, and Verifier do not create agents.",
+                "Every role may create agents whenever the platform permits it.",
+                "Commander/Runner 权威边界",
+            ),
+            (
+                "skills/gmgn/references/en/dispatch-and-handoff.md",
+                "The TOML sandbox is the requested\nruntime mode; active parent permissions plus the workflow and brief remain the operative\nboundaries.",
+                "The TOML sandbox alone is the operative permission boundary.",
                 "Commander/Runner 权威边界",
             ),
             (
@@ -760,7 +784,7 @@ class ValidateSkillsTests(unittest.TestCase):
                 finally:
                     path.write_text(original, encoding="utf-8")
 
-    def test_rejects_leaf_profile_agent_creation_drift(self) -> None:
+    def test_rejects_leaf_profile_agent_setting_drift(self) -> None:
         for role in ("author", "coder", "researcher", "verifier", "critic", "reviewer"):
             relative = f".codex/agents/gmgn_{role}.toml"
             with self.subTest(relative=relative):
@@ -773,6 +797,22 @@ class ValidateSkillsTests(unittest.TestCase):
                 )
                 try:
                     self.assert_rejected("[agents].enabled 必须为 false")
+                finally:
+                    path.write_text(original, encoding="utf-8")
+
+    def test_rejects_leaf_profile_creation_instruction_drift(self) -> None:
+        for role in ("author", "coder", "researcher", "verifier", "critic", "reviewer"):
+            relative = f".codex/agents/gmgn_{role}.toml"
+            with self.subTest(relative=relative):
+                path = self.root / relative
+                original = path.read_text(encoding="utf-8")
+                self.assertIn("不创建其他 Agent", original)
+                path.write_text(
+                    original.replace("不创建其他 Agent", "可自行创建其他 Agent", 1),
+                    encoding="utf-8",
+                )
+                try:
+                    self.assert_rejected(f"{relative}: 角色边界")
                 finally:
                     path.write_text(original, encoding="utf-8")
 

@@ -6,7 +6,7 @@ sandbox_mode = "workspace-write"
 developer_instructions = """
 按照任务书指定的 GMGN Skill、权威和已决定含义，撰写或修订一份上游权威、计划或设计文档候选。只修改指定文档，不自行决定未决产品、需求、设计、验收或 Task 含义。
 
-正常 run-task 的 Card、Log、Review、实现证据和其他 Task-execution 内容不属于 Author。缺少决定性含义时返回直接调用者。完成候选、自检和指定检查，并在目标和写边界不变时处理同一候选的修订。
+正常 run-task 的 Card、Log、Review、实现证据和其他 Task-execution 内容不属于 Author。缺少决定性含义时返回直接调用者。不创建其他 Agent。完成候选、自检和指定检查，并在目标和写边界不变时处理同一候选的修订。
 """
 
 [agents]

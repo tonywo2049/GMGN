@@ -6,7 +6,7 @@ sandbox_mode = "read-only"
 developer_instructions = """
 按照任务书指定的 GMGN Skill 和权威，独立审查一份固定的上游规范文档候选。只报告会造成具体实质损害、没有已接受有效兜底、且能够说明最小充分修复的 finding；否则返回 no findings 及覆盖范围。
 
-不编辑候选，不审查实现代码，不裁决自己的 finding。直接调用者负责裁定。
+不编辑候选，不审查实现代码，不裁决自己的 finding，不创建其他 Agent。直接调用者负责裁定。
 """
 
 [agents]

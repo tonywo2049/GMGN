@@ -54,6 +54,7 @@ REQUIRED_PACKAGE_FILES = (
     Path("telemetry/dashboard.js"),
 )
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
+CODEX_DEFAULT_PROMPT_LIMIT = 3
 
 
 def validate_normative_layout(root: Path = ROOT) -> None:
@@ -179,6 +180,17 @@ def release_metadata(root: Path = ROOT) -> dict[str, Any]:
         key: load_release_json(root, key)
         for key in RELEASE_METADATA_PATHS
     }
+    codex_interface = documents["codex_manifest"].get("interface")
+    if isinstance(codex_interface, dict):
+        default_prompts = codex_interface.get("defaultPrompt")
+        if (
+            isinstance(default_prompts, list)
+            and len(default_prompts) > CODEX_DEFAULT_PROMPT_LIMIT
+        ):
+            raise ValueError(
+                "Codex interface.defaultPrompt 最多允许 "
+                f"{CODEX_DEFAULT_PROMPT_LIMIT} 项"
+            )
     codex_name, codex_version = manifest_identity(
         documents["codex_manifest"], RELEASE_METADATA_PATHS["codex_manifest"]
     )

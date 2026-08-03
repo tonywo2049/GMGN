@@ -391,6 +391,22 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertIn("四处发布版本不一致", result.stderr)
             self.assert_no_release_artifacts(output_dir)
 
+    def test_rejects_too_many_codex_default_prompts(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            copied_root = self.copied_repository(temporary)
+            manifest_path = copied_root / ".codex-plugin/plugin.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["interface"]["defaultPrompt"].append("Fourth prompt")
+            manifest_path.write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            output_dir = Path(temporary) / "dist"
+            result = self.run_copied_packager(copied_root, output_dir)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("interface.defaultPrompt 最多允许 3 项", result.stderr)
+            self.assert_no_release_artifacts(output_dir)
+
     def test_rejects_claude_marketplace_version_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             copied_root = self.copied_repository(temporary)
