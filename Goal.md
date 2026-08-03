@@ -3,7 +3,7 @@ locale: en
 purpose: Define the qualitative Close outcomes for M1 correlated and auditable telemetry.
 upstream: [ROADMAP](ROADMAP.md)
 downstream: none
-status: pending-approval
+status: approved
 type: goal
 nature: normative
 ---
