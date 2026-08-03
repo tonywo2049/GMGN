@@ -3,7 +3,7 @@ locale: en
 purpose: Allocate the approved telemetry refactor to one outcome-based project Milestone.
 upstream: [Decision](Decision.md)
 downstream: none
-status: draft
+status: approved
 type: roadmap
 nature: normative
 ---
