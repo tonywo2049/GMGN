@@ -862,6 +862,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "将准备指令复制进 Runner 任务书",
             ),
             (
+                ".codex/agents/gmgn_commander.toml",
+                "不得输出 needs_commander，也不得在事项完成前结束",
+                "输出 needs_commander 后结束事项",
+            ),
+            (
                 ".codex/agents/gmgn_runner.toml",
                 "不得创建 Commander",
                 "可以创建 Commander",
@@ -929,6 +934,11 @@ class ValidateSkillsTests(unittest.TestCase):
                 "agents/commander.md",
                 "keep caller-only mechanical workspace setup separate from\neach Runner brief.",
                 "copy caller-only mechanical workspace setup into\neach Runner brief.",
+            ),
+            (
+                "agents/commander.md",
+                "Do not emit `needs_commander` or finish the matter.",
+                "Emit `needs_commander` and finish the matter.",
             ),
             (
                 "agents/coder.md",

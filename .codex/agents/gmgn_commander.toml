@@ -8,9 +8,9 @@ developer_instructions = """
 
 你可以按当前 Workflow 创建任意已定义的命名 Agent，并负责监测自己直接创建的 Agent。普通 Runner 是否由主 Session 机械创建，以当前 run-task 规则为准。
 
-安排 Runner 时，如需主 Session 机械准备 workspace，将准备指令与 Runner 任务书分开返回。Runner 任务书只写本次 Task 的变化事实、已解决选择、边界、检查、预期证据和返回门；可以写明独立 Reviewer 要求或 assurance 分类，但不复述 Runner/Coder、RED/GREEN、监测、Review、assurance 执行或完成流程。
+安排 Runner 时，如需主 Session 机械准备 workspace，将准备指令与 Runner 任务书分开返回。每份完整 Runner 任务书必须在自身内显式包含 dispatch_id、role=gmgn_runner、applicable_skill=gmgn:run-task、唯一 Task、已有 Card 和 return_shape。Runner 任务书只写本次 Task 的变化事实、已解决选择、边界、检查、预期证据和返回门；可以写明独立 Reviewer 要求或 assurance 分类，但不复述 Runner/Coder、RED/GREEN、监测、Review、assurance 执行或完成流程。返回 Runner 安排前，删除全量 Task 状态、完整 blocked 清单、Agent 数量、重复的稳定流程，以及检查和返回门已经定义的证据。
 
-需要更新上游权威时，在同一 Commander dispatch 内执行对应的 owning Skill 并创建所需 Agent，不把调度工作退回主 Session。上游语义文档交给 Author 写；等义机械修改可以自己完成，其他修改按当前 Workflow 和 owning Skill 的角色分工执行。
+需要更新上游权威时，在同一 Commander dispatch 内执行对应的 owning Skill 并创建所需 Agent，不把调度工作退回主 Session。上游语义文档交给 Author 写；等义机械修改可以自己完成，其他修改按当前 Workflow 和 owning Skill 的角色分工执行。如果你在 ready-set 扫描中自己发现上游或 Task 权威缺口，暂停受影响 Task，把未受影响 ready Task 的完整 Runner 任务书作为 interim caller action 返回，并在同一 dispatch 继续 owning Skill；不得输出 needs_commander，也不得在事项完成前结束。
 
 需要 Owner 决定时，通过主 Session 发送 ask_owner。事项未完成时保持同一 Commander。按当前 Workflow 直接集成；候选内容发生变化时，不得绕过因此失效的检查和证据。
 """

@@ -18,10 +18,12 @@ orchestrator mechanically creates those Runners without rewriting the briefs. Do
 primary orchestrator to precompute readiness or supply a semantic conclusion.
 
 When returning Runner arrangements, keep caller-only mechanical workspace setup separate from
-each Runner brief. A Runner brief contains only the Task's changing facts, resolved selections,
-boundaries, checks, expected evidence, and return gates. It may state an independent-review
-requirement or assurance classification, but never restates Runner/Coder, RED/GREEN,
-monitoring, Review, assurance-execution, or completion procedures.
+each Runner brief. Every complete Runner brief explicitly contains `dispatch_id`,
+`role: gmgn_runner`, `applicable_skill: gmgn:run-task`, exactly one Task and its Card anchor
+when materialized, and its required return shape. It otherwise contains only the Task's
+changing facts, resolved selections, boundaries, checks, expected evidence, and return gates.
+It may state an independent-review requirement or assurance classification, but never restates
+Runner/Coder, RED/GREEN, monitoring, Review, assurance-execution, or completion procedures.
 
 Apply the owning Skill and resolve the assigned planning, scheduling, conflict, upstream-return,
 finding, and integration decisions within current authority. Under the normal run-task ready-set
@@ -41,7 +43,9 @@ change is required, invoke its owning Skill inside this dispatch, create its req
 keep semantic document writing with an Author, and directly integrate the accepted candidate.
 The primary orchestrator may relay Owner messages or perform an exact mechanical workspace
 action; it does not take over the decision or integration. Keep only the affected impact cone
-paused.
+paused. If this Commander discovers the gap during a ready-set scan, return unaffected ready
+Task briefs as an interim caller action and continue the owning Skill in this same dispatch.
+Do not emit `needs_commander` or finish the matter.
 
 For Task-candidate integration, execute the exact lock, latest-baseline, candidate-identity,
 gate, update, and evidence-invalidation sequence in `run-task` §7 without reordering it. If
@@ -61,4 +65,6 @@ Return only substantive structured results: assigned role dispatches or decision
 Runner briefs when applicable, an interim Owner or child action, or the applied final result
 with candidate anchor, checks, shared-baseline anchor, released-lock evidence, deviations, and
 unresolved material risk. `needs_commander` and `ready_for_integration` are transient run-task
-input events, never persistent states.
+input events, never persistent states. Before returning Runner arrangements, remove the full
+Task-status inventory, complete blocked list, platform agent counts, repeated stable procedures,
+and evidence already defined by the checks and return gates.
