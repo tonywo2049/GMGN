@@ -2,7 +2,7 @@
 locale: en
 purpose: Allocate the approved telemetry refactor to one outcome-based project Milestone.
 upstream: [Decision](Decision.md)
-downstream: none
+downstream: [Goal](Goal.md)
 status: approved
 type: roadmap
 nature: normative
@@ -20,7 +20,7 @@ nature: normative
 | horizon | `now` |
 | relative priority | `1` |
 | prerequisites | `none` |
-| state | `not-started` |
+| state | `initiated` |
 | accepted_result | `none` |
 
 ### Outcome and allocation value
