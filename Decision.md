@@ -3,7 +3,7 @@ locale: en
 purpose: Record the current project rulings that govern execution telemetry collection.
 upstream: [GMGN](GMGN.md)
 downstream: [Decision Log](DecisionLog.md), [ROADMAP](ROADMAP.md)
-status: approved
+status: draft
 type: decision
 nature: normative
 ---
@@ -29,3 +29,7 @@ nature: normative
 - **D-005** Execution semantics
   - Applies to: Command execution and telemetry operation
   - Decision: Telemetry failure, observer failure, collector outage, or quota exhaustion must neither prevent command execution nor alter `stdin`, `stdout`, `stderr`, signals, working directory, child behavior, exit code, or error propagation. Telemetry errors remain separate and coverage-visible. Performance overhead is observable.
+
+- **D-006** Agent transfer telemetry boundary
+  - Applies to: Shared agent communication telemetry and downstream Requirement and Design analysis
+  - Decision: Record only agent-to-agent communication edges actually observed by the platform, including sender, recipient, transfer kind, ordering/timing information, delivery/result status, and transfer payload. Payload text may be stored only after credential redaction. If a payload body cannot be safely classified or redacted, omit the body while retaining safe transfer metadata and explicitly mark the body unavailable or redacted; do not represent it as an empty message. Do not collect hidden model reasoning or internal context that the platform did not expose as transfer payload, and do not infer unobserved messages from agent lifecycle events or static prompts.
