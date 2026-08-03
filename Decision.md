@@ -24,7 +24,7 @@ nature: normative
 
 - **D-004** Platform fidelity
   - Applies to: Platform observation and aggregation
-  - Decision: On Linux, the wrapper targets reliable descendant `fork`, `clone`, `exec`, and `exit` tracing. On macOS, observation is unprivileged and best-effort, installs no Endpoint Security system extension, and may miss short-lived descendants. Every `exec_command` run exposes coverage and completeness; aggregation must not treat macOS best-effort records as equivalent to complete Linux records. Windows is out of scope.
+  - Decision: On Linux, the wrapper targets reliable descendant `fork`, `clone`, `exec`, and `exit` tracing. On macOS, observation is unprivileged and best-effort, installs no Endpoint Security system extension, and may miss short-lived descendants. Every `exec_command` run exposes its coverage quality and known limitations without claiming completeness beyond what the observer can establish; possible omissions that the observer cannot establish remain unknown. Aggregation must distinguish Linux reliable-tracing records from macOS best-effort records and must not label either platform's records complete. Windows is out of scope.
 
 - **D-005** Execution semantics
   - Applies to: Command execution and telemetry operation
